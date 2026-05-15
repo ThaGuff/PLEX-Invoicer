@@ -1,89 +1,112 @@
 /**
- * Scrapes a business website via the Anthropic API and extracts:
- * - Business name, tagline, contact info
- * - Services / pricing if publicly listed
- * - Returns structured data to pre-populate account + catalog
+ * Scrapes a business website by passing the URL directly to Claude
+ * with web_search tool enabled — Claude fetches and analyzes the page
+ * natively, bypassing all CORS restrictions entirely.
  */
 export async function scrapeWebsite(url) {
-  if (!url || !url.startsWith('http')) {
+  if (!url) return { success: false, error: 'Please enter a URL.' };
+
+  // Normalize URL
+  if (!/^https?:\/\//i.test(url)) {
     url = 'https://' + url.replace(/^\/+/, '');
   }
 
-  // First fetch the page text via a CORS proxy
-  let pageText = '';
-  try {
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(12000) });
-    if (res.ok) {
-      const data = await res.json();
-      // Strip HTML tags and collapse whitespace
-      pageText = (data.contents || '')
-        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-        .replace(/<[^>]+>/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .slice(0, 8000); // cap at 8k chars
-    }
-  } catch {
-    pageText = '';
-  }
-
-  if (!pageText) {
-    return {
-      success: false,
-      error: 'Could not fetch the page. The site may block external requests. You can enter your information manually below.',
-    };
-  }
-
-  // Send to Claude to extract structured info
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: `Extract business and pricing information from this website text. Return ONLY valid JSON, no markdown, no explanation.
+        max_tokens: 1500,
+        tools: [
+          {
+            type: 'web_search_20250305',
+            name: 'web_search',
+          },
+        ],
+        messages: [
+          {
+            role: 'user',
+            content: `Visit this business website and extract their information: ${url}
 
-Website URL: ${url}
-Website text: ${pageText}
+Use web search to fetch the page content. Then return ONLY a valid JSON object with NO markdown fences, NO explanation — just raw JSON.
 
-Return this exact JSON structure:
+JSON structure to return:
 {
   "businessName": "string or null",
-  "tagline": "string or null",
   "phone": "string or null",
   "email": "string or null",
   "address": "string or null",
   "services": [
     {
-      "name": "service name",
-      "description": "brief description",
+      "name": "service or package name",
+      "description": "one sentence description",
       "setupPrice": number or null,
       "monthlyPrice": number or null,
       "oneTimePrice": number or null
     }
   ],
   "pricingFound": true or false,
-  "notes": "any relevant notes about what was or wasn't found"
-}`
-        }]
-      })
+  "notes": "brief note on what was or wasn't found"
+}
+
+Rules:
+- Include ALL services or packages you find listed on the site
+- If pricing is shown, extract the numbers (numbers only, no $ signs)
+- If no pricing is shown, set all price fields to null and pricingFound to false
+- Keep descriptions under 120 characters
+- Return raw JSON only, absolutely no markdown`,
+          },
+        ],
+      }),
     });
 
-    const data = await response.json();
-    const text = data.content?.[0]?.text || '';
-    const cleaned = text.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      return {
+        success: false,
+        error: `API error ${response.status}: ${err?.error?.message || 'Unknown error'}. Please enter your details manually.`,
+      };
+    }
 
+    const data = await response.json();
+
+    // Find the last text block — Claude outputs text after tool use
+    const textBlock = [...(data.content || [])]
+      .reverse()
+      .find(b => b.type === 'text');
+
+    if (!textBlock?.text) {
+      return {
+        success: false,
+        error: 'No content returned from the website scan. Please enter your details manually.',
+      };
+    }
+
+    // Strip any accidental markdown fences
+    const raw = textBlock.text
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```\s*$/i, '')
+      .trim();
+
+    // Extract JSON object if there's surrounding text
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return {
+        success: false,
+        error: 'Could not parse website data. Please enter your details manually.',
+      };
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]);
     return { success: true, data: parsed };
+
   } catch (err) {
+    console.error('Scraper error:', err);
     return {
       success: false,
-      error: 'Could not parse website content. Please enter your information manually.',
+      error: 'Something went wrong during the website scan. Please enter your details manually.',
     };
   }
 }
