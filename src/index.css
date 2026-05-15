@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Sora', system-ui, sans-serif;
+    background-color: #FFFFFF;
+    color: #111111;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  .plex-card {
+    @apply bg-white border border-gray-100 rounded-xl;
+  }
+
+  .plex-input {
+    @apply w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-gray-900 outline-none transition-colors;
+    font-family: 'Sora', sans-serif;
+  }
+  .plex-input:focus {
+    @apply border-brand ring-1 ring-brand/20;
+  }
+
+  .plex-btn-primary {
+    @apply px-5 py-2.5 bg-brand text-white text-sm font-medium rounded-lg hover:bg-brand-dark transition-colors;
+  }
+
+  .plex-btn-secondary {
+    @apply px-5 py-2.5 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors;
+  }
+
+  .section-header {
+    @apply flex items-center gap-3 px-4 py-3 bg-neutral-cream rounded-t-xl cursor-pointer select-none hover:bg-amber-50 transition-colors;
+  }
+
+  .service-row {
+    @apply border-b border-gray-100 last:border-b-0 transition-colors;
+  }
+  .service-row:hover {
+    @apply bg-amber-50/30;
+  }
+  .service-row.selected {
+    @apply bg-amber-50/60;
+  }
+
+  .badge {
+    @apply inline-block text-xs px-2 py-0.5 rounded-full font-medium ml-2;
+  }
+  .badge-popular {
+    @apply bg-amber-100 text-amber-800;
+  }
+  .badge-new {
+    @apply bg-blue-100 text-blue-800;
+  }
+  .badge-addon {
+    @apply bg-gray-100 text-gray-600;
+  }
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #D1D5DB;
+  transition: 0.2s;
+  border-radius: 24px;
+}
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.2s;
+  border-radius: 50%;
+}
+input:checked + .toggle-slider {
+  background-color: #C97B2E;
+}
+input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+}
