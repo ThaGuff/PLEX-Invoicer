@@ -3,15 +3,14 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    box-sizing: border-box;
-  }
+  * { box-sizing: border-box; }
 
   body {
     font-family: 'Sora', system-ui, sans-serif;
-    background-color: #FFFFFF;
-    color: #111111;
+    background-color: #FAFAF8;
+    color: #1C1B17;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   input[type="number"]::-webkit-outer-spin-button,
@@ -19,96 +18,111 @@
     -webkit-appearance: none;
     margin: 0;
   }
-  input[type="number"] {
-    -moz-appearance: textfield;
-  }
+  input[type="number"] { -moz-appearance: textfield; }
 }
 
 @layer components {
-  .plex-card {
-    @apply bg-white border border-gray-100 rounded-xl;
+
+  /* ── Cards ── */
+  .card {
+    @apply bg-white border border-gray-100 rounded-2xl shadow-card;
+  }
+  .card-flat {
+    @apply bg-white border border-gray-100 rounded-2xl;
   }
 
-  .plex-input {
-    @apply w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-gray-900 outline-none transition-colors;
+  /* ── Inputs ── */
+  .field {
+    @apply w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-ink outline-none transition-all;
     font-family: 'Sora', sans-serif;
   }
-  .plex-input:focus {
-    @apply border-brand ring-1 ring-brand/20;
+  .field:focus {
+    @apply border-brand ring-2 ring-brand/10;
+  }
+  .field-price {
+    @apply text-right text-sm border border-gray-200 rounded-lg bg-white text-ink outline-none transition-all px-2 py-1.5;
+    font-family: 'Sora', sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+  .field-price:focus {
+    @apply border-brand ring-2 ring-brand/10;
+  }
+  .field-price:disabled {
+    @apply bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed;
   }
 
-  .plex-btn-primary {
-    @apply px-5 py-2.5 bg-brand text-white text-sm font-medium rounded-lg hover:bg-brand-dark transition-colors;
+  /* ── Buttons ── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-brand text-white text-sm font-medium rounded-xl hover:bg-brand-dark transition-all shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-sm;
+  }
+  .btn-ramp {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-ramp text-ink text-sm font-semibold rounded-xl hover:bg-ramp-dark transition-all shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white text-ink text-sm font-medium rounded-xl border border-gray-200 hover:bg-surface hover:border-gray-300 transition-all;
+  }
+  .btn-danger-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm text-gray-400 hover:text-red-500 transition-colors rounded-lg;
   }
 
-  .plex-btn-secondary {
-    @apply px-5 py-2.5 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors;
-  }
-
-  .section-header {
-    @apply flex items-center gap-3 px-4 py-3 bg-neutral-cream rounded-t-xl cursor-pointer select-none hover:bg-amber-50 transition-colors;
-  }
-
-  .service-row {
-    @apply border-b border-gray-100 last:border-b-0 transition-colors;
-  }
-  .service-row:hover {
-    @apply bg-amber-50/30;
-  }
-  .service-row.selected {
-    @apply bg-amber-50/60;
-  }
-
+  /* ── Badge ── */
   .badge {
-    @apply inline-block text-xs px-2 py-0.5 rounded-full font-medium ml-2;
+    @apply inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full;
   }
-  .badge-popular {
-    @apply bg-amber-100 text-amber-800;
+  .badge-popular { @apply bg-ramp/20 text-ramp-dark border border-ramp/30; }
+  .badge-new { @apply bg-blue-50 text-blue-700 border border-blue-100; }
+  .badge-addon { @apply bg-gray-100 text-gray-500 border border-gray-200; }
+
+  /* ── Section header ── */
+  .section-trigger {
+    @apply flex items-center gap-3 px-5 py-3.5 cursor-pointer select-none transition-colors;
   }
-  .badge-new {
-    @apply bg-blue-100 text-blue-800;
+  .section-trigger:hover { @apply bg-gray-50; }
+
+  /* ── Service row ── */
+  .svc-row {
+    @apply border-b border-gray-50 last:border-b-0 px-5 py-3.5 transition-colors;
   }
-  .badge-addon {
-    @apply bg-gray-100 text-gray-600;
+  .svc-row:hover { @apply bg-gray-50/50; }
+  .svc-row.active { @apply bg-amber-50/50; }
+
+  /* ── Toggle switch ── */
+  .toggle-track {
+    @apply relative inline-block w-10 h-5 cursor-pointer;
   }
+  .toggle-track input { @apply opacity-0 w-0 h-0 absolute; }
+  .toggle-thumb {
+    @apply absolute inset-0 rounded-full transition-all duration-200;
+    background: #D1D5DB;
+  }
+  .toggle-thumb::before {
+    content: '';
+    @apply absolute w-4 h-4 bg-white rounded-full transition-all duration-200;
+    top: 2px; left: 2px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  input:checked ~ .toggle-thumb { background: #C97B2E; }
+  input:checked ~ .toggle-thumb::before { transform: translateX(20px); }
+
+  /* ── Stat pill ── */
+  .stat-pill {
+    @apply flex flex-col items-center justify-center bg-ink text-white rounded-2xl py-4 px-5;
+  }
+  .stat-pill .val {
+    @apply text-2xl font-semibold;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-pill .lbl {
+    @apply text-xs text-ramp font-medium mt-0.5 tracking-wide;
+  }
+
 }
 
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 44px;
-  height: 24px;
-}
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #D1D5DB;
-  transition: 0.2s;
-  border-radius: 24px;
-}
-.toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: 0.2s;
-  border-radius: 50%;
-}
-input:checked + .toggle-slider {
-  background-color: #C97B2E;
-}
-input:checked + .toggle-slider:before {
-  transform: translateX(20px);
-}
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
 
 @media print {
   .no-print { display: none !important; }
