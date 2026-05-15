@@ -3,6 +3,18 @@
 // Solutions, Rocket City Digital, Zellus Marketing, SEOteric, IG Webs) and
 // AI automation agency comps nationwide. Local market prices are
 // 10–20% below major metros; premium for AI/voice services remains high.
+//
+// Redundancy audit completed — each service below covers a distinct channel,
+// trigger, audience, or output. Descriptions are intentionally scoped to avoid
+// overlap. Key boundaries:
+//   • Reputation automation = sending review requests after a job
+//   • GMB management = publishing content and Q&A to the Google listing
+//   • Social posting = Facebook + Instagram only (GBP handled by GMB service)
+//   • Lead nurture = triggered drip for new/cold leads who haven't bought
+//   • Reactivation = win-back campaign for dormant past clients
+//   • Pipeline automation = CRM-side stage logic and task routing
+//   • Web mgmt SEO audit = technical site health check
+//   • SEO content automation = content production and directory submissions
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const YEARLY_DISCOUNT_DEFAULT = 15;
@@ -19,7 +31,9 @@ export const SECTIONS = [
 export const SERVICES = {
 
   // ── Website design & management ─────────────────────────────────────────────
-  // Local Huntsville AL web agencies: $2,500–$6,000 build, $97–$297/mo mgmt
+  // Distinct tiers by page count and scope. Management plans are month-to-month
+  // add-ons; the SEO audit included in Premium covers technical site health only
+  // (not content production, which is handled by the SEO content automation service).
   web: [
     {
       id: 'web-starter',
@@ -32,7 +46,7 @@ export const SERVICES = {
     {
       id: 'web-pro',
       name: 'Pro website (8–12 pages)',
-      desc: 'Full business site with custom design, on-page SEO, contact forms, appointment booking widget, and blog foundation — built by PLEX.',
+      desc: 'Full business site with custom design, on-page SEO foundation, contact forms, appointment booking widget, and blog structure — built by PLEX.',
       setup: 2800,
       monthly: 0,
       badge: 'popular',
@@ -40,7 +54,7 @@ export const SERVICES = {
     {
       id: 'web-premium',
       name: 'Premium website (12+ pages)',
-      desc: 'Multi-section site with custom graphics, case studies, testimonials, advanced SEO, and full PLEX automation integration.',
+      desc: 'Multi-section site with custom graphics, case studies, testimonials, advanced on-page SEO, and full PLEX automation integration.',
       setup: 4500,
       monthly: 0,
     },
@@ -54,14 +68,14 @@ export const SERVICES = {
     {
       id: 'web-mgmt-basic',
       name: 'Website management — Basic',
-      desc: 'Monthly content updates (up to 3 changes), security patches, uptime monitoring, and a monthly performance report from PLEX.',
+      desc: 'Up to 3 content changes per month, security and plugin updates, uptime monitoring, and a monthly site performance report.',
       setup: 0,
       monthly: 97,
     },
     {
       id: 'web-mgmt-pro',
       name: 'Website management — Pro',
-      desc: 'Unlimited content edits, performance optimization, one blog post per month, hosting oversight, and priority PLEX support.',
+      desc: 'Unlimited content edits, one new blog post per month, hosting oversight, load speed optimization, and priority PLEX support.',
       setup: 0,
       monthly: 197,
       badge: 'popular',
@@ -69,19 +83,25 @@ export const SERVICES = {
     {
       id: 'web-mgmt-premium',
       name: 'Website management — Premium',
-      desc: 'Everything in Pro plus new landing page builds, A/B testing, monthly SEO audit, and a dedicated PLEX account manager.',
+      desc: 'Everything in Pro plus new landing page builds, monthly technical SEO audit (site health, crawl errors, Core Web Vitals), and a dedicated PLEX account manager.',
       setup: 0,
       monthly: 347,
     },
   ],
 
   // ── Core automations ─────────────────────────────────────────────────────────
-  // Benchmarked: $197–$397/mo locally; PLEX site shows $197–$697. Adjusted.
+  // Each item covers a distinct trigger and audience:
+  //   Missed call text-back  = inbound missed call → immediate text
+  //   Speed-to-lead          = web form submission → immediate sequence
+  //   Reputation automation  = post-job/visit → review request (not GMB posting)
+  //   Appointment reminders  = pre-appointment → reduce no-shows
+  //   No-show reactivation   = missed appointment → recovery outreach
+  //   Lead nurture drip      = new/cold unsold lead → long-form follow-up sequence
   core: [
     {
       id: 'mctb',
       name: 'Missed call text-back',
-      desc: 'Every missed call gets an automatic text-back within 60 seconds — keeps the conversation alive and the lead warm. Built and managed by PLEX.',
+      desc: 'Every missed call triggers an automatic text within 60 seconds — re-engages the caller before they dial a competitor. Built and managed by PLEX.',
       setup: 247,
       monthly: 97,
       badge: 'popular',
@@ -89,7 +109,7 @@ export const SERVICES = {
     {
       id: 'stl',
       name: 'Speed-to-lead follow-up',
-      desc: 'Instant SMS + email sequence fires the moment a new lead submits a web form. PLEX builds the sequence to your business and offer.',
+      desc: 'Fires an instant SMS and email the moment a new lead submits a web form — responds in minutes, not hours. PLEX builds and manages the sequence.',
       setup: 347,
       monthly: 97,
       badge: 'popular',
@@ -97,7 +117,7 @@ export const SERVICES = {
     {
       id: 'rep',
       name: 'Reputation automation',
-      desc: 'Post-job review requests sent automatically via SMS and email. 4–5 star reviews route to Google; lower scores go to private feedback. Built by PLEX.',
+      desc: 'Automatically requests a review after every completed job or visit. 4–5 star responses route to Google; 1–3 star go to a private feedback form to protect your rating.',
       setup: 247,
       monthly: 97,
       badge: 'popular',
@@ -105,33 +125,38 @@ export const SERVICES = {
     {
       id: 'appt',
       name: 'Appointment reminder & confirmation',
-      desc: 'Multi-step SMS and email reminders with 2-way confirmation before every appointment. Reduces no-shows by up to 40%.',
+      desc: 'Sends multi-step SMS and email reminders before every appointment, with 2-way confirmation. Reduces no-shows by up to 40%.',
       setup: 247,
       monthly: 77,
     },
     {
       id: 'nosh',
       name: 'No-show reactivation',
-      desc: 'Automated re-booking sequence reaches out to no-shows within 24–72 hours — recovers lost appointments without any manual effort.',
+      desc: 'When an appointment is missed, an automated re-booking sequence goes out within 24–72 hours — recovers lost revenue without any manual follow-up.',
       setup: 197,
       monthly: 57,
     },
     {
       id: 'leadnurture',
       name: 'Lead nurture drip sequence',
-      desc: 'Multi-touch SMS and email campaign for new and cold leads — 7 to 14 steps over 30 to 60 days. Fully built and managed by PLEX.',
+      desc: 'Multi-touch SMS and email campaign for new leads who haven\'t booked yet — 7 to 14 steps over 30 to 60 days. Built and managed by PLEX.',
       setup: 447,
       monthly: 127,
     },
   ],
 
   // ── AI & Voice ───────────────────────────────────────────────────────────────
-  // AI/voice commands national-level pricing even in local markets
+  // Each service covers a distinct channel or function:
+  //   Voice AI  = inbound phone calls answered by AI
+  //   Chatbot   = on-site web chat widget (not SMS, not phone)
+  //   AI SMS    = two-way conversational texting (not a fixed drip sequence)
+  //   Call summary = post-call transcription and CRM logging
+  //   Intent scoring = behavior-based lead classification and routing
   ai: [
     {
       id: 'voiceai',
       name: 'Voice AI receptionist',
-      desc: '24/7 AI phone agent answers inbound calls, handles FAQs, qualifies leads, and books appointments — even after hours. Deployed and monitored by PLEX.',
+      desc: '24/7 AI phone agent that answers inbound calls, handles FAQs, qualifies leads, and books appointments — even after hours and on weekends.',
       setup: 897,
       monthly: 247,
       badge: 'popular',
@@ -139,28 +164,28 @@ export const SERVICES = {
     {
       id: 'chatbot',
       name: 'AI website chatbot',
-      desc: 'GPT-powered chat widget installed on your site — captures leads, answers common questions, and sends booking links. Trained on your business by PLEX.',
+      desc: 'GPT-powered chat widget on your website that captures lead info, answers common questions, and drops booking links — trained on your specific business.',
       setup: 597,
       monthly: 147,
     },
     {
       id: 'aisms',
       name: 'AI SMS conversation agent',
-      desc: 'Two-way AI texting for lead qualification, objection handling, and appointment scheduling — runs automatically, around the clock.',
+      desc: 'Handles two-way text conversations with leads — qualifies, answers objections, and schedules appointments automatically without a fixed script.',
       setup: 697,
       monthly: 197,
     },
     {
       id: 'summ',
-      name: 'AI call summary & CRM logging',
-      desc: 'Every inbound call is transcribed, summarized by AI, and automatically logged to the contact record in your PLEX dashboard.',
+      name: 'AI call summary & logging',
+      desc: 'Every inbound call is transcribed and summarized by AI, then automatically logged to the contact record in your PLEX dashboard. No manual note-taking.',
       setup: 497,
       monthly: 127,
     },
     {
       id: 'intent',
       name: 'AI lead intent scoring',
-      desc: 'AI scores every lead hot, warm, or cold based on behavior signals and auto-routes them into the right follow-up sequence.',
+      desc: 'AI evaluates lead behavior signals to classify each contact as hot, warm, or cold — then routes them automatically into the right follow-up sequence.',
       setup: 597,
       monthly: 167,
       badge: 'new',
@@ -168,40 +193,45 @@ export const SERVICES = {
   ],
 
   // ── Marketing & Content ──────────────────────────────────────────────────────
-  // Local Huntsville agencies: SEO $300–$800/mo, social $150–$400/mo
+  // Distinct by platform and output type:
+  //   SEO content      = blog posts, schema, directory submissions (not technical audit)
+  //   Social posting   = Facebook and Instagram only (Google Business is its own service)
+  //   Email newsletter = broadcast to existing contact list (not triggered lead sequences)
+  //   GMB management   = Google listing posts, Q&A, and photo updates (not review requests)
+  //   Ads retargeting  = paid Meta ad audience automation (not organic posting)
   mkt: [
     {
       id: 'seo',
       name: 'SEO content automation',
-      desc: 'AI-assisted monthly blog posts, meta tag optimization, schema markup, and directory submissions — all handled by PLEX.',
+      desc: 'AI-assisted monthly blog posts targeting local search terms, plus meta tag updates, schema markup, and directory/citation submissions — all handled by PLEX.',
       setup: 397,
       monthly: 247,
     },
     {
       id: 'social',
-      name: 'Social media auto-posting',
-      desc: 'Scheduled posts to Facebook, Instagram, and Google Business Profile — 12 to 16 posts per month, written and published by PLEX.',
+      name: 'Social media management',
+      desc: '12 to 16 posts per month to Facebook and Instagram — written, designed, and scheduled by PLEX. Covers captions, graphics, and hashtag strategy.',
       setup: 247,
       monthly: 167,
     },
     {
       id: 'email',
-      name: 'Email newsletter automation',
-      desc: 'Monthly branded newsletters designed, written, and sent to your segmented contact list — fully managed by PLEX.',
+      name: 'Email newsletter',
+      desc: 'One branded newsletter per month designed, written, and sent to your existing contact list — different from automated lead sequences, this is a broadcast to your audience.',
       setup: 297,
       monthly: 127,
     },
     {
       id: 'gmb',
       name: 'Google Business Profile management',
-      desc: 'Weekly posts, Q&A responses, review reply templates, and photo updates — your Google presence managed by PLEX.',
+      desc: 'Weekly posts, Q&A responses, and monthly photo updates to your Google listing — keeps your profile active and ranking. Does not include review request sending (see Reputation Automation).',
       setup: 197,
       monthly: 97,
     },
     {
       id: 'fbads',
-      name: 'Facebook/Instagram ads retargeting',
-      desc: 'Your contact list synced to Meta custom audiences with automated ad triggers on key lead actions — set up and managed by PLEX.',
+      name: 'Paid ads retargeting',
+      desc: 'Your PLEX contact list synced to Meta custom audiences, with automated ad triggers when leads take key actions — managed setup and monthly optimization.',
       setup: 497,
       monthly: 167,
       badge: 'addon',
@@ -209,79 +239,79 @@ export const SERVICES = {
   ],
 
   // ── CRM & Pipeline ───────────────────────────────────────────────────────────
+  // Distinct by CRM function:
+  //   CRM setup      = one-time build of the full system architecture
+  //   Pipeline auto  = stage-based CRM triggers and deal routing logic
+  //   Onboarding     = workflow for YOUR new clients joining your business
+  //   Reactivation   = outreach to dormant past clients (not cold leads)
+  //   Reporting      = automated lead/revenue/booking performance reports
   crm: [
     {
       id: 'crmsetup',
       name: 'PLEX CRM full setup',
-      desc: 'Full pipeline build, custom fields, tags, contact import, user access configuration, and owner orientation — done for you by PLEX.',
+      desc: 'One-time build of your complete CRM: pipeline stages, custom fields, tags, contact import, team access, and a live walkthrough with your owner. Required before pipeline automation.',
       setup: 897,
       monthly: 0,
     },
     {
       id: 'pipeline',
       name: 'Sales pipeline automation',
-      desc: 'Stage-based triggers, task assignments, deal scoring, and automated follow-up cadences built inside your PLEX dashboard.',
+      desc: 'Automates what happens at each pipeline stage — stage-change triggers, task assignments, deal scoring, and follow-up routing inside your PLEX dashboard.',
       setup: 497,
       monthly: 127,
     },
     {
       id: 'onboard',
-      name: 'Client onboarding workflow',
-      desc: 'Welcome sequence, document collection, intake form routing, and kickoff scheduler — fully automated and built by PLEX.',
+      name: 'New client onboarding workflow',
+      desc: 'Automates your own new client experience — welcome messages, intake forms, document collection, and a kickoff call scheduler. Removes manual admin from your process.',
       setup: 397,
       monthly: 77,
     },
     {
       id: 'reactivate',
-      name: 'Past client reactivation campaign',
-      desc: 'Segmented win-back campaign to dormant contacts with AI-personalized SMS and email — built and launched by PLEX.',
+      name: 'Past client reactivation',
+      desc: 'Win-back campaign targeting dormant contacts who\'ve done business with you before — AI-personalized SMS and email to bring them back, not cold lead nurturing.',
       setup: 297,
       monthly: 57,
     },
     {
       id: 'reporting',
-      name: 'Automated reporting dashboard',
-      desc: 'Monthly performance report delivered to your inbox — leads captured, reviews sent, bookings made, and revenue tracked.',
+      name: 'Automated performance reporting',
+      desc: 'Monthly summary delivered to your inbox covering leads captured, reviews sent, appointments booked, and revenue — pulled from your PLEX dashboard automatically.',
       setup: 297,
       monthly: 77,
     },
   ],
 
-  // ── Add-ons & one-time ───────────────────────────────────────────────────────
+  // ── Add-ons & one-time services ──────────────────────────────────────────────
+  // These are stand-alone one-time builds or ongoing support items that don't
+  // fit neatly into a recurring tier — each has a unique scope.
   addon: [
-    {
-      id: 'plexwl',
-      name: 'PLEX branded client sub-account',
-      desc: 'White-labeled PLEX sub-account configured with your client\'s logo, custom domain, email sending, and phone number.',
-      setup: 397,
-      monthly: 0,
-      badge: 'addon',
-    },
     {
       id: 'lp',
       name: 'Landing page & funnel build',
-      desc: 'Single conversion-optimized funnel page with lead form, calendar embed, and automation trigger — built by PLEX on your domain.',
+      desc: 'A single conversion-focused page built for a specific campaign or offer — includes lead form, calendar embed, and automation trigger. Not a full website.',
       setup: 597,
       monthly: 0,
     },
     {
       id: 'training',
-      name: 'Team training & onboarding session',
-      desc: '90-minute live Zoom walkthrough of your PLEX systems — covers dashboards, contacts, pipelines, and day-to-day workflows for your staff.',
+      name: 'Team training session',
+      desc: '90-minute live Zoom session for your staff — covers your PLEX dashboard, contact management, pipeline, and day-to-day workflows. Recorded for future reference.',
       setup: 247,
       monthly: 0,
     },
     {
       id: 'retainer',
       name: 'Managed services retainer',
-      desc: 'Ongoing PLEX support — optimization, updates, new automation builds, and direct access to your account team (up to 5 hrs/mo).',
+      desc: 'Dedicated PLEX support each month — optimization, bug fixes, new automation builds, and direct account team access. Up to 5 hours of active work per month.',
       setup: 0,
       monthly: 397,
     },
     {
       id: 'audit',
       name: 'Marketing & automation audit',
-      desc: 'Full written audit of your current funnels, CRM, and marketing stack — delivered by PLEX with prioritized action items.',
+      desc: 'A full written review of your current funnels, CRM setup, and marketing tools — delivered by PLEX with a prioritized list of what to fix or improve.',
       setup: 397,
       monthly: 0,
       badge: 'addon',
@@ -289,7 +319,7 @@ export const SERVICES = {
     {
       id: 'custom',
       name: 'Custom automation build',
-      desc: 'A bespoke PLEX automation for any unique business process. Scoped and quoted after a discovery call.',
+      desc: 'A bespoke PLEX automation for any workflow not covered by the standard tiers. Scoped and priced after a discovery call.',
       setup: 0,
       monthly: 0,
     },
