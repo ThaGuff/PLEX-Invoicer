@@ -2,22 +2,21 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { getService, SECTIONS } from '../data/services';
 
-// PLEX brand + Ramp yellow
-const INK      = [28,  27,  23];
-const BRAND    = [201, 123, 46];
-const RAMP_Y   = [235, 241, 35];
-const CREAM    = [245, 240, 232];
-const GRAY     = [107, 114, 128];
-const WHITE    = [255, 255, 255];
-const LIGHT_BG = [250, 250, 248];
+// ── Xero color palette ───────────────────────────────────────────────────────
+const XERO_BLUE  = [19,  181, 234];   // #13B5EA — primary
+const XERO_DARK  = [13,  143, 192];   // #0d8fc0 — darker blue
+const XERO_LIGHT = [240, 250, 253];   // #f0fafd — blue tint bg
+const XERO_BORD  = [186, 234, 249];   // #baeaf9 — blue border
+const INK        = [26,  26,  26 ];   // #1a1a1a — near-black
+const INK_MUTED  = [122, 126, 133];   // #7A7E85 — official Xero grey
+const WHITE      = [255, 255, 255];
+const SURFACE    = [245, 247, 248];   // #F5F7F8 — page bg
+const BORDER     = [229, 232, 235];   // #E5E8EB — card border
+const GREEN      = [34,  197, 94 ];   // success
 
 function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
 
-function applyFont(doc, weight='normal', size=9, color=INK) {
-  doc.setFont('helvetica', weight);
-  doc.setFontSize(size);
-  doc.setTextColor(...color);
-}
+function rgb(arr) { return `rgb(${arr.join(',')})` }
 
 export function exportPDF(state) {
   const {
@@ -36,67 +35,104 @@ export function exportPDF(state) {
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
 
-  // ── Header bar (dark ink like Ramp) ─────────────────────────────
-  doc.setFillColor(...INK);
-  doc.rect(0, 0, W, 72, 'F');
+  // ── Header — white with Xero blue bottom border ──────────────────
+  doc.setFillColor(...WHITE);
+  doc.rect(0, 0, W, 70, 'F');
 
-  // Yellow accent strip
-  doc.setFillColor(...RAMP_Y);
-  doc.rect(0, 0, 5, 72, 'F');
+  // Xero blue left accent bar
+  doc.setFillColor(...XERO_BLUE);
+  doc.rect(0, 0, 4, 70, 'F');
 
-  // Logo mark
-  doc.setFillColor(...RAMP_Y);
-  doc.roundedRect(28, 16, 36, 36, 5, 5, 'F');
-  applyFont(doc, 'bold', 18, INK);
-  doc.text('P', 46, 40, { align: 'center' });
+  // Xero blue bottom line on header
+  doc.setFillColor(...XERO_BLUE);
+  doc.rect(0, 68, W, 2.5, 'F');
+
+  // Logo mark — blue square
+  doc.setFillColor(...XERO_BLUE);
+  doc.roundedRect(20, 14, 36, 36, 4, 4, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(...WHITE);
+  doc.text('P', 38, 38, { align: 'center' });
 
   // Agency name
-  applyFont(doc, 'bold', 18, WHITE);
-  doc.text(agencyName, 74, 32);
-  applyFont(doc, 'normal', 8.5, [180, 180, 170]);
-  doc.text([agencyEmail, agencyWebsite, agencyPhone].filter(Boolean).join('  ·  '), 74, 47);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(...INK);
+  doc.text(agencyName, 66, 30);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...INK_MUTED);
+  doc.text([agencyWebsite, agencyEmail, agencyPhone].filter(Boolean).join('  ·  '), 66, 45);
 
-  // Quote label
-  applyFont(doc, 'bold', 9, RAMP_Y);
-  doc.text('QUOTE', W - 36, 28, { align: 'right' });
-  applyFont(doc, 'normal', 8.5, [180, 180, 170]);
-  doc.text(quoteDate || new Date().toLocaleDateString(), W - 36, 42, { align: 'right' });
+  // Quote label right
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...XERO_BLUE);
+  doc.text('QUOTE', W - 32, 28, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...INK_MUTED);
+  doc.text(quoteDate || new Date().toLocaleDateString(), W - 32, 42, { align: 'right' });
 
-  // ── Client + billing mode blocks ──────────────────────────────────
-  const bw = (W - 80 - 12) / 2;
+  // ── Client + billing cards ────────────────────────────────────────
+  const halfW = (W - 72 - 12) / 2;
+  const cardY = 86;
 
-  // Client block
-  doc.setFillColor(...CREAM);
-  doc.roundedRect(36, 88, bw, 76, 8, 8, 'F');
-  applyFont(doc, 'bold', 7.5, BRAND);
-  doc.text('PREPARED FOR', 48, 105);
-  applyFont(doc, 'bold', 14, INK);
-  doc.text(clientName || '—', 48, 122);
-  applyFont(doc, 'normal', 8.5, GRAY);
-  const meta = [clientBiz, clientEmail, clientPhone].filter(Boolean);
-  meta.forEach((m, i) => doc.text(m, 48, 135 + i * 12));
+  // Client card
+  doc.setFillColor(...SURFACE);
+  doc.roundedRect(32, cardY, halfW, 80, 5, 5, 'F');
+  doc.setDrawColor(...BORDER);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(32, cardY, halfW, 80, 5, 5, 'S');
 
-  // Billing mode block
-  const bx = 36 + bw + 12;
-  doc.setFillColor(...INK);
-  doc.roundedRect(bx, 88, bw, 76, 8, 8, 'F');
+  // Blue top stripe on client card
+  doc.setFillColor(...XERO_BLUE);
+  doc.roundedRect(32, cardY, halfW, 4, 5, 5, 'F');
+  doc.rect(32, cardY + 2, halfW, 2, 'F');
 
-  // Yellow accent on billing card
-  doc.setFillColor(...RAMP_Y);
-  doc.roundedRect(bx, 88, bw, 76, 8, 8, 'F');
-  doc.setFillColor(...INK);
-  doc.roundedRect(bx + 2, 90, bw - 2, 74, 6, 6, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(...XERO_BLUE);
+  doc.text('PREPARED FOR', 44, cardY + 18);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(...INK);
+  doc.text(clientName || '—', 44, cardY + 34);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...INK_MUTED);
+  [clientBiz, clientEmail, clientPhone].filter(Boolean).forEach((m, i) => {
+    doc.text(m, 44, cardY + 48 + (i * 11));
+  });
 
-  applyFont(doc, 'bold', 7.5, RAMP_Y);
-  doc.text('BILLING MODE', bx + 12, 105);
-  applyFont(doc, 'bold', 13, WHITE);
-  doc.text(billingMode === 'annual' ? 'Annual plan' : 'Month-to-month', bx + 12, 122);
-  applyFont(doc, 'normal', 8.5, [170, 170, 160]);
+  // Billing card
+  const bx = 32 + halfW + 12;
+  doc.setFillColor(...XERO_LIGHT);
+  doc.roundedRect(bx, cardY, halfW, 80, 5, 5, 'F');
+  doc.setDrawColor(...XERO_BORD);
+  doc.roundedRect(bx, cardY, halfW, 80, 5, 5, 'S');
+
+  doc.setFillColor(...XERO_BLUE);
+  doc.roundedRect(bx, cardY, halfW, 4, 5, 5, 'F');
+  doc.rect(bx, cardY + 2, halfW, 2, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(...XERO_BLUE);
+  doc.text('BILLING MODE', bx + 12, cardY + 18);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(...INK);
+  doc.text(billingMode === 'annual' ? 'Annual plan' : 'Month-to-month', bx + 12, cardY + 34);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...INK_MUTED);
   doc.text(
     billingMode === 'annual'
-      ? `${yearlyDiscount}% off monthly · 12-month commitment`
-      : 'No long-term commitment required',
-    bx + 12, 137
+      ? `${yearlyDiscount}% off monthly rate · 12-month commitment`
+      : 'Standard monthly pricing · Cancel anytime',
+    bx + 12, cardY + 48
   );
 
   // ── Service table ─────────────────────────────────────────────────
@@ -110,7 +146,13 @@ export function exportPDF(state) {
     tableRows.push([{
       content: sec.label.toUpperCase(),
       colSpan: 5,
-      styles: { fillColor: CREAM, fontStyle: 'bold', textColor: BRAND, fontSize: 7.5, cellPadding: { top: 6, bottom: 6, left: 10, right: 10 } }
+      styles: {
+        fillColor: SURFACE,
+        fontStyle: 'bold',
+        textColor: XERO_BLUE,
+        fontSize: 7.5,
+        cellPadding: { top: 6, bottom: 6, left: 10, right: 10 }
+      }
     }]);
 
     secIds.forEach(id => {
@@ -123,38 +165,44 @@ export function exportPDF(state) {
 
       tableRows.push([
         { content: svc.name, styles: { fontStyle: 'bold', fontSize: 8.5, textColor: INK } },
-        { content: svc.desc, styles: { fontSize: 7.5, textColor: GRAY } },
-        { content: isIncl ? '—' : fmt(setupP), styles: { halign: 'right', fontSize: 8.5, textColor: isIncl ? [150,200,150] : INK } },
-        { content: isIncl ? 'Included' : fmt(mthP) + '/mo', styles: { halign: 'right', fontSize: 8.5, textColor: isIncl ? [100,180,100] : INK } },
+        { content: svc.desc, styles: { fontSize: 7.5, textColor: INK_MUTED } },
+        {
+          content: isIncl ? 'Included' : fmt(setupP),
+          styles: { halign: 'right', fontSize: 8.5, textColor: isIncl ? GREEN : INK }
+        },
+        {
+          content: isIncl ? 'Included' : fmt(mthP) + '/mo',
+          styles: { halign: 'right', fontSize: 8.5, textColor: isIncl ? GREEN : INK }
+        },
         {
           content: billingMode === 'annual' && !isIncl && mthRaw > 0 ? fmt(mthP * 12) : '—',
-          styles: { halign: 'right', fontSize: 8.5, textColor: billingMode === 'annual' ? BRAND : GRAY }
+          styles: { halign: 'right', fontSize: 8.5, textColor: billingMode === 'annual' ? XERO_BLUE : INK_MUTED }
         },
       ]);
     });
   });
 
   autoTable(doc, {
-    startY: 180,
+    startY: cardY + 96,
     head: [[
-      { content: 'Service', styles: { halign: 'left' } },
+      { content: 'Service',     styles: { halign: 'left' } },
       { content: 'Description', styles: { halign: 'left' } },
-      { content: 'Setup', styles: { halign: 'right' } },
-      { content: billingMode === 'annual' ? 'Discounted/mo' : 'Monthly', styles: { halign: 'right' } },
-      { content: billingMode === 'annual' ? 'Annual total' : '—', styles: { halign: 'right' } },
+      { content: 'Setup',       styles: { halign: 'right' } },
+      { content: billingMode === 'annual' ? 'Disc. monthly' : 'Monthly', styles: { halign: 'right' } },
+      { content: billingMode === 'annual' ? 'Annual total' : '—',       styles: { halign: 'right' } },
     ]],
     body: tableRows,
-    margin: { left: 36, right: 36 },
+    margin: { left: 32, right: 32 },
     styles: { font: 'helvetica', fontSize: 8.5, cellPadding: 7, textColor: INK },
-    headStyles: { fillColor: INK, textColor: RAMP_Y, fontStyle: 'bold', fontSize: 7.5 },
+    headStyles: { fillColor: XERO_BLUE, textColor: WHITE, fontStyle: 'bold', fontSize: 7.5 },
     columnStyles: {
-      0: { cellWidth: 108 },
+      0: { cellWidth: 110 },
       1: { cellWidth: 'auto' },
       2: { cellWidth: 72, halign: 'right' },
       3: { cellWidth: 80, halign: 'right' },
-      4: { cellWidth: 80, halign: 'right' },
+      4: { cellWidth: 78, halign: 'right' },
     },
-    alternateRowStyles: { fillColor: LIGHT_BG },
+    alternateRowStyles: { fillColor: SURFACE },
   });
 
   // ── Totals block ──────────────────────────────────────────────────
@@ -165,82 +213,98 @@ export function exportPDF(state) {
     const mthRaw = prices[id]?.monthly ?? (getService(id)?.monthly || 0);
     mthSub += billingMode === 'annual' ? mthRaw * (1 - yearlyDiscount / 100) : mthRaw;
   });
-
-  let setupDiscAmt = 0, mthDiscAmt = 0;
   const dv = parseFloat(discValue) || 0;
+  let setupDiscAmt = 0, mthDiscAmt = 0;
   if (discType === 'pct') {
     if (discSetup) setupDiscAmt = setupSub * (dv / 100);
     if (discMonthly) mthDiscAmt = mthSub * (dv / 100);
   } else {
-    if (discSetup && discMonthly) { setupDiscAmt = mthDiscAmt = dv / 2; }
+    if (discSetup && discMonthly) { setupDiscAmt = dv / 2; mthDiscAmt = dv / 2; }
     else if (discSetup) setupDiscAmt = Math.min(dv, setupSub);
     else if (discMonthly) mthDiscAmt = Math.min(dv, mthSub);
   }
   setupDiscAmt = Math.min(setupDiscAmt, setupSub);
   mthDiscAmt = Math.min(mthDiscAmt, mthSub);
   const setupFinal = Math.max(0, setupSub - setupDiscAmt);
-  const mthFinal = Math.max(0, mthSub - mthDiscAmt);
+  const mthFinal   = Math.max(0, mthSub - mthDiscAmt);
 
   const finalY = doc.lastAutoTable.finalY + 16;
-  const tW = 224;
-  const tx = W - 36 - tW;
+  const tW = 220;
+  const tx = W - 32 - tW;
 
-  // Totals card with dark background
-  doc.setFillColor(...INK);
-  doc.roundedRect(tx, finalY, tW, 160, 8, 8, 'F');
-  doc.setFillColor(...RAMP_Y);
-  doc.roundedRect(tx, finalY, tW, 4, 2, 2, 'F');
+  // Totals card — white with blue top stripe
+  doc.setFillColor(...WHITE);
+  doc.roundedRect(tx, finalY, tW, 148, 6, 6, 'F');
+  doc.setDrawColor(...BORDER);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(tx, finalY, tW, 148, 6, 6, 'S');
+  doc.setFillColor(...XERO_BLUE);
+  doc.roundedRect(tx, finalY, tW, 4, 6, 6, 'F');
+  doc.rect(tx, finalY + 2, tW, 2, 'F');
 
   let ty = finalY + 22;
-  const trow = (lbl, val, bold=false, valColor=WHITE) => {
-    applyFont(doc, bold ? 'bold' : 'normal', bold ? 10 : 8.5, bold ? WHITE : [150,150,140]);
+  const trow = (lbl, val, bold = false, valCol = INK) => {
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    doc.setFontSize(bold ? 10 : 8.5);
+    doc.setTextColor(...(bold ? INK : INK_MUTED));
     doc.text(lbl, tx + 14, ty);
-    applyFont(doc, bold ? 'bold' : 'normal', bold ? 10 : 8.5, valColor);
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    doc.setFontSize(bold ? 10 : 8.5);
+    doc.setTextColor(...valCol);
     doc.text(val, tx + tW - 14, ty, { align: 'right' });
     ty += bold ? 18 : 14;
   };
 
-  trow('One-time setup', fmt(setupSub));
-  if (setupDiscAmt > 0) trow('Discount applied', '−' + fmt(setupDiscAmt), false, RAMP_Y);
-  trow('Monthly recurring', fmt(mthSub));
-  if (mthDiscAmt > 0) trow('Discount applied', '−' + fmt(mthDiscAmt), false, RAMP_Y);
+  trow('One-time setup subtotal', fmt(setupSub));
+  if (setupDiscAmt > 0) trow('Setup discount', '−' + fmt(setupDiscAmt), false, XERO_BLUE);
+  trow('Monthly subtotal', fmt(mthSub));
+  if (mthDiscAmt > 0) trow('Monthly discount', '−' + fmt(mthDiscAmt), false, XERO_BLUE);
 
-  doc.setDrawColor(50, 50, 44);
+  // divider
+  doc.setDrawColor(...BORDER);
   doc.setLineWidth(0.5);
   doc.line(tx + 14, ty + 2, tx + tW - 14, ty + 2);
   ty += 12;
 
-  trow('TOTAL DUE TODAY', fmt(setupFinal), true, RAMP_Y);
-  trow('MONTHLY TOTAL', fmt(mthFinal) + '/mo', true, RAMP_Y);
+  trow('TOTAL DUE TODAY', fmt(setupFinal), true, XERO_BLUE);
+  trow('MONTHLY TOTAL', fmt(mthFinal) + '/mo', true, XERO_BLUE);
 
   if (billingMode === 'annual' && mthFinal > 0) {
-    trow(`Annual commitment (12 mo)`, fmt(mthFinal * 12), false, [180, 180, 170]);
+    trow('Annual commitment', fmt(mthFinal * 12), false, INK_MUTED);
   }
 
   // ── Notes ─────────────────────────────────────────────────────────
   if (notes) {
-    const ny = finalY + 180;
-    doc.setFillColor(...CREAM);
-    const noteLines = doc.splitTextToSize(notes, W - 80);
+    const ny = finalY + 160;
+    const noteLines = doc.splitTextToSize(notes, W - 68);
     const noteH = noteLines.length * 13 + 28;
-    doc.roundedRect(36, ny, W - 72, noteH, 6, 6, 'F');
-    applyFont(doc, 'bold', 7.5, BRAND);
-    doc.text('NOTES & TERMS', 48, ny + 16);
-    applyFont(doc, 'normal', 8.5, GRAY);
-    doc.text(noteLines, 48, ny + 30);
+    doc.setFillColor(...SURFACE);
+    doc.roundedRect(32, ny, W - 64, noteH, 5, 5, 'F');
+    doc.setDrawColor(...BORDER);
+    doc.roundedRect(32, ny, W - 64, noteH, 5, 5, 'S');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(...XERO_BLUE);
+    doc.text('NOTES & TERMS', 44, ny + 16);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(...INK_MUTED);
+    doc.text(noteLines, 44, ny + 30);
   }
 
   // ── Footer ────────────────────────────────────────────────────────
-  doc.setFillColor(...INK);
-  doc.rect(0, H - 30, W, 30, 'F');
-  doc.setFillColor(...RAMP_Y);
-  doc.rect(0, H - 30, 4, 30, 'F');
-  applyFont(doc, 'normal', 8, [150, 150, 140]);
+  doc.setFillColor(...WHITE);
+  doc.rect(0, H - 28, W, 28, 'F');
+  doc.setFillColor(...XERO_BLUE);
+  doc.rect(0, H - 28, W, 1.5, 'F');
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(...INK_MUTED);
   doc.text(
     `${agencyName}  ·  ${agencyWebsite}  ·  ${agencyEmail}  ·  ${agencyPhone}`,
-    W / 2, H - 11, { align: 'center' }
+    W / 2, H - 10, { align: 'center' }
   );
 
-  const fn = `PLEX_Quote_${(clientName || 'Client').replace(/\s+/g,'_')}_${(quoteDate||'').replace(/[\s,]+/g,'_') || Date.now()}.pdf`;
+  const fn = `PLEX_Quote_${(clientName || 'Client').replace(/\s+/g,'_')}.pdf`;
   doc.save(fn);
 }

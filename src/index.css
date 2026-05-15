@@ -6,11 +6,13 @@
   * { box-sizing: border-box; }
 
   body {
-    font-family: 'Sora', system-ui, sans-serif;
-    background-color: #FAFAF8;
-    color: #1C1B17;
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #F5F7F8;
+    color: #1a1a1a;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-size: 14px;
+    line-height: 1.5;
   }
 
   input[type="number"]::-webkit-outer-spin-button,
@@ -23,106 +25,153 @@
 
 @layer components {
 
-  /* ── Cards ── */
+  /* ── Cards — Xero uses clean white with subtle border+shadow ── */
   .card {
-    @apply bg-white border border-gray-100 rounded-2xl shadow-card;
-  }
-  .card-flat {
-    @apply bg-white border border-gray-100 rounded-2xl;
+    background: #FFFFFF;
+    border: 1px solid #E5E8EB;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   }
 
-  /* ── Inputs ── */
+  /* ── Inputs — Xero style: white bg, grey border, blue focus ring ── */
   .field {
-    @apply w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-ink outline-none transition-all;
-    font-family: 'Sora', sans-serif;
+    @apply w-full px-3 py-2 text-sm border rounded outline-none transition-all bg-white text-ink;
+    border-color: #BFC3C8;
+    border-radius: 6px;
+    font-family: 'Inter', system-ui, sans-serif;
   }
   .field:focus {
-    @apply border-brand ring-2 ring-brand/10;
+    border-color: #13B5EA;
+    box-shadow: 0 0 0 3px rgba(19,181,234,0.15);
   }
+  .field::placeholder { color: #a0a4ab; }
+
   .field-price {
-    @apply text-right text-sm border border-gray-200 rounded-lg bg-white text-ink outline-none transition-all px-2 py-1.5;
-    font-family: 'Sora', sans-serif;
+    @apply text-right text-sm border rounded outline-none transition-all bg-white text-ink px-2 py-1.5;
+    border-color: #BFC3C8;
+    border-radius: 6px;
+    font-family: 'Inter', system-ui, sans-serif;
     font-variant-numeric: tabular-nums;
   }
   .field-price:focus {
-    @apply border-brand ring-2 ring-brand/10;
+    border-color: #13B5EA;
+    box-shadow: 0 0 0 3px rgba(19,181,234,0.15);
   }
   .field-price:disabled {
-    @apply bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed;
+    background: #F5F7F8;
+    color: #BFC3C8;
+    border-color: #E5E8EB;
+    cursor: not-allowed;
   }
 
-  /* ── Buttons ── */
+  /* ── Buttons — Xero primary: solid Xero Blue ── */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-brand text-white text-sm font-medium rounded-xl hover:bg-brand-dark transition-all shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-sm;
+    @apply inline-flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed;
+    background: #13B5EA;
+    border-radius: 6px;
+    padding: 9px 20px;
+    border: none;
+    box-shadow: 0 1px 2px rgba(19,181,234,0.3);
   }
-  .btn-ramp {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-ramp text-ink text-sm font-semibold rounded-xl hover:bg-ramp-dark transition-all shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed;
+  .btn-primary:hover:not(:disabled) {
+    background: #0d8fc0;
+    box-shadow: 0 2px 6px rgba(19,181,234,0.35);
   }
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white text-ink text-sm font-medium rounded-xl border border-gray-200 hover:bg-surface hover:border-gray-300 transition-all;
-  }
-  .btn-danger-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm text-gray-400 hover:text-red-500 transition-colors rounded-lg;
-  }
+  .btn-primary:active:not(:disabled) { background: #0a6f97; }
 
-  /* ── Badge ── */
-  .badge {
-    @apply inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full;
+  /* Xero secondary: white with blue border */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 text-sm font-semibold transition-all;
+    background: #FFFFFF;
+    color: #13B5EA;
+    border: 1.5px solid #13B5EA;
+    border-radius: 6px;
+    padding: 8px 20px;
   }
-  .badge-popular { @apply bg-ramp/20 text-ramp-dark border border-ramp/30; }
-  .badge-new { @apply bg-blue-50 text-blue-700 border border-blue-100; }
-  .badge-addon { @apply bg-gray-100 text-gray-500 border border-gray-200; }
+  .btn-secondary:hover { background: #e8f8fd; }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 text-sm font-medium transition-all;
+    background: #FFFFFF;
+    color: #1a1a1a;
+    border: 1px solid #E5E8EB;
+    border-radius: 6px;
+    padding: 8px 20px;
+  }
+  .btn-ghost:hover { background: #F5F7F8; border-color: #BFC3C8; }
+
+  .btn-danger-ghost {
+    @apply inline-flex items-center justify-center gap-2 text-sm text-ink-muted transition-colors;
+    padding: 8px 16px;
+    border-radius: 6px;
+  }
+  .btn-danger-ghost:hover { color: #e53e3e; background: #fff5f5; }
+
+  /* ── Badges ── */
+  .badge {
+    @apply inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded;
+  }
+  .badge-popular {
+    background: #e8f8fd;
+    color: #0d8fc0;
+    border: 1px solid #baeaf9;
+  }
+  .badge-new {
+    background: #e6f6ff;
+    color: #0070c0;
+    border: 1px solid #b3e0ff;
+  }
+  .badge-addon {
+    background: #F5F7F8;
+    color: #7A7E85;
+    border: 1px solid #E5E8EB;
+  }
 
   /* ── Section header ── */
   .section-trigger {
-    @apply flex items-center gap-3 px-5 py-3.5 cursor-pointer select-none transition-colors;
+    @apply flex items-center gap-3 px-5 py-4 cursor-pointer select-none transition-colors w-full text-left;
   }
-  .section-trigger:hover { @apply bg-gray-50; }
+  .section-trigger:hover { background: #F5F7F8; }
 
   /* ── Service row ── */
   .svc-row {
-    @apply border-b border-gray-50 last:border-b-0 px-5 py-3.5 transition-colors;
+    @apply border-b last:border-b-0 px-5 py-3.5 transition-colors;
+    border-color: #F0F3F5;
   }
-  .svc-row:hover { @apply bg-gray-50/50; }
-  .svc-row.active { @apply bg-amber-50/50; }
+  .svc-row:hover { background: #F8FAFB; }
+  .svc-row.active { background: #F0FAFD; }
+  .svc-row.active:hover { background: #e8f8fd; }
 
-  /* ── Toggle switch ── */
+  /* ── Toggle switch — Xero blue when on ── */
   .toggle-track {
-    @apply relative inline-block w-10 h-5 cursor-pointer;
+    @apply relative inline-block cursor-pointer;
+    width: 36px;
+    height: 20px;
   }
-  .toggle-track input { @apply opacity-0 w-0 h-0 absolute; }
+  .toggle-track input { @apply sr-only; }
   .toggle-thumb {
     @apply absolute inset-0 rounded-full transition-all duration-200;
-    background: #D1D5DB;
+    background: #BFC3C8;
   }
   .toggle-thumb::before {
     content: '';
-    @apply absolute w-4 h-4 bg-white rounded-full transition-all duration-200;
-    top: 2px; left: 2px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    @apply absolute bg-white rounded-full transition-all duration-200;
+    width: 14px; height: 14px;
+    top: 3px; left: 3px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
   }
-  input:checked ~ .toggle-thumb { background: #C97B2E; }
-  input:checked ~ .toggle-thumb::before { transform: translateX(20px); }
-
-  /* ── Stat pill ── */
-  .stat-pill {
-    @apply flex flex-col items-center justify-center bg-ink text-white rounded-2xl py-4 px-5;
-  }
-  .stat-pill .val {
-    @apply text-2xl font-semibold;
-    font-variant-numeric: tabular-nums;
-  }
-  .stat-pill .lbl {
-    @apply text-xs text-ramp font-medium mt-0.5 tracking-wide;
-  }
-
+  input:checked ~ .toggle-thumb { background: #13B5EA; }
+  input:checked ~ .toggle-thumb::before { transform: translateX(16px); }
 }
+
+/* ── Xero-style dividers ── */
+hr { border-color: #E5E8EB; }
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+::-webkit-scrollbar-thumb { background: #BFC3C8; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #7A7E85; }
 
 @media print {
   .no-print { display: none !important; }

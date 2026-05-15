@@ -4,50 +4,53 @@ export default {
   theme: {
     extend: {
       colors: {
-        // PLEX brand (from plexautomation.io)
-        brand: {
-          DEFAULT: '#C97B2E',
-          light: '#E5A00D',
-          dark: '#9a5a1a',
-          50:  '#fdf8f0',
-          100: '#f9edd8',
-          200: '#f2d9ac',
-          300: '#e8bf76',
-          400: '#dca04a',
-          500: '#C97B2E',
-          600: '#b56424',
-          700: '#964f1d',
-          800: '#7a3f1a',
-          900: '#633417',
+        // ── Xero brand palette ──────────────────────────────────────
+        // Primary: Xero Blue  #13B5EA  (official hex from brand guidelines)
+        // Secondary accents derived from the same hue family
+        xero: {
+          DEFAULT:  '#13B5EA',   // Xero Blue — primary CTA, links, highlights
+          dark:     '#0d8fc0',   // Hover / pressed state
+          darker:   '#0a6f97',   // Active / deep
+          light:    '#e8f8fd',   // Tinted backgrounds, selected rows
+          lighter:  '#f3fbfe',   // Hover row tint
+          50:       '#f0faff',
+          100:      '#e0f5fe',
+          200:      '#baeaf9',
+          300:      '#7dd9f4',
+          400:      '#38c3ed',
+          500:      '#13B5EA',   // brand default
+          600:      '#0d8fc0',
+          700:      '#0a6f97',
+          800:      '#0b5778',
+          900:      '#0d4764',
         },
-        // Ramp.com yellow accent
-        ramp: {
-          DEFAULT: '#EBF123',
-          dark: '#c8cc10',
-          50: '#fdfee8',
-          100: '#fafcc2',
-          200: '#f5f788',
-          300: '#EBF123',
-          400: '#d4d910',
-          500: '#b8bb0b',
-        },
-        // UI neutrals (Ramp-influenced dark)
+        // Text — Xero uses near-black, not pure black
         ink: {
-          DEFAULT: '#1C1B17',
-          soft: '#2d2c26',
-          muted: '#6b6a62',
+          DEFAULT: '#1a1a1a',
+          muted:   '#7A7E85',   // official Xero grey
+          subtle:  '#a0a4ab',
         },
-        cream: '#F5F0E8',
-        surface: '#FAFAF8',
+        // Surfaces
+        surface: {
+          DEFAULT: '#FFFFFF',
+          subtle:  '#F5F7F8',   // Xero's off-white page background
+          border:  '#E5E8EB',   // Dividers / card borders
+          hover:   '#F0F4F6',   // Row hover
+        },
       },
       fontFamily: {
-        sans: ['Sora', 'system-ui', 'sans-serif'],
+        // Xero uses a custom font but pairs with clean sans-serifs
+        sans: ['"XeroSans"', 'Inter', 'system-ui', 'sans-serif'],
+      },
+      borderRadius: {
+        'xero': '6px',   // Xero uses tighter radii than rounded-xl
+        'xero-lg': '10px',
       },
       boxShadow: {
-        'card': '0 1px 3px rgba(28,27,23,0.06), 0 1px 2px rgba(28,27,23,0.04)',
-        'card-hover': '0 4px 12px rgba(28,27,23,0.1), 0 2px 4px rgba(28,27,23,0.06)',
-        'elevated': '0 8px 24px rgba(28,27,23,0.12)',
-      }
+        'xero-card': '0 1px 4px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
+        'xero-card-hover': '0 4px 12px rgba(0,0,0,0.12)',
+        'xero-btn': '0 1px 2px rgba(19,181,234,0.25)',
+      },
     },
   },
   plugins: [],
