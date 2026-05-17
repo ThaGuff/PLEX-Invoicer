@@ -6,6 +6,7 @@ import {
 import { useAccount } from '../context/AccountContext';
 import { api } from '../utils/api';
 import { scrapeWebsite } from '../utils/scraper';
+import FeeRulesSettings from './FeeRulesSettings';
 
 const COLORS = [
   '#13B5EA','#6366f1','#8b5cf6','#ec4899','#f97316',
@@ -578,6 +579,12 @@ export default function AccountSettings({ onClose }) {
           </section>
 
         </div>
+
+          {/* F8: Fee rules */}
+          <section>
+            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">Payment & fee rules</p>
+            <FeeRulesSettings accountId={activeId} accent={accent} />
+          </section>
 
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t shrink-0" style={{ borderColor: '#E5E8EB', background: '#FAFAFA' }}>

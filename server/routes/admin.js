@@ -446,3 +446,166 @@ async function generateWelcomePDF({ displayName, businessName, loginUrl, support
 })();
 
 export default router;
+
+// ── Account suspension ────────────────────────────────────────────
+router.post('/user/:id/suspend', async (req, res) => {
+  const sb = getSupabaseAdmin();
+  if (!sb) return res.status(503).json({ error: 'Supabase not configured' });
+  try {
+    await sb.auth.admin.updateUserById(req.params.id, { ban_duration: '87600h' }); // 10 years
+    await db.execute(`UPDATE accounts SET subscription_status = 'suspended' WHERE owner_id = ?`, [req.params.id]);
+    res.json({ ok: true, status: 'suspended' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/user/:id/unsuspend', async (req, res) => {
+  const sb = getSupabaseAdmin();
+  if (!sb) return res.status(503).json({ error: 'Supabase not configured' });
+  try {
+    await sb.auth.admin.updateUserById(req.params.id, { ban_duration: 'none' });
+    await db.execute(`UPDATE accounts SET subscription_status = 'trialing' WHERE owner_id = ? AND subscription_status = 'suspended'`, [req.params.id]);
+    res.json({ ok: true, status: 'active' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Password reset email ──────────────────────────────────────────
+router.post('/user/:id/reset-password', async (req, res) => {
+  const sb = getSupabaseAdmin();
+  if (!sb) return res.status(503).json({ error: 'Supabase not configured' });
+  try {
+    const { data: user } = await sb.auth.admin.getUserById(req.params.id);
+    if (!user?.user?.email) return res.status(404).json({ error: 'User not found' });
+    const appUrl = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
+    const { error } = await sb.auth.resetPasswordForEmail(user.user.email, {
+      redirectTo: `${appUrl}/reset-password`,
+    });
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ ok: true, email: user.user.email });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Resend confirmation email ─────────────────────────────────────
+router.post('/user/:id/resend-confirmation', async (req, res) => {
+  const sb = getSupabaseAdmin();
+  if (!sb) return res.status(503).json({ error: 'Supabase not configured' });
+  try {
+    const { data: u } = await sb.auth.admin.getUserById(req.params.id);
+    if (!u?.user?.email) return res.status(404).json({ error: 'User not found' });
+    // Force-confirm their email instead (better UX — no action needed)
+    await sb.auth.admin.updateUserById(req.params.id, { email_confirm: true });
+    res.json({ ok: true, confirmed: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Override plan ─────────────────────────────────────────────────
+router.post('/user/:id/set-plan', async (req, res) => {
+  const { plan, status } = req.body;
+  if (!plan) return res.status(400).json({ error: 'plan required' });
+  try {
+    await db.execute(
+      `UPDATE accounts SET plan = ?, subscription_status = ? WHERE owner_id = ?`,
+      [plan, status || 'active', req.params.id]
+    );
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Delete user account ───────────────────────────────────────────
+router.delete('/user/:id', async (req, res) => {
+  const sb = getSupabaseAdmin();
+  if (!sb) return res.status(503).json({ error: 'Supabase not configured' });
+  try {
+    // Delete from DB first (cascade)
+    const acc = await db.execute(`SELECT id FROM accounts WHERE owner_id = ?`, [req.params.id]);
+    for (const a of acc.rows) {
+      await db.execute(`DELETE FROM accounts WHERE id = ?`, [a.id]);
+    }
+    // Delete from Supabase auth
+    const { error } = await sb.auth.admin.deleteUser(req.params.id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Generate magic login link for user ───────────────────────────
+router.post('/user/:id/magic-link', async (req, res) => {
+  const sb = getSupabaseAdmin();
+  if (!sb) return res.status(503).json({ error: 'Supabase not configured' });
+  try {
+    const { data: u } = await sb.auth.admin.getUserById(req.params.id);
+    if (!u?.user?.email) return res.status(404).json({ error: 'User not found' });
+    const appUrl = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
+    const { data, error } = await sb.auth.admin.generateLink({
+      type: 'magiclink',
+      email: u.user.email,
+      options: { redirectTo: `${appUrl}/dashboard` },
+    });
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ ok: true, link: data.properties?.action_link });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Activity log for a user ───────────────────────────────────────
+router.get('/user/:id/activity', async (req, res) => {
+  try {
+    const acc = await db.execute(`SELECT id FROM accounts WHERE owner_id = ?`, [req.params.id]);
+    if (!acc.rows.length) return res.json({ events: [] });
+    const accountId = acc.rows[0].id;
+
+    const [quotes, invoices, engagement, reminders] = await Promise.all([
+      db.execute(`SELECT 'quote_created' as type, number as ref, created_at as ts FROM quotes WHERE account_id = ? ORDER BY created_at DESC LIMIT 20`, [accountId]),
+      db.execute(`SELECT 'invoice_created' as type, number as ref, created_at as ts FROM invoices WHERE account_id = ? ORDER BY created_at DESC LIMIT 20`, [accountId]),
+      db.execute(`SELECT ie.event as type, i.number as ref, ie.ts FROM invoice_engagement ie JOIN invoices i ON ie.invoice_id = i.id WHERE i.account_id = ? ORDER BY ie.ts DESC LIMIT 20`, [accountId]),
+      db.execute(`SELECT 'reminder_sent' as type, i.number as ref, r.sent_at as ts FROM reminders r JOIN invoices i ON r.invoice_id = i.id WHERE i.account_id = ? ORDER BY r.sent_at DESC LIMIT 10`, [accountId]),
+    ]);
+
+    const events = [
+      ...quotes.rows, ...invoices.rows, ...engagement.rows, ...reminders.rows,
+    ].filter(e => e.ts).sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 40);
+
+    res.json({ events });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── System health check ───────────────────────────────────────────
+router.get('/health', async (req, res) => {
+  const checks = {
+    database: false,
+    supabase: false,
+    smtp:     false,
+    openai:   false,
+    stripe:   false,
+  };
+
+  // DB
+  try { await db.execute('SELECT 1'); checks.database = true; } catch {}
+
+  // Supabase
+  const sb = getSupabaseAdmin();
+  if (sb) { try { await sb.auth.admin.listUsers({ perPage: 1 }); checks.supabase = true; } catch {} }
+
+  // SMTP (just check env vars)
+  checks.smtp   = !!(process.env.SMTP_HOST && process.env.SMTP_USER);
+  checks.openai = !!process.env.OPENAI_API_KEY;
+  checks.stripe = !!process.env.STRIPE_SECRET_KEY;
+
+  const allOk = Object.values(checks).every(Boolean);
+  res.status(allOk ? 200 : 207).json({ ok: allOk, checks, ts: new Date().toISOString() });
+});
+
+// ── Subscriptions overview ────────────────────────────────────────
+router.get('/subscriptions', async (req, res) => {
+  try {
+    const accs = await db.execute(`
+      SELECT a.*, 
+             (SELECT COUNT(*) FROM invoices i WHERE i.account_id = a.id AND i.status = 'paid') as paid_invoices,
+             (SELECT COALESCE(SUM(amount_paid),0) FROM invoices i WHERE i.account_id = a.id) as total_revenue,
+             (SELECT MAX(created_at) FROM quotes q WHERE q.account_id = a.id) as last_quote_at,
+             (SELECT MAX(created_at) FROM invoices iv WHERE iv.account_id = a.id) as last_invoice_at
+      FROM accounts a
+      WHERE a.id != 'plex-master'
+      ORDER BY a.created_at DESC
+    `);
+    res.json(accs.rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});

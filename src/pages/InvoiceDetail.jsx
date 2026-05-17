@@ -4,6 +4,7 @@ import { Download, Send, CheckCircle, Bell, Link, Copy, ArrowLeft, Trash2, Exter
 import { useAccount } from '../context/AccountContext';
 import { api } from '../utils/api';
 import EngagementTimeline from '../components/EngagementTimeline';
+import VersionHistory from '../components/VersionHistory';
 import { exportPDF } from '../utils/exportPDF';
 
 function fmt(n) { return '$' + Math.round(n || 0).toLocaleString(); }
@@ -272,6 +273,11 @@ export default function InvoiceDetail() {
           <div className="card p-4">
             <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">Client engagement</p>
             <EngagementTimeline invoiceId={invoice?.id} />
+          </div>
+
+          {/* F9: Version history */}
+          <div className="card p-4">
+            <VersionHistory invoiceId={invoice?.id} />
           </div>
 
           {/* Timeline */}
