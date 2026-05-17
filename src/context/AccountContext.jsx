@@ -5,15 +5,27 @@ const AccountContext = createContext(null);
 
 export function AccountProvider({ children }) {
   const [accounts, setAccounts]   = useState([]);
-  const [activeId, setActiveId]   = useState(() => localStorage.getItem('plex_active_account') || 'plex-master');
+  const [activeId, setActiveId]   = useState(null); // null until accounts load
   const [loading, setLoading]     = useState(true);
 
-  const account = accounts.find(a => a.id === activeId) || accounts[0];
+  const account = accounts.find(a => a.id === activeId) || accounts[0] || null;
 
   const loadAccounts = useCallback(async () => {
     try {
       const list = await api.accounts.list();
       setAccounts(list);
+
+      // Set active account: prefer saved preference, but only if user owns it
+      const saved = localStorage.getItem('plex_active_account');
+      const ownedIds = list.map(a => a.id);
+
+      if (saved && ownedIds.includes(saved)) {
+        setActiveId(saved);
+      } else if (list.length > 0) {
+        // Default to first account (backend already scoped to user's own accounts)
+        setActiveId(list[0].id);
+        localStorage.setItem('plex_active_account', list[0].id);
+      }
     } catch (e) {
       console.error('Failed to load accounts:', e);
     } finally {
@@ -22,7 +34,10 @@ export function AccountProvider({ children }) {
   }, []);
 
   useEffect(() => { loadAccounts(); }, [loadAccounts]);
-  useEffect(() => { localStorage.setItem('plex_active_account', activeId); }, [activeId]);
+
+  useEffect(() => {
+    if (activeId) localStorage.setItem('plex_active_account', activeId);
+  }, [activeId]);
 
   const refreshAccount = useCallback(async (id) => {
     try {
@@ -32,7 +47,10 @@ export function AccountProvider({ children }) {
     } catch (e) { console.error(e); }
   }, [activeId]);
 
-  const switchAccount = useCallback((id) => setActiveId(id), []);
+  const switchAccount = useCallback((id) => {
+    setActiveId(id);
+    localStorage.setItem('plex_active_account', id);
+  }, []);
 
   const createAccount = useCallback(async (data) => {
     const created = await api.accounts.create(data);
@@ -50,14 +68,19 @@ export function AccountProvider({ children }) {
     if (id === 'plex-master') return;
     await api.accounts.delete(id);
     setAccounts(prev => prev.filter(a => a.id !== id));
-    if (activeId === id) setActiveId('plex-master');
-  }, [activeId]);
+    if (activeId === id) {
+      const remaining = accounts.filter(a => a.id !== id);
+      if (remaining.length > 0) {
+        setActiveId(remaining[0].id);
+      }
+    }
+  }, [activeId, accounts]);
 
   // Custom sections
   const addCustomSection = useCallback(async (accountId, section) => {
     const created = await api.accounts.addSection(accountId, section);
     setAccounts(prev => prev.map(a => a.id === accountId
-      ? { ...a, customSections: [...(a.customSections || []), { ...created, id: created.id }] }
+      ? { ...a, customSections: [...(a.customSections || []), created] }
       : a
     ));
     return created.id;
@@ -74,9 +97,11 @@ export function AccountProvider({ children }) {
   const deleteCustomSection = useCallback(async (accountId, sectionId) => {
     await api.accounts.deleteSection(accountId, sectionId);
     setAccounts(prev => prev.map(a => a.id === accountId
-      ? { ...a,
+      ? {
+          ...a,
           customSections: (a.customSections || []).filter(s => s.id !== sectionId),
-          customItems: (a.customItems || []).filter(i => i.section_id !== sectionId) }
+          customItems: (a.customItems || []).filter(i => i.section_id !== sectionId),
+        }
       : a
     ));
   }, []);

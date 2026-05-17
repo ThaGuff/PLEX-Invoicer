@@ -4,25 +4,60 @@ import { v4 as uuid } from 'uuid';
 
 const router = Router();
 
-// GET all accounts for the authenticated user
+// Ryan's Supabase user ID — only this user can see plex-master
+// Set via PLEX_OWNER_EMAIL env var, checked against user email
+function isOwner(req) {
+  const ownerEmail = process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com';
+  return req.user?.email === ownerEmail || req.user?.id === 'dev-user';
+}
+
+// GET accounts for the authenticated user
 router.get('/', async (req, res) => {
   try {
     const userId = req.user?.id;
-    let result;
+
     if (userId === 'dev-user') {
-      result = await db.execute(`SELECT * FROM accounts ORDER BY created_at ASC`);
-    } else {
-      // Users see their own accounts + plex-master (if they are Ryan)
-      result = await db.execute(
-        `SELECT * FROM accounts WHERE owner_id = ? OR id = 'plex-master' ORDER BY created_at ASC`,
-        [userId]
-      );
+      // Dev mode — show all accounts
+      const result = await db.execute(`SELECT * FROM accounts ORDER BY created_at ASC`);
+      return res.json(result.rows);
     }
-    res.json(result.rows);
+
+    // Real users: only see accounts they own
+    // plex-master is ONLY visible to Ryan
+    const ownedAccounts = await db.execute(
+      `SELECT * FROM accounts WHERE owner_id = ? ORDER BY created_at ASC`,
+      [userId]
+    );
+
+    if (isOwner(req)) {
+      // Ryan also sees plex-master
+      const master = await db.execute(`SELECT * FROM accounts WHERE id = 'plex-master'`);
+      const combined = [...master.rows, ...ownedAccounts.rows.filter(a => a.id !== 'plex-master')];
+      return res.json(combined);
+    }
+
+    // Everyone else: just their own accounts
+    // If they have none yet, auto-create one from their auth profile
+    if (ownedAccounts.rows.length === 0) {
+      const name = req.user.user_metadata?.full_name
+        || req.user.email?.split('@')[0]?.replace(/[^a-zA-Z0-9 ]/g, ' ')
+        || 'My Business';
+      const id = `acc-${uuid()}`;
+      await db.execute(
+        `INSERT INTO accounts (id, owner_id, name, email, logo_initial, primary_color, plan, subscription_status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, userId, name, req.user.email || '',
+         name[0]?.toUpperCase() || 'A', '#13B5EA', 'starter', 'trialing']
+      );
+      const created = await db.execute(`SELECT * FROM accounts WHERE id = ?`, [id]);
+      return res.json(created.rows);
+    }
+
+    res.json(ownedAccounts.rows);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// GET single account with full custom catalog
+// GET single account with custom catalog
 router.get('/:id', async (req, res) => {
   try {
     const acc = await db.execute(`SELECT * FROM accounts WHERE id = ?`, [req.params.id]);
@@ -48,8 +83,7 @@ router.post('/', async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [id, owner_id, name, email || '', phone || '', website || '',
        logo_initial || (name?.[0]?.toUpperCase() || 'A'),
-       logo_url || null,
-       primary_color || '#13B5EA', plan || 'starter']
+       logo_url || null, primary_color || '#13B5EA', plan || 'starter']
     );
     const created = await db.execute(`SELECT * FROM accounts WHERE id = ?`, [id]);
     res.json({ ...created.rows[0], customSections: [], customItems: [] });
@@ -82,7 +116,7 @@ router.delete('/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Custom catalog: sections ──────────────────────────────────────
+// ── Custom catalog: sections ─────────────────────────────────────
 router.post('/:id/sections', async (req, res) => {
   try {
     const id = `sec-${uuid()}`;
@@ -117,7 +151,7 @@ router.delete('/:id/sections/:sid', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Custom catalog: items ─────────────────────────────────────────
+// ── Custom catalog: items ────────────────────────────────────────
 router.post('/:id/items', async (req, res) => {
   try {
     const id = `item-${uuid()}`;
@@ -157,17 +191,14 @@ router.delete('/:id/items/:iid', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Logo upload ───────────────────────────────────────────────────
-// Accepts base64 data URL, stores reference in logo_url field
-// For production, swap this to upload to S3/Cloudflare R2
+// ── Logo upload ──────────────────────────────────────────────────
 router.post('/:id/logo', async (req, res) => {
   try {
     const { logo_data_url } = req.body;
-    if (!logo_data_url) return res.status(400).json({ error: 'logo_data_url required' });
-    if (!logo_data_url.startsWith('data:image/')) return res.status(400).json({ error: 'Must be an image data URL' });
-    // For now store the data URL directly (works, but large — production should use R2/S3)
-    await db.execute(`UPDATE accounts SET logo_url = ? WHERE id = ?`, [logo_data_url, req.params.id]);
-    res.json({ ok: true, logo_url: logo_data_url });
+    if (!logo_data_url && logo_data_url !== '') return res.status(400).json({ error: 'logo_data_url required' });
+    if (logo_data_url && !logo_data_url.startsWith('data:image/')) return res.status(400).json({ error: 'Must be an image data URL' });
+    await db.execute(`UPDATE accounts SET logo_url = ? WHERE id = ?`, [logo_data_url || null, req.params.id]);
+    res.json({ ok: true, logo_url: logo_data_url || null });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
