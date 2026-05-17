@@ -578,13 +578,13 @@ export default function AccountSettings({ onClose }) {
             ))}
           </section>
 
-        </div>
-
           {/* F8: Fee rules */}
           <section>
             <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">Payment & fee rules</p>
             <FeeRulesSettings accountId={activeId} accent={accent} />
           </section>
+
+        </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t shrink-0" style={{ borderColor: '#E5E8EB', background: '#FAFAFA' }}>
