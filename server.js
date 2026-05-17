@@ -147,7 +147,7 @@ app.post('/api/billing/create-checkout', requireAuth, async (req, res) => {
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   if (!stripeKey) return res.status(503).json({ error: 'Stripe not configured. Set STRIPE_SECRET_KEY.' });
   const { plan = 'pro' } = req.body;
-  const origin = process.env.APP_URL || 'https://app.plexautomation.io';
+  const origin = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
   const PLANS = {
     starter: process.env.STRIPE_PRICE_STARTER,
     pro:     process.env.STRIPE_PRICE_PRO,
@@ -184,7 +184,7 @@ app.post('/api/billing/portal', requireAuth, async (req, res) => {
     if (!customerId) return res.status(400).json({ error: 'No Stripe customer found' });
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(stripeKey);
-    const origin = process.env.APP_URL || 'https://app.plexautomation.io';
+    const origin = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${origin}/dashboard`,
