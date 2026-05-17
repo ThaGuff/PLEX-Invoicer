@@ -36,6 +36,7 @@ export const api = {
     addItem:       (id, body)      => req('POST',   `/accounts/${id}/items`, body),
     updateItem:    (id, iid, body) => req('PATCH',  `/accounts/${id}/items/${iid}`, body),
     deleteItem:    (id, iid)       => req('DELETE', `/accounts/${id}/items/${iid}`),
+    uploadLogo:    (id, data_url)   => req('POST',   `/accounts/${id}/logo`, { logo_data_url: data_url }),
   },
   contacts: {
     list:   (accountId) => req('GET',    `/contacts?account_id=${accountId}`),

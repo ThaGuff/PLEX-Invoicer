@@ -173,7 +173,7 @@ function computeTotals({ selected, included, prices, billingMode, yearlyDiscount
 }
 
 export default function QuoteBuilder() {
-  const { account, activeId } = useAccount();
+  const { account, activeId, addCustomSection, addCustomItem } = useAccount();
   const accent = account?.primary_color || account?.primaryColor || '#13B5EA';
   const navigate = useNavigate();
   const { id: editId } = useParams();
@@ -181,6 +181,8 @@ export default function QuoteBuilder() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [contacts, setContacts] = useState([]);
+  const [showAddSection, setShowAddSection] = useState(false);
+  const [newSectionLabel, setNewSectionLabel] = useState('');
 
   const [clientName,  setClientName]  = useState('');
   const [clientBiz,   setClientBiz]   = useState('');
@@ -287,8 +289,13 @@ export default function QuoteBuilder() {
   // Build items array for API
   const buildItems = () => {
     const items = [];
-    [...SECTIONS, ...customSections.map(s => ({ id: s.id, label: s.label }))].forEach(sec => {
-      const secServices = SERVICES[sec.id] || customItems.filter(i => i.section_id === sec.id);
+    // PLEX master: uses built-in catalog + custom sections
+    // Other accounts: only their own custom sections
+    const allSections = account?.id === 'plex-master'
+      ? [...SECTIONS, ...customSections.map(s => ({ id: s.id, label: s.label }))]
+      : customSections.map(s => ({ id: s.id, label: s.label }));
+    allSections.forEach(sec => {
+      const secServices = (account?.id === 'plex-master' ? SERVICES[sec.id] : null) || customItems.filter(i => i.section_id === sec.id);
       secServices.forEach(svc => {
         const svcId = svc.id;
         if (!selected[svcId]) return;
@@ -448,8 +455,8 @@ export default function QuoteBuilder() {
               )}
             </div>
 
-            {/* Built-in PLEX sections */}
-            {SECTIONS.map(sec => (
+            {/* Built-in PLEX sections — only for the plex-master account */}
+            {account?.id === 'plex-master' && SECTIONS.map(sec => (
               <Section key={sec.id} section={sec} services={SERVICES[sec.id]}
                 selected={selected} included={included} prices={prices}
                 billingMode={billingMode} yearlyDiscount={yearlyDiscount}
@@ -457,8 +464,8 @@ export default function QuoteBuilder() {
                 onIncludeChange={handleIncludeChange} accent={accent} />
             ))}
 
-            {/* Custom sections */}
-            {customSections.map(sec => (
+            {/* Custom sections — all accounts use their own services */}
+            {customSections.length > 0 ? customSections.map(sec => (
               <Section key={sec.id}
                 section={{ id: sec.id, label: sec.label }}
                 services={customItems.filter(i => i.section_id === sec.id)}
@@ -466,7 +473,57 @@ export default function QuoteBuilder() {
                 billingMode={billingMode} yearlyDiscount={yearlyDiscount}
                 onToggle={handleToggle} onPriceChange={handlePriceChange}
                 onIncludeChange={handleIncludeChange} accent={accent} isCustom />
-            ))}
+            )) : account?.id !== 'plex-master' && (
+              <div className="card p-8 text-center" style={{ borderStyle:'dashed', borderColor: accent + '40', background: accent + '06' }}>
+                <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style={{ background: accent + '18' }}>
+                  <PlusCircle size={22} style={{ color: accent }} />
+                </div>
+                <p className="text-sm font-semibold text-ink mb-1">No services added yet</p>
+                <p className="text-xs text-ink-muted mb-4 max-w-xs mx-auto">
+                  Add your own services and pricing, or go to Account Settings to scan your website and auto-import them.
+                </p>
+                <button onClick={() => setShowAddSection(true)}
+                  className="text-xs font-semibold px-4 py-2 rounded-lg text-white"
+                  style={{ background: accent }}>
+                  Add your first service section
+                </button>
+              </div>
+            )}
+
+            {/* Inline add-section panel for non-PLEX accounts */}
+            {account?.id !== 'plex-master' && customSections.length > 0 && (
+              <div className="mb-4">
+                {showAddSection ? (
+                  <div className="card p-4">
+                    <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">New service section</p>
+                    <div className="flex gap-2">
+                      <input
+                        value={newSectionLabel}
+                        onChange={e => setNewSectionLabel(e.target.value)}
+                        placeholder="e.g. Pressure Washing, Lawn Care, Plumbing..."
+                        className="field flex-1 text-sm"
+                        onKeyDown={e => { if (e.key === 'Enter' && newSectionLabel.trim()) { addCustomSection(account.id, { label: newSectionLabel.trim() }); setNewSectionLabel(''); setShowAddSection(false); } }}
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => { if (newSectionLabel.trim()) { addCustomSection(account.id, { label: newSectionLabel.trim() }); setNewSectionLabel(''); setShowAddSection(false); } }}
+                        disabled={!newSectionLabel.trim()}
+                        className="text-xs font-semibold px-4 py-2 rounded-lg text-white disabled:opacity-40"
+                        style={{ background: accent }}>
+                        Add
+                      </button>
+                      <button onClick={() => setShowAddSection(false)} className="btn-ghost text-xs px-3">Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <button onClick={() => setShowAddSection(true)}
+                    className="w-full text-xs font-semibold py-2.5 rounded-lg border border-dashed flex items-center justify-center gap-2 transition-colors hover:opacity-80"
+                    style={{ borderColor: accent + '60', color: accent, background: accent + '08' }}>
+                    <PlusCircle size={13} /> Add another service section
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Notes */}
             <div className="card p-5">

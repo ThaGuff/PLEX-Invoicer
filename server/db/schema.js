@@ -21,6 +21,7 @@ export async function initDB() {
       phone TEXT,
       website TEXT,
       logo_initial TEXT DEFAULT 'P',
+      logo_url TEXT,
       primary_color TEXT DEFAULT '#13B5EA',
       plan TEXT DEFAULT 'starter',
       stripe_customer_id TEXT,
@@ -48,6 +49,9 @@ export async function initDB() {
   } catch { /* already exists */ }
   try {
     await db.execute(`ALTER TABLE accounts ADD COLUMN trial_ends_at TEXT`);
+  } catch { /* already exists */ }
+  try {
+    await db.execute(`ALTER TABLE accounts ADD COLUMN logo_url TEXT`);
   } catch { /* already exists */ }
 
   await db.execute(`
