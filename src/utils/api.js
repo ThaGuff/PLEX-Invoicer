@@ -67,6 +67,54 @@ export const api = {
     dashboard:   (accountId) => req('GET',    `/invoices/stats/dashboard?account_id=${accountId}`),
   },
   scrape: (url) => req('POST', '/scrape', { url }),
+  // F1: Engagement tracking
+  tracking: {
+    timeline:  (invoiceId) => req('GET', `/track/${invoiceId}/timeline`),
+    view:      (token)     => fetch(`/api/track/${token}/view`, { method: 'POST' }),
+    heartbeat: (token, s)  => fetch(`/api/track/${token}/heartbeat`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ seconds: s }) }),
+    clickPay:  (token)     => fetch(`/api/track/${token}/click-pay`, { method: 'POST' }),
+    pixelUrl:  (token)     => `/api/track/${token}/open.gif`,
+  },
+
+  // F5: AI parsing
+  ai: {
+    parseInvoice: (text, account_id) => req('POST', '/ai/parse-invoice', { text, account_id }),
+  },
+
+  // F10 + F3: Analytics
+  analytics: {
+    cashflow:        (accountId)        => req('GET',  `/analytics/predictive-cashflow?account_id=${accountId}`),
+    scheduleReminder:(invoice_id, account_id) => req('POST', '/analytics/schedule-reminder', { invoice_id, account_id }),
+    runReminders:    ()                 => req('POST', '/analytics/run-reminders'),
+  },
+
+  // F2: Webhook rules
+  webhooks: {
+    list:   (accountId)   => req('GET',    `/v1/integrations/rules?account_id=${accountId}`),
+    create: (body)        => req('POST',   '/v1/integrations/rules', body),
+    update: (id, body)    => req('PATCH',  `/v1/integrations/rules/${id}`, body),
+    delete: (id)          => req('DELETE', `/v1/integrations/rules/${id}`),
+  },
+
+  // F8: Fee rules
+  feeRules: {
+    get:  (accountId) => req('GET',  `/v1/integrations/fee-rules/${accountId}`),
+    save: (body)      => req('POST', '/v1/integrations/fee-rules', body),
+  },
+
+  // F6: Split payments (public — no auth)
+  splitPayment: {
+    get:     (token)        => fetch(`/api/v1/integrations/split-payment/${token}`).then(r => r.json()),
+    pay:     (token, body)  => req('POST', `/v1/integrations/split-payment/${token}/pay`, body),
+    confirm: (token, body)  => req('POST', `/v1/integrations/split-payment/${token}/confirm`, body),
+  },
+
+  // F9: Invoice versioning
+  versioning: {
+    createVersion: (id, body) => req('POST', `/v1/integrations/invoice-version/${id}`, body),
+    history:       (id)       => req('GET',  `/v1/integrations/invoice-history/${id}`),
+  },
+
   admin: {
     users:       ()               => req('GET',  '/admin/users'),
     metrics:     ()               => req('GET',  '/admin/metrics'),

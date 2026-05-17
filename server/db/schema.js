@@ -213,3 +213,120 @@ export async function initDB() {
 
   console.log('✓ Database initialized at', DB_PATH);
 }
+
+// ── Schema additions for V2 features ─────────────────────────────
+export async function initSchemaV2() {
+
+  // F1: Granular read tracking — extend invoices + add engagement log
+  const invoiceCols = [
+    `ALTER TABLE invoices ADD COLUMN delivered_at TEXT`,
+    `ALTER TABLE invoices ADD COLUMN opened_at TEXT`,
+    `ALTER TABLE invoices ADD COLUMN first_viewed_at TEXT`,
+    `ALTER TABLE invoices ADD COLUMN total_view_seconds INTEGER DEFAULT 0`,
+    `ALTER TABLE invoices ADD COLUMN view_count INTEGER DEFAULT 0`,
+    `ALTER TABLE invoices ADD COLUMN clicked_pay_at TEXT`,
+    `ALTER TABLE invoices ADD COLUMN read_status TEXT DEFAULT 'sent'`,
+  ];
+  for (const sql of invoiceCols) { try { await db.execute(sql); } catch {} }
+
+  // F1: Engagement event log
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS invoice_engagement (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      invoice_id TEXT NOT NULL,
+      event TEXT NOT NULL,
+      ts TEXT DEFAULT (datetime('now')),
+      duration_seconds INTEGER,
+      ip TEXT,
+      ua TEXT,
+      FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+    )
+  `);
+
+  // F2: Incoming webhook rules
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS webhook_rules (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      event_key TEXT NOT NULL,
+      match_field TEXT,
+      match_value TEXT,
+      action TEXT NOT NULL DEFAULT 'create_draft_invoice',
+      template_json TEXT,
+      active INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    )
+  `);
+
+  // F3: Client payment behavior history
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS payment_behavior (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      account_id TEXT NOT NULL,
+      contact_id TEXT,
+      client_email TEXT,
+      paid_at TEXT NOT NULL,
+      day_of_week INTEGER,
+      hour_of_day INTEGER,
+      days_to_pay INTEGER,
+      invoice_id TEXT,
+      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    )
+  `);
+
+  // F3: Scheduled smart reminders
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS smart_reminders (
+      id TEXT PRIMARY KEY,
+      invoice_id TEXT NOT NULL,
+      scheduled_for TEXT NOT NULL,
+      sent_at TEXT,
+      status TEXT DEFAULT 'pending',
+      basis TEXT,
+      FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+    )
+  `);
+
+  // F6: Line-item split payment status
+  try { await db.execute(`ALTER TABLE invoice_items ADD COLUMN line_status TEXT DEFAULT 'pending'`); } catch {}
+  try { await db.execute(`ALTER TABLE invoice_items ADD COLUMN line_paid_at TEXT`); } catch {}
+  try { await db.execute(`ALTER TABLE invoice_items ADD COLUMN stripe_payment_intent TEXT`); } catch {}
+
+  // F9: Invoice versioning
+  try { await db.execute(`ALTER TABLE invoices ADD COLUMN version INTEGER DEFAULT 1`); } catch {}
+  try { await db.execute(`ALTER TABLE invoices ADD COLUMN invoice_group_id TEXT`); } catch {}
+  try { await db.execute(`ALTER TABLE invoices ADD COLUMN is_latest INTEGER DEFAULT 1`); } catch {}
+  try { await db.execute(`ALTER TABLE invoices ADD COLUMN parent_invoice_id TEXT`); } catch {}
+  try { await db.execute(`ALTER TABLE invoices ADD COLUMN change_summary TEXT`); } catch {}
+
+  // F8: Fee pass-through rules per account
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS fee_rules (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL UNIQUE,
+      early_pay_hours INTEGER DEFAULT 48,
+      waive_fee_if_early INTEGER DEFAULT 0,
+      ach_only_above REAL DEFAULT 0,
+      ach_only_enabled INTEGER DEFAULT 0,
+      processing_fee_pct REAL DEFAULT 2.9,
+      processing_fee_flat REAL DEFAULT 0.30,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    )
+  `);
+
+  // F10: Cached cashflow predictions (refreshed on demand)
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS cashflow_cache (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      account_id TEXT NOT NULL UNIQUE,
+      data_json TEXT,
+      computed_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    )
+  `);
+
+  console.log('✓ Schema V2 initialized');
+}

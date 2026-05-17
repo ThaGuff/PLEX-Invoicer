@@ -13,6 +13,7 @@ import AccountSwitcher from '../components/AccountSwitcher';
 import AccountSettings from '../components/AccountSettings';
 import NewAccountModal from '../components/NewAccountModal';
 import { api } from '../utils/api';
+import AIInvoiceParser from '../components/AIInvoiceParser';
 
 const SECTION_ICONS = {
   web: Globe, core: Zap, ai: Bot,
@@ -358,7 +359,18 @@ export default function QuoteBuilder() {
           <h1 className="text-xl font-bold text-ink">{editId && editId !== 'new' ? 'Edit quote' : 'New quote'}</h1>
           <p className="text-sm text-ink-muted mt-0.5">Select services, configure billing, then save or export.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <AIInvoiceParser
+            accountId={account?.id}
+            accent={accent}
+            onApply={(parsed) => {
+              if (parsed.client_name)  setClientName(parsed.client_name);
+              if (parsed.client_biz)   setClientBiz(parsed.client_biz);
+              if (parsed.client_email) setClientEmail(parsed.client_email);
+              if (parsed.notes)        setNotes(parsed.notes);
+              if (parsed.billing_mode === 'monthly') setBillingMode('monthly');
+            }}
+          />
           {editId && editId !== 'new' && (
             <button onClick={handleConvert}
               className="btn-ghost flex items-center gap-1.5 text-sm">

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Download, Send, CheckCircle, Bell, Link, Copy, ArrowLeft, Trash2, ExternalLink } from 'lucide-react';
 import { useAccount } from '../context/AccountContext';
 import { api } from '../utils/api';
+import EngagementTimeline from '../components/EngagementTimeline';
 import { exportPDF } from '../utils/exportPDF';
 
 function fmt(n) { return '$' + Math.round(n || 0).toLocaleString(); }
@@ -265,6 +266,12 @@ export default function InvoiceDetail() {
                 Paid {invoice.paid_at ? new Date(invoice.paid_at).toLocaleDateString() : ''}
               </div>
             )}
+          </div>
+
+          {/* F1: Engagement */}
+          <div className="card p-4">
+            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">Client engagement</p>
+            <EngagementTimeline invoiceId={invoice?.id} />
           </div>
 
           {/* Timeline */}

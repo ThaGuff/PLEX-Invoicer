@@ -196,7 +196,8 @@ router.post('/:id/remind', async (req, res) => {
           ${invoice.stripe_payment_link
             ? `<p>Or pay directly: <a href="${invoice.stripe_payment_link}">${invoice.stripe_payment_link}</a></p>`
             : ''}
-          <p style="color:#666;font-size:12px;">${invoice.agency_name} · ${invoice.agency_website || invoice.agency_email}</p>`,
+          <p style="color:#666;font-size:12px;">${invoice.agency_name} · ${invoice.agency_website || invoice.agency_email}</p>
+          <img src="${process.env.APP_URL || 'https://plex-invoicer.up.railway.app'}/api/track/${invoice.public_token}/open.gif" width="1" height="1" style="display:none" alt="" />`,
       });
     }
 

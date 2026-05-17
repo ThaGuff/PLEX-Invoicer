@@ -1,14 +1,18 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { initDB } from './server/db/schema.js';
+import { initDB, initSchemaV2 } from './server/db/schema.js';
 import { requireAuth } from './server/middleware/auth.js';
 import accountsRouter from './server/routes/accounts.js';
 import contactsRouter from './server/routes/contacts.js';
 import quotesRouter  from './server/routes/quotes.js';
 import invoicesRouter from './server/routes/invoices.js';
 import authRouter from './server/routes/auth.js';
-import adminRouter from './server/routes/admin.js';
+import adminRouter       from './server/routes/admin.js';
+import trackingRouter    from './server/routes/tracking.js';
+import aiRouter          from './server/routes/ai.js';
+import analyticsRouter   from './server/routes/analytics.js';
+import integrationsRouter from './server/routes/integrations.js';
 import { scrapeWithOpenAI } from './server/scrape.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -197,8 +201,12 @@ app.post('/api/billing/portal', requireAuth, async (req, res) => {
 });
 
 // ── Protected API routes ──────────────────────────────────────────
-app.use('/api/admin',    requireAuth, adminRouter);
-app.use('/api/accounts', requireAuth, accountsRouter);
+app.use('/api/track',        trackingRouter);
+app.use('/api/admin',        requireAuth, adminRouter);
+app.use('/api/ai',           requireAuth, aiRouter);
+app.use('/api/analytics',    requireAuth, analyticsRouter);
+app.use('/api/v1/integrations', requireAuth, integrationsRouter);
+app.use('/api/accounts',     requireAuth, accountsRouter);
 app.use('/api/contacts', requireAuth, contactsRouter);
 app.use('/api/quotes',   requireAuth, quotesRouter);
 app.use('/api/invoices', requireAuth, invoicesRouter);
@@ -209,7 +217,7 @@ app.use(express.static(distDir));
 app.get('*', (req, res) => res.sendFile(path.join(distDir, 'index.html')));
 
 // ── Start ─────────────────────────────────────────────────────────
-initDB().then(() => {
+initDB().then(() => initSchemaV2()).then(() => {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 PLEX Invoicer running on :${PORT}`);
     console.log(`   OpenAI:    ${process.env.OPENAI_API_KEY         ? '✓ set' : '✗ not set — website scraping disabled'}`);

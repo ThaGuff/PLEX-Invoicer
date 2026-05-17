@@ -12,6 +12,16 @@ export default function PublicInvoice() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // F1: Track view + heartbeat
+  useEffect(() => {
+    if (!token) return;
+    // Fire view event
+    api.tracking.view(token).catch(() => {});
+    // Heartbeat every 30s
+    const hb = setInterval(() => api.tracking.heartbeat(token, 30).catch(() => {}), 30000);
+    return () => clearInterval(hb);
+  }, [token]);
+
   useEffect(() => {
     api.invoices.getPublic(token)
       .then(setInvoice)
