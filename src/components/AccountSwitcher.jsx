@@ -16,9 +16,9 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
         {/* Account badge */}
         <div
           className="w-5 h-5 rounded flex items-center justify-center text-white text-xs font-bold shrink-0"
-          style={{ background: account?.primaryColor || '#13B5EA' }}
+          style={{ background: account?.primary_color || '#13B5EA' }}
         >
-          {(account?.logoInitial || account?.name?.[0] || 'A').toUpperCase()}
+          {(account?.logo_initial || account?.name?.[0] || 'A').toUpperCase()}
         </div>
         <span className="font-medium text-ink max-w-[120px] truncate">{account?.name}</span>
         <ChevronDown size={13} className="text-ink-muted" />
@@ -44,9 +44,9 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
                 >
                   <div
                     className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold shrink-0"
-                    style={{ background: acc.primaryColor || '#13B5EA' }}
+                    style={{ background: acc.primary_color || '#13B5EA' }}
                   >
-                    {(acc.logoInitial || acc.name?.[0] || 'A').toUpperCase()}
+                    {(acc.logo_initial || acc.name?.[0] || 'A').toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-ink truncate">{acc.name}</p>

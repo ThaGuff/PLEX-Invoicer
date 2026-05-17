@@ -19,27 +19,15 @@ function getSupabase() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
-// GET /api/auth/me — returns current user + their account
+// GET /api/auth/me — returns current user + their primary account
 router.get('/me', requireAuth, async (req, res) => {
   try {
     const user = req.user;
-    // Find or create an account tied to this user
-    let account = await db.execute(
-      `SELECT * FROM accounts WHERE owner_id = ?`, [user.id]
+    const account = await db.execute(
+      `SELECT * FROM accounts WHERE owner_id = ? ORDER BY created_at ASC LIMIT 1`, [user.id]
     );
-    if (!account.rows.length) {
-      // Auto-create account on first login
-      const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'My Business';
-      const initial = name[0]?.toUpperCase() || 'A';
-      const id = `acc-${user.id.replace(/-/g, '').slice(0, 12)}`;
-      await db.execute(
-        `INSERT OR IGNORE INTO accounts (id, owner_id, name, email, logo_initial, primary_color, plan)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [id, user.id, name, user.email, initial, '#13B5EA', 'starter']
-      );
-      account = await db.execute(`SELECT * FROM accounts WHERE owner_id = ?`, [user.id]);
-    }
-    res.json({ user, account: account.rows[0] });
+    // Account creation is handled by accounts.list() on first load
+    res.json({ user, account: account.rows[0] || null });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

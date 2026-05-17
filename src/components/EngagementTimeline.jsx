@@ -30,21 +30,23 @@ export default function EngagementTimeline({ invoiceId, accent = '#13B5EA', comp
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!invoiceId) return;
+    if (!invoiceId) { setLoading(false); return; }
     api.tracking.timeline(invoiceId)
       .then(setData)
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [invoiceId]);
 
-  if (loading) return (
-    <div className="flex items-center gap-2 py-3">
-      <RefreshCw size={13} className="animate-spin text-ink-muted" />
-      <span className="text-xs text-ink-muted">Loading engagement data…</span>
+  if (!invoiceId || loading) return (
+    <div className="flex items-center gap-2 py-2">
+      {loading && <RefreshCw size={13} className="animate-spin text-ink-muted" />}
+      <span className="text-xs text-ink-muted">{loading ? 'Loading…' : 'No invoice selected.'}</span>
     </div>
   );
 
-  if (!data) return null;
+  if (!data) return (
+    <p className="text-xs text-ink-muted italic">No engagement data yet — send the invoice to start tracking.</p>
+  );
 
   const readStatus = data.read_status || 'sent';
   const cfg = STATUS_CONFIG[readStatus] || STATUS_CONFIG.sent;

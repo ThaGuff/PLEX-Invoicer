@@ -201,6 +201,24 @@ export async function initDB() {
     )
   `);
 
+
+  // Performance indexes
+  const indexes = [
+    `CREATE INDEX IF NOT EXISTS idx_quotes_account_id ON quotes(account_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_quotes_status ON quotes(status)`,
+    `CREATE INDEX IF NOT EXISTS idx_invoices_account_id ON invoices(account_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status)`,
+    `CREATE INDEX IF NOT EXISTS idx_invoices_public_token ON invoices(public_token)`,
+    `CREATE INDEX IF NOT EXISTS idx_quotes_public_token ON quotes(public_token)`,
+    `CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice_id ON invoice_items(invoice_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_quote_items_quote_id ON quote_items(quote_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_custom_sections_account_id ON custom_sections(account_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_custom_items_account_id ON custom_items(account_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_accounts_owner_id ON accounts(owner_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_invoice_engagement_invoice_id ON invoice_engagement(invoice_id)`,
+  ];
+  for (const sql of indexes) { try { await db.execute(sql); } catch {} }
+
   // Seed PLEX master account (only when no auth configured)
   const existing = await db.execute(`SELECT id FROM accounts WHERE id = 'plex-master'`);
   if (existing.rows.length === 0) {

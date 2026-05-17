@@ -61,10 +61,13 @@ export default function PublicQuote() {
       <header className="bg-white border-b" style={{ borderColor: '#E5E8EB' }}>
         <div className="max-w-3xl mx-auto px-5 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-              style={{ background: accent }}>
-              {(quote.logo_initial || quote.agency_name?.[0] || 'A').toUpperCase()}
-            </div>
+            {quote.logo_url
+              ? <img src={quote.logo_url} alt="" className="w-8 h-8 rounded-lg object-contain border" style={{ borderColor:'#E5E8EB' }}/>
+              : <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                  style={{ background: accent }}>
+                  {(quote.logo_initial || quote.agency_name?.[0] || 'A').toUpperCase()}
+                </div>
+            }
             <span className="font-bold text-ink text-sm">{quote.agency_name}</span>
           </div>
           <span className="text-xs text-ink-muted">{quote.agency_website}</span>

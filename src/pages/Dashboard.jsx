@@ -67,8 +67,14 @@ export default function Dashboard() {
       setToast({ type: 'error', msg: 'Stripe connection failed: ' + decodeURIComponent(params.get('stripe_error')) });
       navigate('/dashboard', { replace: true });
     }
-    if (toast) setTimeout(() => setToast(null), 6000);
   }, [location.search]);
+
+  // Auto-dismiss toast after 6s
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 6000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   useEffect(() => {
     if (!account?.id) return;

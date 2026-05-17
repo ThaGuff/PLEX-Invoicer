@@ -124,10 +124,13 @@ function AppShell({ children }) {
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
           {/* Logo */}
           <div className="flex items-center gap-2 shrink-0">
-            <div className="w-7 h-7 rounded flex items-center justify-center text-white font-bold text-xs"
-              style={{ background: accent }}>
-              {(account?.logo_initial || account?.name?.[0] || 'P').toUpperCase()}
-            </div>
+            {account?.logo_url
+              ? <img src={account.logo_url} alt="" className="w-7 h-7 rounded object-contain border" style={{ borderColor:'#E5E8EB' }}/>
+              : <div className="w-7 h-7 rounded flex items-center justify-center text-white font-bold text-xs"
+                  style={{ background: accent }}>
+                  {(account?.logo_initial || account?.name?.[0] || 'P').toUpperCase()}
+                </div>
+            }
             <span className="font-bold text-ink text-sm hidden md:block">{account?.name}</span>
           </div>
           <div className="h-5 w-px bg-gray-200 mx-1" />

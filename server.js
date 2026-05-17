@@ -35,7 +35,7 @@ app.get('/api/quotes/public/:token', async (req, res) => {
     const quote = await db.execute(
       `SELECT q.*, a.name as agency_name, a.email as agency_email,
               a.phone as agency_phone, a.website as agency_website,
-              a.primary_color, a.logo_initial
+              a.primary_color, a.logo_initial, a.logo_url
        FROM quotes q JOIN accounts a ON q.account_id = a.id
        WHERE q.public_token = ?`, [req.params.token]
     );
@@ -70,7 +70,7 @@ app.get('/api/invoices/public/:token', async (req, res) => {
     const inv = await db.execute(
       `SELECT i.*, a.name as agency_name, a.email as agency_email,
               a.phone as agency_phone, a.website as agency_website,
-              a.primary_color, a.logo_initial
+              a.primary_color, a.logo_initial, a.logo_url
        FROM invoices i JOIN accounts a ON i.account_id = a.id
        WHERE i.public_token = ?`, [req.params.token]
     );

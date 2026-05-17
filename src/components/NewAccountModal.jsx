@@ -59,31 +59,42 @@ export default function NewAccountModal({ onClose, onCreated }) {
     }
   };
 
-  const handleCreate = () => {
-    if (!form.name.trim()) return;
+  const [creating, setCreating] = useState(false);
 
-    const acc = createAccount({
-      ...form,
-      logoInitial: form.logoInitial || form.name[0].toUpperCase(),
-    });
-
-    // Import any scraped services into the new account
-    if (scannedSvcs.length) {
-      const secId = addCustomSection(acc.id, { label: `Imported — ${form.name}` });
-      scannedSvcs.forEach(svc => {
-        addCustomItem(acc.id, {
-          sectionId: secId,
-          name:    svc.name        || 'Service',
-          desc:    svc.description || '',
-          setup:   Number(svc.setupPrice   || svc.oneTimePrice || 0) || 0,
-          monthly: Number(svc.monthlyPrice || 0) || 0,
-        });
+  const handleCreate = async () => {
+    if (!form.name.trim() || creating) return;
+    setCreating(true);
+    try {
+      const acc = await createAccount({
+        name:          form.name.trim(),
+        email:         form.email.trim(),
+        phone:         form.phone.trim(),
+        website:       form.website.trim(),
+        logo_initial:  (form.logoInitial || form.name[0]).toUpperCase(),
+        primary_color: form.primaryColor,
       });
-    }
 
-    switchAccount(acc.id);
-    onCreated?.(acc);
-    onClose();
+      // Import scraped services using correct field names
+      if (scannedSvcs.length && acc?.id) {
+        const secId = await addCustomSection(acc.id, { label: `Imported — ${form.name}` });
+        for (const svc of scannedSvcs) {
+          await addCustomItem(acc.id, {
+            section_id:    secId,
+            name:          svc.name        || 'Service',
+            description:   svc.description || '',
+            setup_price:   Number(svc.setupPrice   || svc.oneTimePrice || 0) || 0,
+            monthly_price: Number(svc.monthlyPrice || 0) || 0,
+          });
+        }
+      }
+
+      if (acc?.id) switchAccount(acc.id);
+      onCreated?.(acc);
+      onClose();
+    } catch (e) {
+      alert('Failed to create account: ' + e.message);
+    }
+    setCreating(false);
   };
 
   return (
@@ -190,9 +201,9 @@ export default function NewAccountModal({ onClose, onCreated }) {
         <div className="flex items-center justify-end gap-3 px-6 py-4 border-t"
           style={{ borderColor: '#E5E8EB', background: '#FAFAF8' }}>
           <button onClick={onClose} className="btn-ghost">Cancel</button>
-          <button onClick={handleCreate} disabled={!form.name.trim()}
-            className="btn-primary disabled:opacity-40">
-            Create account
+          <button onClick={handleCreate} disabled={!form.name.trim() || creating}
+            className="btn-primary disabled:opacity-40 flex items-center gap-2">
+            {creating ? <><Loader size={13} className="animate-spin" />Creating…</> : 'Create account'}
           </button>
         </div>
       </div>

@@ -53,7 +53,7 @@ router.get('/public/:token', async (req, res) => {
     const inv = await db.execute(
       `SELECT i.*, a.name as agency_name, a.email as agency_email,
               a.phone as agency_phone, a.website as agency_website,
-              a.primary_color, a.logo_initial
+              a.primary_color, a.logo_initial, a.logo_url
        FROM invoices i JOIN accounts a ON i.account_id = a.id
        WHERE i.public_token = ?`, [req.params.token]
     );

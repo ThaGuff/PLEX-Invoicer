@@ -267,8 +267,26 @@ export default function QuoteBuilder() {
     setClientEmail(c.email || ''); setClientPhone(c.phone || '');
   };
 
-  const customSections = account?.customSections || [];
-  const customItems    = account?.customItems    || [];
+  const [customSections, setCustomSections] = useState(account?.customSections || []);
+  const [customItems, setCustomItems]       = useState(account?.customItems    || []);
+
+  // Load fresh catalog from API when account changes
+  useEffect(() => {
+    if (!account?.id) return;
+    // Use context data if available (fast path), but always validate with API
+    if (account.customSections) {
+      setCustomSections(account.customSections);
+      setCustomItems(account.customItems || []);
+    }
+    if (account.id !== 'plex-master') {
+      api.accounts.get(account.id)
+        .then(data => {
+          setCustomSections(data.customSections || []);
+          setCustomItems(data.customItems || []);
+        })
+        .catch(() => {}); // fail silently, use context data
+    }
+  }, [account?.id]);
 
   const fullState = {
     agencyName:    account?.name    || 'PLEX Automation',

@@ -30,7 +30,7 @@ router.get('/public/:token', async (req, res) => {
     const quote = await db.execute(
       `SELECT q.*, a.name as agency_name, a.email as agency_email,
               a.phone as agency_phone, a.website as agency_website,
-              a.primary_color, a.logo_initial
+              a.primary_color, a.logo_initial, a.logo_url
        FROM quotes q JOIN accounts a ON q.account_id = a.id
        WHERE q.public_token = ?`, [req.params.token]
     );
@@ -99,22 +99,20 @@ router.post('/', async (req, res) => {
        notes || '', valid_days || 30, setup_total || 0, monthly_total || 0, public_token]
     );
 
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      await db.execute(
-        `INSERT INTO quote_items (id, quote_id, section_id, section_label, service_id, name,
-          description, setup_price, monthly_price, is_included, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [`qi-${uuid()}`, id, item.section_id || '', item.section_label || '',
-         item.service_id || '', item.name || '', item.description || '',
-         item.setup_price || 0, item.monthly_price || 0, item.is_included ? 1 : 0, i]
-      );
-    }
+    // Batch insert items in parallel
+    await Promise.all(items.map((item, i) => db.execute(
+      `INSERT INTO quote_items (id, quote_id, section_id, section_label, service_id, name,
+        description, setup_price, monthly_price, is_included, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [`qi-${uuid()}`, id, item.section_id || '', item.section_label || '',
+       item.service_id || '', item.name || '', item.description || '',
+       item.setup_price || 0, item.monthly_price || 0, item.is_included ? 1 : 0, i]
+    )));
 
-    const created = await db.execute(`SELECT * FROM quotes WHERE id = ?`, [id]);
-    const createdItems = await db.execute(
-      `SELECT * FROM quote_items WHERE quote_id = ? ORDER BY sort_order`, [id]
-    );
+    const [created, createdItems] = await Promise.all([
+      db.execute(`SELECT * FROM quotes WHERE id = ?`, [id]),
+      db.execute(`SELECT * FROM quote_items WHERE quote_id = ? ORDER BY sort_order`, [id]),
+    ]);
     res.json({ ...created.rows[0], items: createdItems.rows });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -154,7 +152,7 @@ router.post('/:id/convert', async (req, res) => {
     const invId = `inv-${uuid()}`;
     const public_token = uuid().replace(/-/g, '');
     const due_date = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
-    const amount_due = (q.setup_total || 0) + (q.monthly_total || 0);
+    const amount_due = q.setup_total || 0; // setup total only; monthly is recurring
 
     await db.execute(
       `INSERT INTO invoices (id, account_id, quote_id, number, contact_id, client_name, client_biz,
@@ -166,16 +164,14 @@ router.post('/:id/convert', async (req, res) => {
        amount_due, due_date, q.notes, public_token]
     );
 
-    for (let i = 0; i < items.rows.length; i++) {
-      const item = items.rows[i];
-      await db.execute(
-        `INSERT INTO invoice_items (id, invoice_id, section_label, name, description,
-          setup_price, monthly_price, is_included, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [`ii-${uuid()}`, invId, item.section_label, item.name, item.description,
-         item.setup_price, item.monthly_price, item.is_included, i]
-      );
-    }
+    // Batch insert invoice items
+    await Promise.all(items.rows.map((item, i) => db.execute(
+      `INSERT INTO invoice_items (id, invoice_id, section_label, name, description,
+        setup_price, monthly_price, is_included, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [`ii-${uuid()}`, invId, item.section_label, item.name, item.description,
+       item.setup_price, item.monthly_price, item.is_included, i]
+    )));
 
     await db.execute(
       `UPDATE quotes SET status = 'accepted', accepted_at = datetime('now') WHERE id = ?`, [q.id]

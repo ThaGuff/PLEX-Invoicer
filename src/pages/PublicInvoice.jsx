@@ -61,10 +61,13 @@ export default function PublicInvoice() {
       <header className="bg-white border-b" style={{ borderColor: '#E5E8EB' }}>
         <div className="max-w-3xl mx-auto px-5 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-              style={{ background: accent }}>
-              {(invoice.logo_initial || invoice.agency_name?.[0] || 'A').toUpperCase()}
-            </div>
+            {invoice.logo_url
+              ? <img src={invoice.logo_url} alt="" className="w-8 h-8 rounded-lg object-contain border" style={{ borderColor: '#E5E8EB' }} />
+              : <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                  style={{ background: accent }}>
+                  {(invoice.logo_initial || invoice.agency_name?.[0] || 'A').toUpperCase()}
+                </div>
+            }
             <span className="font-bold text-ink text-sm">{invoice.agency_name}</span>
           </div>
           <span className="text-xs text-ink-muted">{invoice.agency_website}</span>
