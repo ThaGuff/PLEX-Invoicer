@@ -48,8 +48,13 @@ export default function InvoiceDetail() {
   const handleSend = () => handle('send', () => api.invoices.send(id));
   const handleRemind = () => handle('remind', async () => {
     const r = await api.invoices.remind(id);
-    if (!r.email_sent) alert('Reminder logged. Configure SMTP_HOST env var to send real emails.');
-    else alert('Reminder email sent!');
+    if (r.email_sent) {
+      alert('✅ Reminder email sent to ' + invoice?.client_email);
+    } else if (r.email_error) {
+      alert('⚠️ Reminder logged but email failed: ' + r.email_error);
+    } else if (!r.smtp_configured) {
+      alert('ℹ️ Reminder logged. SMTP not configured — set SMTP_HOST and SMTP_USER in Railway to enable emails.');
+    }
   });
   const handlePaymentLink = () => handle('link', async () => {
     const r = await api.invoices.paymentLink(id);

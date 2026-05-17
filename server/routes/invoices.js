@@ -223,32 +223,65 @@ router.post('/:id/remind', async (req, res) => {
     const origin = process.env.APP_URL || req.headers.origin || 'https://plexautomation.io';
     const publicUrl = `${origin}/portal/invoice/${invoice.public_token}`;
 
+    let email_sent = false;
+    let email_error = null;
+
     if (SMTP_HOST && SMTP_USER) {
-      const nodemailer = (await import('nodemailer')).default;
-      const transporter = nodemailer.createTransport({
-        host: SMTP_HOST, port: parseInt(SMTP_PORT) || 587, secure: false,
-        auth: { user: SMTP_USER, pass: SMTP_PASS },
-      });
-      await transporter.sendMail({
-        from: SMTP_FROM || SMTP_USER,
-        to: invoice.client_email,
-        subject: `Payment reminder — Invoice ${invoice.number} from ${invoice.agency_name}`,
-        html: `<p>Hi ${invoice.client_name || 'there'},</p>
-          <p>This is a friendly reminder that Invoice <strong>${invoice.number}</strong>
-          for <strong>$${Math.round(invoice.amount_due).toLocaleString()}</strong> is outstanding.</p>
-          <p><a href="${publicUrl}" style="background:#13B5EA;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;">
-            View &amp; Pay Invoice</a></p>
-          ${invoice.stripe_payment_link
-            ? `<p>Or pay directly: <a href="${invoice.stripe_payment_link}">${invoice.stripe_payment_link}</a></p>`
-            : ''}
-          <p style="color:#666;font-size:12px;">${invoice.agency_name} · ${invoice.agency_website || invoice.agency_email}</p>
-          <img src="${process.env.APP_URL || 'https://plex-invoicer.up.railway.app'}/api/track/${invoice.public_token}/open.gif" width="1" height="1" style="display:none" alt="" />`,
-      });
+      try {
+        const port = parseInt(SMTP_PORT) || 587;
+        const secure = port === 465; // port 465 = SSL/TLS, port 587 = STARTTLS
+        const nodemailer = (await import('nodemailer')).default;
+        const transporter = nodemailer.createTransport({
+          host: SMTP_HOST, port, secure,
+          auth: { user: SMTP_USER, pass: SMTP_PASS },
+        });
+        await transporter.sendMail({
+          from: SMTP_FROM || SMTP_USER,
+          to: invoice.client_email,
+          subject: `Payment reminder — Invoice ${invoice.number} from ${invoice.agency_name}`,
+          html: `<!DOCTYPE html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a1a;margin:0;padding:0;background:#f5f7f8">
+            <div style="max-width:560px;margin:32px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+              <div style="background:#1a1a1a;padding:24px 36px">
+                <p style="color:#fff;font-size:16px;font-weight:700;margin:0">${invoice.agency_name}</p>
+              </div>
+              <div style="padding:32px 36px">
+                <h2 style="font-size:20px;margin:0 0 8px">Payment reminder</h2>
+                <p style="color:#6b7280;margin:0 0 20px">Hi ${invoice.client_name || 'there'},</p>
+                <p style="color:#374151;margin:0 0 20px">
+                  Invoice <strong>${invoice.number}</strong> for
+                  <strong>$${Math.round(invoice.amount_due).toLocaleString()}</strong> is still outstanding.
+                  ${invoice.due_date ? `It was due on <strong>${new Date(invoice.due_date).toLocaleDateString()}</strong>.` : ''}
+                </p>
+                <a href="${publicUrl}" style="display:inline-block;background:#13B5EA;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 28px;border-radius:8px;margin:8px 0 20px">
+                  View &amp; Pay Invoice →
+                </a>
+                ${invoice.stripe_payment_link
+                  ? `<p style="margin:16px 0 0;font-size:13px;color:#6b7280">Or pay directly: <a href="${invoice.stripe_payment_link}" style="color:#13B5EA">${invoice.stripe_payment_link}</a></p>`
+                  : ''}
+              </div>
+              <div style="padding:16px 36px;background:#f9fafb;border-top:1px solid #f0f0f0">
+                <p style="font-size:12px;color:#9ca3af;margin:0">${invoice.agency_name} · ${invoice.agency_website || invoice.agency_email || ''}</p>
+              </div>
+            </div>
+            <img src="${process.env.APP_URL || 'https://plex-invoicer.up.railway.app'}/api/track/${invoice.public_token}/open.gif" width="1" height="1" style="display:none" alt="" />
+          </body></html>`,
+        });
+        email_sent = true;
+      } catch (smtpErr) {
+        email_error = smtpErr.message;
+        console.error('SMTP send failed:', smtpErr.message);
+      }
     }
 
     await db.execute(`INSERT INTO reminders (id, invoice_id, type) VALUES (?, ?, 'manual')`,
       [`rem-${uuid()}`, req.params.id]);
-    res.json({ ok: true, email_sent: !!(SMTP_HOST && SMTP_USER) });
+
+    res.json({
+      ok: true,
+      email_sent,
+      email_error: email_error || null,
+      smtp_configured: !!(SMTP_HOST && SMTP_USER),
+    });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

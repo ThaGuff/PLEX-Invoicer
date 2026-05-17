@@ -53,7 +53,13 @@ export default function InvoicesList() {
     e.stopPropagation();
     try {
       const r = await api.invoices.remind(id);
-      alert(r.email_sent ? 'Reminder sent!' : 'Reminder logged (configure SMTP to send email).');
+      if (r.email_sent) {
+        alert('✅ Reminder email sent!');
+      } else if (r.email_error) {
+        alert('⚠️ Reminder logged but email failed: ' + r.email_error);
+      } else {
+        alert('ℹ️ Reminder logged. Configure SMTP in Railway to send real emails.');
+      }
     } catch (err) { alert(err.message); }
   };
 

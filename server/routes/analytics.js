@@ -188,8 +188,9 @@ router.post('/run-reminders', async (req, res) => {
       try {
         if (SMTP_HOST && SMTP_USER) {
           const nodemailer = (await import('nodemailer')).default;
+          const port = parseInt(SMTP_PORT) || 587;
           const transporter = nodemailer.createTransport({
-            host: SMTP_HOST, port: parseInt(SMTP_PORT) || 587, secure: false,
+            host: SMTP_HOST, port, secure: port === 465,
             auth: { user: SMTP_USER, pass: SMTP_PASS },
           });
           const portalUrl = `${APP_URL || 'https://plex-invoicer.up.railway.app'}/portal/invoice/${r.public_token}`;
