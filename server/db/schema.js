@@ -1,14 +1,21 @@
 import { createClient } from '@libsql/client';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { mkdirSync } from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/plex.db');
+
+// Resolve DB path — must be done BEFORE createClient
+const DB_PATH = process.env.DB_PATH
+  || path.join(__dirname, '../../data/plex.db');
+
+// Ensure the directory exists BEFORE createClient tries to open the file
+// This must happen at module load time, not in initDB()
+mkdirSync(path.dirname(DB_PATH), { recursive: true });
 
 export const db = createClient({ url: `file:${DB_PATH}` });
 
 export async function initDB() {
-  // Accounts / tenants
   await db.execute(`
     CREATE TABLE IF NOT EXISTS accounts (
       id TEXT PRIMARY KEY,
@@ -25,7 +32,6 @@ export async function initDB() {
     )
   `);
 
-  // Contacts / clients per account
   await db.execute(`
     CREATE TABLE IF NOT EXISTS contacts (
       id TEXT PRIMARY KEY,
@@ -42,7 +48,6 @@ export async function initDB() {
     )
   `);
 
-  // Quotes
   await db.execute(`
     CREATE TABLE IF NOT EXISTS quotes (
       id TEXT PRIMARY KEY,
@@ -75,7 +80,6 @@ export async function initDB() {
     )
   `);
 
-  // Quote line items
   await db.execute(`
     CREATE TABLE IF NOT EXISTS quote_items (
       id TEXT PRIMARY KEY,
@@ -93,7 +97,6 @@ export async function initDB() {
     )
   `);
 
-  // Invoices (converted from quotes)
   await db.execute(`
     CREATE TABLE IF NOT EXISTS invoices (
       id TEXT PRIMARY KEY,
@@ -126,7 +129,6 @@ export async function initDB() {
     )
   `);
 
-  // Invoice line items (copied from quote)
   await db.execute(`
     CREATE TABLE IF NOT EXISTS invoice_items (
       id TEXT PRIMARY KEY,
@@ -142,7 +144,6 @@ export async function initDB() {
     )
   `);
 
-  // Custom service catalog per account
   await db.execute(`
     CREATE TABLE IF NOT EXISTS custom_sections (
       id TEXT PRIMARY KEY,
@@ -168,7 +169,6 @@ export async function initDB() {
     )
   `);
 
-  // Reminder log
   await db.execute(`
     CREATE TABLE IF NOT EXISTS reminders (
       id TEXT PRIMARY KEY,
@@ -179,8 +179,10 @@ export async function initDB() {
     )
   `);
 
-  // Seed the PLEX master account if not exists
-  const existing = await db.execute(`SELECT id FROM accounts WHERE id = 'plex-master'`);
+  // Seed PLEX master account if not exists
+  const existing = await db.execute(
+    `SELECT id FROM accounts WHERE id = 'plex-master'`
+  );
   if (existing.rows.length === 0) {
     await db.execute(`
       INSERT INTO accounts (id, name, email, phone, website, logo_initial, primary_color, plan)
@@ -189,5 +191,5 @@ export async function initDB() {
     `);
   }
 
-  console.log('✓ Database initialized');
+  console.log('✓ Database initialized at', DB_PATH);
 }

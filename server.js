@@ -1,7 +1,6 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { mkdirSync } from 'fs';
 import { initDB } from './server/db/schema.js';
 import accountsRouter from './server/routes/accounts.js';
 import contactsRouter from './server/routes/contacts.js';
@@ -12,7 +11,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 4173;
 
 // Ensure data directory exists
-mkdirSync(path.join(__dirname, 'data'), { recursive: true });
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
