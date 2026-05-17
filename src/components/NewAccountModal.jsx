@@ -102,7 +102,7 @@ export default function NewAccountModal({ onClose, onCreated }) {
           <div>
             <label className="text-xs font-semibold text-ink-muted uppercase tracking-wider block mb-1.5">
               Business website
-              <span className="ml-1 normal-case font-normal text-ink-muted">(optional — Claude will scan it automatically)</span>
+              <span className="ml-1 normal-case font-normal text-ink-muted">(optional — AI will scan it automatically)</span>
             </label>
             <div className="flex gap-2">
               <div className="relative flex-1">

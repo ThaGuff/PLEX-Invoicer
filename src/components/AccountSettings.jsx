@@ -300,7 +300,7 @@ export default function AccountSettings({ onClose }) {
               Import from website
             </p>
             <p className="text-xs text-ink-muted mb-3">
-              Enter a business website URL — Claude will visit the page and extract services and pricing automatically.
+              Enter a business website URL — AI will visit the page and extract services and pricing automatically.
             </p>
             <div className="flex gap-2">
               <div className="relative flex-1">

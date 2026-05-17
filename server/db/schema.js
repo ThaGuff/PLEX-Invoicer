@@ -4,13 +4,9 @@ import { fileURLToPath } from 'url';
 import { mkdirSync } from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/plex.db');
 
-// Resolve DB path — must be done BEFORE createClient
-const DB_PATH = process.env.DB_PATH
-  || path.join(__dirname, '../../data/plex.db');
-
-// Ensure the directory exists BEFORE createClient tries to open the file
-// This must happen at module load time, not in initDB()
+// MUST run before createClient — Railway container has no /app/data dir by default
 mkdirSync(path.dirname(DB_PATH), { recursive: true });
 
 export const db = createClient({ url: `file:${DB_PATH}` });
@@ -19,6 +15,7 @@ export async function initDB() {
   await db.execute(`
     CREATE TABLE IF NOT EXISTS accounts (
       id TEXT PRIMARY KEY,
+      owner_id TEXT,
       name TEXT NOT NULL,
       email TEXT,
       phone TEXT,
@@ -26,11 +23,32 @@ export async function initDB() {
       logo_initial TEXT DEFAULT 'P',
       primary_color TEXT DEFAULT '#13B5EA',
       plan TEXT DEFAULT 'starter',
+      stripe_customer_id TEXT,
+      stripe_subscription_id TEXT,
       stripe_account_id TEXT,
       stripe_onboarded INTEGER DEFAULT 0,
+      subscription_status TEXT DEFAULT 'trialing',
+      trial_ends_at TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     )
   `);
+
+  // Add owner_id column if upgrading existing DB
+  try {
+    await db.execute(`ALTER TABLE accounts ADD COLUMN owner_id TEXT`);
+  } catch { /* already exists — fine */ }
+  try {
+    await db.execute(`ALTER TABLE accounts ADD COLUMN stripe_customer_id TEXT`);
+  } catch { /* already exists */ }
+  try {
+    await db.execute(`ALTER TABLE accounts ADD COLUMN stripe_subscription_id TEXT`);
+  } catch { /* already exists */ }
+  try {
+    await db.execute(`ALTER TABLE accounts ADD COLUMN subscription_status TEXT DEFAULT 'trialing'`);
+  } catch { /* already exists */ }
+  try {
+    await db.execute(`ALTER TABLE accounts ADD COLUMN trial_ends_at TEXT`);
+  } catch { /* already exists */ }
 
   await db.execute(`
     CREATE TABLE IF NOT EXISTS contacts (
@@ -179,15 +197,13 @@ export async function initDB() {
     )
   `);
 
-  // Seed PLEX master account if not exists
-  const existing = await db.execute(
-    `SELECT id FROM accounts WHERE id = 'plex-master'`
-  );
+  // Seed PLEX master account (only when no auth configured)
+  const existing = await db.execute(`SELECT id FROM accounts WHERE id = 'plex-master'`);
   if (existing.rows.length === 0) {
     await db.execute(`
-      INSERT INTO accounts (id, name, email, phone, website, logo_initial, primary_color, plan)
+      INSERT INTO accounts (id, name, email, phone, website, logo_initial, primary_color, plan, subscription_status)
       VALUES ('plex-master', 'PLEX Automation', 'hello@plexautomation.io',
-              '256-609-4618', 'plexautomation.io', 'P', '#13B5EA', 'agency')
+              '256-609-4618', 'plexautomation.io', 'P', '#13B5EA', 'agency', 'active')
     `);
   }
 
