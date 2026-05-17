@@ -130,8 +130,8 @@ app.post('/api/webhooks/stripe', async (req, res) => {
   }
 });
 
-// ── OpenAI scraper proxy ──────────────────────────────────────────
-app.post('/api/scrape', requireAuth, async (req, res) => {
+// ── OpenAI scraper proxy (no auth required — uses server API key only) ───
+app.post('/api/scrape', async (req, res) => {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'url required' });
   const result = await scrapeWithOpenAI(url);

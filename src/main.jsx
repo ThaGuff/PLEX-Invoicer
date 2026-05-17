@@ -8,3 +8,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>,
 )
+// Build timestamp: forces Railway to rebuild when VITE_ vars change
+// 2026-05-17T01:45:00Z
