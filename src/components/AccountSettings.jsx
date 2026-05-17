@@ -296,7 +296,7 @@ function SectionBlock({ accountId, section, items, onRename, onDelete, onItemAdd
 
 // ── Main AccountSettings ──────────────────────────────────────────
 export default function AccountSettings({ onClose }) {
-  const { account, activeId, updateAccount } = useAccount();
+  const { account, activeId, updateAccount, refreshAccount } = useAccount();
   const accent = account?.primary_color || '#13B5EA';
 
   const [form, setForm] = useState({
@@ -350,6 +350,8 @@ export default function AccountSettings({ onClose }) {
         ...form,
         logo_initial: (form.logo_initial || form.name?.[0] || 'A').toUpperCase().slice(0, 1),
       });
+      // updateAccount now returns enriched data (sections/items included)
+      // so context is already fully in sync after this call
       setSavedOk(true);
       setTimeout(() => setSavedOk(false), 2000);
     } catch (e) { alert('Save failed: ' + e.message); }
@@ -394,6 +396,8 @@ export default function AccountSettings({ onClose }) {
             type: 'success',
             text: `Imported ${svcs.length} service${svcs.length !== 1 ? 's' : ''} from ${d.businessName || 'the website'}.${d.pricingFound ? ' Pricing detected.' : ' No pricing found — set prices manually.'}`,
           });
+          // Sync context and QuoteBuilder after import
+          refreshAccount(activeId).catch(() => {});
         } else {
           setScanResult({
             type: 'info',
@@ -418,6 +422,8 @@ export default function AccountSettings({ onClose }) {
       setSections(prev => [...prev, created]);
       setNewSectionName('');
       setAddingSection(false);
+      // Sync context so QuoteBuilder sees the new section immediately
+      refreshAccount(activeId).catch(() => {});
     } catch (e) { alert('Failed: ' + e.message); }
     setAddingSec(false);
   };
@@ -427,12 +433,19 @@ export default function AccountSettings({ onClose }) {
     await api.accounts.deleteSection(activeId, sectionId);
     setSections(prev => prev.filter(s => s.id !== sectionId));
     setItems(prev => prev.filter(i => i.section_id !== sectionId));
+    refreshAccount(activeId).catch(() => {});
   };
 
   // These callbacks are passed to SectionBlock — no double DB write
-  const handleItemAdded   = (item)        => setItems(prev => [...prev, item]);
+  const handleItemAdded   = (item)        => {
+    setItems(prev => [...prev, item]);
+    refreshAccount(activeId).catch(() => {}); // sync context so QuoteBuilder sees new services
+  };
   const handleItemUpdated = (id, patch)   => setItems(prev => prev.map(i => i.id === id ? { ...i, ...patch } : i));
-  const handleItemDeleted = (id)          => setItems(prev => prev.filter(i => i.id !== id));
+  const handleItemDeleted = (id)          => {
+    setItems(prev => prev.filter(i => i.id !== id));
+    refreshAccount(activeId).catch(() => {});
+  };
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">

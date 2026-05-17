@@ -91,6 +91,8 @@ export default function NewAccountModal({ onClose, onCreated }) {
       if (acc?.id) switchAccount(acc.id);
       onCreated?.(acc);
       onClose();
+      // Note: AccountContext.loadAccounts will run on next render to pick up
+      // the new account with its sections/items from the DB
     } catch (e) {
       alert('Failed to create account: ' + e.message);
     }

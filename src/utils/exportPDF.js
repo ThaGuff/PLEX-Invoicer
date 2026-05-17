@@ -66,6 +66,7 @@ export function exportPDF(state) {
     agencyPhone   = '256-609-4618',
     agencyWebsite = 'plexautomation.io',
     primaryColor  = '#13B5EA',
+    agencyLogoUrl = null,
     customSections = [],
     customItems    = [],
   } = state;
@@ -82,10 +83,26 @@ export function exportPDF(state) {
   doc.setFillColor(...accent); doc.rect(0, 0, 4, 70, 'F');
   doc.setFillColor(...accent); doc.rect(0, 68, W, 2.5, 'F');
 
-  doc.setFillColor(...accent);
-  doc.roundedRect(20, 14, 36, 36, 4, 4, 'F');
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.setTextColor(...WHITE);
-  doc.text((agencyName || 'P')[0].toUpperCase(), 38, 38, { align: 'center' });
+  // Logo: use uploaded image if available, fallback to letter initial
+  if (agencyLogoUrl && agencyLogoUrl.startsWith('data:image/')) {
+    try {
+      const ext = agencyLogoUrl.includes('data:image/png') ? 'PNG'
+                : agencyLogoUrl.includes('data:image/jpg') || agencyLogoUrl.includes('data:image/jpeg') ? 'JPEG'
+                : 'PNG';
+      doc.addImage(agencyLogoUrl, ext, 20, 14, 36, 36);
+    } catch {
+      // Fallback to letter initial if image fails
+      doc.setFillColor(...accent);
+      doc.roundedRect(20, 14, 36, 36, 4, 4, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.setTextColor(...WHITE);
+      doc.text((agencyName || 'P')[0].toUpperCase(), 38, 38, { align: 'center' });
+    }
+  } else {
+    doc.setFillColor(...accent);
+    doc.roundedRect(20, 14, 36, 36, 4, 4, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.setTextColor(...WHITE);
+    doc.text((agencyName || 'P')[0].toUpperCase(), 38, 38, { align: 'center' });
+  }
 
   doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.setTextColor(...INK);
   doc.text(agencyName, 66, 30);

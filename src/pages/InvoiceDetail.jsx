@@ -80,10 +80,11 @@ export default function InvoiceDetail() {
   const handleExportPDF = () => {
     if (!invoice) return;
     exportPDF({
-      agencyName:    account?.name    || 'Agency',
-      agencyEmail:   account?.email   || '',
-      agencyPhone:   account?.phone   || '',
-      agencyWebsite: account?.website || '',
+      agencyName:    account?.name     || 'Agency',
+      agencyEmail:   account?.email    || '',
+      agencyPhone:   account?.phone    || '',
+      agencyWebsite: account?.website  || '',
+      agencyLogoUrl: account?.logo_url || null,
       primaryColor:  accent,
       clientName:    invoice.client_name,
       clientBiz:     invoice.client_biz,

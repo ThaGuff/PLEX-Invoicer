@@ -117,8 +117,10 @@ router.patch('/:id', async (req, res) => {
     if (!updates.length) return res.json({ ok: true });
     vals.push(req.params.id);
     await db.execute(`UPDATE accounts SET ${updates.join(', ')} WHERE id = ?`, vals);
+    // Return enriched account so context stays in sync with sections/items
     const updated = await db.execute(`SELECT * FROM accounts WHERE id = ?`, [req.params.id]);
-    res.json(updated.rows[0]);
+    const enriched = await enrichAccounts(updated.rows);
+    res.json(enriched[0]);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

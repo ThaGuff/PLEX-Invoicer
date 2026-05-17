@@ -270,29 +270,38 @@ export default function QuoteBuilder() {
   const [customSections, setCustomSections] = useState(account?.customSections || []);
   const [customItems, setCustomItems]       = useState(account?.customItems    || []);
 
-  // Load fresh catalog from API when account changes
-  useEffect(() => {
-    if (!account?.id) return;
-    // Use context data if available (fast path), but always validate with API
-    if (account.customSections) {
-      setCustomSections(account.customSections);
-      setCustomItems(account.customItems || []);
-    }
-    if (account.id !== 'plex-master') {
-      api.accounts.get(account.id)
-        .then(data => {
-          setCustomSections(data.customSections || []);
-          setCustomItems(data.customItems || []);
-        })
-        .catch(() => {}); // fail silently, use context data
-    }
+  // Load fresh catalog from API when account changes or on focus
+  const refreshCatalog = useCallback(() => {
+    if (!account?.id || account.id === 'plex-master') return;
+    api.accounts.get(account.id)
+      .then(data => {
+        setCustomSections(data.customSections || []);
+        setCustomItems(data.customItems || []);
+      })
+      .catch(() => {});
   }, [account?.id]);
 
+  useEffect(() => {
+    if (!account?.id) return;
+    // Immediately use context data (fast path)
+    setCustomSections(account.customSections || []);
+    setCustomItems(account.customItems || []);
+    // Then validate with fresh API call
+    refreshCatalog();
+  }, [account?.id]);
+
+  // Re-sync catalog when user returns to this tab (e.g. after using AccountSettings)
+  useEffect(() => {
+    window.addEventListener('focus', refreshCatalog);
+    return () => window.removeEventListener('focus', refreshCatalog);
+  }, [refreshCatalog]);
+
   const fullState = {
-    agencyName:    account?.name    || 'PLEX Automation',
-    agencyEmail:   account?.email   || 'hello@plexautomation.io',
-    agencyPhone:   account?.phone   || '256-609-4618',
-    agencyWebsite: account?.website || 'plexautomation.io',
+    agencyName:    account?.name      || 'PLEX Automation',
+    agencyEmail:   account?.email     || 'hello@plexautomation.io',
+    agencyPhone:   account?.phone     || '256-609-4618',
+    agencyWebsite: account?.website   || 'plexautomation.io',
+    agencyLogoUrl: account?.logo_url  || null,
     primaryColor:  accent,
     clientName, clientBiz, clientEmail, clientPhone,
     quoteDate, billingMode, yearlyDiscount,
