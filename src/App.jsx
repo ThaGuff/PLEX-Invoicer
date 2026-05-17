@@ -16,7 +16,8 @@ import InvoiceDetail from './pages/InvoiceDetail';
 import Contacts from './pages/Contacts';
 import PublicQuote from './pages/PublicQuote';
 import PublicInvoice from './pages/PublicInvoice';
-import { LayoutDashboard, FileText, Receipt, Users, Plus, LogOut, CreditCard } from 'lucide-react';
+import Admin from './pages/Admin';
+import { LayoutDashboard, FileText, Receipt, Users, Plus, LogOut, CreditCard, Shield } from 'lucide-react';
 
 // Wire up token getter so every API request gets the JWT
 function TokenBridge() {
@@ -40,13 +41,16 @@ function RequireAuth({ children }) {
 
 function Nav() {
   const { account } = useAccount();
+  const { user } = useAuth();
   const accent = account?.primary_color || '#13B5EA';
   const loc = useLocation();
+  const isOwner = user?.email === 'guffey.ryan@gmail.com' || user?.id === 'dev-user';
   const links = [
     { to: '/',         label: 'Dashboard', icon: LayoutDashboard },
     { to: '/quotes',   label: 'Quotes',    icon: FileText },
     { to: '/invoices', label: 'Invoices',  icon: Receipt },
     { to: '/contacts', label: 'Contacts',  icon: Users },
+    ...(isOwner ? [{ to: '/admin', label: 'Admin', icon: Shield }] : []),
   ];
   return (
     <nav className="flex items-center gap-0.5">
@@ -179,6 +183,7 @@ export default function App() {
                     <Route path="/invoices/:id"    element={<InvoiceDetail />} />
                     <Route path="/contacts"        element={<Contacts />} />
                     <Route path="/contacts/new"    element={<Contacts />} />
+                    <Route path="/admin"            element={<Admin />} />
                   </Routes>
                 </AppShell>
               </AccountProvider>

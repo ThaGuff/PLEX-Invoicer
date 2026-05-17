@@ -67,4 +67,12 @@ export const api = {
     dashboard:   (accountId) => req('GET',    `/invoices/stats/dashboard?account_id=${accountId}`),
   },
   scrape: (url) => req('POST', '/scrape', { url }),
+  admin: {
+    users:       ()               => req('GET',  '/admin/users'),
+    metrics:     ()               => req('GET',  '/admin/metrics'),
+    userAccount: (userId)         => req('GET',  `/admin/user/${userId}/account`),
+    extendTrial: (userId, days)   => req('POST', `/admin/user/${userId}/extend-trial`, { days }),
+    onboard:     (body)           => req('POST', '/admin/onboard', body),
+    broadcast:   (body)           => req('POST', '/admin/broadcast', body),
+  },
 };

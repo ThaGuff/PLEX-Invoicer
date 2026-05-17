@@ -8,6 +8,7 @@ import contactsRouter from './server/routes/contacts.js';
 import quotesRouter  from './server/routes/quotes.js';
 import invoicesRouter from './server/routes/invoices.js';
 import authRouter from './server/routes/auth.js';
+import adminRouter from './server/routes/admin.js';
 import { scrapeWithOpenAI } from './server/scrape.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -196,6 +197,7 @@ app.post('/api/billing/portal', requireAuth, async (req, res) => {
 });
 
 // ── Protected API routes ──────────────────────────────────────────
+app.use('/api/admin',    requireAuth, adminRouter);
 app.use('/api/accounts', requireAuth, accountsRouter);
 app.use('/api/contacts', requireAuth, contactsRouter);
 app.use('/api/quotes',   requireAuth, quotesRouter);

@@ -1,7 +1,7 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   X, Save, CheckCircle, Globe, RefreshCw, AlertCircle, Info,
-  Plus, Trash2, Edit2, ChevronDown, ChevronUp, Upload, Image,
+  Plus, Trash2, Edit2, ChevronDown, ChevronUp, Upload, Image as ImageIcon,
 } from 'lucide-react';
 import { useAccount } from '../context/AccountContext';
 import { api } from '../utils/api';
@@ -16,25 +16,24 @@ const COLORS = [
 function LogoUploader({ accountId, currentLogoUrl, currentInitial, accentColor, onUploaded }) {
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState(currentLogoUrl || null);
+  const [preview, setPreview] = useState(currentLogoUrl || null);
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) { alert('Please select an image file.'); return; }
     if (file.size > 2 * 1024 * 1024) { alert('Image must be under 2MB.'); return; }
-
     setUploading(true);
     const reader = new FileReader();
     reader.onload = async (ev) => {
       const dataUrl = ev.target.result;
-      setPreviewUrl(dataUrl);
+      setPreview(dataUrl);
       try {
         await api.accounts.uploadLogo(accountId, dataUrl);
         onUploaded(dataUrl);
       } catch (err) {
         alert('Upload failed: ' + err.message);
-        setPreviewUrl(currentLogoUrl);
+        setPreview(currentLogoUrl);
       }
       setUploading(false);
     };
@@ -44,34 +43,30 @@ function LogoUploader({ accountId, currentLogoUrl, currentInitial, accentColor, 
   const handleRemove = async () => {
     if (!confirm('Remove logo?')) return;
     await api.accounts.uploadLogo(accountId, '');
-    setPreviewUrl(null);
+    setPreview(null);
     onUploaded(null);
   };
 
   return (
     <div className="flex items-center gap-4">
-      {/* Preview */}
       <div className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden border-2 shrink-0"
-        style={{ borderColor: accentColor + '40', background: previewUrl ? '#fff' : accentColor + '15' }}>
-        {previewUrl ? (
-          <img src={previewUrl} alt="Logo" className="w-full h-full object-contain" />
-        ) : (
-          <span className="text-xl font-bold" style={{ color: accentColor }}>
-            {(currentInitial || '?').toUpperCase()}
-          </span>
-        )}
+        style={{ borderColor: accentColor + '40', background: preview ? '#fff' : accentColor + '15' }}>
+        {preview
+          ? <img src={preview} alt="Logo" className="w-full h-full object-contain" />
+          : <span className="text-xl font-bold" style={{ color: accentColor }}>{(currentInitial || '?').toUpperCase()}</span>
+        }
       </div>
       <div className="flex-1">
         <p className="text-xs font-medium text-ink mb-1">Business logo</p>
-        <p className="text-xs text-ink-muted mb-2">PNG, JPG, or SVG — max 2MB. Shown on quotes and invoices.</p>
+        <p className="text-xs text-ink-muted mb-2">PNG, JPG or SVG · max 2 MB · shown on quotes and invoices.</p>
         <div className="flex gap-2">
           <button onClick={() => fileRef.current?.click()} disabled={uploading}
             className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors hover:bg-gray-50 disabled:opacity-50"
             style={{ borderColor: '#E5E8EB' }}>
             {uploading ? <RefreshCw size={11} className="animate-spin" /> : <Upload size={11} />}
-            {uploading ? 'Uploading…' : previewUrl ? 'Replace' : 'Upload logo'}
+            {uploading ? 'Uploading…' : preview ? 'Replace' : 'Upload logo'}
           </button>
-          {previewUrl && (
+          {preview && (
             <button onClick={handleRemove}
               className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 px-3 py-1.5 rounded-lg hover:bg-red-50">
               <Trash2 size={11} /> Remove
@@ -84,42 +79,51 @@ function LogoUploader({ accountId, currentLogoUrl, currentInitial, accentColor, 
   );
 }
 
-// ── Service item row ──────────────────────────────────────────────
-function ItemRow({ accountId, item, onUpdated, onDeleted }) {
+// ── Single item row — edit inline ─────────────────────────────────
+function ItemRow({ item, onSave, onDelete }) {
   const [editing, setEditing] = useState(false);
-  const [v, setV] = useState({ name: item.name, description: item.description || '', setup_price: item.setup_price || 0, monthly_price: item.monthly_price || 0 });
+  const [v, setV] = useState({
+    name: item.name,
+    description: item.description || '',
+    setup_price: item.setup_price ?? 0,
+    monthly_price: item.monthly_price ?? 0,
+  });
 
   const save = async () => {
-    await api.accounts.updateItem(accountId, item.id, {
-      name: v.name, description: v.description,
+    const patch = {
+      name: v.name.trim(),
+      description: v.description.trim(),
       setup_price: parseFloat(v.setup_price) || 0,
       monthly_price: parseFloat(v.monthly_price) || 0,
-    });
-    onUpdated({ ...item, ...v, setup_price: parseFloat(v.setup_price)||0, monthly_price: parseFloat(v.monthly_price)||0 });
+    };
+    await onSave(item.id, patch);
     setEditing(false);
   };
 
   if (editing) return (
-    <div className="p-3 rounded-lg border space-y-2" style={{ borderColor: '#E5E8EB', background: '#FAFAFA' }}>
-      <input value={v.name} onChange={e => setV(p=>({...p,name:e.target.value}))}
-        className="field text-sm" placeholder="Service name *" />
-      <input value={v.description} onChange={e => setV(p=>({...p,description:e.target.value}))}
+    <div className="p-3 rounded-lg border space-y-2 my-1" style={{ borderColor: '#E5E8EB', background: '#FAFAFA' }}>
+      <input value={v.name} onChange={e => setV(p => ({ ...p, name: e.target.value }))}
+        className="field text-sm" placeholder="Service name *" autoFocus />
+      <input value={v.description} onChange={e => setV(p => ({ ...p, description: e.target.value }))}
         className="field text-sm" placeholder="Short description (optional)" />
       <div className="grid grid-cols-2 gap-2">
         <div className="relative">
-          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
-          <input type="number" min={0} value={v.setup_price} onChange={e=>setV(p=>({...p,setup_price:e.target.value}))}
-            className="field pl-5 text-sm" placeholder="Setup fee" />
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
+          <input type="number" min={0} value={v.setup_price}
+            onChange={e => setV(p => ({ ...p, setup_price: e.target.value }))}
+            className="field pl-6 text-sm" placeholder="Setup / one-time" />
         </div>
         <div className="relative">
-          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
-          <input type="number" min={0} value={v.monthly_price} onChange={e=>setV(p=>({...p,monthly_price:e.target.value}))}
-            className="field pl-5 text-sm" placeholder="Monthly" />
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
+          <input type="number" min={0} value={v.monthly_price}
+            onChange={e => setV(p => ({ ...p, monthly_price: e.target.value }))}
+            className="field pl-6 text-sm" placeholder="Monthly recurring" />
         </div>
       </div>
       <div className="flex gap-2">
         <button onClick={save} disabled={!v.name.trim()}
-          className="btn-primary text-xs py-1.5 px-3 disabled:opacity-40 flex items-center gap-1">
+          className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40 flex items-center gap-1"
+          style={{ background: '#13B5EA' }}>
           <CheckCircle size={11} /> Save
         </button>
         <button onClick={() => setEditing(false)} className="btn-ghost text-xs py-1.5 px-2">Cancel</button>
@@ -128,122 +132,158 @@ function ItemRow({ accountId, item, onUpdated, onDeleted }) {
   );
 
   return (
-    <div className="flex items-start gap-2 py-2 px-1">
+    <div className="flex items-start gap-2 py-2 px-1 group">
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-ink">{item.name}</p>
-        {item.description && <p className="text-xs text-ink-muted truncate">{item.description}</p>}
+        <p className="text-sm font-medium text-ink leading-snug">{item.name}</p>
+        {item.description && <p className="text-xs text-ink-muted mt-0.5 leading-relaxed">{item.description}</p>}
         <p className="text-xs text-ink-muted mt-0.5">
-          {item.setup_price > 0 && <span>${item.setup_price} setup</span>}
-          {item.setup_price > 0 && item.monthly_price > 0 && <span className="mx-1">·</span>}
-          {item.monthly_price > 0 && <span>${item.monthly_price}/mo</span>}
-          {!item.setup_price && !item.monthly_price && <span className="italic">No pricing set</span>}
+          {item.setup_price > 0 && <span>${Number(item.setup_price).toLocaleString()} setup</span>}
+          {item.setup_price > 0 && item.monthly_price > 0 && <span className="mx-1 opacity-40">·</span>}
+          {item.monthly_price > 0 && <span>${Number(item.monthly_price).toLocaleString()}/mo</span>}
+          {!item.setup_price && !item.monthly_price && <span className="italic opacity-50">No pricing set</span>}
         </p>
       </div>
-      <button onClick={() => setEditing(true)} className="p-1 text-ink-muted hover:text-ink shrink-0"><Edit2 size={12} /></button>
-      <button onClick={() => onDeleted(item.id)} className="p-1 text-ink-muted hover:text-red-500 shrink-0"><Trash2 size={12} /></button>
+      <button onClick={() => setEditing(true)}
+        className="p-1.5 text-ink-muted hover:text-ink opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+        <Edit2 size={12} />
+      </button>
+      <button onClick={() => onDelete(item.id)}
+        className="p-1.5 text-ink-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+        <Trash2 size={12} />
+      </button>
     </div>
   );
 }
 
-// ── Service section block ─────────────────────────────────────────
-function SectionBlock({ accountId, section, items, onSectionUpdated, onSectionDeleted, onItemAdded, onItemUpdated, onItemDeleted }) {
+// ── Section block — contains items ───────────────────────────────
+function SectionBlock({ accountId, section, items, onRename, onDelete, onItemAdded, onItemUpdated, onItemDeleted }) {
   const [open, setOpen] = useState(true);
   const [editLabel, setEditLabel] = useState(false);
   const [label, setLabel] = useState(section.label);
   const [addingItem, setAddingItem] = useState(false);
-  const [newItem, setNewItem] = useState({ name:'', description:'', setup_price:'', monthly_price:'' });
+  const [saving, setSaving] = useState(false);
+  const [newItem, setNewItem] = useState({ name: '', description: '', setup_price: '', monthly_price: '' });
 
   const saveLabel = async () => {
-    if (!label.trim()) return;
-    await api.accounts.updateSection(accountId, section.id, { label: label.trim() });
-    onSectionUpdated({ ...section, label: label.trim() });
+    const trimmed = label.trim();
+    if (!trimmed) return;
+    await api.accounts.updateSection(accountId, section.id, { label: trimmed });
+    onRename(section.id, trimmed);
     setEditLabel(false);
   };
 
-  const addItem = async () => {
-    if (!newItem.name.trim()) return;
-    const created = await api.accounts.addItem(accountId, {
-      section_id: section.id,
-      name: newItem.name.trim(),
-      description: newItem.description,
-      setup_price: parseFloat(newItem.setup_price) || 0,
-      monthly_price: parseFloat(newItem.monthly_price) || 0,
-    });
-    onItemAdded(created);
-    setNewItem({ name:'', description:'', setup_price:'', monthly_price:'' });
-    setAddingItem(false);
+  // Add item: write to DB then notify parent with the created item (no double write)
+  const handleAddItem = async () => {
+    const trimmed = newItem.name.trim();
+    if (!trimmed) return;
+    setSaving(true);
+    try {
+      const created = await api.accounts.addItem(accountId, {
+        section_id: section.id,
+        name: trimmed,
+        description: newItem.description.trim(),
+        setup_price: parseFloat(newItem.setup_price) || 0,
+        monthly_price: parseFloat(newItem.monthly_price) || 0,
+      });
+      onItemAdded(created);  // parent updates state — no second DB call
+      setNewItem({ name: '', description: '', setup_price: '', monthly_price: '' });
+      setAddingItem(false);
+    } catch (e) {
+      alert('Failed to add service: ' + e.message);
+    }
+    setSaving(false);
+  };
+
+  // Update item: write to DB then notify parent
+  const handleSaveItem = async (itemId, patch) => {
+    await api.accounts.updateItem(accountId, itemId, patch);
+    onItemUpdated(itemId, patch);
+  };
+
+  // Delete item: write to DB then notify parent
+  const handleDeleteItem = async (itemId) => {
+    if (!confirm('Remove this service?')) return;
+    await api.accounts.deleteItem(accountId, itemId);
+    onItemDeleted(itemId);
   };
 
   return (
     <div className="border rounded-xl overflow-hidden mb-3" style={{ borderColor: '#E5E8EB' }}>
-      {/* Section header */}
+      {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3" style={{ background: '#F5F7F8' }}>
         {editLabel ? (
           <div className="flex items-center gap-2 flex-1">
-            <input value={label} onChange={e=>setLabel(e.target.value)}
+            <input value={label} onChange={e => setLabel(e.target.value)}
               className="field flex-1 py-1 text-sm font-semibold"
-              onKeyDown={e=>{if(e.key==='Enter')saveLabel();if(e.key==='Escape')setEditLabel(false);}}
+              onKeyDown={e => { if (e.key === 'Enter') saveLabel(); if (e.key === 'Escape') setEditLabel(false); }}
               autoFocus />
-            <button onClick={saveLabel} className="btn-primary py-1 px-3 text-xs">Save</button>
-            <button onClick={()=>setEditLabel(false)} className="btn-ghost py-1 px-2 text-xs">✕</button>
+            <button onClick={saveLabel} className="text-xs font-semibold px-3 py-1 rounded-lg text-white" style={{ background: '#13B5EA' }}>Save</button>
+            <button onClick={() => { setLabel(section.label); setEditLabel(false); }} className="btn-ghost py-1 px-2 text-xs">✕</button>
           </div>
         ) : (
-          <span className="text-sm font-semibold text-ink flex-1">{section.label}</span>
-        )}
-        {!editLabel && (
           <>
-            <button onClick={()=>setEditLabel(true)} className="p-1 text-ink-muted hover:text-ink" title="Rename"><Edit2 size={12} /></button>
-            <button onClick={()=>onSectionDeleted(section.id)} className="p-1 text-ink-muted hover:text-red-500" title="Delete section"><Trash2 size={12} /></button>
+            <span className="text-sm font-semibold text-ink flex-1">{section.label}</span>
+            <span className="text-xs text-ink-muted">{items.length} service{items.length !== 1 ? 's' : ''}</span>
+            <button onClick={() => setEditLabel(true)} className="p-1 text-ink-muted hover:text-ink" title="Rename"><Edit2 size={12} /></button>
+            <button onClick={() => onDelete(section.id)} className="p-1 text-ink-muted hover:text-red-500" title="Delete section"><Trash2 size={12} /></button>
           </>
         )}
-        <button onClick={()=>setOpen(o=>!o)} className="p-1 text-ink-muted ml-1">
+        <button onClick={() => setOpen(o => !o)} className="p-1 text-ink-muted ml-1">
           {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
       </div>
 
       {open && (
-        <div className="px-4 pb-3 pt-2 space-y-1">
+        <div className="px-4 pb-3 pt-1">
           {items.length === 0 && !addingItem && (
-            <p className="text-xs text-ink-muted italic py-2">No services yet — add one below.</p>
+            <p className="text-xs text-ink-muted italic py-2 px-1">No services yet — add one below.</p>
           )}
+
           {items.map(item => (
-            <ItemRow key={item.id} accountId={accountId} item={item}
-              onUpdated={onItemUpdated} onDeleted={onItemDeleted} />
+            <ItemRow
+              key={item.id}
+              item={item}
+              onSave={handleSaveItem}
+              onDelete={handleDeleteItem}
+            />
           ))}
 
           {/* Add item form */}
           {addingItem ? (
-            <div className="pt-2 border-t space-y-2" style={{ borderColor: '#F0F3F5' }}>
-              <input value={newItem.name} onChange={e=>setNewItem(p=>({...p,name:e.target.value}))}
+            <div className="pt-2 mt-1 border-t space-y-2" style={{ borderColor: '#F0F3F5' }}>
+              <input value={newItem.name} onChange={e => setNewItem(p => ({ ...p, name: e.target.value }))}
                 className="field text-sm" placeholder="Service name *" autoFocus />
-              <input value={newItem.description} onChange={e=>setNewItem(p=>({...p,description:e.target.value}))}
+              <input value={newItem.description} onChange={e => setNewItem(p => ({ ...p, description: e.target.value }))}
                 className="field text-sm" placeholder="Description (optional)" />
               <div className="grid grid-cols-2 gap-2">
                 <div className="relative">
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
                   <input type="number" min={0} value={newItem.setup_price}
-                    onChange={e=>setNewItem(p=>({...p,setup_price:e.target.value}))}
-                    className="field pl-5 text-sm" placeholder="Setup (one-time)" />
+                    onChange={e => setNewItem(p => ({ ...p, setup_price: e.target.value }))}
+                    className="field pl-6 text-sm" placeholder="Setup / one-time" />
                 </div>
                 <div className="relative">
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
                   <input type="number" min={0} value={newItem.monthly_price}
-                    onChange={e=>setNewItem(p=>({...p,monthly_price:e.target.value}))}
-                    className="field pl-5 text-sm" placeholder="Monthly recurring" />
+                    onChange={e => setNewItem(p => ({ ...p, monthly_price: e.target.value }))}
+                    className="field pl-6 text-sm" placeholder="Monthly" />
                 </div>
               </div>
               <div className="flex gap-2">
-                <button onClick={addItem} disabled={!newItem.name.trim()}
-                  className="btn-primary text-xs py-1.5 px-3 disabled:opacity-40 flex items-center gap-1">
-                  <Plus size={11} /> Add service
+                <button onClick={handleAddItem} disabled={!newItem.name.trim() || saving}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40 flex items-center gap-1"
+                  style={{ background: '#13B5EA' }}>
+                  {saving ? <RefreshCw size={11} className="animate-spin" /> : <Plus size={11} />}
+                  {saving ? 'Adding…' : 'Add service'}
                 </button>
-                <button onClick={()=>setAddingItem(false)} className="btn-ghost text-xs py-1.5 px-2">Cancel</button>
+                <button onClick={() => { setAddingItem(false); setNewItem({ name: '', description: '', setup_price: '', monthly_price: '' }); }}
+                  className="btn-ghost text-xs py-1.5 px-2">Cancel</button>
               </div>
             </div>
           ) : (
-            <button onClick={()=>setAddingItem(true)}
-              className="mt-1 text-xs font-medium flex items-center gap-1 text-ink-muted hover:text-ink py-1">
-              <Plus size={12} /> Add service to this section
+            <button onClick={() => setAddingItem(true)}
+              className="mt-1 text-xs font-medium flex items-center gap-1.5 text-ink-muted hover:text-ink py-1.5 px-1 transition-colors">
+              <Plus size={13} /> Add service to this section
             </button>
           )}
         </div>
@@ -252,117 +292,129 @@ function SectionBlock({ accountId, section, items, onSectionUpdated, onSectionDe
   );
 }
 
-// ── Main AccountSettings modal ────────────────────────────────────
+// ── Main AccountSettings ──────────────────────────────────────────
 export default function AccountSettings({ onClose }) {
-  const {
-    account, activeId,
-    updateAccount,
-    addCustomSection, updateCustomSection, deleteCustomSection,
-    addCustomItem, updateCustomItem, deleteCustomItem,
-  } = useAccount();
-
+  const { account, activeId, updateAccount } = useAccount();
   const accent = account?.primary_color || '#13B5EA';
 
   const [form, setForm] = useState({
-    name:        account?.name         || '',
-    email:       account?.email        || '',
-    phone:       account?.phone        || '',
-    website:     account?.website      || '',
-    logo_initial: account?.logo_initial || account?.logoInitial || '',
-    primary_color: account?.primary_color || account?.primaryColor || '#13B5EA',
+    name:          account?.name          || '',
+    email:         account?.email         || '',
+    phone:         account?.phone         || '',
+    website:       account?.website       || '',
+    logo_initial:  account?.logo_initial  || account?.name?.[0]?.toUpperCase() || 'A',
+    primary_color: account?.primary_color || '#13B5EA',
   });
-  const [logoUrl, setLogoUrl] = useState(account?.logo_url || null);
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
-  const [saving, setSaving] = useState(false);
-  const [savedOk, setSavedOk] = useState(false);
+  const [logoUrl, setLogoUrl]     = useState(account?.logo_url || null);
+  const [saving, setSaving]       = useState(false);
+  const [savedOk, setSavedOk]     = useState(false);
+
+  // Local catalog state — independent of context to avoid re-render loops
+  const [sections, setSections]   = useState(account?.customSections || []);
+  const [items, setItems]         = useState(account?.customItems    || []);
 
   // Scraper state
-  const [scanUrl, setScanUrl]     = useState('');
-  const [scanning, setScanning]   = useState(false);
+  const [scanUrl, setScanUrl]       = useState('');
+  const [scanning, setScanning]     = useState(false);
   const [scanResult, setScanResult] = useState(null);
 
-  // Section management local state (mirrors context)
-  const sections = account?.customSections || [];
-  const items    = account?.customItems    || [];
-
+  // Add-section state
+  const [addingSection, setAddingSection] = useState(false);
   const [newSectionName, setNewSectionName] = useState('');
-  const [addingSection, setAddingSection]   = useState(false);
+  const [addingSec, setAddingSec]           = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
-    await updateAccount(activeId, {
-      ...form,
-      logo_initial: form.logo_initial || form.name?.[0]?.toUpperCase() || 'A',
-    });
+    try {
+      await updateAccount(activeId, {
+        ...form,
+        logo_initial: (form.logo_initial || form.name?.[0] || 'A').toUpperCase().slice(0, 1),
+      });
+      setSavedOk(true);
+      setTimeout(() => setSavedOk(false), 2000);
+    } catch (e) { alert('Save failed: ' + e.message); }
     setSaving(false);
-    setSavedOk(true);
-    setTimeout(() => setSavedOk(false), 2000);
   };
 
   const handleScan = async () => {
     if (!scanUrl.trim()) return;
     setScanning(true);
     setScanResult(null);
-    const result = await scrapeWebsite(scanUrl.trim());
-    setScanning(false);
+    try {
+      const result = await scrapeWebsite(scanUrl.trim());
+      if (result.success && result.data) {
+        const d = result.data;
+        // Pre-fill business info if blank
+        if (!form.name && d.businessName) set('name', d.businessName);
+        if (!form.email && d.email)       set('email', d.email);
+        if (!form.phone && d.phone)       set('phone', d.phone);
+        if (d.businessName && !form.logo_initial) set('logo_initial', d.businessName[0].toUpperCase());
 
-    if (result.success && result.data) {
-      const d = result.data;
-      // Pre-fill branding if blank
-      if (!form.name && d.businessName) set('name', d.businessName);
-      if (!form.email && d.email) set('email', d.email);
-      if (!form.phone && d.phone) set('phone', d.phone);
-      if (d.businessName) set('logo_initial', d.businessName[0].toUpperCase());
+        const svcs = d.services || [];
+        if (svcs.length > 0) {
+          // Create ONE section, then add each service under it
+          const sectionLabel = d.businessName ? `${d.businessName} Services` : 'Imported Services';
+          const newSec = await api.accounts.addSection(activeId, { label: sectionLabel });
+          setSections(prev => [...prev, newSec]);
 
-      // Import services as custom sections/items
-      if (d.services?.length) {
-        const sectionId = await addCustomSection(activeId, {
-          label: `Imported — ${d.businessName || scanUrl}`,
-        });
-        for (const svc of d.services) {
-          await addCustomItem(activeId, {
-            section_id: sectionId,
-            name: svc.name || 'Service',
-            description: svc.description || '',
-            setup_price: Number(svc.setupPrice || svc.oneTimePrice || 0) || 0,
-            monthly_price: Number(svc.monthlyPrice || 0) || 0,
+          const created = [];
+          for (const svc of svcs) {
+            const item = await api.accounts.addItem(activeId, {
+              section_id:    newSec.id,
+              name:          svc.name || 'Service',
+              description:   svc.description || '',
+              setup_price:   Number(svc.setupPrice || svc.oneTimePrice || 0) || 0,
+              monthly_price: Number(svc.monthlyPrice || 0) || 0,
+            });
+            created.push(item);
+          }
+          setItems(prev => [...prev, ...created]);
+
+          setScanResult({
+            type: 'success',
+            text: `Imported ${svcs.length} service${svcs.length !== 1 ? 's' : ''} from ${d.businessName || 'the website'}.${d.pricingFound ? ' Pricing detected.' : ' No pricing found — set prices manually.'}`,
+          });
+        } else {
+          setScanResult({
+            type: 'info',
+            text: `Found ${d.businessName || 'the business'} but no services detected. Business info pre-filled. Add services manually below.`,
           });
         }
-        setScanResult({
-          type: 'success',
-          text: `Imported ${d.services.length} service${d.services.length !== 1 ? 's' : ''} from ${d.businessName || 'the website'}.${d.pricingFound ? ' Pricing was detected.' : ' No pricing found — set prices manually.'}`,
-        });
       } else {
-        setScanResult({
-          type: 'info',
-          text: `Found ${d.businessName || 'the business'} but no service listings were detected. Business info pre-filled — add services manually below.`,
-        });
+        setScanResult({ type: 'error', text: result.error || 'Could not scan the site. Try entering details manually.' });
       }
-    } else {
-      setScanResult({ type: 'error', text: result.error || 'Could not scan the site.' });
+    } catch (e) {
+      setScanResult({ type: 'error', text: e.message || 'Scan failed.' });
     }
+    setScanning(false);
   };
 
   const handleAddSection = async () => {
-    if (!newSectionName.trim()) return;
-    await addCustomSection(activeId, { label: newSectionName.trim() });
-    setNewSectionName('');
-    setAddingSection(false);
+    const trimmed = newSectionName.trim();
+    if (!trimmed) return;
+    setAddingSec(true);
+    try {
+      const created = await api.accounts.addSection(activeId, { label: trimmed });
+      setSections(prev => [...prev, created]);
+      setNewSectionName('');
+      setAddingSection(false);
+    } catch (e) { alert('Failed: ' + e.message); }
+    setAddingSec(false);
   };
 
   const handleDeleteSection = async (sectionId) => {
     if (!confirm('Delete this section and all its services?')) return;
-    await deleteCustomSection(activeId, sectionId);
+    await api.accounts.deleteSection(activeId, sectionId);
+    setSections(prev => prev.filter(s => s.id !== sectionId));
+    setItems(prev => prev.filter(i => i.section_id !== sectionId));
   };
 
-  const handleItemUpdated = useCallback(async (accountId, itemId, patch) => {
-    await updateCustomItem(accountId, itemId, patch);
-  }, [updateCustomItem]);
-
-  const handleItemDeleted = useCallback(async (itemId) => {
-    await deleteCustomItem(activeId, itemId);
-  }, [activeId, deleteCustomItem]);
+  // These callbacks are passed to SectionBlock — no double DB write
+  const handleItemAdded   = (item)        => setItems(prev => [...prev, item]);
+  const handleItemUpdated = (id, patch)   => setItems(prev => prev.map(i => i.id === id ? { ...i, ...patch } : i));
+  const handleItemDeleted = (id)          => setItems(prev => prev.filter(i => i.id !== id));
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -371,15 +423,12 @@ export default function AccountSettings({ onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b shrink-0" style={{ borderColor: '#E5E8EB' }}>
           <div className="flex items-center gap-3">
-            {/* Logo preview in header */}
-            {logoUrl ? (
-              <img src={logoUrl} alt="" className="w-8 h-8 rounded-lg object-contain border" style={{ borderColor: '#E5E8EB' }} />
-            ) : (
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                style={{ background: form.primary_color }}>
-                {(form.logo_initial || form.name?.[0] || 'A').toUpperCase()}
-              </div>
-            )}
+            {logoUrl
+              ? <img src={logoUrl} alt="" className="w-8 h-8 rounded-lg object-contain border" style={{ borderColor: '#E5E8EB' }} />
+              : <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold" style={{ background: form.primary_color }}>
+                  {(form.logo_initial || form.name?.[0] || 'A').toUpperCase()}
+                </div>
+            }
             <div>
               <h2 className="text-base font-bold text-ink">Account settings</h2>
               <p className="text-xs text-ink-muted">{account?.name}</p>
@@ -391,7 +440,7 @@ export default function AccountSettings({ onClose }) {
         {/* Body */}
         <div className="overflow-y-auto flex-1 px-6 py-5 space-y-7">
 
-          {/* ── Logo upload ── */}
+          {/* Logo */}
           <section>
             <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">Logo</p>
             <LogoUploader
@@ -399,19 +448,19 @@ export default function AccountSettings({ onClose }) {
               currentLogoUrl={logoUrl}
               currentInitial={form.logo_initial || form.name?.[0]}
               accentColor={accent}
-              onUploaded={(url) => { setLogoUrl(url); }}
+              onUploaded={url => setLogoUrl(url)}
             />
           </section>
 
-          {/* ── Branding ── */}
+          {/* Business info */}
           <section>
             <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">Business info</p>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { k: 'name',         label: 'Business name',      ph: 'Acme Powerwash',     span: 2 },
-                { k: 'email',        label: 'Email',              ph: 'hello@business.com' },
-                { k: 'phone',        label: 'Phone',              ph: '(256) 000-0000' },
-                { k: 'website',      label: 'Website',            ph: 'acmepowerwash.com' },
+                { k: 'name',         label: 'Business name',       ph: 'Acme Powerwash',     span: 2 },
+                { k: 'email',        label: 'Email',               ph: 'hello@business.com' },
+                { k: 'phone',        label: 'Phone',               ph: '(256) 000-0000' },
+                { k: 'website',      label: 'Website',             ph: 'acmepowerwash.com' },
                 { k: 'logo_initial', label: 'Logo letter (1 char)', ph: 'A' },
               ].map(f => (
                 <div key={f.k} className={f.span === 2 ? 'col-span-2' : ''}>
@@ -436,11 +485,11 @@ export default function AccountSettings({ onClose }) {
             </div>
           </section>
 
-          {/* ── Website scanner ── */}
+          {/* Website scanner */}
           <section className="border rounded-xl p-4" style={{ borderColor: '#E5E8EB' }}>
-            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1">Import services from website</p>
+            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1">Import services from your website</p>
             <p className="text-xs text-ink-muted mb-3">
-              Enter your business website URL — AI will scan the page and automatically extract your services and pricing into your catalog.
+              AI scans your website and auto-creates your service catalog with pricing where available.
             </p>
             <div className="flex gap-2">
               <div className="relative flex-1">
@@ -451,30 +500,30 @@ export default function AccountSettings({ onClose }) {
                   onKeyDown={e => e.key === 'Enter' && !scanning && handleScan()} />
               </div>
               <button onClick={handleScan} disabled={!scanUrl.trim() || scanning}
-                className="btn-primary px-4 disabled:opacity-50 flex items-center gap-2">
-                {scanning
-                  ? <><RefreshCw size={13} className="animate-spin" /> Scanning…</>
-                  : 'Scan site'}
+                className="btn-primary px-4 disabled:opacity-50 flex items-center gap-2 shrink-0">
+                {scanning ? <><RefreshCw size={13} className="animate-spin" />Scanning…</> : 'Scan site'}
               </button>
             </div>
             {scanResult && (
               <div className={`mt-3 flex items-start gap-2 text-xs px-3 py-2.5 rounded-lg border ${
                 scanResult.type === 'success' ? 'bg-green-50 text-green-700 border-green-200'
-                : scanResult.type === 'error' ? 'bg-red-50 text-red-700 border-red-200'
+                : scanResult.type === 'error'   ? 'bg-red-50 text-red-700 border-red-200'
                 : 'bg-blue-50 text-blue-700 border-blue-200'
               }`}>
-                {scanResult.type === 'success' ? <CheckCircle size={13} className="shrink-0 mt-0.5" /> : <Info size={13} className="shrink-0 mt-0.5" />}
-                <span>{scanResult.text}</span>
+                {scanResult.type === 'success'
+                  ? <CheckCircle size={13} className="shrink-0 mt-0.5" />
+                  : <Info size={13} className="shrink-0 mt-0.5" />}
+                {scanResult.text}
               </div>
             )}
           </section>
 
-          {/* ── Service catalog ── */}
+          {/* Service catalog */}
           <section>
             <div className="flex items-center justify-between mb-3">
               <div>
                 <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider">Service catalog</p>
-                <p className="text-xs text-ink-muted mt-0.5">Your services appear in the Quote Builder for selection.</p>
+                <p className="text-xs text-ink-muted mt-0.5">These services appear in the Quote Builder.</p>
               </div>
               <button onClick={() => setAddingSection(true)}
                 className="text-xs font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors hover:bg-gray-50"
@@ -483,48 +532,49 @@ export default function AccountSettings({ onClose }) {
               </button>
             </div>
 
-            {/* Add section form */}
             {addingSection && (
               <div className="mb-3 p-3 border rounded-xl" style={{ borderColor: '#E5E8EB' }}>
-                <p className="text-xs font-medium text-ink-muted mb-2">Section name</p>
+                <label className="text-xs font-medium text-ink-muted block mb-2">Section name</label>
                 <div className="flex gap-2">
                   <input value={newSectionName} onChange={e => setNewSectionName(e.target.value)}
-                    placeholder="e.g. Pressure Washing, HVAC Services, Lawn Care..."
+                    placeholder="e.g. Pressure Washing, HVAC, Lawn Care…"
                     className="field flex-1 text-sm"
                     onKeyDown={e => { if (e.key === 'Enter') handleAddSection(); if (e.key === 'Escape') setAddingSection(false); }}
                     autoFocus />
-                  <button onClick={handleAddSection} disabled={!newSectionName.trim()}
-                    className="btn-primary text-xs px-4 disabled:opacity-40">Add</button>
-                  <button onClick={() => setAddingSection(false)} className="btn-ghost text-xs px-3">Cancel</button>
+                  <button onClick={handleAddSection} disabled={!newSectionName.trim() || addingSec}
+                    className="text-xs font-semibold px-4 py-2 rounded-lg text-white disabled:opacity-40"
+                    style={{ background: accent }}>
+                    {addingSec ? '…' : 'Add'}
+                  </button>
+                  <button onClick={() => { setAddingSection(false); setNewSectionName(''); }}
+                    className="btn-ghost text-xs px-3">Cancel</button>
                 </div>
               </div>
             )}
 
             {sections.length === 0 ? (
               <div className="text-center py-8 border rounded-xl border-dashed" style={{ borderColor: '#E5E8EB' }}>
-                <p className="text-sm text-ink-muted mb-1">No service sections yet</p>
-                <p className="text-xs text-ink-muted mb-3">Scan your website above to auto-import, or add sections manually.</p>
+                <p className="text-sm font-medium text-ink mb-1">No services yet</p>
+                <p className="text-xs text-ink-muted mb-3">Scan your website above or add sections manually.</p>
                 <button onClick={() => setAddingSection(true)}
                   className="text-xs font-semibold px-4 py-2 rounded-lg text-white"
                   style={{ background: accent }}>
                   Add your first section
                 </button>
               </div>
-            ) : (
-              sections.map(sec => (
-                <SectionBlock
-                  key={sec.id}
-                  accountId={activeId}
-                  section={sec}
-                  items={items.filter(i => i.section_id === sec.id)}
-                  onSectionUpdated={(updated) => updateCustomSection(activeId, sec.id, { label: updated.label })}
-                  onSectionDeleted={(sId) => handleDeleteSection(sId)}
-                  onItemAdded={(item) => addCustomItem(activeId, { ...item, section_id: sec.id })}
-                  onItemUpdated={(item) => handleItemUpdated(activeId, item.id, item)}
-                  onItemDeleted={(itemId) => handleItemDeleted(itemId)}
-                />
-              ))
-            )}
+            ) : sections.map(sec => (
+              <SectionBlock
+                key={sec.id}
+                accountId={activeId}
+                section={sec}
+                items={items.filter(i => i.section_id === sec.id)}
+                onRename={(id, label) => setSections(prev => prev.map(s => s.id === id ? { ...s, label } : s))}
+                onDelete={handleDeleteSection}
+                onItemAdded={handleItemAdded}
+                onItemUpdated={handleItemUpdated}
+                onItemDeleted={handleItemDeleted}
+              />
+            ))}
           </section>
 
         </div>
@@ -534,10 +584,8 @@ export default function AccountSettings({ onClose }) {
           <button onClick={onClose} className="btn-ghost">Close</button>
           <button onClick={handleSave} disabled={saving}
             className="btn-primary flex items-center gap-2 disabled:opacity-50">
-            {savedOk
-              ? <><CheckCircle size={14} /> Saved!</>
-              : saving
-              ? <><RefreshCw size={14} className="animate-spin" /> Saving…</>
+            {savedOk ? <><CheckCircle size={14} /> Saved!</>
+              : saving ? <><RefreshCw size={14} className="animate-spin" />Saving…</>
               : <><Save size={14} /> Save changes</>}
           </button>
         </div>
