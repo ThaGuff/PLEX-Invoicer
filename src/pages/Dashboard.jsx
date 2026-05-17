@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   TrendingUp, FileText, DollarSign, AlertCircle,
   Plus, ArrowRight, CheckCircle, Clock, Send,
@@ -51,9 +51,24 @@ function StatusBadge({ status }) {
 export default function Dashboard() {
   const { account } = useAccount();
   const navigate = useNavigate();
+  const location = useLocation();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
   const accent = account?.primary_color || '#13B5EA';
+
+  // Handle Stripe Connect OAuth redirect
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('stripe_connected') === '1') {
+      setToast({ type: 'success', msg: '🎉 Stripe connected! Payment links now route to your account.' });
+      navigate('/dashboard', { replace: true });
+    } else if (params.get('stripe_error')) {
+      setToast({ type: 'error', msg: 'Stripe connection failed: ' + decodeURIComponent(params.get('stripe_error')) });
+      navigate('/dashboard', { replace: true });
+    }
+    if (toast) setTimeout(() => setToast(null), 6000);
+  }, [location.search]);
 
   useEffect(() => {
     if (!account?.id) return;
@@ -69,6 +84,14 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-5 py-6">
+      {toast && (
+        <div className={`mb-4 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium ${
+          toast.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
+        }`}>
+          {toast.msg}
+          <button onClick={() => setToast(null)} className="ml-auto text-xs opacity-60 hover:opacity-100">✕</button>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-ink">Dashboard</h1>

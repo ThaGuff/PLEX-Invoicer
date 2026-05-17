@@ -7,6 +7,7 @@ import { useAccount } from '../context/AccountContext';
 import { api } from '../utils/api';
 import { scrapeWebsite } from '../utils/scraper';
 import FeeRulesSettings from './FeeRulesSettings';
+import StripeConnectSettings from './StripeConnectSettings';
 
 const COLORS = [
   '#13B5EA','#6366f1','#8b5cf6','#ec4899','#f97316',
@@ -576,6 +577,12 @@ export default function AccountSettings({ onClose }) {
                 onItemDeleted={handleItemDeleted}
               />
             ))}
+          </section>
+
+          {/* Stripe Connect */}
+          <section>
+            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">Stripe payments</p>
+            <StripeConnectSettings accountId={activeId} accent={accent} />
           </section>
 
           {/* F8: Fee rules */}

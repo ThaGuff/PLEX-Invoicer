@@ -330,3 +330,17 @@ export async function initSchemaV2() {
 
   console.log('✓ Schema V2 initialized');
 }
+
+export async function initStripeConnect() {
+  // Ensure all Stripe Connect columns exist
+  const cols = [
+    `ALTER TABLE accounts ADD COLUMN stripe_account_id TEXT`,
+    `ALTER TABLE accounts ADD COLUMN stripe_onboarded INTEGER DEFAULT 0`,
+    `ALTER TABLE accounts ADD COLUMN stripe_charges_enabled INTEGER DEFAULT 0`,
+    `ALTER TABLE accounts ADD COLUMN stripe_payouts_enabled INTEGER DEFAULT 0`,
+    `ALTER TABLE accounts ADD COLUMN stripe_connect_email TEXT`,
+    `ALTER TABLE accounts ADD COLUMN platform_fee_pct REAL DEFAULT 0`,
+  ];
+  for (const sql of cols) { try { await db.execute(sql); } catch {} }
+  console.log('✓ Stripe Connect columns ready');
+}

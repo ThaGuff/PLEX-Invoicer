@@ -98,29 +98,46 @@ router.patch('/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── POST generate Stripe payment link ────────────────────────────
+// ── POST generate Stripe payment link (Connect-aware) ────────────
 router.post('/:id/payment-link', async (req, res) => {
   const stripeKey = process.env.STRIPE_SECRET_KEY;
-  if (!stripeKey) return res.status(503).json({ error: 'Stripe not configured. Set STRIPE_SECRET_KEY on Railway.' });
+  if (!stripeKey) return res.status(503).json({ error: 'Stripe not configured.' });
   try {
-    const inv = await db.execute(`SELECT * FROM invoices WHERE id = ?`, [req.params.id]);
+    // Join invoice with account to get Stripe Connect fields
+    const inv = await db.execute(
+      `SELECT i.*, a.name as agency_name, a.stripe_account_id,
+              a.stripe_charges_enabled, a.platform_fee_pct
+       FROM invoices i JOIN accounts a ON i.account_id = a.id WHERE i.id = ?`,
+      [req.params.id]
+    );
     if (!inv.rows.length) return res.status(404).json({ error: 'Not found' });
     const invoice = inv.rows[0];
-    const Stripe = (await import('stripe')).default;
-    const stripe = new Stripe(stripeKey);
+
     const amountCents = Math.round((invoice.amount_due || 0) * 100);
     if (amountCents < 50) return res.status(400).json({ error: 'Amount too low (min $0.50)' });
-    const acc = await db.execute(`SELECT * FROM accounts WHERE id = ?`, [invoice.account_id]);
-    const agency = acc.rows[0];
-    const origin = process.env.APP_URL || req.headers.origin || 'https://plexautomation.io';
-    const link = await stripe.paymentLinks.create({
+
+    const origin = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
+    const Stripe = (await import('stripe')).default;
+    const stripe = new Stripe(stripeKey);
+
+    // Use connected account if available and enabled
+    const connectedId = (invoice.stripe_account_id && invoice.stripe_charges_enabled)
+      ? invoice.stripe_account_id : null;
+    const stripeOpts = connectedId ? { stripeAccount: connectedId } : {};
+
+    // Platform fee (only applies when routing through a connected account)
+    const feePct = (invoice.platform_fee_pct || 0) / 100;
+    const applicationFeeAmount = (connectedId && feePct > 0)
+      ? Math.round(amountCents * feePct) : undefined;
+
+    const linkParams = {
       line_items: [{
         price_data: {
           currency: 'usd',
           unit_amount: amountCents,
           product_data: {
             name: `Invoice ${invoice.number}`,
-            description: `${agency?.name || ''} · ${invoice.client_name || ''}`.trim(),
+            description: `${invoice.agency_name || ''} · ${invoice.client_name || ''}`.trim(),
           },
         },
         quantity: 1,
@@ -129,13 +146,24 @@ router.post('/:id/payment-link', async (req, res) => {
         type: 'redirect',
         redirect: { url: `${origin}/portal/invoice/${invoice.public_token}?paid=1` },
       },
-      metadata: { invoice_id: invoice.id },
-    });
+      metadata: { invoice_id: invoice.id, account_id: invoice.account_id },
+      ...(applicationFeeAmount ? { application_fee_amount: applicationFeeAmount } : {}),
+    };
+
+    const link = await stripe.paymentLinks.create(linkParams, stripeOpts);
+
     await db.execute(
-      `UPDATE invoices SET stripe_payment_link = ?, status = 'sent', sent_at = datetime('now') WHERE id = ?`,
+      `UPDATE invoices SET stripe_payment_link = ?,
+       status = CASE WHEN status = 'draft' THEN 'sent' ELSE status END,
+       sent_at = COALESCE(sent_at, datetime('now')) WHERE id = ?`,
       [link.url, req.params.id]
     );
-    res.json({ payment_link: link.url });
+
+    res.json({
+      payment_link:    link.url,
+      connected:       !!connectedId,
+      stripe_account:  connectedId || null,
+    });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

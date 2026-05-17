@@ -587,7 +587,8 @@ router.get('/health', async (req, res) => {
   // SMTP (just check env vars)
   checks.smtp   = !!(process.env.SMTP_HOST && process.env.SMTP_USER);
   checks.openai = !!process.env.OPENAI_API_KEY;
-  checks.stripe = !!process.env.STRIPE_SECRET_KEY;
+  checks.stripe       = !!process.env.STRIPE_SECRET_KEY;
+  checks.stripe_connect = !!process.env.STRIPE_CLIENT_ID;
 
   const allOk = Object.values(checks).every(Boolean);
   res.status(allOk ? 200 : 207).json({ ok: allOk, checks, ts: new Date().toISOString() });

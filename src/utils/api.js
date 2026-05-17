@@ -67,6 +67,15 @@ export const api = {
     dashboard:   (accountId) => req('GET',    `/invoices/stats/dashboard?account_id=${accountId}`),
   },
   scrape: (url) => req('POST', '/scrape', { url }),
+
+  // Stripe Connect
+  stripeConnect: {
+    status:          (accountId)       => req('GET',  `/stripe-connect/status/${accountId}`),
+    oauthLink:       (accountId)       => req('GET',  `/stripe-connect/oauth-link?account_id=${accountId}`),
+    disconnect:      (accountId)       => req('POST', '/stripe-connect/disconnect', { account_id: accountId }),
+    setPlatformFee:  (accountId, pct)  => req('POST', '/stripe-connect/set-platform-fee', { account_id: accountId, fee_pct: pct }),
+    createPaymentLink: (invoiceId)     => req('POST', '/stripe-connect/create-payment-link', { invoice_id: invoiceId }),
+  },
   // F1: Engagement tracking
   tracking: {
     timeline:  (invoiceId) => req('GET', `/track/${invoiceId}/timeline`),
