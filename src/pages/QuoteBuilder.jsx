@@ -1,8 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Zap, Bot, Megaphone, LayoutDashboard, PlusCircle, Globe,
   ChevronDown, ChevronUp, Download, Mail, Trash2,
-  Calendar, CreditCard, CheckCircle, Info, FileText, Users, TrendingUp,
+  Calendar, CreditCard, CheckCircle, Info, FileText, Users, TrendingUp, Save, RefreshCw,
 } from 'lucide-react';
 import { SERVICES, SECTIONS, YEARLY_DISCOUNT_DEFAULT, getService } from '../data/services';
 import { useAccount } from '../context/AccountContext';
@@ -11,6 +12,7 @@ import { openMailto } from '../utils/exportEmail';
 import AccountSwitcher from '../components/AccountSwitcher';
 import AccountSettings from '../components/AccountSettings';
 import NewAccountModal from '../components/NewAccountModal';
+import { api } from '../utils/api';
 
 const SECTION_ICONS = {
   web: Globe, core: Zap, ai: Bot,
@@ -172,27 +174,29 @@ function computeTotals({ selected, included, prices, billingMode, yearlyDiscount
 
 export default function QuoteBuilder() {
   const { account, activeId } = useAccount();
-  const accent = account?.primaryColor || '#13B5EA';
+  const accent = account?.primary_color || account?.primaryColor || '#13B5EA';
+  const navigate = useNavigate();
+  const { id: editId } = useParams();
 
-  const [showSettings, setShowSettings] = useState(false);
-  const [showNewAccount, setShowNewAccount] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [contacts, setContacts] = useState([]);
 
   const [clientName,  setClientName]  = useState('');
   const [clientBiz,   setClientBiz]   = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientPhone, setClientPhone] = useState('');
+  const [selectedContactId, setSelectedContactId] = useState('');
   const [quoteDate,   setQuoteDate]   = useState(() =>
     new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   );
 
   const [billingMode,    setBillingMode]    = useState('monthly');
   const [yearlyDiscount, setYearlyDiscount] = useState(YEARLY_DISCOUNT_DEFAULT);
-
   const [selected,   setSelected]   = useState({});
   const [sectionMap, setSectionMap] = useState({});
   const [included,   setIncluded]   = useState({});
   const [prices,     setPrices]     = useState({});
-
   const [discType,    setDiscType]    = useState('pct');
   const [discValue,   setDiscValue]   = useState(0);
   const [discSetup,   setDiscSetup]   = useState(true);
@@ -201,19 +205,64 @@ export default function QuoteBuilder() {
     'Pricing valid for 30 days. Monthly billing starts after setup is complete. Setup begins within 48 hours of signed agreement and initial deposit. No long-term contracts on monthly services.'
   );
 
-  // Reset selections when account switches
-  React.useEffect(() => {
-    setSelected({}); setSectionMap({}); setIncluded({}); setPrices({});
-    setDiscValue(0);
+  // Load contacts for autocomplete
+  useEffect(() => {
+    if (account?.id) api.contacts.list(account.id).then(setContacts).catch(console.error);
+  }, [account?.id]);
+
+  // Load existing quote if editing
+  useEffect(() => {
+    if (!editId || editId === 'new') return;
+    api.quotes.get(editId).then(q => {
+      setClientName(q.client_name || '');
+      setClientBiz(q.client_biz || '');
+      setClientEmail(q.client_email || '');
+      setClientPhone(q.client_phone || '');
+      setBillingMode(q.billing_mode || 'monthly');
+      setYearlyDiscount(q.yearly_discount || 15);
+      setDiscType(q.disc_type || 'pct');
+      setDiscValue(q.disc_value || 0);
+      setDiscSetup(!!q.disc_setup);
+      setDiscMonthly(!!q.disc_monthly);
+      setNotes(q.notes || '');
+      // Reconstruct selections from items
+      const sel = {}, secMap = {}, incl = {}, prx = {};
+      (q.items || []).forEach(item => {
+        const id = item.service_id || item.id;
+        sel[id] = true;
+        secMap[id] = item.section_id || 'custom';
+        incl[id] = !!item.is_included;
+        prx[id] = { setup: item.setup_price, monthly: item.monthly_price };
+      });
+      setSelected(sel); setSectionMap(secMap); setIncluded(incl); setPrices(prx);
+    }).catch(console.error);
+  }, [editId]);
+
+  // Reset when account switches
+  useEffect(() => {
+    setSelected({}); setSectionMap({}); setIncluded({}); setPrices({}); setDiscValue(0);
+    setClientName(''); setClientBiz(''); setClientEmail(''); setClientPhone('');
   }, [activeId]);
 
   const handleToggle    = useCallback((id, sectionId, checked) => {
     setSelected(s  => ({ ...s,  [id]: checked }));
     setSectionMap(m => ({ ...m, [id]: sectionId }));
   }, []);
-  const handlePriceChange  = useCallback((id, field, value) => setPrices(p => ({ ...p, [id]: { ...p[id], [field]: value } })), []);
+  const handlePriceChange   = useCallback((id, field, value) => setPrices(p => ({ ...p, [id]: { ...p[id], [field]: value } })), []);
   const handleIncludeChange = useCallback((id, value) => setIncluded(i => ({ ...i, [id]: value })), []);
-  const handleClear = () => { setSelected({}); setSectionMap({}); setIncluded({}); setPrices({}); setDiscValue(0); };
+  const handleClear = () => {
+    setSelected({}); setSectionMap({}); setIncluded({}); setPrices({}); setDiscValue(0);
+    setClientName(''); setClientBiz(''); setClientEmail(''); setClientPhone('');
+  };
+
+  // Select contact from address book
+  const handleContactSelect = (e) => {
+    const c = contacts.find(x => x.id === e.target.value);
+    if (!c) return;
+    setSelectedContactId(c.id);
+    setClientName(c.name); setClientBiz(c.business || '');
+    setClientEmail(c.email || ''); setClientPhone(c.phone || '');
+  };
 
   const customSections = account?.customSections || [];
   const customItems    = account?.customItems    || [];
@@ -235,56 +284,106 @@ export default function QuoteBuilder() {
     computeTotals({ ...fullState });
   const selectedCount = selectedIds.length;
 
+  // Build items array for API
+  const buildItems = () => {
+    const items = [];
+    [...SECTIONS, ...customSections.map(s => ({ id: s.id, label: s.label }))].forEach(sec => {
+      const secServices = SERVICES[sec.id] || customItems.filter(i => i.section_id === sec.id);
+      secServices.forEach(svc => {
+        const svcId = svc.id;
+        if (!selected[svcId]) return;
+        items.push({
+          section_id:    sec.id,
+          section_label: sec.label || SECTIONS.find(s => s.id === sec.id)?.label || '',
+          service_id:    svcId,
+          name:          svc.name,
+          description:   svc.desc || svc.description || '',
+          setup_price:   prices[svcId]?.setup   ?? (svc.setup   ?? 0),
+          monthly_price: prices[svcId]?.monthly ?? (svc.monthly ?? 0),
+          is_included:   !!included[svcId],
+        });
+      });
+    });
+    return items;
+  };
+
+  const handleSave = async () => {
+    if (!account?.id) return;
+    setSaving(true);
+    try {
+      const payload = {
+        account_id:     account.id,
+        contact_id:     selectedContactId || null,
+        client_name:    clientName,
+        client_biz:     clientBiz,
+        client_email:   clientEmail,
+        client_phone:   clientPhone,
+        billing_mode:   billingMode,
+        yearly_discount: yearlyDiscount,
+        disc_type:      discType,
+        disc_value:     discValue,
+        disc_setup:     discSetup,
+        disc_monthly:   discMonthly,
+        notes,
+        setup_total:    setupFinal,
+        monthly_total:  mthFinal,
+        items:          buildItems(),
+      };
+      const saved = await api.quotes.create(payload);
+      setSaved(true);
+      setTimeout(() => { setSaved(false); navigate(`/quotes/${saved.id}`); }, 800);
+    } catch (e) { alert('Save failed: ' + e.message); }
+    finally { setSaving(false); }
+  };
+
+  const handleConvert = async () => {
+    if (!editId || editId === 'new') { alert('Save the quote first.'); return; }
+    try {
+      const inv = await api.quotes.convert(editId);
+      navigate(`/invoices/${inv.id}`);
+    } catch (e) { alert('Convert failed: ' + e.message); }
+  };
+
   return (
-    <div className="min-h-screen" style={{ background: '#F5F7F8' }}>
-
-      {/* ── Header ── */}
-      <header className="bg-white border-b sticky top-0 z-40 no-print" style={{ borderColor: '#E5E8EB' }}>
-        <div className="max-w-7xl mx-auto px-5 h-14 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded flex items-center justify-center font-bold text-white text-sm select-none"
-              style={{ background: accent }}>
-              {(account?.logoInitial || account?.name?.[0] || 'P').toUpperCase()}
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="font-bold text-ink text-sm tracking-tight">{account?.name || 'PLEX Automation'}</span>
-              <span className="text-ink-muted text-xs">·</span>
-              <span className="text-ink-muted text-xs">Quote Builder</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {selectedCount > 0 && (
-              <span className="text-xs text-ink-muted hidden sm:block">{selectedCount} selected</span>
-            )}
-            <AccountSwitcher
-              onOpenSettings={() => setShowSettings(true)}
-              onNewAccount={() => setShowNewAccount(true)}
-            />
-          </div>
+    <div className="max-w-7xl mx-auto px-5 py-6">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h1 className="text-xl font-bold text-ink">{editId && editId !== 'new' ? 'Edit quote' : 'New quote'}</h1>
+          <p className="text-sm text-ink-muted mt-0.5">Select services, configure billing, then save or export.</p>
         </div>
-        <div className="h-0.5 w-full" style={{ background: accent }} />
-      </header>
+        <div className="flex gap-2">
+          {editId && editId !== 'new' && (
+            <button onClick={handleConvert}
+              className="btn-ghost flex items-center gap-1.5 text-sm">
+              <RefreshCw size={14} /> Convert to invoice
+            </button>
+          )}
+          <button onClick={handleSave} disabled={saving || selectedCount === 0}
+            className="flex items-center gap-1.5 text-sm font-semibold text-white px-4 py-2 rounded-lg disabled:opacity-40"
+            style={{ background: accent }}>
+            <Save size={14} />
+            {saving ? 'Saving...' : saved ? 'Saved!' : 'Save quote'}
+          </button>
+        </div>
+      </div>
 
-      {/* ── Modals ── */}
-      {showSettings   && <AccountSettings onClose={() => setShowSettings(false)} />}
-      {showNewAccount && <NewAccountModal onClose={() => setShowNewAccount(false)} onCreated={() => {}} />}
-
-      {/* ── Body ── */}
-      <div className="max-w-7xl mx-auto px-5 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
 
           {/* LEFT */}
           <div>
-            <div className="mb-5">
-              <h1 className="text-xl font-bold text-ink">New quote</h1>
-              <p className="text-sm text-ink-muted mt-0.5">Select services, set billing, adjust pricing — then export or send.</p>
-            </div>
 
             {/* Client info */}
             <div className="card p-5 mb-4">
               <div className="flex items-center gap-2 mb-4 pb-3 border-b" style={{ borderColor: '#E5E8EB' }}>
                 <Users size={14} style={{ color: accent }} />
                 <span className="text-sm font-semibold text-ink">Client details</span>
+                {contacts.length > 0 && (
+                  <select value={selectedContactId} onChange={handleContactSelect}
+                    className="ml-auto field text-xs py-1 w-auto max-w-[200px]">
+                    <option value="">Select from contacts...</option>
+                    {contacts.map(c => <option key={c.id} value={c.id}>{c.name}{c.business ? ` (${c.business})` : ''}</option>)}
+                  </select>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {[
@@ -362,21 +461,12 @@ export default function QuoteBuilder() {
             {customSections.map(sec => (
               <Section key={sec.id}
                 section={{ id: sec.id, label: sec.label }}
-                services={customItems.filter(i => i.sectionId === sec.id)}
+                services={customItems.filter(i => i.section_id === sec.id)}
                 selected={selected} included={included} prices={prices}
                 billingMode={billingMode} yearlyDiscount={yearlyDiscount}
                 onToggle={handleToggle} onPriceChange={handlePriceChange}
                 onIncludeChange={handleIncludeChange} accent={accent} isCustom />
             ))}
-
-            {customSections.length === 0 && (
-              <button onClick={() => setShowSettings(true)}
-                className="w-full mb-3 border-2 border-dashed rounded-xl py-4 text-sm text-ink-muted hover:text-ink hover:border-ink-muted transition-colors flex items-center justify-center gap-2"
-                style={{ borderColor: '#BFC3C8' }}>
-                <PlusCircle size={15} />
-                Add custom services for {account?.name || 'this account'} → Account settings
-              </button>
-            )}
 
             {/* Notes */}
             <div className="card p-5">
@@ -390,7 +480,7 @@ export default function QuoteBuilder() {
             </div>
           </div>
 
-          {/* RIGHT */}
+          {/* RIGHT — summary */}
           <div>
             <div className="sticky top-20 space-y-3">
 
@@ -424,7 +514,6 @@ export default function QuoteBuilder() {
                         {billingMode === 'annual' ? `Annual · ${yearlyDiscount}% off monthly` : 'Month-to-month'}
                       </div>
 
-                      {/* Setup */}
                       <div className="mb-4 pb-4 border-b" style={{ borderColor: '#E5E8EB' }}>
                         <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-2">One-time setup</p>
                         <div className="space-y-1.5">
@@ -445,7 +534,6 @@ export default function QuoteBuilder() {
                         </div>
                       </div>
 
-                      {/* Monthly */}
                       <div className="mb-4 pb-4 border-b" style={{ borderColor: '#E5E8EB' }}>
                         <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-2">Monthly recurring</p>
                         <div className="space-y-1.5">
@@ -475,7 +563,6 @@ export default function QuoteBuilder() {
                         </div>
                       </div>
 
-                      {/* List */}
                       <div>
                         <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-2">Services included</p>
                         <ul className="space-y-1">
@@ -512,7 +599,8 @@ export default function QuoteBuilder() {
                   ))}
                 </div>
                 <div className="flex items-center gap-2 mb-3">
-                  <input type="number" value={discValue} min={0} onChange={e => setDiscValue(e.target.value)}
+                  <input type="number" value={discValue} min={0}
+                    onChange={e => setDiscValue(e.target.value)}
                     className="field text-right w-24 font-semibold tabular-nums" placeholder="0" />
                   <span className="text-sm text-ink-muted">{discType === 'pct' ? '% off' : '$ off'}</span>
                 </div>
@@ -531,14 +619,19 @@ export default function QuoteBuilder() {
 
               {/* Actions */}
               <div className="space-y-2">
-                <button onClick={() => exportPDF(fullState)} disabled={selectedCount === 0}
+                <button onClick={handleSave} disabled={saving || selectedCount === 0}
                   className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-white py-2.5 rounded-lg transition-all disabled:opacity-40"
                   style={{ background: accent }}>
-                  <Download size={15} /> Export PDF quote
+                  <Save size={15} />
+                  {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save quote'}
+                </button>
+                <button onClick={() => exportPDF(fullState)} disabled={selectedCount === 0}
+                  className="btn-ghost w-full disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
+                  <Download size={15} /> Export PDF
                 </button>
                 <button onClick={() => openMailto(fullState)} disabled={selectedCount === 0}
-                  className="btn-ghost w-full disabled:opacity-40">
-                  <Mail size={15} /> Email quote to client
+                  className="btn-ghost w-full disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
+                  <Mail size={15} /> Email quote
                 </button>
                 <button onClick={handleClear} className="btn-danger-ghost w-full">
                   <Trash2 size={13} /> Clear all
@@ -548,15 +641,6 @@ export default function QuoteBuilder() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Footer */}
-      <footer className="border-t mt-8 py-4 no-print" style={{ borderColor: '#E5E8EB', background: '#FFFFFF' }}>
-        <div className="max-w-7xl mx-auto px-5 flex items-center justify-between">
-          <span className="text-xs text-ink-muted">{account?.name} · {account?.website} · {account?.phone}</span>
-          <span className="text-xs text-ink-muted">Quote Builder v3.0</span>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -1,184 +1,126 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-
-const STORAGE_KEY = 'plex_invoicer_accounts';
-const SESSION_KEY = 'plex_invoicer_session';
-
-// ── Default PLEX master account ───────────────────────────────────────────────
-const PLEX_DEFAULT_ACCOUNT = {
-  id: 'plex-master',
-  name: 'PLEX Automation',
-  email: 'hello@plexautomation.io',
-  phone: '256-609-4618',
-  website: 'plexautomation.io',
-  logoInitial: 'P',
-  primaryColor: '#13B5EA',
-  accentColor: '#0d8fc0',
-  plan: 'master', // master | pro | starter
-  createdAt: new Date().toISOString(),
-  // Custom catalog: array of { id, sectionId, sectionLabel, name, desc, setup, monthly, badge }
-  customSections: [],
-  customItems: [],
-  // Saved quotes
-  quotes: [],
-};
-
-function loadAccounts() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [PLEX_DEFAULT_ACCOUNT];
-    const parsed = JSON.parse(raw);
-    // Always ensure PLEX master exists
-    if (!parsed.find(a => a.id === 'plex-master')) {
-      return [PLEX_DEFAULT_ACCOUNT, ...parsed];
-    }
-    return parsed;
-  } catch {
-    return [PLEX_DEFAULT_ACCOUNT];
-  }
-}
-
-function saveAccounts(accounts) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
-  } catch {}
-}
-
-function loadSession() {
-  try {
-    return localStorage.getItem(SESSION_KEY) || 'plex-master';
-  } catch {
-    return 'plex-master';
-  }
-}
-
-function saveSession(id) {
-  try {
-    localStorage.setItem(SESSION_KEY, id);
-  } catch {}
-}
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { api } from '../utils/api.js';
 
 const AccountContext = createContext(null);
 
 export function AccountProvider({ children }) {
-  const [accounts, setAccounts] = useState(() => loadAccounts());
-  const [activeId, setActiveId] = useState(() => loadSession());
+  const [accounts, setAccounts]   = useState([]);
+  const [activeId, setActiveId]   = useState(() => localStorage.getItem('plex_active_account') || 'plex-master');
+  const [loading, setLoading]     = useState(true);
 
   const account = accounts.find(a => a.id === activeId) || accounts[0];
 
-  // Persist on change
-  useEffect(() => { saveAccounts(accounts); }, [accounts]);
-  useEffect(() => { saveSession(activeId); }, [activeId]);
+  const loadAccounts = useCallback(async () => {
+    try {
+      const list = await api.accounts.list();
+      setAccounts(list);
+    } catch (e) {
+      console.error('Failed to load accounts:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const switchAccount = (id) => setActiveId(id);
+  useEffect(() => { loadAccounts(); }, [loadAccounts]);
+  useEffect(() => { localStorage.setItem('plex_active_account', activeId); }, [activeId]);
 
-  const updateAccount = (id, patch) => {
-    setAccounts(prev => prev.map(a => a.id === id ? { ...a, ...patch } : a));
-  };
+  const refreshAccount = useCallback(async (id) => {
+    try {
+      const updated = await api.accounts.get(id || activeId);
+      setAccounts(prev => prev.map(a => a.id === updated.id ? updated : a));
+      return updated;
+    } catch (e) { console.error(e); }
+  }, [activeId]);
 
-  const createAccount = (data) => {
-    const newAccount = {
-      id: `acc-${Date.now()}`,
-      logoInitial: (data.name || 'A')[0].toUpperCase(),
-      primaryColor: '#13B5EA',
-      accentColor: '#0d8fc0',
-      plan: 'starter',
-      createdAt: new Date().toISOString(),
-      customSections: [],
-      customItems: [],
-      quotes: [],
-      ...data,
-    };
-    setAccounts(prev => [...prev, newAccount]);
-    return newAccount;
-  };
+  const switchAccount = useCallback((id) => setActiveId(id), []);
 
-  const deleteAccount = (id) => {
-    if (id === 'plex-master') return; // can't delete master
+  const createAccount = useCallback(async (data) => {
+    const created = await api.accounts.create(data);
+    setAccounts(prev => [...prev, { ...created, customSections: [], customItems: [] }]);
+    return created;
+  }, []);
+
+  const updateAccount = useCallback(async (id, patch) => {
+    const updated = await api.accounts.update(id, patch);
+    setAccounts(prev => prev.map(a => a.id === id ? { ...a, ...updated } : a));
+    return updated;
+  }, []);
+
+  const deleteAccount = useCallback(async (id) => {
+    if (id === 'plex-master') return;
+    await api.accounts.delete(id);
     setAccounts(prev => prev.filter(a => a.id !== id));
     if (activeId === id) setActiveId('plex-master');
-  };
+  }, [activeId]);
 
-  // Custom catalog management
-  const addCustomSection = (accountId, section) => {
-    const id = `sec-${Date.now()}`;
-    updateAccount(accountId, {
-      customSections: [...(account.customSections || []), { ...section, id }],
-    });
-    return id;
-  };
+  // Custom sections
+  const addCustomSection = useCallback(async (accountId, section) => {
+    const created = await api.accounts.addSection(accountId, section);
+    setAccounts(prev => prev.map(a => a.id === accountId
+      ? { ...a, customSections: [...(a.customSections || []), { ...created, id: created.id }] }
+      : a
+    ));
+    return created.id;
+  }, []);
 
-  const updateCustomSection = (accountId, sectionId, patch) => {
-    const acc = accounts.find(a => a.id === accountId);
-    if (!acc) return;
-    updateAccount(accountId, {
-      customSections: acc.customSections.map(s => s.id === sectionId ? { ...s, ...patch } : s),
-    });
-  };
+  const updateCustomSection = useCallback(async (accountId, sectionId, patch) => {
+    await api.accounts.updateSection(accountId, sectionId, patch);
+    setAccounts(prev => prev.map(a => a.id === accountId
+      ? { ...a, customSections: (a.customSections || []).map(s => s.id === sectionId ? { ...s, ...patch } : s) }
+      : a
+    ));
+  }, []);
 
-  const deleteCustomSection = (accountId, sectionId) => {
-    const acc = accounts.find(a => a.id === accountId);
-    if (!acc) return;
-    updateAccount(accountId, {
-      customSections: acc.customSections.filter(s => s.id !== sectionId),
-      customItems: acc.customItems.filter(i => i.sectionId !== sectionId),
-    });
-  };
+  const deleteCustomSection = useCallback(async (accountId, sectionId) => {
+    await api.accounts.deleteSection(accountId, sectionId);
+    setAccounts(prev => prev.map(a => a.id === accountId
+      ? { ...a,
+          customSections: (a.customSections || []).filter(s => s.id !== sectionId),
+          customItems: (a.customItems || []).filter(i => i.section_id !== sectionId) }
+      : a
+    ));
+  }, []);
 
-  const addCustomItem = (accountId, item) => {
-    const acc = accounts.find(a => a.id === accountId);
-    if (!acc) return;
-    const newItem = { id: `item-${Date.now()}`, ...item };
-    updateAccount(accountId, {
-      customItems: [...(acc.customItems || []), newItem],
+  const addCustomItem = useCallback(async (accountId, item) => {
+    const created = await api.accounts.addItem(accountId, {
+      ...item,
+      setup_price:   item.setup   ?? item.setup_price   ?? 0,
+      monthly_price: item.monthly ?? item.monthly_price ?? 0,
     });
-  };
+    setAccounts(prev => prev.map(a => a.id === accountId
+      ? { ...a, customItems: [...(a.customItems || []), created] }
+      : a
+    ));
+    return created;
+  }, []);
 
-  const updateCustomItem = (accountId, itemId, patch) => {
-    const acc = accounts.find(a => a.id === accountId);
-    if (!acc) return;
-    updateAccount(accountId, {
-      customItems: acc.customItems.map(i => i.id === itemId ? { ...i, ...patch } : i),
+  const updateCustomItem = useCallback(async (accountId, itemId, patch) => {
+    await api.accounts.updateItem(accountId, itemId, {
+      ...patch,
+      setup_price:   patch.setup   ?? patch.setup_price,
+      monthly_price: patch.monthly ?? patch.monthly_price,
     });
-  };
+    setAccounts(prev => prev.map(a => a.id === accountId
+      ? { ...a, customItems: (a.customItems || []).map(i => i.id === itemId ? { ...i, ...patch } : i) }
+      : a
+    ));
+  }, []);
 
-  const deleteCustomItem = (accountId, itemId) => {
-    const acc = accounts.find(a => a.id === accountId);
-    if (!acc) return;
-    updateAccount(accountId, {
-      customItems: acc.customItems.filter(i => i.id !== itemId),
-    });
-  };
-
-  const saveQuote = (accountId, quoteState) => {
-    const acc = accounts.find(a => a.id === accountId);
-    if (!acc) return;
-    const quote = {
-      id: `quote-${Date.now()}`,
-      savedAt: new Date().toISOString(),
-      ...quoteState,
-    };
-    updateAccount(accountId, {
-      quotes: [quote, ...(acc.quotes || []).slice(0, 49)], // keep last 50
-    });
-    return quote.id;
-  };
+  const deleteCustomItem = useCallback(async (accountId, itemId) => {
+    await api.accounts.deleteItem(accountId, itemId);
+    setAccounts(prev => prev.map(a => a.id === accountId
+      ? { ...a, customItems: (a.customItems || []).filter(i => i.id !== itemId) }
+      : a
+    ));
+  }, []);
 
   return (
     <AccountContext.Provider value={{
-      accounts,
-      account,
-      activeId,
-      switchAccount,
-      createAccount,
-      updateAccount,
-      deleteAccount,
-      addCustomSection,
-      updateCustomSection,
-      deleteCustomSection,
-      addCustomItem,
-      updateCustomItem,
-      deleteCustomItem,
-      saveQuote,
+      accounts, account, activeId, loading,
+      switchAccount, createAccount, updateAccount, deleteAccount,
+      addCustomSection, updateCustomSection, deleteCustomSection,
+      addCustomItem, updateCustomItem, deleteCustomItem,
+      refreshAccount, loadAccounts,
     }}>
       {children}
     </AccountContext.Provider>
@@ -187,6 +129,6 @@ export function AccountProvider({ children }) {
 
 export function useAccount() {
   const ctx = useContext(AccountContext);
-  if (!ctx) throw new Error('useAccount must be used inside AccountProvider');
+  if (!ctx) throw new Error('useAccount must be inside AccountProvider');
   return ctx;
 }
