@@ -71,7 +71,7 @@ export async function initDB() {
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
-      FOREIGN KEY (contact_id) REFERENCES contacts(id) ON SET NULL
+      FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL
     )
   `);
 
@@ -122,7 +122,7 @@ export async function initDB() {
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
-      FOREIGN KEY (quote_id) REFERENCES quotes(id) ON SET NULL
+      FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE SET NULL
     )
   `);
 
