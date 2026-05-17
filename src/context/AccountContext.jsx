@@ -12,17 +12,16 @@ export function AccountProvider({ children }) {
 
   const loadAccounts = useCallback(async () => {
     try {
+      // accounts.list() now returns enriched accounts with customSections + customItems
       const list = await api.accounts.list();
       setAccounts(list);
 
-      // Set active account: prefer saved preference, but only if user owns it
       const saved = localStorage.getItem('plex_active_account');
       const ownedIds = list.map(a => a.id);
 
       if (saved && ownedIds.includes(saved)) {
         setActiveId(saved);
       } else if (list.length > 0) {
-        // Default to first account (backend already scoped to user's own accounts)
         setActiveId(list[0].id);
         localStorage.setItem('plex_active_account', list[0].id);
       }

@@ -11,15 +11,30 @@ function isOwner(req) {
   return req.user?.email === ownerEmail || req.user?.id === 'dev-user';
 }
 
+// Enrich account rows with customSections and customItems
+async function enrichAccounts(accountRows) {
+  if (!accountRows.length) return accountRows;
+  const ids = accountRows.map(a => `'${a.id}'`).join(',');
+  const [sections, items] = await Promise.all([
+    db.execute(`SELECT * FROM custom_sections WHERE account_id IN (${ids}) ORDER BY sort_order`),
+    db.execute(`SELECT * FROM custom_items WHERE account_id IN (${ids}) ORDER BY sort_order`),
+  ]);
+  return accountRows.map(a => ({
+    ...a,
+    customSections: sections.rows.filter(s => s.account_id === a.id),
+    customItems:    items.rows.filter(i => i.account_id === a.id),
+  }));
+}
+
 // GET accounts for the authenticated user
 router.get('/', async (req, res) => {
   try {
     const userId = req.user?.id;
 
     if (userId === 'dev-user') {
-      // Dev mode — show all accounts
+      // Dev mode — show all accounts with full catalog
       const result = await db.execute(`SELECT * FROM accounts ORDER BY created_at ASC`);
-      return res.json(result.rows);
+      return res.json(await enrichAccounts(result.rows));
     }
 
     // Real users: only see accounts they own
@@ -33,7 +48,7 @@ router.get('/', async (req, res) => {
       // Ryan also sees plex-master
       const master = await db.execute(`SELECT * FROM accounts WHERE id = 'plex-master'`);
       const combined = [...master.rows, ...ownedAccounts.rows.filter(a => a.id !== 'plex-master')];
-      return res.json(combined);
+      return res.json(await enrichAccounts(combined));
     }
 
     // Everyone else: just their own accounts
@@ -50,10 +65,10 @@ router.get('/', async (req, res) => {
          name[0]?.toUpperCase() || 'A', '#13B5EA', 'starter', 'trialing']
       );
       const created = await db.execute(`SELECT * FROM accounts WHERE id = ?`, [id]);
-      return res.json(created.rows);
+      return res.json(await enrichAccounts(created.rows));
     }
 
-    res.json(ownedAccounts.rows);
+    res.json(await enrichAccounts(ownedAccounts.rows));
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

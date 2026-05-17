@@ -313,9 +313,25 @@ export default function AccountSettings({ onClose }) {
   const [saving, setSaving]       = useState(false);
   const [savedOk, setSavedOk]     = useState(false);
 
-  // Local catalog state — independent of context to avoid re-render loops
-  const [sections, setSections]   = useState(account?.customSections || []);
-  const [items, setItems]         = useState(account?.customItems    || []);
+  // Local catalog state — always loaded fresh from DB on mount
+  const [sections, setSections]   = useState([]);
+  const [items, setItems]         = useState([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+
+  // Load fresh data from API on mount (don't trust stale context state)
+  useEffect(() => {
+    if (!activeId) return;
+    setCatalogLoading(true);
+    api.accounts.get(activeId)
+      .then(data => {
+        setSections(data.customSections || []);
+        setItems(data.customItems || []);
+        // Also sync branding fields if they differ from context
+        if (data.logo_url !== undefined) setLogoUrl(data.logo_url || null);
+      })
+      .catch(console.error)
+      .finally(() => setCatalogLoading(false));
+  }, [activeId]);
 
   // Scraper state
   const [scanUrl, setScanUrl]       = useState('');
@@ -554,7 +570,12 @@ export default function AccountSettings({ onClose }) {
               </div>
             )}
 
-            {sections.length === 0 ? (
+            {catalogLoading ? (
+              <div className="flex items-center gap-2 py-6 justify-center">
+                <RefreshCw size={14} className="animate-spin text-ink-muted" />
+                <span className="text-xs text-ink-muted">Loading your service catalog…</span>
+              </div>
+            ) : sections.length === 0 ? (
               <div className="text-center py-8 border rounded-xl border-dashed" style={{ borderColor: '#E5E8EB' }}>
                 <p className="text-sm font-medium text-ink mb-1">No services yet</p>
                 <p className="text-xs text-ink-muted mb-3">Scan your website above or add sections manually.</p>

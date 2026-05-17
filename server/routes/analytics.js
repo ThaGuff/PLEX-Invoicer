@@ -188,7 +188,7 @@ router.post('/run-reminders', async (req, res) => {
       try {
         if (SMTP_HOST && SMTP_USER) {
           const nodemailer = (await import('nodemailer')).default;
-          const transporter = nodemailer.createTransporter({
+          const transporter = nodemailer.createTransport({
             host: SMTP_HOST, port: parseInt(SMTP_PORT) || 587, secure: false,
             auth: { user: SMTP_USER, pass: SMTP_PASS },
           });

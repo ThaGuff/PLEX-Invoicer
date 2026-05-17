@@ -181,12 +181,29 @@ router.post('/:id/send', async (req, res) => {
 // ── POST mark as paid ─────────────────────────────────────────────
 router.post('/:id/mark-paid', async (req, res) => {
   try {
-    const inv = await db.execute(`SELECT amount_due FROM invoices WHERE id = ?`, [req.params.id]);
-    const paid = req.body.amount || inv.rows[0]?.amount_due || 0;
+    const inv = await db.execute(
+      `SELECT i.*, a.id as acc_id FROM invoices i JOIN accounts a ON i.account_id = a.id WHERE i.id = ?`,
+      [req.params.id]
+    );
+    if (!inv.rows.length) return res.status(404).json({ error: 'Not found' });
+    const invoice = inv.rows[0];
+    const paid = req.body.amount || invoice.amount_due || 0;
+    const now = new Date();
     await db.execute(
       `UPDATE invoices SET status = 'paid', amount_paid = ?, paid_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`,
       [paid, req.params.id]
     );
+    // Record payment behavior for smart reminder scheduling (F3)
+    if (invoice.sent_at) {
+      const sentDate = new Date(invoice.sent_at);
+      const dtp = Math.max(0, Math.round((now - sentDate) / 86400000));
+      await db.execute(
+        `INSERT INTO payment_behavior (account_id, contact_id, client_email, paid_at, day_of_week, hour_of_day, days_to_pay, invoice_id)
+         VALUES (?, ?, ?, datetime('now'), ?, ?, ?, ?)`,
+        [invoice.account_id, invoice.contact_id || null, invoice.client_email || null,
+         now.getDay(), now.getHours(), dtp, req.params.id]
+      );
+    }
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -208,7 +225,7 @@ router.post('/:id/remind', async (req, res) => {
 
     if (SMTP_HOST && SMTP_USER) {
       const nodemailer = (await import('nodemailer')).default;
-      const transporter = nodemailer.createTransporter({
+      const transporter = nodemailer.createTransport({
         host: SMTP_HOST, port: parseInt(SMTP_PORT) || 587, secure: false,
         auth: { user: SMTP_USER, pass: SMTP_PASS },
       });
