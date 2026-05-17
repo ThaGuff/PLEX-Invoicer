@@ -25,10 +25,6 @@ function StatCard({ label, value, sub, icon: Icon, color = '#13B5EA', onClick })
       <p className="text-2xl font-bold text-ink tabular-nums">{value}</p>
       <p className="text-sm font-medium text-ink mt-0.5">{label}</p>
       {sub && <p className="text-xs text-ink-muted mt-0.5">{sub}</p>}
-      {/* F10: Predictive cashflow */}
-      <div className="mt-6">
-        <CashflowDashboard accountId={account?.id} accent={accent} />
-      </div>
     </div>
   );
 }
