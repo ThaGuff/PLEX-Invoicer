@@ -37,7 +37,12 @@ export default function StripeConnectSettings({ accountId, accent = '#13B5EA' })
       if (r.url) window.location.href = r.url;
       else setError(r.error || 'Could not generate OAuth link');
     } catch (e) {
-      setError(e.message);
+      // Detect the STRIPE_CLIENT_ID missing error specifically
+      if (e.message?.includes('STRIPE_CLIENT_ID')) {
+        setError('STRIPE_CLIENT_ID_MISSING');
+      } else {
+        setError(e.message);
+      }
     }
     setWorking('');
   };
@@ -76,10 +81,41 @@ export default function StripeConnectSettings({ accountId, accent = '#13B5EA' })
   return (
     <div className="space-y-4">
 
-      {error && (
+      {error && error !== 'STRIPE_CLIENT_ID_MISSING' && (
         <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
           <AlertCircle size={13} className="shrink-0 mt-0.5" />
           <span>{error}</span>
+        </div>
+      )}
+
+      {error === 'STRIPE_CLIENT_ID_MISSING' && (
+        <div className="border border-amber-200 rounded-xl overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-3 bg-amber-50">
+            <AlertCircle size={14} className="text-amber-500 shrink-0" />
+            <p className="text-sm font-semibold text-amber-800">One setup step needed</p>
+          </div>
+          <div className="px-4 py-4 space-y-3 text-sm text-ink">
+            <p>To enable Stripe Connect, add <code className="bg-gray-100 px-1.5 py-0.5 rounded font-mono text-xs">STRIPE_CLIENT_ID</code> to Railway:</p>
+            <ol className="space-y-2 text-xs text-ink-muted list-none">
+              {[
+                ['1', 'Go to', 'dashboard.stripe.com', 'https://dashboard.stripe.com'],
+                ['2', 'Click Connect → Settings in the left sidebar', null, null],
+                ['3', 'Copy your Client ID (starts with ca_...)', null, null],
+                ['4', 'Go to Railway → your service → Variables → New Variable', null, null],
+                ['5', 'Add: STRIPE_CLIENT_ID = ca_xxxx...', null, null],
+              ].map(([n, text, link, href]) => (
+                <li key={n} className="flex items-start gap-2">
+                  <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center shrink-0">{n}</span>
+                  <span>{text}{link && <> → <a href={href} target="_blank" rel="noreferrer" className="underline" style={{color:accent}}>{link}</a></>}</span>
+                </li>
+              ))}
+            </ol>
+            <a href="https://dashboard.stripe.com/settings/connect" target="_blank" rel="noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg text-white"
+              style={{ background: '#635BFF' }}>
+              Open Stripe Connect Settings →
+            </a>
+          </div>
         </div>
       )}
 
@@ -237,14 +273,7 @@ export default function StripeConnectSettings({ accountId, accent = '#13B5EA' })
         </div>
       )}
 
-      {/* Setup note */}
-      <div className="rounded-xl p-3.5 text-xs text-ink-muted leading-relaxed"
-        style={{ background: '#F5F7F8', borderLeft: '3px solid #E5E8EB' }}>
-        <p className="font-semibold text-ink mb-1">Setup requirement</p>
-        You need <strong>STRIPE_CLIENT_ID</strong> set in Railway — find it in your Stripe Dashboard under
-        {' '}<strong>Connect → Settings → Get started</strong>. Your platform account is what you register there.
-        Each business then connects their own Stripe account through the OAuth flow above.
-      </div>
+
     </div>
   );
 }
