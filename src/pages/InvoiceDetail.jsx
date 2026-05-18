@@ -28,6 +28,7 @@ export default function InvoiceDetail() {
   const accent = account?.primary_color || '#13B5EA';
 
   const [invoice, setInvoice] = useState(null);
+  const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState('');
 
@@ -45,7 +46,13 @@ export default function InvoiceDetail() {
   };
 
   const handleMarkPaid = () => handle('paid', () => api.invoices.markPaid(id));
-  const handleSend = () => handle('send', () => api.invoices.send(id));
+  const handleSend = () => handle('send', async () => {
+    const r = await api.invoices.send(id);
+    setInvoice(i => ({ ...i, status: 'sent' }));
+    if (r.email_sent) setToast({ type: 'success', msg: `✅ Invoice emailed to ${r.client_email || invoice?.client_email}` });
+    else if (r.email_error) setToast({ type: 'warn', msg: `⚠️ Marked sent but email failed: ${r.email_error}` });
+    else if (!r.has_client_email) setToast({ type: 'info', msg: 'ℹ️ Marked as sent. Add a client email to send automatically.' });
+  });
   const handleRemind = () => handle('remind', async () => {
     const r = await api.invoices.remind(id);
     if (r.email_sent) {

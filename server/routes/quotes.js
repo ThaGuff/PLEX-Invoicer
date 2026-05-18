@@ -109,6 +109,40 @@ router.post('/', async (req, res) => {
        item.setup_price || 0, item.monthly_price || 0, item.is_included ? 1 : 0, i]
     )));
 
+    // Auto-create or link contact if email provided and no contact_id
+    let finalContactId = contact_id || null;
+    if (!finalContactId && (client_email || client_name) && account_id) {
+      try {
+        // Check if contact already exists with this email
+        if (client_email) {
+          const existing = await db.execute(
+            `SELECT id FROM contacts WHERE account_id = ? AND email = ? LIMIT 1`,
+            [account_id, client_email]
+          );
+          if (existing.rows.length > 0) {
+            finalContactId = existing.rows[0].id;
+          }
+        }
+        // Create new contact if still none found
+        if (!finalContactId && (client_name || client_email)) {
+          const { v4: uuid2 } = await import('uuid');
+          const conId = `con-${uuid2()}`;
+          await db.execute(
+            `INSERT INTO contacts (id, account_id, name, business, email, phone)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [conId, account_id, client_name || '', client_biz || '', client_email || '', client_phone || '']
+          );
+          finalContactId = conId;
+        }
+        // Update the quote with the contact_id
+        if (finalContactId) {
+          await db.execute(`UPDATE quotes SET contact_id = ? WHERE id = ?`, [finalContactId, id]);
+        }
+      } catch (e) {
+        console.warn('Auto-create contact failed:', e.message);
+      }
+    }
+
     const [created, createdItems] = await Promise.all([
       db.execute(`SELECT * FROM quotes WHERE id = ?`, [id]),
       db.execute(`SELECT * FROM quote_items WHERE quote_id = ? ORDER BY sort_order`, [id]),

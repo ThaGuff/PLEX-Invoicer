@@ -551,6 +551,8 @@ export default function QuoteBuilder() {
       }
 
       setSaveState('saved');
+      // Refresh contacts so auto-created contact appears on next visit
+      api.contacts.list(account.id).then(setContacts).catch(() => {});
       // Navigate to quotes list after short confirmation flash
       setTimeout(() => navigate('/quotes'), 900);
     } catch (e) {
@@ -623,13 +625,13 @@ export default function QuoteBuilder() {
             <div className="flex items-center gap-2 mb-4 pb-3 border-b" style={{ borderColor: '#E5E8EB' }}>
               <Users size={14} style={{ color: accent }} />
               <span className="text-sm font-semibold text-ink">Client details</span>
-              {contacts.length > 0 && (
+              <div className="ml-auto flex items-center gap-2">
                 <select value={selectedContactId} onChange={handleContactSelect}
-                  className="ml-auto field text-xs py-1 w-auto max-w-[200px]">
-                  <option value="">Select from contacts…</option>
+                  className="field text-xs py-1 w-auto max-w-[200px]">
+                  <option value="">{contacts.length > 0 ? 'Select from contacts…' : 'No contacts yet'}</option>
                   {contacts.map(c => <option key={c.id} value={c.id}>{c.name}{c.business ? ` (${c.business})` : ''}</option>)}
                 </select>
-              )}
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               {[

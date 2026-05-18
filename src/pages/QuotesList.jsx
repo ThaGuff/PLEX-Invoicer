@@ -135,8 +135,10 @@ export default function QuotesList() {
                       <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
                         {q.status !== 'accepted' && (
                           <button onClick={e => handleConvert(q.id, e)}
-                            className="p-1.5 rounded hover:bg-green-50 text-green-600" title="Convert to invoice">
-                            <RefreshCw size={13} />
+                            className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg text-white transition-colors hover:opacity-90"
+                            style={{ background: '#22c55e' }}
+                            title="Convert to invoice">
+                            <ArrowRight size={11} /> Invoice
                           </button>
                         )}
                         <button onClick={e => handleDelete(q.id, e)}

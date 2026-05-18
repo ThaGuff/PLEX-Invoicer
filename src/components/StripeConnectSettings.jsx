@@ -190,11 +190,7 @@ export default function StripeConnectSettings({ accountId, accent = '#13B5EA' })
             }
           </button>
 
-          {!process.env.STRIPE_CLIENT_ID && (
-            <p className="text-xs text-ink-muted mt-3">
-              ⚠️ <strong>STRIPE_CLIENT_ID</strong> not set in Railway — required for Connect OAuth.
-            </p>
-          )}
+
         </div>
       )}
 

@@ -8,6 +8,7 @@ import { api } from '../utils/api';
 import { scrapeWebsite } from '../utils/scraper';
 import FeeRulesSettings from './FeeRulesSettings';
 import StripeConnectSettings from './StripeConnectSettings';
+import ServiceImporter from './ServiceImporter';
 
 const COLORS = [
   '#13B5EA','#6366f1','#8b5cf6','#ec4899','#f97316',
@@ -473,6 +474,14 @@ export default function AccountSettings({ onClose }) {
         </div>
 
         {/* Body */}
+        {/* Save success toast */}
+        {savedOk && (
+          <div className="mx-4 mt-3 px-4 py-3 rounded-xl text-sm font-semibold text-green-800 bg-green-50 border border-green-200 flex items-center gap-2 shrink-0">
+            <CheckCircle size={15} className="shrink-0 text-green-600" />
+            Settings saved successfully!
+          </div>
+        )}
+
         <div className="overflow-y-auto flex-1 px-6 py-5 space-y-7">
 
           {/* Logo */}
@@ -560,11 +569,22 @@ export default function AccountSettings({ onClose }) {
                 <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider">Service catalog</p>
                 <p className="text-xs text-ink-muted mt-0.5">These services appear in the Quote Builder.</p>
               </div>
-              <button onClick={() => setAddingSection(true)}
-                className="text-xs font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors hover:bg-gray-50"
-                style={{ borderColor: '#E5E8EB', color: accent }}>
-                <Plus size={12} /> Add section
-              </button>
+              <div className="flex items-center gap-2">
+                <ServiceImporter
+                  accountId={activeId}
+                  accent={accent}
+                  onImported={() => {
+                    refreshAccount(activeId).then(data => {
+                      if (data) { setSections(data.customSections || []); setItems(data.customItems || []); }
+                    }).catch(() => {});
+                  }}
+                />
+                <button onClick={() => setAddingSection(true)}
+                  className="text-xs font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors hover:bg-gray-50"
+                  style={{ borderColor: '#E5E8EB', color: accent }}>
+                  <Plus size={12} /> Add section
+                </button>
+              </div>
             </div>
 
             {addingSection && (
