@@ -418,11 +418,12 @@ export default function AccountSettings({ onClose }) {
     if (!trimmed) return;
     setAddingSec(true);
     try {
+      // Use api directly so we get the created object back for local state
       const created = await api.accounts.addSection(activeId, { label: trimmed });
       setSections(prev => [...prev, created]);
       setNewSectionName('');
       setAddingSection(false);
-      // Sync context so QuoteBuilder sees the new section immediately
+      // refreshAccount updates context → QuoteBuilder re-renders with new section
       refreshAccount(activeId).catch(() => {});
     } catch (e) { alert('Failed: ' + e.message); }
     setAddingSec(false);
@@ -436,13 +437,16 @@ export default function AccountSettings({ onClose }) {
     refreshAccount(activeId).catch(() => {});
   };
 
-  // These callbacks are passed to SectionBlock — no double DB write
-  const handleItemAdded   = (item)        => {
+  // These callbacks update local state AND refresh context
+  // QuoteBuilder reads from context directly, so refreshAccount triggers its re-render
+  const handleItemAdded   = (item) => {
     setItems(prev => [...prev, item]);
-    refreshAccount(activeId).catch(() => {}); // sync context so QuoteBuilder sees new services
+    refreshAccount(activeId).catch(() => {});
   };
-  const handleItemUpdated = (id, patch)   => setItems(prev => prev.map(i => i.id === id ? { ...i, ...patch } : i));
-  const handleItemDeleted = (id)          => {
+  const handleItemUpdated = (id, patch) => {
+    setItems(prev => prev.map(i => i.id === id ? { ...i, ...patch } : i));
+  };
+  const handleItemDeleted = (id) => {
     setItems(prev => prev.filter(i => i.id !== id));
     refreshAccount(activeId).catch(() => {});
   };

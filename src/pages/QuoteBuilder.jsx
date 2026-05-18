@@ -174,7 +174,7 @@ function computeTotals({ selected, included, prices, billingMode, yearlyDiscount
 }
 
 export default function QuoteBuilder() {
-  const { account, activeId, addCustomSection, addCustomItem } = useAccount();
+  const { account, activeId, addCustomSection, addCustomItem, refreshAccount } = useAccount();
   const accent = account?.primary_color || account?.primaryColor || '#13B5EA';
   const navigate = useNavigate();
   const { id: editId } = useParams();
@@ -267,34 +267,31 @@ export default function QuoteBuilder() {
     setClientEmail(c.email || ''); setClientPhone(c.phone || '');
   };
 
-  const [customSections, setCustomSections] = useState(account?.customSections || []);
-  const [customItems, setCustomItems]       = useState(account?.customItems    || []);
+  // Read catalog directly from context — single source of truth
+  // Context is kept fresh by AccountSettings via refreshAccount()
+  // and by the window focus listener below
+  const customSections = account?.customSections || [];
+  const customItems    = account?.customItems    || [];
 
-  // Load fresh catalog from API when account changes or on focus
-  const refreshCatalog = useCallback(() => {
-    if (!account?.id || account.id === 'plex-master') return;
-    api.accounts.get(account.id)
-      .then(data => {
-        setCustomSections(data.customSections || []);
-        setCustomItems(data.customItems || []);
-      })
-      .catch(() => {});
-  }, [account?.id]);
-
+  // Re-fetch account on window focus so new services added in AccountSettings
+  // appear here without needing a page reload
   useEffect(() => {
-    if (!account?.id) return;
-    // Immediately use context data (fast path)
-    setCustomSections(account.customSections || []);
-    setCustomItems(account.customItems || []);
-    // Then validate with fresh API call
-    refreshCatalog();
-  }, [account?.id]);
-
-  // Re-sync catalog when user returns to this tab (e.g. after using AccountSettings)
-  useEffect(() => {
-    window.addEventListener('focus', refreshCatalog);
-    return () => window.removeEventListener('focus', refreshCatalog);
-  }, [refreshCatalog]);
+    const onFocus = () => {
+      if (account?.id && account.id !== 'plex-master') {
+        api.accounts.get(account.id)
+          .then(fresh => {
+            // refreshAccount updates context which re-renders this component
+            if (fresh.customSections?.length !== customSections.length
+              || fresh.customItems?.length !== customItems.length) {
+              refreshAccount(account.id);
+            }
+          })
+          .catch(() => {});
+      }
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [account?.id, customSections.length, customItems.length]);
 
   const fullState = {
     agencyName:    account?.name      || 'PLEX Automation',
@@ -541,11 +538,11 @@ export default function QuoteBuilder() {
                         onChange={e => setNewSectionLabel(e.target.value)}
                         placeholder="e.g. Pressure Washing, Lawn Care, Plumbing..."
                         className="field flex-1 text-sm"
-                        onKeyDown={e => { if (e.key === 'Enter' && newSectionLabel.trim()) { addCustomSection(account.id, { label: newSectionLabel.trim() }); setNewSectionLabel(''); setShowAddSection(false); } }}
+                        onKeyDown={e => { if (e.key === 'Enter' && newSectionLabel.trim()) { addCustomSection(account.id, { label: newSectionLabel.trim() }).then(() => refreshAccount(account.id)); setNewSectionLabel(''); setShowAddSection(false); } }}
                         autoFocus
                       />
                       <button
-                        onClick={() => { if (newSectionLabel.trim()) { addCustomSection(account.id, { label: newSectionLabel.trim() }); setNewSectionLabel(''); setShowAddSection(false); } }}
+                        onClick={() => { if (newSectionLabel.trim()) { addCustomSection(account.id, { label: newSectionLabel.trim() }).then(() => refreshAccount(account.id)); setNewSectionLabel(''); setShowAddSection(false); } }}
                         disabled={!newSectionLabel.trim()}
                         className="text-xs font-semibold px-4 py-2 rounded-lg text-white disabled:opacity-40"
                         style={{ background: accent }}>

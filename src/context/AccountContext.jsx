@@ -78,6 +78,7 @@ export function AccountProvider({ children }) {
   // Custom sections
   const addCustomSection = useCallback(async (accountId, section) => {
     const created = await api.accounts.addSection(accountId, section);
+    // Update context immediately with the new section
     setAccounts(prev => prev.map(a => a.id === accountId
       ? { ...a, customSections: [...(a.customSections || []), created] }
       : a
@@ -111,6 +112,7 @@ export function AccountProvider({ children }) {
       setup_price:   item.setup   ?? item.setup_price   ?? 0,
       monthly_price: item.monthly ?? item.monthly_price ?? 0,
     });
+    // Update context immediately with the new item
     setAccounts(prev => prev.map(a => a.id === accountId
       ? { ...a, customItems: [...(a.customItems || []), created] }
       : a
