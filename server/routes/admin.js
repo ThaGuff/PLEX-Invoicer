@@ -579,7 +579,13 @@ router.get('/health', async (req, res) => {
   };
 
   // DB
-  try { await db.execute('SELECT 1'); checks.database = true; } catch {}
+  try {
+    await db.execute('SELECT 1');
+    checks.database = true;
+    // Report which DB type is in use
+    checks.db_type = process.env.TURSO_DATABASE_URL ? 'turso_cloud' : 'sqlite_local';
+    checks.db_persistent = !!process.env.TURSO_DATABASE_URL;
+  } catch {}
 
   // Supabase
   const sb = getSupabaseAdmin();

@@ -876,12 +876,43 @@ export default function Admin() {
       {/* ── System tab ────────────────────────────────────────── */}
       {tab === 'system' && (
         <div className="space-y-4 max-w-lg">
+          {/* Data persistence warning */}
+          {health && !health.checks?.db_persistent && (
+            <div className="card p-5 border-red-200" style={{ borderColor:'#fca5a5', background:'#fef2f2' }}>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+                  <Database size={16} className="text-red-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-red-800 mb-1">⚠️ Data is NOT persistent</p>
+                  <p className="text-xs text-red-700 leading-relaxed mb-3">
+                    Railway uses ephemeral containers — the SQLite database is <strong>wiped on every deploy</strong>.
+                    This is why quotes, invoices, and accounts disappear after updates.
+                    Set up Turso cloud database to fix this permanently.
+                  </p>
+                  <div className="space-y-1 text-xs text-red-700 mb-3">
+                    <p className="font-semibold">Fix in 5 minutes:</p>
+                    <p>1. Go to <a href="https://turso.tech" target="_blank" className="underline font-semibold">turso.tech</a> → sign up free</p>
+                    <p>2. Create a database: <code className="bg-red-100 px-1 rounded">turso db create plex-invoicer</code></p>
+                    <p>3. Get URL + token: <code className="bg-red-100 px-1 rounded">turso db show plex-invoicer</code> and <code className="bg-red-100 px-1 rounded">turso db tokens create plex-invoicer</code></p>
+                    <p>4. Add to Railway: <code className="bg-red-100 px-1 rounded">TURSO_DATABASE_URL</code> and <code className="bg-red-100 px-1 rounded">TURSO_AUTH_TOKEN</code></p>
+                    <p>5. Done — data persists forever across all future deploys</p>
+                  </div>
+                  <a href="https://turso.tech" target="_blank" rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">
+                    Set up Turso now →
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="card p-5">
             <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-4">Service health</p>
             {health ? (
               <div className="space-y-3">
                 {[
-                  { key:'database', label:'Database (SQLite)', icon: Database },
+                  { key:'database', label: health?.checks?.db_type === 'turso_cloud' ? 'Database (Turso — persistent ✓)' : 'Database (SQLite — ⚠️ ephemeral)', icon: Database },
                   { key:'supabase', label:'Authentication (Supabase)', icon: Shield },
                   { key:'smtp',     label:'Email (SMTP)', icon: Mail },
                   { key:'openai',   label:'AI parsing (OpenAI)', icon: Zap },

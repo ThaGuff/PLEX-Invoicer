@@ -4,12 +4,37 @@ import { fileURLToPath } from 'url';
 import { mkdirSync } from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/plex.db');
 
-// MUST run before createClient — Railway container has no /app/data dir by default
-mkdirSync(path.dirname(DB_PATH), { recursive: true });
+// ── Database connection ────────────────────────────────────────────
+// Priority 1: Turso cloud DB (persistent across Railway deploys)
+//   Set TURSO_DATABASE_URL + TURSO_AUTH_TOKEN in Railway env vars
+// Priority 2: Local SQLite file (dev only — NOT persistent on Railway)
+//   WARNING: Railway containers are ephemeral. SQLite data is lost on every deploy.
+//   Use Turso for any production environment.
 
-export const db = createClient({ url: `file:${DB_PATH}` });
+let db;
+
+if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
+  // Turso cloud — persistent, survives deploys, free tier available
+  db = createClient({
+    url:       process.env.TURSO_DATABASE_URL,
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  });
+  console.log('🔒 Database: Turso cloud (persistent)');
+} else {
+  // Local SQLite fallback — for development only
+  const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/plex.db');
+  mkdirSync(path.dirname(DB_PATH), { recursive: true });
+  db = createClient({ url: `file:${DB_PATH}` });
+  if (process.env.NODE_ENV === 'production') {
+    console.warn('⚠️  WARNING: Using local SQLite in production — data will be lost on every deploy!');
+    console.warn('   Set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN for persistent storage.');
+  } else {
+    console.log('📁 Database: Local SQLite (dev mode)');
+  }
+}
+
+export { db };
 
 export async function initDB() {
   await db.execute(`
