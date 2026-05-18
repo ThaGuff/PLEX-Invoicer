@@ -1,17 +1,38 @@
 const BASE = '/api';
 let _getToken = async () => null;
-export function setTokenGetter(fn) { _getToken = fn; }
+let _onAuthError = null; // callback when 401 received
 
-async function req(method, path, body) {
+export function setTokenGetter(fn) { _getToken = fn; }
+export function setAuthErrorHandler(fn) { _onAuthError = fn; }
+
+async function req(method, path, body, retries = 1) {
   const token = await _getToken();
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const opts = { method, headers };
   if (body !== undefined) opts.body = JSON.stringify(body);
-  const res = await fetch(`${BASE}${path}`, opts);
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `Request failed ${res.status}`);
-  return data;
+
+  try {
+    const res = await fetch(`${BASE}${path}`, opts);
+    const data = await res.json().catch(() => ({}));
+
+    // Token expired or invalid — trigger re-auth
+    if (res.status === 401) {
+      console.warn('[API] 401 on', path, '— triggering auth refresh');
+      if (_onAuthError) _onAuthError(path);
+      throw new Error('Session expired. Please sign in again.');
+    }
+
+    if (!res.ok) throw new Error(data.error || `Request failed ${res.status}`);
+    return data;
+  } catch (e) {
+    // Retry once on network errors (not auth errors)
+    if (retries > 0 && !e.message.includes('Session expired')) {
+      await new Promise(r => setTimeout(r, 800));
+      return req(method, path, body, retries - 1);
+    }
+    throw e;
+  }
 }
 
 export const api = {
@@ -36,7 +57,7 @@ export const api = {
     addItem:       (id, body)      => req('POST',   `/accounts/${id}/items`, body),
     updateItem:    (id, iid, body) => req('PATCH',  `/accounts/${id}/items/${iid}`, body),
     deleteItem:    (id, iid)       => req('DELETE', `/accounts/${id}/items/${iid}`),
-    uploadLogo:    (id, data_url)   => req('POST',   `/accounts/${id}/logo`, { logo_data_url: data_url }),
+    uploadLogo:    (id, data_url)  => req('POST',   `/accounts/${id}/logo`, { logo_data_url: data_url }),
   },
   contacts: {
     list:   (accountId) => req('GET',    `/contacts?account_id=${accountId}`),
@@ -68,78 +89,71 @@ export const api = {
   },
   scrape: (url) => req('POST', '/scrape', { url }),
 
-  // Stripe Connect
   stripeConnect: {
-    status:          (accountId)       => req('GET',  `/stripe-connect/status/${accountId}`),
-    oauthLink:       (accountId)       => req('GET',  `/stripe-connect/oauth-link?account_id=${accountId}`),
-    disconnect:      (accountId)       => req('POST', '/stripe-connect/disconnect', { account_id: accountId }),
-    setPlatformFee:  (accountId, pct)  => req('POST', '/stripe-connect/set-platform-fee', { account_id: accountId, fee_pct: pct }),
-    createPaymentLink: (invoiceId)     => req('POST', '/stripe-connect/create-payment-link', { invoice_id: invoiceId }),
+    status:           (accountId)      => req('GET',  `/stripe-connect/status/${accountId}`),
+    oauthLink:        (accountId)      => req('GET',  `/stripe-connect/oauth-link?account_id=${accountId}`),
+    disconnect:       (accountId)      => req('POST', '/stripe-connect/disconnect', { account_id: accountId }),
+    setPlatformFee:   (accountId, pct) => req('POST', '/stripe-connect/set-platform-fee', { account_id: accountId, fee_pct: pct }),
+    createPaymentLink:(invoiceId)      => req('POST', '/stripe-connect/create-payment-link', { invoice_id: invoiceId }),
   },
-  // F1: Engagement tracking
+
   tracking: {
     timeline:  (invoiceId) => req('GET', `/track/${invoiceId}/timeline`),
     view:      (token)     => fetch(`/api/track/${token}/view`, { method: 'POST' }),
-    heartbeat: (token, s)  => fetch(`/api/track/${token}/heartbeat`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ seconds: s }) }),
+    heartbeat: (token, s)  => fetch(`/api/track/${token}/heartbeat`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ seconds: s }) }),
     clickPay:  (token)     => fetch(`/api/track/${token}/click-pay`, { method: 'POST' }),
     pixelUrl:  (token)     => `/api/track/${token}/open.gif`,
   },
 
-  // F5: AI parsing
   ai: {
     parseInvoice: (text, account_id) => req('POST', '/ai/parse-invoice', { text, account_id }),
   },
 
-  // F10 + F3: Analytics
   analytics: {
-    cashflow:        (accountId)        => req('GET',  `/analytics/predictive-cashflow?account_id=${accountId}`),
-    scheduleReminder:(invoice_id, account_id) => req('POST', '/analytics/schedule-reminder', { invoice_id, account_id }),
-    runReminders:    ()                 => req('POST', '/analytics/run-reminders'),
+    cashflow:         (accountId)           => req('GET',  `/analytics/predictive-cashflow?account_id=${accountId}`),
+    scheduleReminder: (invoice_id, account_id) => req('POST', '/analytics/schedule-reminder', { invoice_id, account_id }),
+    runReminders:     ()                    => req('POST', '/analytics/run-reminders'),
   },
 
-  // F2: Webhook rules
   webhooks: {
-    list:   (accountId)   => req('GET',    `/v1/integrations/rules?account_id=${accountId}`),
-    create: (body)        => req('POST',   '/v1/integrations/rules', body),
-    update: (id, body)    => req('PATCH',  `/v1/integrations/rules/${id}`, body),
-    delete: (id)          => req('DELETE', `/v1/integrations/rules/${id}`),
+    list:   (accountId) => req('GET',    `/v1/integrations/rules?account_id=${accountId}`),
+    create: (body)      => req('POST',   '/v1/integrations/rules', body),
+    update: (id, body)  => req('PATCH',  `/v1/integrations/rules/${id}`, body),
+    delete: (id)        => req('DELETE', `/v1/integrations/rules/${id}`),
   },
 
-  // F8: Fee rules
   feeRules: {
     get:  (accountId) => req('GET',  `/v1/integrations/fee-rules/${accountId}`),
     save: (body)      => req('POST', '/v1/integrations/fee-rules', body),
   },
 
-  // F6: Split payments (public — no auth)
   splitPayment: {
-    get:     (token)        => fetch(`/api/v1/integrations/split-payment/${token}`).then(r => r.json()),
-    pay:     (token, body)  => req('POST', `/v1/integrations/split-payment/${token}/pay`, body),
-    confirm: (token, body)  => req('POST', `/v1/integrations/split-payment/${token}/confirm`, body),
+    get:     (token)       => fetch(`/api/v1/integrations/split-payment/${token}`).then(r => r.json()),
+    pay:     (token, body) => req('POST', `/v1/integrations/split-payment/${token}/pay`, body),
+    confirm: (token, body) => req('POST', `/v1/integrations/split-payment/${token}/confirm`, body),
   },
 
-  // F9: Invoice versioning
   versioning: {
     createVersion: (id, body) => req('POST', `/v1/integrations/invoice-version/${id}`, body),
     history:       (id)       => req('GET',  `/v1/integrations/invoice-history/${id}`),
   },
 
   admin: {
-    users:       ()               => req('GET',  '/admin/users'),
-    metrics:     ()               => req('GET',  '/admin/metrics'),
-    userAccount: (userId)         => req('GET',  `/admin/user/${userId}/account`),
-    extendTrial: (userId, days)   => req('POST', `/admin/user/${userId}/extend-trial`, { days }),
-    onboard:     (body)           => req('POST', '/admin/onboard', body),
-    broadcast:   (body)           => req('POST', '/admin/broadcast', body),
-    subscriptions: ()             => req('GET',  '/admin/subscriptions'),
-    health:        ()             => req('GET',  '/admin/health'),
-    suspend:       (id)           => req('POST', `/admin/user/${id}/suspend`),
-    unsuspend:     (id)           => req('POST', `/admin/user/${id}/unsuspend`),
-    resetPassword: (id)           => req('POST', `/admin/user/${id}/reset-password`),
-    confirmEmail:  (id)           => req('POST', `/admin/user/${id}/resend-confirmation`),
+    users:         ()               => req('GET',    '/admin/users'),
+    metrics:       ()               => req('GET',    '/admin/metrics'),
+    userAccount:   (userId)         => req('GET',    `/admin/user/${userId}/account`),
+    extendTrial:   (userId, days)   => req('POST',   `/admin/user/${userId}/extend-trial`, { days }),
+    onboard:       (body)           => req('POST',   '/admin/onboard', body),
+    broadcast:     (body)           => req('POST',   '/admin/broadcast', body),
+    subscriptions: ()               => req('GET',    '/admin/subscriptions'),
+    health:        ()               => req('GET',    '/admin/health'),
+    suspend:       (id)             => req('POST',   `/admin/user/${id}/suspend`),
+    unsuspend:     (id)             => req('POST',   `/admin/user/${id}/unsuspend`),
+    resetPassword: (id)             => req('POST',   `/admin/user/${id}/reset-password`),
+    confirmEmail:  (id)             => req('POST',   `/admin/user/${id}/resend-confirmation`),
     setPlan:       (id, plan, status) => req('POST', `/admin/user/${id}/set-plan`, { plan, status }),
-    deleteUser:    (id)           => req('DELETE', `/admin/user/${id}`),
-    magicLink:     (id)           => req('POST', `/admin/user/${id}/magic-link`),
-    activity:      (id)           => req('GET',  `/admin/user/${id}/activity`),
+    deleteUser:    (id)             => req('DELETE', `/admin/user/${id}`),
+    magicLink:     (id)             => req('POST',   `/admin/user/${id}/magic-link`),
+    activity:      (id)             => req('GET',    `/admin/user/${id}/activity`),
   },
 };

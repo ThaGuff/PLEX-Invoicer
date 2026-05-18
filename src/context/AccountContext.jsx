@@ -4,19 +4,21 @@ import { api } from '../utils/api.js';
 const AccountContext = createContext(null);
 
 export function AccountProvider({ children }) {
-  const [accounts, setAccounts]   = useState([]);
-  const [activeId, setActiveId]   = useState(null); // null until accounts load
-  const [loading, setLoading]     = useState(true);
+  const [accounts, setAccounts] = useState([]);
+  const [activeId, setActiveId] = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState(null);
 
   const account = accounts.find(a => a.id === activeId) || accounts[0] || null;
 
+  // ── Load accounts from server (authoritative source) ─────────────
   const loadAccounts = useCallback(async () => {
+    setError(null);
     try {
-      // accounts.list() now returns enriched accounts with customSections + customItems
       const list = await api.accounts.list();
       setAccounts(list);
 
-      const saved = localStorage.getItem('plex_active_account');
+      const saved   = localStorage.getItem('plex_active_account');
       const ownedIds = list.map(a => a.id);
 
       if (saved && ownedIds.includes(saved)) {
@@ -24,9 +26,18 @@ export function AccountProvider({ children }) {
       } else if (list.length > 0) {
         setActiveId(list[0].id);
         localStorage.setItem('plex_active_account', list[0].id);
+      } else {
+        setActiveId(null);
       }
     } catch (e) {
-      console.error('Failed to load accounts:', e);
+      // Don't wipe existing accounts on transient errors
+      if (e.message?.includes('Session expired')) {
+        // 401 — auth handler will show re-login modal; don't touch accounts
+        console.warn('[AccountContext] Session expired, keeping existing state');
+      } else {
+        setError(e.message);
+        console.error('[AccountContext] loadAccounts failed:', e.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -34,16 +45,35 @@ export function AccountProvider({ children }) {
 
   useEffect(() => { loadAccounts(); }, [loadAccounts]);
 
+  // Re-load accounts when auth is restored (e.g. after session expiry + re-login)
+  useEffect(() => {
+    const onAuthRestore = () => {
+      console.log('[AccountContext] Auth restored, reloading accounts');
+      setLoading(true);
+      loadAccounts();
+    };
+    window.addEventListener('plex:auth-restored', onAuthRestore);
+    return () => window.removeEventListener('plex:auth-restored', onAuthRestore);
+  }, [loadAccounts]);
+
   useEffect(() => {
     if (activeId) localStorage.setItem('plex_active_account', activeId);
   }, [activeId]);
 
+  // ── Refresh a single account from server ─────────────────────────
   const refreshAccount = useCallback(async (id) => {
+    const targetId = id || activeId;
+    if (!targetId) return null;
     try {
-      const updated = await api.accounts.get(id || activeId);
+      const updated = await api.accounts.get(targetId);
       setAccounts(prev => prev.map(a => a.id === updated.id ? updated : a));
       return updated;
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      if (!e.message?.includes('Session expired')) {
+        console.error('[AccountContext] refreshAccount failed:', e.message);
+      }
+      return null;
+    }
   }, [activeId]);
 
   const switchAccount = useCallback((id) => {
@@ -51,34 +81,42 @@ export function AccountProvider({ children }) {
     localStorage.setItem('plex_active_account', id);
   }, []);
 
+  // ── Create account — always re-fetch from server to guarantee consistency ──
   const createAccount = useCallback(async (data) => {
     const created = await api.accounts.create(data);
-    setAccounts(prev => [...prev, { ...created, customSections: [], customItems: [] }]);
+    // Re-fetch entire list so owner_id, enriched fields, etc. are all correct
+    // Don't just push the local object — server is authoritative
+    await loadAccounts();
+    // Now find the created account in the refreshed list
     return created;
-  }, []);
+  }, [loadAccounts]);
 
   const updateAccount = useCallback(async (id, patch) => {
     const updated = await api.accounts.update(id, patch);
-    setAccounts(prev => prev.map(a => a.id === id ? { ...a, ...updated } : a));
+    // updated now includes customSections/customItems from server
+    setAccounts(prev => prev.map(a => a.id === id
+      ? { ...updated } // replace entirely with server response
+      : a
+    ));
     return updated;
   }, []);
 
   const deleteAccount = useCallback(async (id) => {
     if (id === 'plex-master') return;
     await api.accounts.delete(id);
-    setAccounts(prev => prev.filter(a => a.id !== id));
-    if (activeId === id) {
-      const remaining = accounts.filter(a => a.id !== id);
-      if (remaining.length > 0) {
+    setAccounts(prev => {
+      const remaining = prev.filter(a => a.id !== id);
+      if (activeId === id && remaining.length > 0) {
         setActiveId(remaining[0].id);
+        localStorage.setItem('plex_active_account', remaining[0].id);
       }
-    }
-  }, [activeId, accounts]);
+      return remaining;
+    });
+  }, [activeId]);
 
-  // Custom sections
+  // ── Catalog mutations — update context immediately + server ───────
   const addCustomSection = useCallback(async (accountId, section) => {
     const created = await api.accounts.addSection(accountId, section);
-    // Update context immediately with the new section
     setAccounts(prev => prev.map(a => a.id === accountId
       ? { ...a, customSections: [...(a.customSections || []), created] }
       : a
@@ -100,7 +138,7 @@ export function AccountProvider({ children }) {
       ? {
           ...a,
           customSections: (a.customSections || []).filter(s => s.id !== sectionId),
-          customItems: (a.customItems || []).filter(i => i.section_id !== sectionId),
+          customItems:    (a.customItems    || []).filter(i => i.section_id !== sectionId),
         }
       : a
     ));
@@ -112,7 +150,6 @@ export function AccountProvider({ children }) {
       setup_price:   item.setup   ?? item.setup_price   ?? 0,
       monthly_price: item.monthly ?? item.monthly_price ?? 0,
     });
-    // Update context immediately with the new item
     setAccounts(prev => prev.map(a => a.id === accountId
       ? { ...a, customItems: [...(a.customItems || []), created] }
       : a
@@ -142,7 +179,7 @@ export function AccountProvider({ children }) {
 
   return (
     <AccountContext.Provider value={{
-      accounts, account, activeId, loading,
+      accounts, account, activeId, loading, error,
       switchAccount, createAccount, updateAccount, deleteAccount,
       addCustomSection, updateCustomSection, deleteCustomSection,
       addCustomItem, updateCustomItem, deleteCustomItem,

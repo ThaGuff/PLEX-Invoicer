@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, NavLink, useLocation, Navigate } from 're
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AccountProvider } from './context/AccountContext';
 import { useAccount } from './context/AccountContext';
-import { setTokenGetter } from './utils/api';
+
 import AccountSwitcher from './components/AccountSwitcher';
 import AccountSettings from './components/AccountSettings';
 import NewAccountModal from './components/NewAccountModal';
@@ -18,6 +18,7 @@ import PublicQuote from './pages/PublicQuote';
 import PublicInvoice from './pages/PublicInvoice';
 import Admin from './pages/Admin';
 import { LayoutDashboard, FileText, Receipt, Users, Plus, LogOut, CreditCard, Shield } from 'lucide-react';
+import { IdleWarningBanner, SessionExpiredModal } from './components/SessionModals';
 
 
 // ── Error boundary — prevents blank screen on component crash ────
@@ -53,11 +54,11 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// Wire up token getter so every API request gets the JWT
-function TokenBridge() {
-  const { getToken } = useAuth();
-  useEffect(() => { setTokenGetter(getToken); }, [getToken]);
-  return null;
+// Idle warning banner wrapper (reads from AuthContext)
+function IdleWarningBannerWrapper() {
+  const { idleWarning, dismissIdleWarning } = useAuth();
+  if (!idleWarning) return null;
+  return <IdleWarningBanner onStayActive={dismissIdleWarning} />;
 }
 
 // Route guard — redirects to /login if not authenticated
@@ -199,7 +200,8 @@ export default function App() {
     <ErrorBoundary>
     <BrowserRouter>
       <AuthProvider>
-        <TokenBridge />
+        <SessionExpiredModal />
+        <IdleWarningBannerWrapper />
         <Routes>
           {/* Public — no auth required */}
           <Route path="/login"                    element={<Login />} />
