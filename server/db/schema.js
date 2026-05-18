@@ -1,40 +1,5 @@
-import { createClient } from '@libsql/client';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { mkdirSync } from 'fs';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// ── Database connection ────────────────────────────────────────────
-// Priority 1: Turso cloud DB (persistent across Railway deploys)
-//   Set TURSO_DATABASE_URL + TURSO_AUTH_TOKEN in Railway env vars
-// Priority 2: Local SQLite file (dev only — NOT persistent on Railway)
-//   WARNING: Railway containers are ephemeral. SQLite data is lost on every deploy.
-//   Use Turso for any production environment.
-
-let db;
-
-if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
-  // Turso cloud — persistent, survives deploys, free tier available
-  db = createClient({
-    url:       process.env.TURSO_DATABASE_URL,
-    authToken: process.env.TURSO_AUTH_TOKEN,
-  });
-  console.log('🔒 Database: Turso cloud (persistent)');
-} else {
-  // Local SQLite fallback — for development only
-  const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/plex.db');
-  mkdirSync(path.dirname(DB_PATH), { recursive: true });
-  db = createClient({ url: `file:${DB_PATH}` });
-  if (process.env.NODE_ENV === 'production') {
-    console.warn('⚠️  WARNING: Using local SQLite in production — data will be lost on every deploy!');
-    console.warn('   Set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN for persistent storage.');
-  } else {
-    console.log('📁 Database: Local SQLite (dev mode)');
-  }
-}
-
-export { db };
+import { db, dbType } from './client.js';
+export { db, dbType };
 
 export async function initDB() {
   await db.execute(`
@@ -55,28 +20,28 @@ export async function initDB() {
       stripe_onboarded INTEGER DEFAULT 0,
       subscription_status TEXT DEFAULT 'trialing',
       trial_ends_at TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
+      created_at TEXT DEFAULT (NOW()::text)
     )
   `);
 
   // Add owner_id column if upgrading existing DB
   try {
-    await db.execute(`ALTER TABLE accounts ADD COLUMN owner_id TEXT`);
+    await db.execute(`ALTER TABLE accounts ADD COLUMN IF NOT EXISTS owner_id TEXT`);
   } catch { /* already exists — fine */ }
   try {
-    await db.execute(`ALTER TABLE accounts ADD COLUMN stripe_customer_id TEXT`);
+    await db.execute(`ALTER TABLE accounts ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT`);
   } catch { /* already exists */ }
   try {
-    await db.execute(`ALTER TABLE accounts ADD COLUMN stripe_subscription_id TEXT`);
+    await db.execute(`ALTER TABLE accounts ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT`);
   } catch { /* already exists */ }
   try {
-    await db.execute(`ALTER TABLE accounts ADD COLUMN subscription_status TEXT DEFAULT 'trialing'`);
+    await db.execute(`ALTER TABLE accounts ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'trialing'`);
   } catch { /* already exists */ }
   try {
-    await db.execute(`ALTER TABLE accounts ADD COLUMN trial_ends_at TEXT`);
+    await db.execute(`ALTER TABLE accounts ADD COLUMN IF NOT EXISTS trial_ends_at TEXT`);
   } catch { /* already exists */ }
   try {
-    await db.execute(`ALTER TABLE accounts ADD COLUMN logo_url TEXT`);
+    await db.execute(`ALTER TABLE accounts ADD COLUMN IF NOT EXISTS logo_url TEXT`);
   } catch { /* already exists */ }
 
   await db.execute(`
@@ -89,8 +54,8 @@ export async function initDB() {
       phone TEXT,
       address TEXT,
       notes TEXT,
-      created_at TEXT DEFAULT (datetime('now')),
-      updated_at TEXT DEFAULT (datetime('now')),
+      created_at TEXT DEFAULT (NOW()::text),
+      updated_at TEXT DEFAULT (NOW()::text),
       FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
     )
   `);
@@ -120,8 +85,8 @@ export async function initDB() {
       accepted_at TEXT,
       sent_at TEXT,
       viewed_at TEXT,
-      created_at TEXT DEFAULT (datetime('now')),
-      updated_at TEXT DEFAULT (datetime('now')),
+      created_at TEXT DEFAULT (NOW()::text),
+      updated_at TEXT DEFAULT (NOW()::text),
       FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
       FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL
     )
@@ -169,8 +134,8 @@ export async function initDB() {
       stripe_payment_intent TEXT,
       notes TEXT,
       public_token TEXT UNIQUE,
-      created_at TEXT DEFAULT (datetime('now')),
-      updated_at TEXT DEFAULT (datetime('now')),
+      created_at TEXT DEFAULT (NOW()::text),
+      updated_at TEXT DEFAULT (NOW()::text),
       FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
       FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE SET NULL
     )
@@ -220,7 +185,7 @@ export async function initDB() {
     CREATE TABLE IF NOT EXISTS reminders (
       id TEXT PRIMARY KEY,
       invoice_id TEXT NOT NULL,
-      sent_at TEXT DEFAULT (datetime('now')),
+      sent_at TEXT DEFAULT (NOW()::text),
       type TEXT,
       FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
     )
@@ -262,23 +227,23 @@ export async function initSchemaV2() {
 
   // F1: Granular read tracking — extend invoices + add engagement log
   const invoiceCols = [
-    `ALTER TABLE invoices ADD COLUMN delivered_at TEXT`,
-    `ALTER TABLE invoices ADD COLUMN opened_at TEXT`,
-    `ALTER TABLE invoices ADD COLUMN first_viewed_at TEXT`,
-    `ALTER TABLE invoices ADD COLUMN total_view_seconds INTEGER DEFAULT 0`,
-    `ALTER TABLE invoices ADD COLUMN view_count INTEGER DEFAULT 0`,
-    `ALTER TABLE invoices ADD COLUMN clicked_pay_at TEXT`,
-    `ALTER TABLE invoices ADD COLUMN read_status TEXT DEFAULT 'sent'`,
+    `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS delivered_at TEXT`,
+    `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS opened_at TEXT`,
+    `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS first_viewed_at TEXT`,
+    `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS total_view_seconds INTEGER DEFAULT 0`,
+    `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS view_count INTEGER DEFAULT 0`,
+    `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS clicked_pay_at TEXT`,
+    `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS read_status TEXT DEFAULT 'sent'`,
   ];
   for (const sql of invoiceCols) { try { await db.execute(sql); } catch {} }
 
   // F1: Engagement event log
   await db.execute(`
     CREATE TABLE IF NOT EXISTS invoice_engagement (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       invoice_id TEXT NOT NULL,
       event TEXT NOT NULL,
-      ts TEXT DEFAULT (datetime('now')),
+      ts TEXT DEFAULT (NOW()::text),
       duration_seconds INTEGER,
       ip TEXT,
       ua TEXT,
@@ -298,7 +263,7 @@ export async function initSchemaV2() {
       action TEXT NOT NULL DEFAULT 'create_draft_invoice',
       template_json TEXT,
       active INTEGER DEFAULT 1,
-      created_at TEXT DEFAULT (datetime('now')),
+      created_at TEXT DEFAULT (NOW()::text),
       FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
     )
   `);
@@ -306,7 +271,7 @@ export async function initSchemaV2() {
   // F3: Client payment behavior history
   await db.execute(`
     CREATE TABLE IF NOT EXISTS payment_behavior (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       account_id TEXT NOT NULL,
       contact_id TEXT,
       client_email TEXT,
@@ -333,16 +298,16 @@ export async function initSchemaV2() {
   `);
 
   // F6: Line-item split payment status
-  try { await db.execute(`ALTER TABLE invoice_items ADD COLUMN line_status TEXT DEFAULT 'pending'`); } catch {}
-  try { await db.execute(`ALTER TABLE invoice_items ADD COLUMN line_paid_at TEXT`); } catch {}
-  try { await db.execute(`ALTER TABLE invoice_items ADD COLUMN stripe_payment_intent TEXT`); } catch {}
+  try { await db.execute(`ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS line_status TEXT DEFAULT 'pending'`); } catch {}
+  try { await db.execute(`ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS line_paid_at TEXT`); } catch {}
+  try { await db.execute(`ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS stripe_payment_intent TEXT`); } catch {}
 
   // F9: Invoice versioning
-  try { await db.execute(`ALTER TABLE invoices ADD COLUMN version INTEGER DEFAULT 1`); } catch {}
-  try { await db.execute(`ALTER TABLE invoices ADD COLUMN invoice_group_id TEXT`); } catch {}
-  try { await db.execute(`ALTER TABLE invoices ADD COLUMN is_latest INTEGER DEFAULT 1`); } catch {}
-  try { await db.execute(`ALTER TABLE invoices ADD COLUMN parent_invoice_id TEXT`); } catch {}
-  try { await db.execute(`ALTER TABLE invoices ADD COLUMN change_summary TEXT`); } catch {}
+  try { await db.execute(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS version INTEGER DEFAULT 1`); } catch {}
+  try { await db.execute(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS invoice_group_id TEXT`); } catch {}
+  try { await db.execute(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS is_latest INTEGER DEFAULT 1`); } catch {}
+  try { await db.execute(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS parent_invoice_id TEXT`); } catch {}
+  try { await db.execute(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS change_summary TEXT`); } catch {}
 
   // F8: Fee pass-through rules per account
   await db.execute(`
@@ -355,7 +320,7 @@ export async function initSchemaV2() {
       ach_only_enabled INTEGER DEFAULT 0,
       processing_fee_pct REAL DEFAULT 2.9,
       processing_fee_flat REAL DEFAULT 0.30,
-      created_at TEXT DEFAULT (datetime('now')),
+      created_at TEXT DEFAULT (NOW()::text),
       FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
     )
   `);
@@ -363,10 +328,10 @@ export async function initSchemaV2() {
   // F10: Cached cashflow predictions (refreshed on demand)
   await db.execute(`
     CREATE TABLE IF NOT EXISTS cashflow_cache (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       account_id TEXT NOT NULL UNIQUE,
       data_json TEXT,
-      computed_at TEXT DEFAULT (datetime('now')),
+      computed_at TEXT DEFAULT (NOW()::text),
       FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
     )
   `);
@@ -377,12 +342,12 @@ export async function initSchemaV2() {
 export async function initStripeConnect() {
   // Ensure all Stripe Connect columns exist
   const cols = [
-    `ALTER TABLE accounts ADD COLUMN stripe_account_id TEXT`,
-    `ALTER TABLE accounts ADD COLUMN stripe_onboarded INTEGER DEFAULT 0`,
-    `ALTER TABLE accounts ADD COLUMN stripe_charges_enabled INTEGER DEFAULT 0`,
-    `ALTER TABLE accounts ADD COLUMN stripe_payouts_enabled INTEGER DEFAULT 0`,
-    `ALTER TABLE accounts ADD COLUMN stripe_connect_email TEXT`,
-    `ALTER TABLE accounts ADD COLUMN platform_fee_pct REAL DEFAULT 0`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS stripe_account_id TEXT`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS stripe_onboarded INTEGER DEFAULT 0`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS stripe_charges_enabled INTEGER DEFAULT 0`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS stripe_payouts_enabled INTEGER DEFAULT 0`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS stripe_connect_email TEXT`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS platform_fee_pct REAL DEFAULT 0`,
   ];
   for (const sql of cols) { try { await db.execute(sql); } catch {} }
   console.log('✓ Stripe Connect columns ready');

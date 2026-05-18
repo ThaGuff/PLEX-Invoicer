@@ -25,7 +25,7 @@ router.get('/predictive-cashflow', async (req, res) => {
     // Historical avg days-to-pay per client
     const paid = await db.execute(`
       SELECT client_email, client_name,
-             AVG(CAST(julianday(paid_at) - julianday(sent_at) AS REAL)) as avg_dtp,
+             AVG(EXTRACT(EPOCH FROM (paid_at::timestamp - sent_at::timestamp))/86400) as avg_dtp,
              COUNT(*) as payment_count
       FROM invoices
       WHERE account_id = ? AND status = 'paid' AND paid_at IS NOT NULL AND sent_at IS NOT NULL
@@ -177,7 +177,7 @@ router.post('/run-reminders', async (req, res) => {
       FROM smart_reminders sr
       JOIN invoices i ON sr.invoice_id = i.id
       JOIN accounts a ON i.account_id = a.id
-      WHERE sr.status = 'pending' AND sr.scheduled_for <= datetime('now')
+      WHERE sr.status = 'pending' AND sr.scheduled_for <= NOW()::text
         AND i.status NOT IN ('paid','cancelled')
     `);
 

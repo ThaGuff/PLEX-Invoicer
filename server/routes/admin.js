@@ -247,7 +247,7 @@ router.post('/onboard', async (req, res) => {
     // Log it in DB
     try {
       await db.execute(
-        `INSERT OR IGNORE INTO onboarding_log (user_id, email, sent_at) VALUES (?, ?, datetime('now'))`,
+        `INSERT INTO onboarding_log (user_id, email, sent_at) ON CONFLICT DO NOTHING VALUES (?, ?, datetime('now'))`,
         [user_id || null, email]
       );
     } catch { /* table may not exist yet — that's fine */ }
