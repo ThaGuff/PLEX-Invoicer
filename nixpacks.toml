@@ -1,5 +1,16 @@
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm ci"]
+
 [phases.build]
-cmds = ["npm install", "npm run build"]
+cmds = ["npm run build"]
+
+# Only VITE_* vars are needed at build time (public Supabase anon key)
+# All other secrets (STRIPE, OPENAI, SMTP, SUPABASE_SERVICE_KEY, SUPABASE_DB_URL)
+# are runtime-only and injected by Railway at deploy time — NOT at build time
+dependsOn = ["install"]
 
 [start]
-cmd = "npm run start"
+cmd = "node server.js"
