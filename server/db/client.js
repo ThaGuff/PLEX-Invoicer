@@ -70,12 +70,35 @@ class SqliteAdapter {
   }
 
   async execute(sql, params = []) {
-    const result = await this.client.execute({ sql, args: params });
-    return {
-      rows:         result.rows || [],
-      columns:      result.columns || [],
-      rowsAffected: result.rowsAffected || 0,
-    };
+    // Convert PostgreSQL syntax back to SQLite for local development
+    let sqliteSql = sql
+      .replace(/NOW\(\)::text/gi,                    "datetime('now')")  // must come before NOW()
+      .replace(/NOW\(\)::timestamp/gi,               "datetime('now')")
+      .replace(/NOW\(\)/gi,                          "datetime('now')")
+      .replace(/SERIAL PRIMARY KEY/gi,               'INTEGER PRIMARY KEY AUTOINCREMENT')
+      .replace(/CAST\(([^)]+) AS FLOAT\)/gi,         'CAST($1 AS REAL)')
+      .replace(/INSERT INTO (\w+) \(([^)]+)\) ON CONFLICT DO NOTHING/gi, 'INSERT OR IGNORE INTO $1 ($2)')
+      .replace(/ALTER TABLE (\w+) ADD COLUMN IF NOT EXISTS/gi, 'ALTER TABLE $1 ADD COLUMN')
+      // Remove PostgreSQL type casts (::text, ::timestamp, ::float etc) - not valid in SQLite
+      .replace(/::(text|timestamp|timestamptz|float|real|int|integer|bigint|boolean|date|uuid)/gi, '')
+      .replace(/EXTRACT\(EPOCH FROM \(([^)]+)\)::timestamp\)\/86400/gi, 
+               (_, v) => `(julianday(${v.split(' - ')[0].trim()}) - julianday(${v.split(' - ')[1]?.trim() || v}))`)
+      ;
+
+    try {
+      const result = await this.client.execute({ sql: sqliteSql, args: params });
+      return {
+        rows:         result.rows || [],
+        columns:      result.columns || [],
+        rowsAffected: result.rowsAffected || 0,
+      };
+    } catch (e) {
+      // If ALTER TABLE ADD COLUMN fails (column exists), ignore it
+      if (e.message?.includes('duplicate column') || e.message?.includes('already exists')) {
+        return { rows: [], columns: [], rowsAffected: 0 };
+      }
+      throw e;
+    }
   }
 }
 

@@ -219,7 +219,7 @@ export async function initDB() {
     `);
   }
 
-  console.log('✓ Database initialized at', DB_PATH);
+  console.log('✓ Database initialized');
 }
 
 // ── Schema additions for V2 features ─────────────────────────────
