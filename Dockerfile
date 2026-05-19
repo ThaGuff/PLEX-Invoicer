@@ -21,14 +21,12 @@ RUN npm ci --include=dev
 # Copy source code
 COPY . .
 
-# VITE_ vars are PUBLIC (Supabase anon key is safe to expose in frontend)
-# They must be available at build time for Vite to bake into the bundle.
-# These are NOT secrets — the Supabase anon key has Row Level Security.
-# Pass them as build args from Railway's build environment.
-ARG VITE_SUPABASE_URL
-ARG VITE_SUPABASE_ANON_KEY
+# VITE_ vars are PUBLIC Supabase anon keys — safe to include in frontend bundle
+# Supabase anon key is designed to be public; Row Level Security protects data
+# Railway passes these as build-time variables (not secrets)
+ARG VITE_SUPABASE_URL=https://xtpfanvxkzroneqefgmb.supabase.co
+ARG VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0cGZhbnZ4a3pyb25lcWVmZ21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3NzAzNzAsImV4cCI6MjA2MzM0NjM3MH0.m-YcGJmYC4hzJulj2K6J10o2kxJ_eotnLRHaJnwzlM0
 
-# Set them for the Vite build
 ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
 
