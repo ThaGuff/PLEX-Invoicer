@@ -39,7 +39,7 @@ router.get('/public/:token', async (req, res) => {
       `SELECT * FROM quote_items WHERE quote_id = ? ORDER BY sort_order`, [quote.rows[0].id]
     );
     if (!quote.rows[0].viewed_at) {
-      await db.execute(`UPDATE quotes SET viewed_at = datetime('now') WHERE id = ?`, [quote.rows[0].id]);
+      await db.execute(`UPDATE quotes SET viewed_at = NOW() WHERE id = ?`, [quote.rows[0].id]);
     }
     res.json({ ...quote.rows[0], items: items.rows });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -52,7 +52,7 @@ router.post('/public/:token/accept', async (req, res) => {
     if (!quote.rows.length) return res.status(404).json({ error: 'Not found' });
     if (quote.rows[0].status === 'accepted') return res.json({ already: true });
     await db.execute(
-      `UPDATE quotes SET status = 'accepted', accepted_at = datetime('now') WHERE public_token = ?`,
+      `UPDATE quotes SET status = 'accepted', accepted_at = NOW() WHERE public_token = ?`,
       [req.params.token]
     );
     res.json({ ok: true });
@@ -157,7 +157,7 @@ router.patch('/:id', async (req, res) => {
     const allowed = ['status','client_name','client_biz','client_email','client_phone',
       'billing_mode','yearly_discount','disc_type','disc_value','notes',
       'setup_total','monthly_total','sent_at','accepted_at'];
-    const updates = [`updated_at = datetime('now')`];
+    const updates = [`updated_at = NOW()`];
     const vals = [];
     allowed.forEach(f => {
       if (req.body[f] !== undefined) { updates.push(`${f} = ?`); vals.push(req.body[f]); }
@@ -208,7 +208,7 @@ router.post('/:id/convert', async (req, res) => {
     )));
 
     await db.execute(
-      `UPDATE quotes SET status = 'accepted', accepted_at = datetime('now') WHERE id = ?`, [q.id]
+      `UPDATE quotes SET status = 'accepted', accepted_at = NOW() WHERE id = ?`, [q.id]
     );
 
     const inv = await db.execute(`SELECT * FROM invoices WHERE id = ?`, [invId]);

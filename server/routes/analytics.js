@@ -205,7 +205,7 @@ router.post('/run-reminders', async (req, res) => {
           });
         }
         await db.execute(
-          `UPDATE smart_reminders SET status = 'sent', sent_at = datetime('now') WHERE id = ?`, [r.id]
+          `UPDATE smart_reminders SET status = 'sent', sent_at = NOW() WHERE id = ?`, [r.id]
         );
         sent++;
       } catch (e) {

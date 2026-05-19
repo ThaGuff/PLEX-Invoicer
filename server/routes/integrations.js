@@ -211,7 +211,7 @@ router.post('/split-payment/:token/confirm', async (req, res) => {
     );
     for (const item of items.rows) {
       await db.execute(
-        `UPDATE invoice_items SET line_status = 'paid', line_paid_at = datetime('now') WHERE id = ?`, [item.id]
+        `UPDATE invoice_items SET line_status = 'paid', line_paid_at = NOW() WHERE id = ?`, [item.id]
       );
     }
     res.json({ ok: true, paid_count: items.rows.length });

@@ -31,19 +31,21 @@ class PgAdapter {
 
     // SQLite → PostgreSQL syntax conversions
     pgSql = pgSql
-      .replace(/datetime\('now'\)/gi,           'NOW()')
-      .replace(/CURRENT_TIMESTAMP/gi,            'NOW()')
-      .replace(/INTEGER PRIMARY KEY AUTOINCREMENT/gi, 'SERIAL PRIMARY KEY')
-      .replace(/\bINTEGER\b(?=\s+DEFAULT\s+0)/gi,    'SMALLINT')  // boolean-like integers
-      .replace(/julianday\(([^)]+)\)/gi,         (_, v) => `EXTRACT(EPOCH FROM ${v}::timestamp)/86400`)
-      .replace(/CAST\(([^)]+) AS REAL\)/gi,      'CAST($1 AS FLOAT)')
-      .replace(/INSERT OR IGNORE/gi,             'INSERT')
-      .replace(/ON CONFLICT\(([^)]+)\) DO NOTHING/gi, 'ON CONFLICT ($1) DO NOTHING')
-      // SQLite uses ON CONFLICT(...) DO UPDATE SET — PostgreSQL too, keep as-is
+      .replace(/datetime\('now'\)/gi,                    "NOW()")
+      .replace(/CURRENT_TIMESTAMP/gi,                    "NOW()")
+      .replace(/INTEGER PRIMARY KEY AUTOINCREMENT/gi,    "SERIAL PRIMARY KEY")
+      .replace(/julianday\(([^)]+)\)/gi,                (_, v) => `EXTRACT(EPOCH FROM (${v})::timestamp)/86400`)
+      .replace(/CAST\(([^)]+) AS REAL\)/gi,             "CAST($1 AS FLOAT)")
+      // INSERT OR IGNORE → INSERT ... ON CONFLICT DO NOTHING
+      .replace(/INSERT OR IGNORE INTO (\w+)/gi,          "INSERT INTO $1")
+      // Add ON CONFLICT DO NOTHING to INSERT INTO that don't already have ON CONFLICT
+      // This is done after the replace above so it only affects converted ones
+      .replace(/ON CONFLICT\(([^)]+)\) DO NOTHING/gi,  "ON CONFLICT ($1) DO NOTHING")
+      .replace(/ON CONFLICT DO UPDATE SET/gi,            "ON CONFLICT DO UPDATE SET")
       ;
 
-    // Fix INSERT OR IGNORE that doesn't have ON CONFLICT clause — add it
-    // We handle this case-by-case where needed
+    // Add ON CONFLICT DO NOTHING to bare INSERTs that came from INSERT OR IGNORE
+    // (handled above via the INSERT OR IGNORE regex)
 
     try {
       const result = await this.pool.query(pgSql, params);

@@ -247,7 +247,7 @@ router.post('/onboard', async (req, res) => {
     // Log it in DB
     try {
       await db.execute(
-        `INSERT INTO onboarding_log (user_id, email, sent_at) ON CONFLICT DO NOTHING VALUES (?, ?, datetime('now'))`,
+        `INSERT INTO onboarding_log (user_id, email, sent_at) VALUES (?, ?, NOW()) ON CONFLICT DO NOTHING`,
         [user_id || null, email]
       );
     } catch { /* table may not exist yet — that's fine */ }
@@ -440,7 +440,7 @@ async function generateWelcomePDF({ displayName, businessName, loginUrl, support
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id TEXT,
         email TEXT,
-        sent_at TEXT DEFAULT (datetime('now'))
+        sent_at TEXT DEFAULT (NOW())
       )
     `);
   } catch { /* ignore */ }

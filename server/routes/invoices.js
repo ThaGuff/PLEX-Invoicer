@@ -62,7 +62,7 @@ router.get('/public/:token', async (req, res) => {
       `SELECT * FROM invoice_items WHERE invoice_id = ? ORDER BY sort_order`, [inv.rows[0].id]
     );
     if (!inv.rows[0].viewed_at) {
-      await db.execute(`UPDATE invoices SET viewed_at = datetime('now') WHERE id = ?`, [inv.rows[0].id]);
+      await db.execute(`UPDATE invoices SET viewed_at = NOW() WHERE id = ?`, [inv.rows[0].id]);
     }
     res.json({ ...inv.rows[0], items: items.rows });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -85,12 +85,12 @@ router.patch('/:id', async (req, res) => {
   try {
     const allowed = ['status','amount_paid','paid_at','due_date','sent_at',
       'stripe_payment_link','notes','client_email'];
-    const updates = [`updated_at = datetime('now')`];
+    const updates = [`updated_at = NOW()`];
     const vals = [];
     allowed.forEach(f => {
       if (req.body[f] !== undefined) { updates.push(`${f} = ?`); vals.push(req.body[f]); }
     });
-    if (req.body.status === 'paid' && !req.body.paid_at) updates.push(`paid_at = datetime('now')`);
+    if (req.body.status === 'paid' && !req.body.paid_at) updates.push(`paid_at = NOW()`);
     vals.push(req.params.id);
     await db.execute(`UPDATE invoices SET ${updates.join(', ')} WHERE id = ?`, vals);
     const updated = await db.execute(`SELECT * FROM invoices WHERE id = ?`, [req.params.id]);
@@ -155,7 +155,7 @@ router.post('/:id/payment-link', async (req, res) => {
     await db.execute(
       `UPDATE invoices SET stripe_payment_link = ?,
        status = CASE WHEN status = 'draft' THEN 'sent' ELSE status END,
-       sent_at = COALESCE(sent_at, datetime('now')) WHERE id = ?`,
+       sent_at = COALESCE(sent_at, NOW()) WHERE id = ?`,
       [link.url, req.params.id]
     );
 
@@ -182,8 +182,8 @@ router.post('/:id/send', async (req, res) => {
 
     // Mark as sent first
     await db.execute(
-      `UPDATE invoices SET status = 'sent', sent_at = datetime('now'), updated_at = datetime('now'),
-       delivered_at = datetime('now') WHERE id = ?`,
+      `UPDATE invoices SET status = 'sent', sent_at = NOW(), updated_at = NOW(),
+       delivered_at = NOW() WHERE id = ?`,
       [req.params.id]
     );
 
@@ -262,7 +262,7 @@ router.post('/:id/mark-paid', async (req, res) => {
     const paid = req.body.amount || invoice.amount_due || 0;
     const now = new Date();
     await db.execute(
-      `UPDATE invoices SET status = 'paid', amount_paid = ?, paid_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`,
+      `UPDATE invoices SET status = 'paid', amount_paid = ?, paid_at = NOW(), updated_at = NOW() WHERE id = ?`,
       [paid, req.params.id]
     );
     // Record payment behavior for smart reminder scheduling (F3)
@@ -271,7 +271,7 @@ router.post('/:id/mark-paid', async (req, res) => {
       const dtp = Math.max(0, Math.round((now - sentDate) / 86400000));
       await db.execute(
         `INSERT INTO payment_behavior (account_id, contact_id, client_email, paid_at, day_of_week, hour_of_day, days_to_pay, invoice_id)
-         VALUES (?, ?, ?, datetime('now'), ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, NOW(), ?, ?, ?, ?)`,
         [invoice.account_id, invoice.contact_id || null, invoice.client_email || null,
          now.getDay(), now.getHours(), dtp, req.params.id]
       );
