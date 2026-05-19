@@ -1,8 +1,10 @@
-import express from 'express';
-import path from 'path';
+import express       from 'express';
+import path           from 'path';
 import { fileURLToPath } from 'url';
+import helmet         from 'helmet';
+import rateLimit      from 'express-rate-limit';
 import { initDB, initSchemaV2, initStripeConnect } from './server/db/schema.js';
-import { requireAuth } from './server/middleware/auth.js';
+import { requireAuth, sanitizeRequest } from './server/middleware/auth.js';
 import accountsRouter from './server/routes/accounts.js';
 import contactsRouter from './server/routes/contacts.js';
 import quotesRouter  from './server/routes/quotes.js';
@@ -21,9 +23,112 @@ const PORT = process.env.PORT || 4173;
 
 const app = express();
 
+// ── Security headers (helmet) ─────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc:  ["'self'"],
+      scriptSrc:   ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com", "https://cdn.jsdelivr.net"],
+      styleSrc:    ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc:     ["'self'", "https://fonts.gstatic.com"],
+      imgSrc:      ["'self'", "data:", "blob:", "https:", "http:"],
+      connectSrc:  ["'self'", "https://*.supabase.co", "https://api.openai.com", "https://api.stripe.com", "https://js.stripe.com"],
+      frameSrc:    ["'self'", "https://js.stripe.com"],
+      objectSrc:   ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // needed for Stripe embedded
+  hsts: {
+    maxAge: 31536000,           // 1 year
+    includeSubDomains: true,
+    preload: true,
+  },
+}));
+
+// Remove fingerprinting header
+app.disable('x-powered-by');
+
+// ── Rate limiting ────────────────────────────────────────────────
+// General API rate limit
+const apiLimiter = rateLimit({
+  windowMs:  15 * 60 * 1000, // 15 minutes
+  max:       300,             // 300 requests per 15 min per IP
+  standardHeaders: true,
+  legacyHeaders:  false,
+  message: { error: 'Too many requests, please try again later.' },
+  skip: (req) => req.ip === '127.0.0.1', // skip localhost
+});
+
+// Strict limit for auth-adjacent routes
+const strictLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max:      20,              // 20 attempts per hour per IP
+  message: { error: 'Too many attempts, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders:  false,
+});
+
+// Email/reminder endpoints (prevent spam)
+const emailLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max:      10,              // 10 emails per hour per IP
+  message: { error: 'Email rate limit exceeded. Try again in an hour.' },
+  standardHeaders: true,
+  legacyHeaders:  false,
+});
+
+app.use('/api/', apiLimiter);
+app.use('/api/auth/', strictLimiter);
+app.use('/api/invoices/*/remind', emailLimiter);
+app.use('/api/invoices/*/send',   emailLimiter);
+app.use('/api/analytics/run-reminders', emailLimiter);
+
+// ── Request security ─────────────────────────────────────────────
+// Block requests with suspicious content types
+app.use((req, res, next) => {
+  // Enforce JSON content-type for API POST/PATCH requests
+  if (['POST', 'PUT', 'PATCH'].includes(req.method) && req.path.startsWith('/api/')) {
+    const ct = req.headers['content-type'] || '';
+    if (req.path !== '/api/stripe-connect/webhook' && !ct.includes('application/json') && !ct.includes('multipart/')) {
+      // Allow missing content-type for empty bodies
+      const hasBody = parseInt(req.headers['content-length'] || '0') > 0;
+      if (hasBody && !ct.includes('application/json')) {
+        return res.status(415).json({ error: 'Content-Type must be application/json' });
+      }
+    }
+  }
+  next();
+});
+
+// ── CORS ─────────────────────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  process.env.APP_URL,
+  'https://plex-invoicer.up.railway.app',
+  'http://localhost:4173',
+  'http://localhost:5173',
+].filter(Boolean);
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (!origin) {
+    // Same-origin request — allow
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Vary', 'Origin');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
+
 // Raw body needed for Stripe webhook signature verification
 app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '2mb' }));
+app.use(sanitizeRequest); // strip XSS and injection from all request bodies
 
 // ── Public routes (no auth) ───────────────────────────────────────
 app.use('/api/auth', authRouter);
