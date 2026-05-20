@@ -1,4 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
+// NOTE: We do NOT use createClient() on the server.
+// @supabase/supabase-js initialises Realtime (WebSocket) in its constructor
+// which crashes on Node 20 (no native WebSocket). Instead we call the
+// Supabase REST API directly to verify JWT tokens — simpler and faster.
 
 // ── Input sanitization ────────────────────────────────────────────
 // Strip dangerous characters from string inputs to prevent injection
@@ -33,35 +36,36 @@ export function sanitizeRequest(req, res, next) {
   next();
 }
 
-let supabase = null;
+// Verify Supabase JWT by calling REST API directly — no SDK, no WebSocket
+async function verifyToken(token) {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY;
+  if (!url || !key) return null; // dev mode
 
-function getSupabase() {
-  if (!supabase) {
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_KEY;
-    if (!url || !key) return null;
-    supabase = createClient(url, key, {
-      auth:     { persistSession: false },
-      realtime: { params: { eventsPerSecond: 0 } },
-      global:   { headers: {} },
-    });
-    // Disconnect Realtime immediately — server only needs JWT auth, not WebSockets
-    try { supabase.realtime.disconnect(); } catch (_) {}
-  }
-  return supabase;
+  const res = await fetch(`${url}/auth/v1/user`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'apikey': key,
+    },
+  });
+  if (!res.ok) return null;
+  return res.json();
 }
 
 export async function requireAuth(req, res, next) {
-  const sb = getSupabase();
-  if (!sb) {
+  const SUPABASE_CONFIGURED = !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY);
+
+  if (!SUPABASE_CONFIGURED) {
     req.user = { id: 'dev-user', email: 'dev@localhost' };
     return next();
   }
+
   const token = (req.headers.authorization || '').replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'Missing token' });
+
   try {
-    const { data: { user }, error } = await sb.auth.getUser(token);
-    if (error || !user) return res.status(401).json({ error: 'Invalid or expired token' });
+    const user = await verifyToken(token);
+    if (!user || !user.id) return res.status(401).json({ error: 'Invalid or expired token' });
     req.user = user;
     next();
   } catch (e) {
