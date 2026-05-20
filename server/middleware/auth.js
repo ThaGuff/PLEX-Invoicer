@@ -40,7 +40,13 @@ function getSupabase() {
     const url = process.env.SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_KEY;
     if (!url || !key) return null;
-    supabase = createClient(url, key, { auth: { persistSession: false } });
+    supabase = createClient(url, key, {
+      auth:     { persistSession: false },
+      realtime: { params: { eventsPerSecond: 0 } },
+      global:   { headers: {} },
+    });
+    // Disconnect Realtime immediately — server only needs JWT auth, not WebSockets
+    try { supabase.realtime.disconnect(); } catch (_) {}
   }
   return supabase;
 }
