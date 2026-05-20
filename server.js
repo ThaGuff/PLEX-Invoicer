@@ -324,13 +324,35 @@ app.use(express.static(distDir));
 app.get('*', (req, res) => res.sendFile(path.join(distDir, 'index.html')));
 
 // ── Start ─────────────────────────────────────────────────────────
-initDB().then(() => initSchemaV2()).then(() => initStripeConnect()).then(() => {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`\n🚀 PLEX Invoicer running on :${PORT}`);
-    console.log(`   OpenAI:    ${process.env.OPENAI_API_KEY         ? '✓ set' : '✗ not set — website scraping disabled'}`);
-    console.log(`   Supabase:  ${process.env.SUPABASE_URL           ? '✓ set' : '✗ not set — running in dev mode (no auth)'}`);
-    console.log(`   Stripe:    ${process.env.STRIPE_SECRET_KEY      ? '✓ set' : '✗ not set — payments disabled'}`);
-    console.log(`   SMTP:      ${process.env.SMTP_HOST              ? '✓ set' : '✗ not set — email reminders disabled'}`);
-    console.log(`   App URL:   ${process.env.APP_URL                || 'not set (using relative URLs)'}\n`);
-  });
-}).catch(e => { console.error('DB init failed:', e); process.exit(1); });
+// Start HTTP server FIRST so Railway healthcheck passes immediately.
+// DB schema init runs after server is accepting requests.
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n🚀 PLEX Invoicer running on :${PORT}`);
+  console.log(`   OpenAI:    ${process.env.OPENAI_API_KEY         ? '✓ set' : '✗ not set — website scraping disabled'}`);
+  console.log(`   Supabase:  ${process.env.SUPABASE_URL           ? '✓ set' : '✗ not set — running in dev mode (no auth)'}`);
+  console.log(`   Stripe:    ${process.env.STRIPE_SECRET_KEY      ? '✓ set' : '✗ not set — payments disabled'}`);
+  console.log(`   SMTP:      ${process.env.SMTP_HOST              ? '✓ set' : '✗ not set — email reminders disabled'}`);
+  console.log(`   App URL:   ${process.env.APP_URL                || 'not set (using relative URLs)'}\n`);
+});
+
+// Init DB schema in background with retries — never crashes the server
+async function initDBWithRetry(attempts = 5, delayMs = 3000) {
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      await initDB();
+      await initSchemaV2();
+      await initStripeConnect();
+      console.log('✓ Database schema ready');
+      return;
+    } catch (e) {
+      console.error(`DB init attempt ${i}/${attempts} failed: ${e.message}`);
+      if (i < attempts) {
+        console.log(`  Retrying in ${delayMs/1000}s...`);
+        await new Promise(r => setTimeout(r, delayMs));
+      }
+    }
+  }
+  console.error('⚠️  DB schema init failed after all attempts — app running with limited DB functionality');
+}
+
+initDBWithRetry();
