@@ -119,20 +119,40 @@ if (process.env.SUPABASE_DB_URL) {
     connectionTimeoutMillis: 10000,
   });
 
-  // Test the connection
-  try {
-    const client = await pool.connect();
-    await client.query('SELECT 1');
-    client.release();
-    console.log('🔒 Database: Supabase PostgreSQL (persistent — data survives deploys)');
-  } catch (e) {
-    console.error('❌ Supabase DB connection failed:', e.message);
-    console.error('   Check SUPABASE_DB_URL in Railway env vars');
-    process.exit(1);
+  // Test the connection with retry (handles brief network hiccups at startup)
+  let connected = false;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const client = await pool.connect();
+      await client.query('SELECT 1');
+      client.release();
+      connected = true;
+      console.log('🔒 Database: Supabase PostgreSQL (persistent — data survives deploys)');
+      break;
+    } catch (e) {
+      console.error(`❌ Supabase connection attempt ${attempt}/3 failed: ${e.message}`);
+      if (attempt < 3) {
+        console.log('   Retrying in 3 seconds...');
+        await new Promise(r => setTimeout(r, 3000));
+      }
+    }
   }
 
-  db = new PgAdapter(pool);
-  dbType = 'supabase';
+  if (!connected) {
+    console.error('❌ Could not connect to Supabase after 3 attempts.');
+    console.error('   Falling back to local SQLite — DATA WILL NOT PERSIST');
+    console.error('   Fix: verify SUPABASE_DB_URL in Railway Variables');
+    // Fall back to SQLite so the app keeps running
+    const { createClient } = await import('@libsql/client');
+    const fallbackPath = process.env.DB_PATH || path.join(__dirname, '../../data/plex.db');
+    mkdirSync(path.dirname(fallbackPath), { recursive: true });
+    const fallbackClient = createClient({ url: `file:${fallbackPath}` });
+    db = new SqliteAdapter(fallbackClient);
+    dbType = 'sqlite_fallback';
+  } else {
+    db = new PgAdapter(pool);
+    dbType = 'supabase';
+  }
 
 } else if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
   // Turso cloud libsql — also persistent
