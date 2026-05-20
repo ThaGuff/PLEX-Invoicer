@@ -108,6 +108,7 @@ let dbType;
 
 if (process.env.SUPABASE_DB_URL) {
   // ✅ Supabase PostgreSQL — persistent, survives all Railway deploys
+  // Connect immediately without blocking server startup
   const { default: pg } = await import('pg');
   const { Pool } = pg;
 
@@ -116,43 +117,23 @@ if (process.env.SUPABASE_DB_URL) {
     ssl: { rejectUnauthorized: false },
     max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 10000,
+    connectionTimeoutMillis: 5000,
   });
 
-  // Test the connection with retry (handles brief network hiccups at startup)
-  let connected = false;
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      const client = await pool.connect();
-      await client.query('SELECT 1');
-      client.release();
-      connected = true;
-      console.log('🔒 Database: Supabase PostgreSQL (persistent — data survives deploys)');
-      break;
-    } catch (e) {
-      console.error(`❌ Supabase connection attempt ${attempt}/3 failed: ${e.message}`);
-      if (attempt < 3) {
-        console.log('   Retrying in 3 seconds...');
-        await new Promise(r => setTimeout(r, 3000));
-      }
-    }
-  }
+  // Set db immediately so server can start — pool will establish connections lazily
+  db = new PgAdapter(pool);
+  dbType = 'supabase';
 
-  if (!connected) {
-    console.error('❌ Could not connect to Supabase after 3 attempts.');
-    console.error('   Falling back to local SQLite — DATA WILL NOT PERSIST');
-    console.error('   Fix: verify SUPABASE_DB_URL in Railway Variables');
-    // Fall back to SQLite so the app keeps running
-    const { createClient } = await import('@libsql/client');
-    const fallbackPath = process.env.DB_PATH || path.join(__dirname, '../../data/plex.db');
-    mkdirSync(path.dirname(fallbackPath), { recursive: true });
-    const fallbackClient = createClient({ url: `file:${fallbackPath}` });
-    db = new SqliteAdapter(fallbackClient);
-    dbType = 'sqlite_fallback';
-  } else {
-    db = new PgAdapter(pool);
-    dbType = 'supabase';
-  }
+  // Verify connection in background — does NOT block server startup
+  pool.connect()
+    .then(client => {
+      client.release();
+      console.log('🔒 Database: Supabase PostgreSQL (persistent — data survives deploys)');
+    })
+    .catch(e => {
+      console.error('⚠️  Supabase connection warning:', e.message);
+      console.error('   App running — DB queries will retry automatically via pool');
+    });
 
 } else if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
   // Turso cloud libsql — also persistent
