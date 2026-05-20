@@ -23,6 +23,10 @@ const PORT = process.env.PORT || 4173;
 
 const app = express();
 
+// Trust Railway's proxy so X-Forwarded-For headers are used correctly
+// by express-rate-limit and other middleware.
+app.set('trust proxy', true);
+
 // ── Security headers (helmet) ─────────────────────────────────────
 app.use(helmet({
   contentSecurityPolicy: {
