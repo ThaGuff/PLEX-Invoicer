@@ -488,7 +488,7 @@ export default function QuoteBuilder() {
   };
 
   const fullState = {
-    agencyName:    account?.name     || 'PLEX Automation',
+    agencyName:    account?.name     || 'Revanew',
     agencyEmail:   account?.email    || 'hello@plexautomation.io',
     agencyPhone:   account?.phone    || '256-609-4618',
     agencyWebsite: account?.website  || 'plexautomation.io',

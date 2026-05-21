@@ -243,7 +243,7 @@ export default function StripeConnectSettings({ accountId, accent = '#13B5EA' })
             )}
           </div>
           <p className="text-xs text-ink-muted mb-3">
-            A percentage taken from each payment as a platform fee to PLEX Automation. Set to 0 for no fee.
+            A percentage taken from each payment as a platform fee to Revanew. Set to 0 for no fee.
           </p>
           {feeEdit ? (
             <div className="flex items-center gap-2">

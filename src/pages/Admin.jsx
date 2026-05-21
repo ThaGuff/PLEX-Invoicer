@@ -622,7 +622,7 @@ export default function Admin() {
           <div>
             <h1 className="text-xl font-bold text-ink leading-none">Admin Console</h1>
             <p className="text-xs text-ink-muted mt-0.5">
-              PLEX Automation · Owner view
+              Revanew · Owner view
               {health && <span className={`ml-2 ${health.ok ? 'text-green-500' : 'text-amber-500'}`}>
                 · {health.ok ? 'All systems go' : 'Check system health'}
               </span>}

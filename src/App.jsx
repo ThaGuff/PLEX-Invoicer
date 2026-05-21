@@ -103,8 +103,8 @@ function Nav() {
           const active = isActive(l.to);
           return (
             <NavLink key={l.to} to={l.to}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all"
-              style={{ background: active ? accent + '18' : 'transparent', color: active ? accent : '#7A7E85' }}>
+              className="nav-pill"
+              style={{ background: active ? '#080D1A' : 'transparent', color: active ? '#FFFFFF' : 'var(--text-secondary)', fontWeight: active ? 600 : 500 }}>
               <l.icon size={14} />
               <span>{l.label}</span>
             </NavLink>
@@ -119,7 +119,7 @@ function Nav() {
           return (
             <NavLink key={l.to} to={l.to}
               className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1 text-xs font-semibold rounded-lg transition-all"
-              style={{ color: active ? accent : '#9CA3AF' }}>
+              style={{ color: active ? '#4B7BFF' : 'var(--text-muted)' }}>
               <l.icon size={20} strokeWidth={active ? 2.5 : 1.8} />
               <span className="text-[10px]">{l.short}</span>
             </NavLink>
@@ -154,15 +154,19 @@ function AppShell({ children }) {
       <header className="bg-white border-b sticky top-0 z-40" style={{ borderColor: '#E5E8EB' }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-5 h-14 flex items-center gap-3">
           {/* Logo */}
-          <div className="flex items-center gap-2 shrink-0">
-            {account?.logo_url
-              ? <img src={account.logo_url} alt="" className="w-8 h-8 rounded-lg object-contain border" style={{ borderColor:'#E5E8EB' }} />
-              : <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                  style={{ background: accent }}>
-                  {(account?.logo_initial || account?.name?.[0] || 'P').toUpperCase()}
-                </div>
-            }
-            <span className="font-bold text-ink text-sm hidden md:block">{account?.name || 'PLEX'}</span>
+          <div className="flex items-center gap-2.5 shrink-0">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" width="30" height="30">
+              <rect width="100" height="100" rx="18" fill="#080D1A"/>
+              <defs>
+                <linearGradient id="rgrad-nav" x1="20" y1="15" x2="80" y2="85" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#00E5C8"/>
+                  <stop offset="50%" stopColor="#4B7BFF"/>
+                  <stop offset="100%" stopColor="#7B4FE8"/>
+                </linearGradient>
+              </defs>
+              <text x="14" y="80" fontFamily="Arial Black, sans-serif" fontWeight="900" fontSize="80" fill="url(#rgrad-nav)">R</text>
+            </svg>
+            <span className="hidden md:block" style={{ fontSize:'14px', fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.5px' }}>Revanew</span>
           </div>
 
           <div className="h-5 w-px hidden md:block" style={{ background: '#E5E8EB' }} />
@@ -173,8 +177,8 @@ function AppShell({ children }) {
           {/* Right actions */}
           <div className="ml-auto flex items-center gap-2">
             <NavLink to="/quotes/new"
-              className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-white px-3 py-2 rounded-lg shadow-sm"
-              style={{ background: accent }}>
+              className="hidden sm:flex items-center gap-1.5 text-white px-3 py-2 rounded-lg"
+              style={{ background: 'linear-gradient(135deg, #00E5C8, #4B7BFF, #7B4FE8)', fontSize:'12px', fontWeight:700 }}>
               <Plus size={13} /> New quote
             </NavLink>
             <AccountSwitcher
@@ -218,7 +222,7 @@ function AppShell({ children }) {
           </div>
         </div>
         {/* Accent stripe */}
-        <div className="h-0.5" style={{ background: `linear-gradient(90deg, ${accent}, ${accent}88)` }} />
+        <div className="h-0.5" style={{ background: 'linear-gradient(90deg, #00E5C8, #4B7BFF, #7B4FE8)' }} />
       </header>
 
       {showSettings   && <AccountSettings onClose={() => setShowSettings(false)} />}

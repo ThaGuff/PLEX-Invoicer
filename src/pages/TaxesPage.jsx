@@ -80,7 +80,7 @@ export default function TaxesPage() {
     doc.text('Tax Report', margin, y); y += 28;
     doc.setFontSize(10); doc.setFont('helvetica', 'normal');
     doc.setTextColor(120);
-    doc.text(`${account?.name || 'PLEX Automation'} · Period: ${year || 'All time'}${quarter ? ' Q'+quarter : ''}`, margin, y);
+    doc.text(`${account?.name || 'Revanew'} · Period: ${year || 'All time'}${quarter ? ' Q'+quarter : ''}`, margin, y);
     doc.text(`Generated ${new Date().toLocaleDateString()}`, doc.internal.pageSize.width - margin, y, { align: 'right' });
     y += 24;
 

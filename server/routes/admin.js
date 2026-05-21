@@ -247,14 +247,14 @@ router.post('/onboard', async (req, res) => {
 <div class="wrap">
   <div class="header">
     <div class="logo">P</div>
-    <p class="brand">PLEX Automation</p>
+    <p class="brand">Revanew</p>
     <p class="tagline">Quote · Invoice · Get Paid</p>
   </div>
   <div class="body">
     <h1>Welcome, ${displayName}! 👋</h1>
-    <p>Your <strong>PLEX Invoicer</strong> account for <strong>${businessName}</strong> is ready. This is the fastest way to send professional quotes, convert them to invoices, and get paid — built specifically for service businesses.</p>
+    <p>Your <strong>Revanew</strong> account for <strong>${businessName}</strong> is ready. This is the fastest way to send professional quotes, convert them to invoices, and get paid — built specifically for service businesses.</p>
     ${custom_message ? `<div class="custom-msg">${custom_message}</div>` : ''}
-    <a href="${loginUrl}" class="cta">Sign in to PLEX Invoicer →</a>
+    <a href="${loginUrl}" class="cta">Sign in to Revanew →</a>
     <div class="steps">
       <h3>Get started in 3 steps</h3>
       <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Set up your account</strong> — Upload your logo, add your brand color, and build your service catalog in Account Settings.</div></div>
@@ -266,8 +266,8 @@ router.post('/onboard', async (req, res) => {
     <p style="font-size:13px;color:#9ca3af;">Your welcome guide is attached as a PDF — print it out or save it for quick reference.</p>
   </div>
   <div class="footer">
-    <p>You're receiving this because you signed up for PLEX Invoicer.<br>
-    <a href="${loginUrl}">Log in</a> · <a href="mailto:${supportEmail}">Contact support</a> · PLEX Automation · Birmingham, AL</p>
+    <p>You're receiving this because you signed up for Revanew.<br>
+    <a href="${loginUrl}">Log in</a> · <a href="mailto:${supportEmail}">Contact support</a> · Revanew · Birmingham, AL</p>
   </div>
 </div>
 </body></html>`;
@@ -281,7 +281,7 @@ router.post('/onboard', async (req, res) => {
 
     await sendEmail({
       to:      email,
-      subject: `Welcome to PLEX Invoicer, ${displayName}!`,
+      subject: `Welcome to Revanew, ${displayName}!`,
       html,
       attachments,
     });
@@ -331,14 +331,14 @@ router.post('/broadcast', async (req, res) => {
   .footer a { color:#13B5EA; text-decoration:none; }
 </style></head><body>
 <div class="wrap">
-  <div class="header"><p class="brand">PLEX Automation</p></div>
+  <div class="header"><p class="brand">Revanew</p></div>
   <div class="body">
     <h1>${subject}</h1>
     <p>${message.replace(/\n/g, '<br>')}</p>
-    <a href="${loginUrl}" class="cta">Open PLEX Invoicer →</a>
+    <a href="${loginUrl}" class="cta">Open Revanew →</a>
   </div>
   <div class="footer">
-    <a href="${loginUrl}">Log in</a> · <a href="mailto:${supportEmail}">Contact support</a> · PLEX Automation
+    <a href="${loginUrl}">Log in</a> · <a href="mailto:${supportEmail}">Contact support</a> · Revanew
   </div>
 </div></body></html>`;
 
@@ -380,11 +380,11 @@ async function generateWelcomePDF({ displayName, businessName, loginUrl, support
 
   // Brand name
   doc.setFontSize(18);
-  doc.text('PLEX Automation', M + 58, 40);
+  doc.text('Revanew', M + 58, 40);
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...BLUE);
-  doc.text('PLEX Invoicer — Welcome Guide', M + 58, 58);
+  doc.text('Revanew — Welcome Guide', M + 58, 58);
 
   // Title
   doc.setTextColor(...DARK);

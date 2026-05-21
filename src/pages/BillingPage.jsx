@@ -145,7 +145,7 @@ export default function BillingPage() {
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 mb-3 px-3 py-1.5 rounded-full text-xs font-semibold"
           style={{ background: accent + '18', color: accent }}>
-          <Crown size={12} /> PLEX Automation Plans
+          <Crown size={12} /> Revanew Plans
         </div>
         <h1 className="text-3xl font-bold text-ink mb-3">Simple, transparent pricing</h1>
         <p className="text-ink-muted max-w-xl mx-auto">
@@ -273,7 +273,7 @@ export default function BillingPage() {
                   disabled={isLoading || (isCurrent && currentStatus === 'active')}
                   className="w-full py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   style={{
-                    background: isCurrent && currentStatus === 'active' ? '#F5F7F8' : plan.color,
+                    background: isCurrent && currentStatus === 'active' ? 'var(--bg-page)' : 'linear-gradient(135deg, #00E5C8, #4B7BFF, #7B4FE8)',
                     color: isCurrent && currentStatus === 'active' ? '#7A7E85' : '#FFFFFF',
                   }}>
                   {isLoading ? (
@@ -310,6 +310,28 @@ export default function BillingPage() {
               <p className="text-sm font-semibold text-ink mb-1">{q}</p>
               <p className="text-sm text-ink-muted">{a}</p>
             </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Privacy & powered by */}
+      <div className="mt-8 text-center space-y-2">
+        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          Revanew is powered by{' '}
+          <a href="https://plexautomation.io" target="_blank" rel="noreferrer"
+            style={{ color: 'var(--blue)', fontWeight: 600, textDecoration: 'none' }}>PLEX Automation</a>.
+          Billing managed securely by Stripe.
+        </p>
+        <div className="flex items-center justify-center gap-4">
+          {[
+            { label: 'Privacy policy', href: 'https://plexautomation.io/privacy' },
+            { label: 'Terms of service', href: 'https://plexautomation.io/terms' },
+            { label: 'Support', href: 'mailto:hello@plexautomation.io' },
+          ].map(({ label, href }) => (
+            <a key={label} href={href} target="_blank" rel="noreferrer"
+              className="text-xs" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500 }}>
+              {label}
+            </a>
           ))}
         </div>
       </div>

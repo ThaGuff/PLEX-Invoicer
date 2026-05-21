@@ -1,14 +1,25 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, Zap, CheckCircle, ArrowRight, Mail } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Mail, CheckCircle, Shield, Zap, BarChart2 } from 'lucide-react';
 
-const ACCENT = '#13B5EA';
-const DARK   = '#1a1a1a';
+const LOGO_SVG = (
+  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
+    <rect width="100" height="100" rx="18" fill="#080D1A"/>
+    <defs>
+      <linearGradient id="rgrad-login" x1="20" y1="15" x2="80" y2="85" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#00E5C8"/>
+        <stop offset="50%" stopColor="#4B7BFF"/>
+        <stop offset="100%" stopColor="#7B4FE8"/>
+      </linearGradient>
+    </defs>
+    <text x="14" y="80" fontFamily="Arial Black, sans-serif" fontWeight="900" fontSize="80" fill="url(#rgrad-login)">R</text>
+  </svg>
+);
 
 function GoogleIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <svg width="17" height="17" viewBox="0 0 18 18" fill="none">
       <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
       <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
       <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
@@ -19,221 +30,219 @@ function GoogleIcon() {
 
 function AppleIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 814 1000" fill="currentColor">
-      <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.4 0 663 0 541.8c0-207.8 136.5-317.5 271-317.5 67.9 0 124.3 44.4 167.4 44.4 40.8 0 105.3-46.7 179.4-46.7zm-165.3-57.6c-3.8 18.3-14.4 65.7-48.4 98.5-33.3 32.8-74.5 41.3-97.2 44.4-0.6-2.6-1.3-6.4-1.3-11.5 0-59 38.4-126.5 78.4-153.7 24.5-16.5 63.9-30.3 90.8-30.3 1.9 0 3.8.6 5.8.6-2.6 26-10.3 53.2-28.1 52z"/>
+    <svg width="17" height="17" viewBox="0 0 814 1000" fill="currentColor">
+      <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.4 0 663 0 541.8c0-207.8 136.5-317.5 271-317.5 67.9 0 124.3 44.4 167.4 44.4 40.8 0 105.3-46.7 179.4-46.7zm-165.3-57.6c-3.8 18.3-14.4 65.7-48.4 98.5-33.3 32.8-74.5 41.3-97.2 44.4-.6-2.6-1.3-6.4-1.3-11.5 0-59 38.4-126.5 78.4-153.7 24.5-16.5 63.9-30.3 90.8-30.3 1.9 0 3.8.6 5.8.6-2.6 26-10.3 53.2-28.1 52z"/>
     </svg>
   );
 }
 
 const FEATURES = [
-  'Quotes that convert — shareable, branded, client-accepted',
-  'Invoices with Stripe payment links built in',
-  'Automatic payment reminders — stop chasing clients',
-  'Client address book with autocomplete',
-  'Revenue dashboard: collected, outstanding, overdue',
-  'PDF export with your brand colors and logo',
+  { icon: Zap,       text: 'Send branded quotes clients can accept online in seconds' },
+  { icon: CheckCircle, text: 'Convert accepted quotes to invoices with one click' },
+  { icon: BarChart2, text: 'Real-time revenue dashboard — collected, outstanding, overdue' },
+  { icon: Shield,    text: 'Payment reminders, Stripe links, and client tracking built in' },
 ];
 
 export default function Login() {
   const { signInWithGoogle, signInWithApple, signInWithEmail, signUpWithEmail, resetPassword } = useAuth();
   const navigate = useNavigate();
 
-  const [mode, setMode] = useState('login'); // 'login' | 'signup' | 'reset'
-  const [email, setEmail] = useState('');
+  const [mode, setMode]         = useState('login');
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [showPw, setShowPw]     = useState(false);
+  const [loading, setLoading]   = useState('');
+  const [error, setError]       = useState('');
+  const [success, setSuccess]   = useState('');
 
   const handle = async (label, fn) => {
-    setLoading(label);
-    setError('');
-    setSuccess('');
+    setLoading(label); setError(''); setSuccess('');
     try {
       const result = await fn();
       if (result?.error) {
         setError(result.error.message || String(result.error));
       } else if (mode === 'reset') {
-        setSuccess('Password reset email sent — check your inbox.');
+        setSuccess('Reset link sent — check your inbox.');
       } else if (mode === 'signup') {
         setSuccess('Account created! Check your email to confirm, then sign in.');
         setMode('login');
       } else {
         navigate('/dashboard');
       }
-    } catch (e) {
-      setError(e.message || 'Something went wrong');
-    }
+    } catch (e) { setError(e.message || 'Something went wrong'); }
     setLoading('');
   };
 
-  const handleGoogle  = () => handle('google', signInWithGoogle);
-  const handleApple   = () => handle('apple',  signInWithApple);
-  const handleEmail   = () => {
-    if (mode === 'reset') return handle('email', () => resetPassword(email));
+  const handleGoogle = () => handle('google', signInWithGoogle);
+  const handleApple  = () => handle('apple',  signInWithApple);
+  const handleEmail  = () => {
+    if (mode === 'reset')  return handle('email', () => resetPassword(email));
     if (mode === 'signup') return handle('email', () => signUpWithEmail(email, password, fullName));
     return handle('email', () => signInWithEmail(email, password));
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row" style={{ background: '#FFFFFF' }}>
+    <div style={{ minHeight: '100dvh', background: '#080D1A', display: 'flex', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
 
-      {/* LEFT — branding panel */}
-      <div className="hidden lg:flex flex-col justify-between w-[480px] shrink-0 p-10"
-        style={{ background: DARK }}>
+      {/* LEFT PANEL — branding */}
+      <div style={{ display: 'none', width: '440px', flexShrink: 0, padding: '40px', flexDirection: 'column', justifyContent: 'space-between', background: '#0D1526', borderRight: '0.5px solid #1A2640' }}
+        className="lg:!flex">
+
+        {/* Logo */}
         <div>
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-12">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white text-lg"
-              style={{ background: ACCENT }}>P</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '48px' }}>
+            {LOGO_SVG}
             <div>
-              <p className="font-bold text-white text-lg leading-none">PLEX</p>
-              <p className="text-xs font-medium" style={{ color: ACCENT }}>Automation</p>
+              <p style={{ fontSize: '18px', fontWeight: 800, color: '#FFFFFF', lineHeight: 1, letterSpacing: '-0.5px' }}>Revanew</p>
+              <p style={{ fontSize: '11px', fontWeight: 500, color: '#3A5070', marginTop: '2px' }}>Powered by PLEX Automation</p>
             </div>
           </div>
 
-          <h1 className="text-3xl font-bold text-white mb-3 leading-tight">
-            Quote. Invoice. <span style={{ color: ACCENT }}>Get paid.</span>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#FFFFFF', lineHeight: 1.2, marginBottom: '12px' }}>
+            Quotes. Invoices.{' '}
+            <span style={{ background: 'linear-gradient(135deg, #00E5C8, #4B7BFF, #7B4FE8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              Get Paid.
+            </span>
           </h1>
-          <p className="text-sm leading-relaxed mb-8" style={{ color: '#9ca3af' }}>
-            A clean, fast quote and invoice tool built for service businesses.
-            No bloat. No accounting complexity. Just the essentials — done right.
+          <p style={{ fontSize: '13px', color: '#3A5070', lineHeight: 1.7, marginBottom: '36px' }}>
+            The fastest way for service businesses to quote clients, collect payment, and track every dollar — without the accounting complexity.
           </p>
 
-          <ul className="space-y-3">
-            {FEATURES.map((f, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm" style={{ color: '#d1d5db' }}>
-                <CheckCircle size={15} className="shrink-0 mt-0.5" style={{ color: ACCENT }} />
-                {f}
-              </li>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {FEATURES.map(({ icon: Icon, text }, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'linear-gradient(135deg, #00E5C8, #4B7BFF, #7B4FE8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
+                  <Icon size={13} color="#FFFFFF" />
+                </div>
+                <span style={{ fontSize: '13px', color: '#94A3B8', lineHeight: 1.5 }}>{text}</span>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
 
-        <div className="mt-10">
-          <p className="text-xs" style={{ color: '#6b7280' }}>
-            © {new Date().getFullYear()} PLEX Automation · plexautomation.io
+        {/* Footer */}
+        <div style={{ marginTop: '40px' }}>
+          <div style={{ height: '0.5px', background: '#1A2640', marginBottom: '20px' }} />
+          <p style={{ fontSize: '11px', color: '#2A3A55', marginBottom: '8px' }}>
+            © {new Date().getFullYear()} Revanew. Powered by PLEX Automation.
           </p>
-          <div className="flex gap-4 mt-2">
-            <a href="https://plexautomation.io/terms" target="_blank" rel="noreferrer"
-              className="text-xs hover:underline" style={{ color: '#6b7280' }}>Terms</a>
-            <a href="https://plexautomation.io/privacy" target="_blank" rel="noreferrer"
-              className="text-xs hover:underline" style={{ color: '#6b7280' }}>Privacy</a>
-            <a href="mailto:hello@plexautomation.io"
-              className="text-xs hover:underline" style={{ color: '#6b7280' }}>Support</a>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            {[
+              { label: 'Privacy policy', href: 'https://plexautomation.io/privacy' },
+              { label: 'Terms of service', href: 'https://plexautomation.io/terms' },
+              { label: 'Support', href: 'mailto:hello@plexautomation.io' },
+            ].map(({ label, href }) => (
+              <a key={label} href={href} target="_blank" rel="noreferrer"
+                style={{ fontSize: '11px', color: '#2A3A55', textDecoration: 'none', fontWeight: 500 }}
+                onMouseEnter={e => e.target.style.color = '#3A5070'}
+                onMouseLeave={e => e.target.style.color = '#2A3A55'}>
+                {label}
+              </a>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* RIGHT — auth form */}
-      <div className="flex-1 flex flex-col items-center justify-center px-5 py-10 min-h-screen">
+      {/* RIGHT PANEL — auth form */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', minHeight: '100dvh' }}>
+
         {/* Mobile logo */}
-        <div className="flex items-center gap-2.5 mb-8 lg:hidden">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-sm"
-            style={{ background: ACCENT }}>P</div>
-          <span className="font-bold text-ink text-base">PLEX Automation</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '32px' }} className="lg:hidden">
+          {LOGO_SVG}
+          <div>
+            <p style={{ fontSize: '16px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.5px', lineHeight: 1 }}>Revanew</p>
+            <p style={{ fontSize: '10px', color: '#3A5070', fontWeight: 500 }}>Quotes. Invoices. Get Paid.</p>
+          </div>
         </div>
 
-        <div className="w-full max-w-sm">
-          {/* Mode tabs */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-ink mb-1">
+        <div style={{ width: '100%', maxWidth: '360px' }}>
+
+          {/* Heading */}
+          <div style={{ marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#FFFFFF', marginBottom: '4px', letterSpacing: '-0.3px' }}>
               {mode === 'login'  && 'Welcome back'}
               {mode === 'signup' && 'Create your account'}
-              {mode === 'reset'  && 'Reset password'}
+              {mode === 'reset'  && 'Reset your password'}
             </h2>
-            <p className="text-sm text-ink-muted">
-              {mode === 'login'  && "Sign in to your PLEX Invoicer account"}
-              {mode === 'signup' && "Start your 14-day free trial — no credit card required"}
-              {mode === 'reset'  && "We'll send you a link to reset your password"}
+            <p style={{ fontSize: '13px', color: '#3A5070', fontWeight: 500 }}>
+              {mode === 'login'  && 'Sign in to your Revanew account'}
+              {mode === 'signup' && '7-day free trial — no credit card required'}
+              {mode === 'reset'  && "We'll send a reset link to your email"}
             </p>
           </div>
 
-          {/* OAuth buttons — only for login/signup */}
+          {/* OAuth */}
           {mode !== 'reset' && (
-            <div className="space-y-3 mb-5">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
               <button onClick={handleGoogle} disabled={!!loading}
-                className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border text-sm font-semibold transition-colors hover:bg-gray-50 disabled:opacity-50"
-                style={{ borderColor: '#E5E8EB', color: DARK }}>
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '11px 16px', borderRadius: '8px', border: '0.5px solid #1A2640', background: '#0D1526', color: '#FFFFFF', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", opacity: loading ? 0.5 : 1, transition: 'all 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#1A2640'}
+                onMouseLeave={e => e.currentTarget.style.background = '#0D1526'}>
                 <GoogleIcon />
-                {loading === 'google' ? 'Redirecting…' : `Continue with Google`}
+                {loading === 'google' ? 'Redirecting…' : 'Continue with Google'}
               </button>
               <button onClick={handleApple} disabled={!!loading}
-                className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors hover:opacity-90 disabled:opacity-50"
-                style={{ background: DARK, color: '#fff' }}>
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '11px 16px', borderRadius: '8px', border: '0.5px solid #1A2640', background: '#1A2640', color: '#FFFFFF', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", opacity: loading ? 0.5 : 1, transition: 'all 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#243050'}
+                onMouseLeave={e => e.currentTarget.style.background = '#1A2640'}>
                 <AppleIcon />
-                {loading === 'apple' ? 'Redirecting…' : `Continue with Apple`}
+                {loading === 'apple' ? 'Redirecting…' : 'Continue with Apple'}
               </button>
             </div>
           )}
 
           {/* Divider */}
           {mode !== 'reset' && (
-            <div className="relative flex items-center gap-3 mb-5">
-              <div className="flex-1 h-px" style={{ background: '#E5E8EB' }} />
-              <span className="text-xs text-ink-muted shrink-0">or continue with email</span>
-              <div className="flex-1 h-px" style={{ background: '#E5E8EB' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+              <div style={{ flex: 1, height: '0.5px', background: '#1A2640' }} />
+              <span style={{ fontSize: '11px', color: '#2A3A55', fontWeight: 500, flexShrink: 0 }}>or continue with email</span>
+              <div style={{ flex: 1, height: '0.5px', background: '#1A2640' }} />
             </div>
           )}
 
           {/* Email form */}
-          <div className="space-y-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {mode === 'signup' && (
               <div>
-                <label className="text-xs font-medium text-ink-muted block mb-1">Full name</label>
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={e => setFullName(e.target.value)}
-                  placeholder="Ryan Guffey"
-                  className="field"
-                  autoComplete="name"
-                />
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#3A5070', display: 'block', marginBottom: '4px' }}>Full name</label>
+                <input type="text" value={fullName} onChange={e => setFullName(e.target.value)}
+                  placeholder="Your full name" autoComplete="name"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '0.5px solid #1A2640', background: '#0D1526', color: '#FFFFFF', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif", outline: 'none' }}
+                  onFocus={e => e.target.style.borderColor = '#4B7BFF'}
+                  onBlur={e => e.target.style.borderColor = '#1A2640'} />
               </div>
             )}
 
             <div>
-              <label className="text-xs font-medium text-ink-muted block mb-1">Email address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="hello@yourbusiness.com"
-                className="field"
-                autoComplete="email"
+              <label style={{ fontSize: '11px', fontWeight: 600, color: '#3A5070', display: 'block', marginBottom: '4px' }}>Email address</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="you@yourbusiness.com" autoComplete="email"
                 onKeyDown={e => e.key === 'Enter' && handleEmail()}
-              />
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '0.5px solid #1A2640', background: '#0D1526', color: '#FFFFFF', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif", outline: 'none' }}
+                onFocus={e => e.target.style.borderColor = '#4B7BFF'}
+                onBlur={e => e.target.style.borderColor = '#1A2640'} />
             </div>
 
             {mode !== 'reset' && (
               <div>
-                <label className="text-xs font-medium text-ink-muted block mb-1">Password</label>
-                <div className="relative">
-                  <input
-                    type={showPw ? 'text' : 'password'}
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#3A5070', display: 'block', marginBottom: '4px' }}>Password</label>
+                <div style={{ position: 'relative' }}>
+                  <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
                     placeholder={mode === 'signup' ? 'At least 8 characters' : '••••••••'}
-                    className="field pr-10"
                     autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                     onKeyDown={e => e.key === 'Enter' && handleEmail()}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPw(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink"
-                  >
-                    {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                    style={{ width: '100%', padding: '10px 40px 10px 12px', borderRadius: '8px', border: '0.5px solid #1A2640', background: '#0D1526', color: '#FFFFFF', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif", outline: 'none' }}
+                    onFocus={e => e.target.style.borderColor = '#4B7BFF'}
+                    onBlur={e => e.target.style.borderColor = '#1A2640'} />
+                  <button type="button" onClick={() => setShowPw(v => !v)}
+                    style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: '#2A3A55', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>
+                    {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
                 {mode === 'login' && (
-                  <button
-                    onClick={() => setMode('reset')}
-                    className="mt-1 text-xs font-medium"
-                    style={{ color: ACCENT }}
-                  >
+                  <button onClick={() => setMode('reset')}
+                    style={{ marginTop: '6px', fontSize: '11px', fontWeight: 600, color: '#4B7BFF', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     Forgot password?
                   </button>
                 )}
@@ -241,39 +250,35 @@ export default function Login() {
             )}
 
             {error && (
-              <div className="px-3 py-2.5 rounded-lg text-xs text-red-700 bg-red-50 border border-red-200">
+              <div style={{ padding: '10px 12px', borderRadius: '8px', fontSize: '12px', color: '#FCA5A5', background: 'rgba(239,68,68,0.1)', border: '0.5px solid rgba(239,68,68,0.3)' }}>
                 {error}
               </div>
             )}
-
             {success && (
-              <div className="px-3 py-2.5 rounded-lg text-xs text-green-700 bg-green-50 border border-green-200 flex items-start gap-2">
-                <CheckCircle size={13} className="shrink-0 mt-0.5" />
+              <div style={{ padding: '10px 12px', borderRadius: '8px', fontSize: '12px', color: '#6EE7B7', background: 'rgba(0,229,200,0.08)', border: '0.5px solid rgba(0,229,200,0.2)', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                <CheckCircle size={13} style={{ flexShrink: 0, marginTop: '1px', color: '#00E5C8' }} />
                 {success}
               </div>
             )}
 
-            <button
-              onClick={handleEmail}
+            {/* Submit */}
+            <button onClick={handleEmail}
               disabled={!!loading || !email || (mode !== 'reset' && !password)}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40"
-              style={{ background: ACCENT }}
-            >
-              <Mail size={15} />
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 20px', borderRadius: '8px', border: 'none', background: 'linear-gradient(135deg, #00E5C8, #4B7BFF, #7B4FE8)', color: '#FFFFFF', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", opacity: (loading || !email || (mode !== 'reset' && !password)) ? 0.5 : 1, transition: 'all 0.15s' }}>
+              <Mail size={14} />
               {loading === 'email' ? 'Please wait…' :
                mode === 'reset'  ? 'Send reset link' :
-               mode === 'signup' ? 'Create account' :
-               'Sign in'}
-              {!loading && <ArrowRight size={14} />}
+               mode === 'signup' ? 'Create account' : 'Sign in'}
+              {!loading && <ArrowRight size={13} />}
             </button>
           </div>
 
-          {/* Switch mode */}
-          <div className="mt-6 text-center text-sm text-ink-muted">
+          {/* Mode switch */}
+          <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '13px', color: '#3A5070' }}>
             {mode === 'login' && (
-              <>Don't have an account?{' '}
+              <>No account?{' '}
                 <button onClick={() => { setMode('signup'); setError(''); setSuccess(''); }}
-                  className="font-semibold" style={{ color: ACCENT }}>
+                  style={{ fontWeight: 700, color: '#4B7BFF', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   Sign up free
                 </button>
               </>
@@ -281,30 +286,45 @@ export default function Login() {
             {mode === 'signup' && (
               <>Already have an account?{' '}
                 <button onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
-                  className="font-semibold" style={{ color: ACCENT }}>
+                  style={{ fontWeight: 700, color: '#4B7BFF', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   Sign in
                 </button>
               </>
             )}
             {mode === 'reset' && (
               <button onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
-                className="font-semibold" style={{ color: ACCENT }}>
+                style={{ fontWeight: 700, color: '#4B7BFF', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 ← Back to sign in
               </button>
             )}
           </div>
 
-          {/* TOS */}
+          {/* Privacy */}
           {mode === 'signup' && (
-            <p className="mt-4 text-center text-xs text-ink-muted">
+            <p style={{ marginTop: '16px', textAlign: 'center', fontSize: '11px', color: '#2A3A55', lineHeight: 1.6 }}>
               By creating an account you agree to our{' '}
               <a href="https://plexautomation.io/terms" target="_blank" rel="noreferrer"
-                className="underline hover:text-ink">Terms of Service</a>
+                style={{ color: '#4B7BFF', fontWeight: 600, textDecoration: 'none' }}>Terms of service</a>
               {' '}and{' '}
               <a href="https://plexautomation.io/privacy" target="_blank" rel="noreferrer"
-                className="underline hover:text-ink">Privacy Policy</a>.
+                style={{ color: '#4B7BFF', fontWeight: 600, textDecoration: 'none' }}>Privacy policy</a>.
+              <br />Revanew is powered by PLEX Automation.
             </p>
           )}
+
+          {/* Footer links - mobile */}
+          <div style={{ marginTop: '32px', textAlign: 'center', display: 'flex', justifyContent: 'center', gap: '16px' }} className="lg:hidden">
+            {[
+              { label: 'Privacy', href: 'https://plexautomation.io/privacy' },
+              { label: 'Terms', href: 'https://plexautomation.io/terms' },
+              { label: 'Support', href: 'mailto:hello@plexautomation.io' },
+            ].map(({ label, href }) => (
+              <a key={label} href={href} target="_blank" rel="noreferrer"
+                style={{ fontSize: '11px', color: '#2A3A55', textDecoration: 'none', fontWeight: 500 }}>
+                {label}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </div>

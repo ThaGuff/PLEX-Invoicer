@@ -61,7 +61,7 @@ export function exportPDF(state) {
     selected = {}, sectionMap = {}, prices = {}, included = {},
     discType = 'pct', discValue = 0, discSetup = true, discMonthly = true,
     notes = '',
-    agencyName    = 'PLEX Automation',
+    agencyName    = 'Revanew',
     agencyEmail   = 'hello@plexautomation.io',
     agencyPhone   = '256-609-4618',
     agencyWebsite = 'plexautomation.io',
