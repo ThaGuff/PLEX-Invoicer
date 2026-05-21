@@ -383,6 +383,83 @@ export async function initSchemaV2() {
     }
   }
 
+
+  // ── Automation sequences ────────────────────────────────────────
+  await db.execute(`CREATE TABLE IF NOT EXISTS automation_sequences (
+    id          TEXT PRIMARY KEY,
+    account_id  TEXT NOT NULL REFERENCES accounts(id),
+    name        TEXT NOT NULL,
+    trigger     TEXT NOT NULL, -- quote_viewed|quote_ignored|invoice_overdue|deposit_unpaid|repeat_customer
+    active      INTEGER DEFAULT 1,
+    created_at  TEXT DEFAULT (NOW()::text)
+  )`);
+
+  await db.execute(`CREATE TABLE IF NOT EXISTS automation_steps (
+    id              TEXT PRIMARY KEY,
+    sequence_id     TEXT NOT NULL REFERENCES automation_sequences(id) ON DELETE CASCADE,
+    step_order      INTEGER NOT NULL,
+    delay_hours     INTEGER DEFAULT 24,
+    channel         TEXT DEFAULT 'email', -- email|sms
+    subject         TEXT,
+    body            TEXT NOT NULL,
+    ai_generated    INTEGER DEFAULT 0,
+    created_at      TEXT DEFAULT (NOW()::text)
+  )`);
+
+  await db.execute(`CREATE TABLE IF NOT EXISTS automation_runs (
+    id          TEXT PRIMARY KEY,
+    sequence_id TEXT NOT NULL REFERENCES automation_sequences(id),
+    step_id     TEXT NOT NULL REFERENCES automation_steps(id),
+    invoice_id  TEXT REFERENCES invoices(id),
+    quote_id    TEXT REFERENCES quotes(id),
+    contact_id  TEXT REFERENCES contacts(id),
+    status      TEXT DEFAULT 'pending', -- pending|sent|failed|skipped
+    scheduled_at TEXT,
+    sent_at     TEXT,
+    error       TEXT,
+    created_at  TEXT DEFAULT (NOW()::text)
+  )`);
+
+  // ── CRM: contact notes + activity timeline ──────────────────────
+  await db.execute(`CREATE TABLE IF NOT EXISTS contact_notes (
+    id          TEXT PRIMARY KEY,
+    contact_id  TEXT NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+    account_id  TEXT NOT NULL,
+    note        TEXT NOT NULL,
+    note_type   TEXT DEFAULT 'manual', -- manual|ai_summary|call|email|visit
+    created_at  TEXT DEFAULT (NOW()::text)
+  )`);
+
+  // Add CRM fields to contacts if missing
+  const crmCols = [
+    `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS tags TEXT DEFAULT '[]'`,
+    `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS lifetime_value REAL DEFAULT 0`,
+    `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS last_contact_at TEXT`,
+    `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS close_probability REAL DEFAULT 0`,
+    `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS customer_since TEXT`,
+  ];
+  for (const sql of crmCols) {
+    try { await db.execute(sql); } catch(e) {
+      if (!e.message?.includes('already exists') && !e.message?.includes('duplicate')) throw e;
+    }
+  }
+
+  // ── Analytics events (section tracking) ────────────────────────
+  await db.execute(`CREATE TABLE IF NOT EXISTS analytics_events (
+    id          TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    account_id  TEXT,
+    quote_id    TEXT REFERENCES quotes(id),
+    invoice_id  TEXT REFERENCES invoices(id),
+    contact_id  TEXT REFERENCES contacts(id),
+    event_type  TEXT NOT NULL, -- quote_view|section_view|pricing_click|accept|reject|link_click
+    section     TEXT,
+    duration_ms INTEGER DEFAULT 0,
+    metadata    TEXT DEFAULT '{}',
+    ip          TEXT,
+    ua          TEXT,
+    created_at  TEXT DEFAULT (NOW()::text)
+  )`);
+
   console.log('✓ Schema V2 initialized');
 }
 

@@ -20,7 +20,8 @@ import Admin from './pages/Admin';
 import TaxesPage from './pages/TaxesPage';
 import BillingPage from './pages/BillingPage';
 import Onboarding from './pages/Onboarding';
-import { LayoutDashboard, FileText, Receipt, Users, Plus, LogOut, CreditCard, Shield } from 'lucide-react';
+import AutomationsPage from './pages/AutomationsPage';
+import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield } from 'lucide-react';
 import { IdleWarningBanner, SessionExpiredModal } from './components/SessionModals';
 
 
@@ -267,6 +268,7 @@ export default function App() {
                     <Route path="/taxes"           element={<TaxesPage />} />
                     <Route path="/billing"         element={<BillingPage />} />
                     <Route path="/onboarding"      element={<Onboarding />} />
+                    <Route path="/automations"     element={<AutomationsPage />} />
                   </Routes>
                 </AppShell>
               </AccountProvider>
