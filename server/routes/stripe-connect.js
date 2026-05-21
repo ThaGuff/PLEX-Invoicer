@@ -285,7 +285,7 @@ router.post('/create-payment-link', requireAuth, async (req, res) => {
     // Store on invoice
     await db.execute(
       `UPDATE invoices SET stripe_payment_link = ?, status = CASE WHEN status = 'draft' THEN 'sent' ELSE status END,
-       sent_at = COALESCE(sent_at, NOW()) WHERE id = ?`,
+       sent_at = COALESCE(sent_at, TO_CHAR(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')) WHERE id = ?`,
       [paymentLink.url, invoice_id]
     );
 

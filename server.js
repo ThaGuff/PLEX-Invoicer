@@ -277,27 +277,79 @@ app.post('/api/billing/create-checkout', requireAuth, async (req, res) => {
   if (!stripeKey) return res.status(503).json({ error: 'Stripe not configured. Set STRIPE_SECRET_KEY.' });
   const { plan = 'pro' } = req.body;
   const origin = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
-  const PLANS = {
+
+  // Plan config — uses STRIPE_PRICE_* env vars if set (real Stripe price IDs),
+  // otherwise creates a one-time price dynamically for trial/checkout
+  const PLAN_AMOUNTS = { starter: 1900, pro: 4900, agency: 9900 }; // cents/month
+  const PLAN_NAMES   = { starter: 'Revanew Starter', pro: 'Revanew Pro', agency: 'Revanew Agency' };
+  const PLAN_ENV     = {
     starter: process.env.STRIPE_PRICE_STARTER,
     pro:     process.env.STRIPE_PRICE_PRO,
     agency:  process.env.STRIPE_PRICE_AGENCY,
   };
-  const priceId = PLANS[plan];
-  if (!priceId) return res.status(400).json({ error: `Unknown plan "${plan}" or price not configured` });
+
+  if (!PLAN_AMOUNTS[plan]) return res.status(400).json({ error: `Unknown plan: ${plan}` });
+
   try {
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(stripeKey);
+
+    // Use configured price ID if valid (not a placeholder)
+    let priceId = PLAN_ENV[plan];
+    const isValidPriceId = priceId && priceId.startsWith('price_') && priceId.length > 10 && !priceId.includes('...');
+
+    if (!isValidPriceId) {
+      // Create a recurring price dynamically
+      const price = await stripe.prices.create({
+        currency:   'usd',
+        unit_amount: PLAN_AMOUNTS[plan],
+        recurring:  { interval: 'month' },
+        product_data: { name: PLAN_NAMES[plan] },
+      });
+      priceId = price.id;
+    }
+
+    const { db } = await import('./server/db/schema.js');
+    // Get or create Stripe customer for this user
+    const accRows = await db.execute(
+      `SELECT id, stripe_customer_id, email, name FROM accounts WHERE owner_id = ? LIMIT 1`,
+      [req.user.id]
+    );
+    const acc = accRows.rows[0];
+    let customerId = acc?.stripe_customer_id;
+
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: req.user.email,
+        name:  acc?.name || req.user.user_metadata?.full_name || req.user.email,
+        metadata: { user_id: req.user.id, account_id: acc?.id || '' },
+      });
+      customerId = customer.id;
+      if (acc?.id) {
+        await db.execute(
+          `UPDATE accounts SET stripe_customer_id = ? WHERE id = ?`,
+          [customerId, acc.id]
+        );
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
+      customer: customerId,
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/dashboard?subscribed=1`,
-      cancel_url:  `${origin}/dashboard?cancelled=1`,
-      metadata: { user_id: req.user.id },
+      subscription_data: {
+        trial_period_days: 7,
+        metadata: { plan, user_id: req.user.id, account_id: acc?.id || '' },
+      },
+      success_url: `${origin}/dashboard?subscribed=1&plan=${plan}`,
+      cancel_url:  `${origin}/billing?cancelled=1`,
+      metadata: { user_id: req.user.id, plan, account_id: acc?.id || '' },
       allow_promotion_codes: true,
     });
     res.json({ url: session.url });
   } catch (e) {
+    console.error('Billing checkout error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
@@ -308,9 +360,26 @@ app.post('/api/billing/portal', requireAuth, async (req, res) => {
   if (!stripeKey) return res.status(503).json({ error: 'Stripe not configured' });
   const { db } = await import('./server/db/schema.js');
   try {
-    const acc = await db.execute(`SELECT stripe_customer_id FROM accounts WHERE owner_id = ?`, [req.user.id]);
-    const customerId = acc.rows[0]?.stripe_customer_id;
-    if (!customerId) return res.status(400).json({ error: 'No Stripe customer found' });
+    const acc = await db.execute(`SELECT stripe_customer_id, email, name FROM accounts WHERE owner_id = ?`, [req.user.id]);
+    let customerId = acc.rows[0]?.stripe_customer_id;
+
+    // Create Stripe customer if they don't have one yet
+    if (!customerId) {
+      const Stripe2 = (await import('stripe')).default;
+      const stripe2 = new Stripe2(stripeKey);
+      const cust = await stripe2.customers.create({
+        email: req.user.email,
+        name:  acc.rows[0]?.name || req.user.user_metadata?.full_name || req.user.email,
+        metadata: { user_id: req.user.id },
+      });
+      customerId = cust.id;
+      if (acc.rows[0]) {
+        await db.execute(
+          `UPDATE accounts SET stripe_customer_id = ? WHERE owner_id = ?`,
+          [customerId, req.user.id]
+        );
+      }
+    }
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(stripeKey);
     const origin = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
