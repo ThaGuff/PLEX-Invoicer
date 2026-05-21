@@ -94,11 +94,12 @@ router.post('/', async (req, res) => {
     const id = `acc-${uuid()}`;
     const owner_id = req.user?.id && req.user.id !== 'dev-user' ? req.user.id : null;
     await db.execute(
-      `INSERT INTO accounts (id, owner_id, name, email, phone, website, logo_initial, logo_url, primary_color, plan)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO accounts (id, owner_id, name, email, phone, website, logo_initial, logo_url, primary_color, plan, subscription_status, trial_ends_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'trialing', ?)`,
       [id, owner_id, name, email || '', phone || '', website || '',
        logo_initial || (name?.[0]?.toUpperCase() || 'A'),
-       logo_url || null, primary_color || '#13B5EA', plan || 'starter']
+       logo_url || null, primary_color || '#13B5EA', plan || 'starter',
+       new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()]
     );
     const created = await db.execute(`SELECT * FROM accounts WHERE id = ?`, [id]);
     res.json({ ...created.rows[0], customSections: [], customItems: [] });

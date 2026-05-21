@@ -290,12 +290,17 @@ function computeTotals({ selected, included, prices, billingMode, yearlyDiscount
     else if (discSetup)   setupDiscAmt = Math.min(dv, setupSub);
     else if (discMonthly) mthDiscAmt   = Math.min(dv, mthSub);
   }
+  const setupFinal = Math.max(0, setupSub - Math.min(setupDiscAmt, setupSub));
+  const mthFinal   = Math.max(0, mthSub   - Math.min(mthDiscAmt,   mthSub));
+  const taxAmt     = arguments[0].taxRate ? setupFinal * (arguments[0].taxRate / 100) : 0;
   return {
     setupSub, mthSub,
     setupDiscAmt: Math.min(setupDiscAmt, setupSub),
     mthDiscAmt:   Math.min(mthDiscAmt,   mthSub),
-    setupFinal: Math.max(0, setupSub - Math.min(setupDiscAmt, setupSub)),
-    mthFinal:   Math.max(0, mthSub   - Math.min(mthDiscAmt,   mthSub)),
+    setupFinal,
+    mthFinal,
+    taxAmt,
+    grandTotal: setupFinal + taxAmt,
     selectedIds,
   };
 }
@@ -411,6 +416,8 @@ export default function QuoteBuilder() {
   const [discValue,   setDiscValue]   = useState(0);
   const [discSetup,   setDiscSetup]   = useState(true);
   const [discMonthly, setDiscMonthly] = useState(true);
+  const [taxRate, setTaxRate] = useState(0); // default 0%, configurable per quote
+
   const [notes, setNotes] = useState(
     'Pricing valid for 30 days. Monthly billing starts after setup is complete. Setup begins within 48 hours of signed agreement and initial deposit. No long-term contracts on monthly services.'
   );
@@ -434,6 +441,7 @@ export default function QuoteBuilder() {
       setDiscValue(q.disc_value || 0);
       setDiscSetup(!!q.disc_setup);
       setDiscMonthly(!!q.disc_monthly);
+      setTaxRate(q.tax_rate || 0);
       setNotes(q.notes || '');
       // Reconstruct selections from saved items
       const sel = {}, secMap = {}, incl = {}, prx = {};
@@ -489,7 +497,7 @@ export default function QuoteBuilder() {
     notes, customSections, customItems,
   };
 
-  const { setupSub, mthSub, setupDiscAmt, mthDiscAmt, setupFinal, mthFinal, selectedIds } =
+  const { setupSub, mthSub, setupDiscAmt, mthDiscAmt, setupFinal, mthFinal, taxAmt, grandTotal, selectedIds } =
     computeTotals({ ...fullState });
   const selectedCount = selectedIds.length;
 
@@ -541,6 +549,8 @@ export default function QuoteBuilder() {
         notes,
         setup_total:     setupFinal,
         monthly_total:   mthFinal,
+        tax_rate:        parseFloat(taxRate) || 0,
+        tax_amount:      taxAmt,
         items:           buildItems(),
       };
 
@@ -812,6 +822,18 @@ export default function QuoteBuilder() {
                           <span className="text-sm font-bold text-ink">Due today</span>
                           <span className="text-xl font-bold text-ink tabular-nums">{fmt(setupFinal)}</span>
                         </div>
+                        {taxRate > 0 && (
+                          <>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-ink-muted">Tax ({taxRate}%)</span>
+                              <span className="tabular-nums text-red-600">+{fmt(taxAmt)}</span>
+                            </div>
+                            <div className="flex justify-between items-baseline pt-1.5 border-t font-bold" style={{ borderColor: '#E5E8EB' }}>
+                              <span className="text-sm text-ink">Total incl. tax</span>
+                              <span className="text-xl text-ink tabular-nums" style={{ color: accent }}>{fmt(grandTotal)}</span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -896,6 +918,30 @@ export default function QuoteBuilder() {
                   </label>
                 ))}
               </div>
+            </div>
+
+            {/* Tax rate */}
+            <div className="card p-4">
+              <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">Tax rate</p>
+              <div className="flex items-center gap-2 mb-2">
+                <input type="number" value={taxRate} min={0} max={30} step={0.1}
+                  onChange={e => setTaxRate(parseFloat(e.target.value) || 0)}
+                  className="field text-right w-24 font-semibold tabular-nums" placeholder="0" />
+                <span className="text-sm text-ink-muted">% sales tax</span>
+              </div>
+              {taxRate > 0 && (
+                <div className="text-xs text-ink-muted space-y-0.5 pt-2 border-t" style={{ borderColor: '#E5E8EB' }}>
+                  <div className="flex justify-between">
+                    <span>Setup subtotal</span><span>{fmt(setupFinal)}</span>
+                  </div>
+                  <div className="flex justify-between text-red-600">
+                    <span>Tax ({taxRate}%)</span><span>+{fmt(taxAmt)}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold text-ink">
+                    <span>Total due</span><span>{fmt(grandTotal)}</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Action buttons */}

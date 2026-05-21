@@ -81,6 +81,8 @@ export async function initDB() {
       valid_days INTEGER DEFAULT 30,
       setup_total REAL DEFAULT 0,
       monthly_total REAL DEFAULT 0,
+      tax_rate REAL DEFAULT 0,
+      tax_amount REAL DEFAULT 0,
       public_token TEXT UNIQUE,
       accepted_at TEXT,
       sent_at TEXT,
@@ -369,6 +371,17 @@ export async function initSchemaV2() {
       FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
     )
   `);
+
+  // quotes: tax columns
+  const quoteTaxCols = [
+    `ALTER TABLE quotes ADD COLUMN IF NOT EXISTS tax_rate REAL DEFAULT 0`,
+    `ALTER TABLE quotes ADD COLUMN IF NOT EXISTS tax_amount REAL DEFAULT 0`,
+  ];
+  for (const sql of quoteTaxCols) {
+    try { await db.execute(sql); } catch (e) {
+      if (!e.message?.includes('already exists') && !e.message?.includes('duplicate')) throw e;
+    }
+  }
 
   console.log('✓ Schema V2 initialized');
 }

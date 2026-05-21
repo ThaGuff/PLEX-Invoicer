@@ -90,13 +90,14 @@ router.post('/', async (req, res) => {
     await db.execute(
       `INSERT INTO quotes (id, account_id, number, contact_id, client_name, client_biz,
         client_email, client_phone, billing_mode, yearly_discount, disc_type, disc_value,
-        disc_setup, disc_monthly, notes, valid_days, setup_total, monthly_total, public_token)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        disc_setup, disc_monthly, notes, valid_days, setup_total, monthly_total, tax_rate, tax_amount, public_token)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [id, account_id, number, contact_id || null, client_name || '', client_biz || '',
        client_email || '', client_phone || '', billing_mode || 'monthly',
        yearly_discount || 15, disc_type || 'pct', disc_value || 0,
        disc_setup ? 1 : 0, disc_monthly ? 1 : 0,
-       notes || '', valid_days || 30, setup_total || 0, monthly_total || 0, public_token]
+       notes || '', valid_days || 30, setup_total || 0, monthly_total || 0,
+       body.tax_rate || 0, body.tax_amount || 0, public_token]
     );
 
     // Batch insert items in parallel
@@ -156,7 +157,7 @@ router.patch('/:id', async (req, res) => {
   try {
     const allowed = ['status','client_name','client_biz','client_email','client_phone',
       'billing_mode','yearly_discount','disc_type','disc_value','notes',
-      'setup_total','monthly_total','sent_at','accepted_at'];
+      'setup_total','monthly_total','tax_rate','tax_amount','sent_at','accepted_at'];
     const updates = [`updated_at = NOW()`];
     const vals = [];
     allowed.forEach(f => {
@@ -191,11 +192,11 @@ router.post('/:id/convert', async (req, res) => {
     await db.execute(
       `INSERT INTO invoices (id, account_id, quote_id, number, contact_id, client_name, client_biz,
         client_email, client_phone, billing_mode, setup_total, monthly_total, amount_due, due_date,
-        notes, public_token)
+        notes, public_token, tax_rate, tax_amount)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [invId, q.account_id, q.id, number, q.contact_id, q.client_name, q.client_biz,
        q.client_email, q.client_phone, q.billing_mode, q.setup_total, q.monthly_total,
-       amount_due, due_date, q.notes, public_token]
+       amount_due, due_date, q.notes, public_token, q.tax_rate || 0, q.tax_amount || 0]
     );
 
     // Batch insert invoice items
