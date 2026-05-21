@@ -336,6 +336,51 @@ export async function initSchemaV2() {
     )
   `);
 
+  // ── Payment methods & tax columns ───────────────────────────────
+  // invoices: payment method, tax rate, tax amount, fee tracking
+  const invoiceCols = [
+    "ALTER TABLE invoices ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'stripe'",
+    "ALTER TABLE invoices ADD COLUMN IF NOT EXISTS payment_reference TEXT",
+    "ALTER TABLE invoices ADD COLUMN IF NOT EXISTS tax_rate REAL DEFAULT 0",
+    "ALTER TABLE invoices ADD COLUMN IF NOT EXISTS tax_amount REAL DEFAULT 0",
+    "ALTER TABLE invoices ADD COLUMN IF NOT EXISTS processing_fee REAL DEFAULT 0",
+    "ALTER TABLE invoices ADD COLUMN IF NOT EXISTS net_amount REAL DEFAULT 0",
+    "ALTER TABLE invoices ADD COLUMN IF NOT EXISTS delivered_at TEXT",
+    "ALTER TABLE invoices ADD COLUMN IF NOT EXISTS client_email TEXT",
+  ];
+  for (const sql of invoiceCols) {
+    try { await db.execute(sql); } catch (e) {
+      if (!e.message?.includes('already exists') && !e.message?.includes('duplicate')) throw e;
+    }
+  }
+
+  // invoice_items: tax and fee per line item
+  const itemCols = [
+    "ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS quantity REAL DEFAULT 1",
+    "ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS unit_price REAL DEFAULT 0",
+    "ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS tax_rate REAL DEFAULT 0",
+    "ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS tax_amount REAL DEFAULT 0",
+    "ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS line_total REAL DEFAULT 0",
+  ];
+  for (const sql of itemCols) {
+    try { await db.execute(sql); } catch (e) {
+      if (!e.message?.includes('already exists') && !e.message?.includes('duplicate')) throw e;
+    }
+  }
+
+  // accounts: default tax rate setting
+  const accountCols = [
+    "ALTER TABLE accounts ADD COLUMN IF NOT EXISTS default_tax_rate REAL DEFAULT 0",
+    "ALTER TABLE accounts ADD COLUMN IF NOT EXISTS tax_name TEXT DEFAULT 'Sales Tax'",
+    "ALTER TABLE accounts ADD COLUMN IF NOT EXISTS tax_number TEXT",
+    "ALTER TABLE accounts ADD COLUMN IF NOT EXISTS business_address TEXT",
+  ];
+  for (const sql of accountCols) {
+    try { await db.execute(sql); } catch (e) {
+      if (!e.message?.includes('already exists') && !e.message?.includes('duplicate')) throw e;
+    }
+  }
+
   console.log('✓ Schema V2 initialized');
 }
 

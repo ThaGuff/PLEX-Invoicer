@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Download, Send, CheckCircle, Bell, Link, Copy, ArrowLeft, Trash2, ExternalLink } from 'lucide-react';
 import { useAccount } from '../context/AccountContext';
 import { api } from '../utils/api';
+import MarkPaidModal from '../components/MarkPaidModal';
 import EngagementTimeline from '../components/EngagementTimeline';
 import VersionHistory from '../components/VersionHistory';
 import { exportPDF } from '../utils/exportPDF';
@@ -118,7 +119,7 @@ export default function InvoiceDetail() {
   const statusColor = STATUS_COLORS[status] || '#7A7E85';
   const outstanding = invoice.amount_due - (invoice.amount_paid || 0);
 
-  return (
+  return <>
     <div className="max-w-4xl mx-auto px-5 py-6">
       {/* Back + title */}
       <div className="flex items-center gap-3 mb-6">
@@ -316,5 +317,14 @@ export default function InvoiceDetail() {
         </div>
       </div>
     </div>
-  );
+    {showMarkPaid && invoice && (
+      <MarkPaidModal
+        invoice={invoice}
+        onClose={() => setShowMarkPaid(false)}
+        onConfirm={confirmMarkPaid}
+        saving={saving}
+        accent={account?.primary_color || '#13B5EA'}
+      />
+    )}
+  </>;
 }

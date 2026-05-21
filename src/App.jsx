@@ -17,6 +17,7 @@ import Contacts from './pages/Contacts';
 import PublicQuote from './pages/PublicQuote';
 import PublicInvoice from './pages/PublicInvoice';
 import Admin from './pages/Admin';
+import TaxesPage from './pages/TaxesPage';
 import { LayoutDashboard, FileText, Receipt, Users, Plus, LogOut, CreditCard, Shield } from 'lucide-react';
 import { IdleWarningBanner, SessionExpiredModal } from './components/SessionModals';
 
@@ -85,6 +86,7 @@ function Nav() {
     { to: '/quotes',   label: 'Quotes',    icon: FileText },
     { to: '/invoices', label: 'Invoices',  icon: Receipt },
     { to: '/contacts', label: 'Contacts',  icon: Users },
+    { to: '/taxes', label: 'Taxes', icon: Receipt },
     ...(isOwner ? [{ to: '/admin', label: 'Admin', icon: Shield }] : []),
   ];
   return (

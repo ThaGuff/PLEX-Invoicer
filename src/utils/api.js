@@ -82,6 +82,7 @@ export const api = {
     update:      (id, body)  => req('PATCH',  `/invoices/${id}`, body),
     send:        (id)        => req('POST',   `/invoices/${id}/send`),
     markPaid:    (id, body)  => req('POST',   `/invoices/${id}/mark-paid`, body),
+    // body can include: amount, payment_method, payment_reference, tax_rate, tax_amount, processing_fee
     paymentLink: (id)        => req('POST',   `/invoices/${id}/payment-link`),
     remind:      (id)        => req('POST',   `/invoices/${id}/remind`),
     delete:      (id)        => req('DELETE', `/invoices/${id}`),
@@ -136,6 +137,16 @@ export const api = {
   versioning: {
     createVersion: (id, body) => req('POST', `/v1/integrations/invoice-version/${id}`, body),
     history:       (id)       => req('GET',  `/v1/integrations/invoice-history/${id}`),
+  },
+
+  tax: {
+    summary: (accountId, year, quarter) => {
+      const params = new URLSearchParams({ account_id: accountId });
+      if (year)    params.set('year', year);
+      if (quarter) params.set('quarter', quarter);
+      return req('GET', `/tax/summary?${params}`);
+    },
+    years: (accountId) => req('GET', `/tax/years?account_id=${accountId}`),
   },
 
   admin: {

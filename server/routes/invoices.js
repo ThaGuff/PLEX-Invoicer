@@ -254,16 +254,24 @@ router.post('/:id/send', async (req, res) => {
 router.post('/:id/mark-paid', async (req, res) => {
   try {
     const inv = await db.execute(
-      `SELECT i.*, a.id as acc_id FROM invoices i JOIN accounts a ON i.account_id = a.id WHERE i.id = ?`,
+      `SELECT i.*, a.id as acc_id, a.default_tax_rate FROM invoices i JOIN accounts a ON i.account_id = a.id WHERE i.id = ?`,
       [req.params.id]
     );
     if (!inv.rows.length) return res.status(404).json({ error: 'Not found' });
     const invoice = inv.rows[0];
     const paid = req.body.amount || invoice.amount_due || 0;
+    const paymentMethod  = req.body.payment_method  || 'stripe';
+    const paymentRef     = req.body.payment_reference || null;
+    const taxRate        = req.body.tax_rate   ?? invoice.tax_rate   ?? invoice.default_tax_rate ?? 0;
+    const taxAmount      = req.body.tax_amount ?? (paid * taxRate / 100);
+    const processingFee  = req.body.processing_fee ?? 0;
+    const netAmount      = paid - taxAmount - processingFee;
     const now = new Date();
     await db.execute(
-      `UPDATE invoices SET status = 'paid', amount_paid = ?, paid_at = NOW(), updated_at = NOW() WHERE id = ?`,
-      [paid, req.params.id]
+      `UPDATE invoices SET status = 'paid', amount_paid = ?, paid_at = NOW(), updated_at = NOW(),
+       payment_method = ?, payment_reference = ?, tax_rate = ?, tax_amount = ?,
+       processing_fee = ?, net_amount = ? WHERE id = ?`,
+      [paid, paymentMethod, paymentRef, taxRate, taxAmount, processingFee, netAmount, req.params.id]
     );
     // Record payment behavior for smart reminder scheduling (F3)
     if (invoice.sent_at) {

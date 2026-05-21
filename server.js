@@ -17,6 +17,7 @@ import aiRouter          from './server/routes/ai.js';
 import analyticsRouter   from './server/routes/analytics.js';
 import integrationsRouter from './server/routes/integrations.js';
 import stripeConnectRouter from './server/routes/stripe-connect.js';
+import taxRouter          from './server/routes/tax.js';
 import { scrapeWithOpenAI } from './server/scrape.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -330,6 +331,7 @@ app.use('/api/stripe-connect', stripeConnectRouter); // callback is public
 app.use('/api/ai',           requireAuth, aiRouter);
 app.use('/api/analytics',    requireAuth, analyticsRouter);
 app.use('/api/v1/integrations', requireAuth, integrationsRouter);
+app.use('/api/tax',            requireAuth, taxRouter);
 app.use('/api/accounts',     requireAuth, accountsRouter);
 app.use('/api/contacts', requireAuth, contactsRouter);
 app.use('/api/quotes',   requireAuth, quotesRouter);
