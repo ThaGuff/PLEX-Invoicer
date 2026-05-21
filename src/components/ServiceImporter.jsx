@@ -1,24 +1,26 @@
 import React, { useState, useRef } from 'react';
 import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, RefreshCw, X, Download } from 'lucide-react';
+import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { api } from '../utils/api';
 
 const TEMPLATE_HEADERS = ['Section', 'Service Name', 'Description', 'Setup Price', 'Monthly Price'];
 
 function downloadTemplate() {
-  const wb = XLSX.utils.book_new();
-  const data = [
+  // Generate CSV template (no xlsx dependency needed for download)
+  const rows = [
     TEMPLATE_HEADERS,
     ['Pressure Washing', 'Residential Wash', 'Standard home exterior wash', 299, 0],
     ['Pressure Washing', 'Commercial Wash', 'Commercial building wash', 599, 0],
     ['Lawn Care', 'Weekly Mowing', 'Weekly lawn mowing service', 0, 149],
     ['Lawn Care', 'Fertilization', 'Monthly fertilization treatment', 0, 89],
   ];
-  const ws = XLSX.utils.aoa_to_sheet(data);
-  // Style the header row
-  ws['!cols'] = [{ wch: 20 }, { wch: 25 }, { wch: 40 }, { wch: 14 }, { wch: 14 }];
-  XLSX.utils.book_append_sheet(wb, ws, 'Services');
-  XLSX.writeFile(wb, 'plex-services-template.xlsx');
+  const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'plex-services-template.csv';
+  a.click(); URL.revokeObjectURL(url);
 }
 
 export default function ServiceImporter({ accountId, accent = '#13B5EA', onImported }) {
@@ -45,9 +47,18 @@ export default function ServiceImporter({ accountId, accent = '#13B5EA', onImpor
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const wb = XLSX.read(e.target.result, { type: 'binary' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        // Parse CSV with PapaParse (safe) or convert XLSX rows to array
+        let raw = [];
+        const fileName = file.name.toLowerCase();
+        if (fileName.endsWith('.csv')) {
+          const result = Papa.parse(e.target.result, { skipEmptyLines: true });
+          raw = result.data;
+        } else {
+          // xlsx/xls parsing — cellFormula:false prevents formula injection
+          const wb = XLSX.read(e.target.result, { type: 'binary', cellFormula: false, cellHTML: false, cellStyles: false });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        }
 
         // Find header row (look for 'Service Name' or 'name')
         let headerIdx = 0;
@@ -201,7 +212,7 @@ export default function ServiceImporter({ accountId, accent = '#13B5EA', onImpor
                     <p className="text-xs text-ink-muted mt-0.5">Supports .xlsx, .xls, .csv</p>
                   </>
                 )}
-                <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden"
+                <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" className="hidden"
                   onChange={e => handleFile(e.target.files[0])} />
               </div>
 
