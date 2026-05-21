@@ -58,13 +58,40 @@ export default function Onboarding() {
   const handleSelectPlan = async () => {
     setSaving(true); setError('');
     try {
-      // Save plan selection to account
       const token = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
-      await fetch('/api/accounts/' + account?.id, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ plan: selectedPlan, subscription_status: 'trialing' }),
-      });
+      if (!token) throw new Error('Not authenticated');
+
+      // Get the user's accounts (or create one if new)
+      let accountId = account?.id;
+      if (!accountId) {
+        const accRes = await fetch('/api/accounts', { headers: { Authorization: `Bearer ${token}` } });
+        const accs = await accRes.json();
+        accountId = Array.isArray(accs) && accs.length > 0 ? accs[0].id : null;
+      }
+
+      if (accountId) {
+        // Update existing account plan
+        await fetch('/api/accounts/' + accountId, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            plan: selectedPlan,
+            subscription_status: 'trialing',
+            trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          }),
+        });
+      } else {
+        // Create a new account with the plan
+        await fetch('/api/accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            name: 'My Business',
+            plan: selectedPlan,
+            subscription_status: 'trialing',
+          }),
+        });
+      }
       setStep(2);
     } catch (e) { setError(e.message); }
     setSaving(false);

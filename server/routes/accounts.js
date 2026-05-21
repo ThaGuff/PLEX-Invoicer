@@ -109,7 +109,7 @@ router.post('/', async (req, res) => {
 // PATCH update account
 router.patch('/:id', async (req, res) => {
   try {
-    const fields = ['name', 'email', 'phone', 'website', 'logo_initial', 'logo_url', 'primary_color', 'plan'];
+    const fields = ['name', 'email', 'phone', 'website', 'logo_initial', 'logo_url', 'primary_color', 'plan', 'subscription_status', 'trial_ends_at', 'default_tax_rate', 'tax_name', 'tax_number', 'business_address'];
     const updates = [];
     const vals = [];
     fields.forEach(f => {

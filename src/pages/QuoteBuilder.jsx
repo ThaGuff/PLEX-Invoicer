@@ -617,17 +617,26 @@ export default function QuoteBuilder() {
           <p className="text-sm text-ink-muted mt-0.5">Select services, configure billing, then save.</p>
         </div>
         <div className="flex gap-2 items-center">
-          <AIInvoiceParser
-            accountId={account?.id}
-            accent={accent}
-            onApply={(parsed) => {
-              if (parsed.client_name)  setClientName(parsed.client_name);
-              if (parsed.client_biz)   setClientBiz(parsed.client_biz);
-              if (parsed.client_email) setClientEmail(parsed.client_email);
-              if (parsed.notes)        setNotes(parsed.notes);
-              if (parsed.billing_mode === 'monthly') setBillingMode('monthly');
-            }}
-          />
+          {canUseFeature(account?.plan, 'ai_parse') ? (
+            <AIInvoiceParser
+              accountId={account?.id}
+              accent={accent}
+              onApply={(parsed) => {
+                if (parsed.client_name)  setClientName(parsed.client_name);
+                if (parsed.client_biz)   setClientBiz(parsed.client_biz);
+                if (parsed.client_email) setClientEmail(parsed.client_email);
+                if (parsed.notes)        setNotes(parsed.notes);
+                if (parsed.billing_mode === 'monthly') setBillingMode('monthly');
+              }}
+            />
+          ) : (
+            <button onClick={() => window.location.href='/billing'}
+              className="btn-ghost flex items-center gap-1.5 text-sm opacity-70"
+              title="Upgrade to Pro for AI parsing">
+              <Bot size={14} /> AI parse
+              <span style={{ fontSize:'8px', fontWeight:700, background:'linear-gradient(135deg,#4B7BFF,#7B4FE8)', color:'#fff', padding:'1px 5px', borderRadius:'8px', marginLeft:'2px' }}>PRO</span>
+            </button>
+          )}
           {!isNew && (
             <button onClick={handleConvert}
               className="btn-ghost flex items-center gap-1.5 text-sm">

@@ -16,7 +16,23 @@ function getSupabase() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_KEY;
   if (!url || !key) return null;
-  return createClient(url, key, { auth: { persistSession: false } });
+  // Stub WebSocket to prevent Node 20 crash during createClient construction
+  const hadWS = !!globalThis.WebSocket;
+  if (!hadWS) {
+    globalThis.WebSocket = class StubWS {
+      constructor() { this.readyState = 3; }
+      close() {} addEventListener() {} removeEventListener() {}
+      static get CLOSED() { return 3; }
+    };
+  }
+  let client = null;
+  try {
+    client = createClient(url, key, { auth: { persistSession: false } });
+    try { client.realtime.disconnect(); } catch (_) {}
+  } finally {
+    if (!hadWS) delete globalThis.WebSocket;
+  }
+  return client;
 }
 
 // GET /api/auth/me — returns current user + their primary account

@@ -25,13 +25,37 @@ function getSupabaseAdmin() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_KEY;
   if (!url || !key) return null;
-  _supabaseAdmin = createClient(url, key, {
-    auth:     { persistSession: false, autoRefreshToken: false },
-    realtime: { params: { eventsPerSecond: 0 } },
-    global:   { headers: {} },
-  });
-  // Disable Realtime — crashes on Node 20 (no native WebSocket)
-  try { _supabaseAdmin.realtime.disconnect(); } catch (_) {}
+
+  // Monkey-patch WebSocket BEFORE createClient to prevent Node 20 crash.
+  // The Supabase SDK checks for globalThis.WebSocket in its constructor.
+  // Providing a stub prevents the throw so we can call realtime.disconnect() after.
+  const hadWS = !!globalThis.WebSocket;
+  if (!hadWS) {
+    globalThis.WebSocket = class StubWS {
+      constructor() { this.readyState = 3; }
+      close() {} addEventListener() {} removeEventListener() {}
+      static get CONNECTING() { return 0; }
+      static get OPEN()       { return 1; }
+      static get CLOSING()    { return 2; }
+      static get CLOSED()     { return 3; }
+    };
+  }
+
+  try {
+    _supabaseAdmin = createClient(url, key, {
+      auth:     { persistSession: false, autoRefreshToken: false },
+      realtime: { params: { eventsPerSecond: 0 } },
+      global:   { headers: {} },
+    });
+    // Disconnect Realtime immediately — server only needs auth.admin API
+    try { _supabaseAdmin.realtime.disconnect(); } catch (_) {}
+  } catch (e) {
+    console.error('Supabase admin createClient failed:', e.message);
+    _supabaseAdmin = null;
+  } finally {
+    // Clean up our stub so it doesn't affect other code
+    if (!hadWS) delete globalThis.WebSocket;
+  }
   return _supabaseAdmin;
 }
 

@@ -165,10 +165,18 @@ export default function TaxesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={exportCSV} disabled={!data || loading}
-            className="btn-ghost flex items-center gap-1.5 text-sm disabled:opacity-40">
-            <Download size={14} /> CSV
-          </button>
+          {canUseFeature(account?.plan, 'csv_export') ? (
+            <button onClick={exportCSV} disabled={!data || loading}
+              className="btn-ghost flex items-center gap-1.5 text-sm disabled:opacity-40">
+              <Download size={14} /> CSV
+            </button>
+          ) : (
+            <button onClick={() => window.location.href='/billing'}
+              className="btn-ghost flex items-center gap-1.5 text-sm opacity-60">
+              <Download size={14} /> CSV
+              <span style={{ fontSize:'8px', fontWeight:700, background:'linear-gradient(135deg,#4B7BFF,#7B4FE8)', color:'#fff', padding:'1px 5px', borderRadius:'8px' }}>PRO</span>
+            </button>
+          )}
           <button onClick={exportPDF} disabled={!data || loading}
             className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg text-white disabled:opacity-40"
             style={{ background: accent }}>
