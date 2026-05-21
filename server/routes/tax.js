@@ -5,6 +5,50 @@ import { requireAuth } from '../middleware/auth.js';
 const router = Router();
 router.use(requireAuth);
 
+// ── GET /api/tax/lookup?zip=35801 — look up tax rate by US zip code ─
+router.get('/lookup', async (req, res) => {
+  const { zip } = req.query;
+  if (!zip || !/^\d{5}$/.test(zip)) {
+    return res.status(400).json({ error: 'Valid 5-digit US zip code required' });
+  }
+
+  // US state sales tax rates (2024) — combined average rate
+  const STATE_TAX_RATES = {
+    AL: 9.24, AK: 1.76, AZ: 8.37, AR: 9.47, CA: 8.82, CO: 7.77, CT: 6.35,
+    DE: 0.00, FL: 7.01, GA: 7.40, HI: 4.44, ID: 6.03, IL: 8.85, IN: 7.00,
+    IA: 6.94, KS: 8.70, KY: 6.00, LA: 9.55, ME: 5.50, MD: 6.00, MA: 6.25,
+    MI: 6.00, MN: 7.49, MS: 7.07, MO: 8.29, MT: 0.00, NE: 6.94, NV: 8.23,
+    NH: 0.00, NJ: 6.60, NM: 7.83, NY: 8.52, NC: 6.98, ND: 6.96, OH: 7.24,
+    OK: 8.99, OR: 0.00, PA: 6.34, RI: 7.00, SC: 7.43, SD: 6.40, TN: 9.55,
+    TX: 8.19, UT: 7.19, VT: 6.24, VA: 5.73, WA: 9.38, WV: 6.59, WI: 5.43,
+    WY: 5.44, DC: 6.00,
+  };
+
+  try {
+    // Use free zippopotam.us to get state from zip
+    const resp = await fetch(`https://api.zippopotam.us/us/${zip}`);
+    if (!resp.ok) {
+      return res.status(404).json({ error: 'Zip code not found', zip });
+    }
+    const data = await resp.json();
+    const place = data.places?.[0];
+    const state = place?.['state abbreviation'];
+    const city  = place?.['place name'];
+    const rate  = STATE_TAX_RATES[state] ?? 0;
+
+    res.json({
+      zip,
+      city,
+      state,
+      state_name: place?.state,
+      tax_rate: rate,
+      source: 'US average combined state + local rate (2024)',
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Tax lookup failed: ' + e.message });
+  }
+});
+
 // ── GET /api/tax/summary — full tax report for an account ─────────
 router.get('/summary', async (req, res) => {
   const { account_id, year, quarter } = req.query;

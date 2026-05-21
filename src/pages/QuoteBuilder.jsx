@@ -269,7 +269,7 @@ function Section({ section, services, selected, included, prices, billingMode, y
   );
 }
 
-function computeTotals({ selected, included, prices, billingMode, yearlyDiscount, discType, discValue, discSetup, discMonthly, customItems = [] }) {
+function computeTotals({ selected, included, prices, billingMode, yearlyDiscount, discType, discValue, discSetup, discMonthly, customItems = [], taxRate = 0 }) {
   const selectedIds = Object.keys(selected).filter(id => selected[id]);
   let setupSub = 0, mthSub = 0;
   selectedIds.forEach(id => {
@@ -292,7 +292,8 @@ function computeTotals({ selected, included, prices, billingMode, yearlyDiscount
   }
   const setupFinal = Math.max(0, setupSub - Math.min(setupDiscAmt, setupSub));
   const mthFinal   = Math.max(0, mthSub   - Math.min(mthDiscAmt,   mthSub));
-  const taxAmt     = arguments[0].taxRate ? setupFinal * (arguments[0].taxRate / 100) : 0;
+  const tRate = parseFloat(taxRate) || 0;
+  const taxAmt  = tRate > 0 ? Math.round(setupFinal * (tRate / 100) * 100) / 100 : 0;
   return {
     setupSub, mthSub,
     setupDiscAmt: Math.min(setupDiscAmt, setupSub),
@@ -416,7 +417,10 @@ export default function QuoteBuilder() {
   const [discValue,   setDiscValue]   = useState(0);
   const [discSetup,   setDiscSetup]   = useState(true);
   const [discMonthly, setDiscMonthly] = useState(true);
-  const [taxRate, setTaxRate] = useState(0); // default 0%, configurable per quote
+  const [taxRate, setTaxRate]             = useState(0);
+  const [taxZip, setTaxZip]               = useState('');
+  const [taxLooking, setTaxLooking]       = useState(false);
+  const [taxLookupResult, setTaxLookupResult] = useState(null);
 
   const [notes, setNotes] = useState(
     'Pricing valid for 30 days. Monthly billing starts after setup is complete. Setup begins within 48 hours of signed agreement and initial deposit. No long-term contracts on monthly services.'
@@ -494,7 +498,7 @@ export default function QuoteBuilder() {
     quoteDate, billingMode, yearlyDiscount,
     selected, sectionMap, included, prices,
     discType, discValue, discSetup, discMonthly,
-    notes, customSections, customItems,
+    notes, customSections, customItems, taxRate,
   };
 
   const { setupSub, mthSub, setupDiscAmt, mthDiscAmt, setupFinal, mthFinal, taxAmt, grandTotal, selectedIds } =
@@ -526,6 +530,19 @@ export default function QuoteBuilder() {
       });
     });
     return items;
+  };
+
+  const handleTaxLookup = async () => {
+    if (taxZip.length !== 5) return;
+    setTaxLooking(true);
+    try {
+      const result = await api.tax.lookup(taxZip);
+      setTaxLookupResult(result);
+      setTaxRate(result.tax_rate);
+    } catch (e) {
+      // silently fail - user can enter manually
+    }
+    setTaxLooking(false);
   };
 
   const handleSave = async () => {
@@ -923,8 +940,24 @@ export default function QuoteBuilder() {
             {/* Tax rate */}
             <div className="card p-4">
               <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">Tax rate</p>
+              {/* Zip code lookup */}
+              <div className="flex items-center gap-2 mb-3">
+                <input
+                  value={taxZip} onChange={e => setTaxZip(e.target.value.replace(/\D/g,'').slice(0,5))}
+                  className="field w-24 text-sm" placeholder="ZIP code" maxLength={5} />
+                <button onClick={handleTaxLookup} disabled={taxZip.length !== 5 || taxLooking}
+                  className="flex-1 py-1.5 text-xs font-semibold rounded-lg text-white disabled:opacity-40 transition-all"
+                  style={{ background: accent }}>
+                  {taxLooking ? '…' : 'Auto-lookup'}
+                </button>
+              </div>
+              {taxLookupResult && (
+                <p className="text-xs text-green-700 mb-2 px-2 py-1 rounded" style={{ background: '#f0fdf4' }}>
+                  📍 {taxLookupResult.city}, {taxLookupResult.state} — {taxLookupResult.tax_rate}% avg rate
+                </p>
+              )}
               <div className="flex items-center gap-2 mb-2">
-                <input type="number" value={taxRate} min={0} max={30} step={0.1}
+                <input type="number" value={taxRate} min={0} max={30} step={0.01}
                   onChange={e => setTaxRate(parseFloat(e.target.value) || 0)}
                   className="field text-right w-24 font-semibold tabular-nums" placeholder="0" />
                 <span className="text-sm text-ink-muted">% sales tax</span>

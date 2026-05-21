@@ -102,7 +102,7 @@ export default function InvoicesList() {
         </div>
       ) : (
         <div className="card overflow-hidden">
-          <table className="w-full">
+          <div class="table-wrap"><table className="w-full">
             <thead>
               <tr className="border-b text-xs text-ink-muted uppercase tracking-wider" style={{ borderColor: '#E5E8EB', background: '#F5F7F8' }}>
                 <th className="px-5 py-3 text-left">Invoice #</th>
@@ -164,7 +164,7 @@ export default function InvoicesList() {
                 );
               })}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
     </div>

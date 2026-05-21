@@ -19,11 +19,20 @@ function requireOwner(req, res, next) {
 router.use(requireOwner);
 
 // ── Supabase admin client ─────────────────────────────────────────
+let _supabaseAdmin = null;
 function getSupabaseAdmin() {
+  if (_supabaseAdmin) return _supabaseAdmin;
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_KEY;
   if (!url || !key) return null;
-  return createClient(url, key, { auth: { persistSession: false } });
+  _supabaseAdmin = createClient(url, key, {
+    auth:     { persistSession: false, autoRefreshToken: false },
+    realtime: { params: { eventsPerSecond: 0 } },
+    global:   { headers: {} },
+  });
+  // Disable Realtime — crashes on Node 20 (no native WebSocket)
+  try { _supabaseAdmin.realtime.disconnect(); } catch (_) {}
+  return _supabaseAdmin;
 }
 
 // ── SMTP sender ───────────────────────────────────────────────────

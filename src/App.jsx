@@ -82,29 +82,51 @@ function Nav() {
   const accent = account?.primary_color || '#13B5EA';
   const loc = useLocation();
   const isOwner = user?.email === 'guffey.ryan@gmail.com' || user?.id === 'dev-user';
+
   const links = [
-    { to: '/',         label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/quotes',   label: 'Quotes',    icon: FileText },
-    { to: '/invoices', label: 'Invoices',  icon: Receipt },
-    { to: '/contacts', label: 'Contacts',  icon: Users },
-    { to: '/taxes',   label: 'Taxes',   icon: Receipt },
-    { to: '/billing', label: 'Billing', icon: CreditCard },
-    ...(isOwner ? [{ to: '/admin', label: 'Admin', icon: Shield }] : []),
+    { to: '/',         label: 'Dashboard', icon: LayoutDashboard, short: 'Home' },
+    { to: '/quotes',   label: 'Quotes',    icon: FileText,        short: 'Quotes' },
+    { to: '/invoices', label: 'Invoices',  icon: Receipt,         short: 'Invoices' },
+    { to: '/contacts', label: 'Contacts',  icon: Users,           short: 'Clients' },
+    { to: '/taxes',    label: 'Taxes',     icon: Receipt,         short: 'Taxes' },
+    { to: '/billing',  label: 'Billing',   icon: CreditCard,      short: 'Billing' },
+    ...(isOwner ? [{ to: '/admin', label: 'Admin', icon: Shield, short: 'Admin' }] : []),
   ];
+
+  const isActive = (to) => to === '/' ? loc.pathname === '/' : loc.pathname.startsWith(to);
+
   return (
-    <nav className="flex items-center gap-0.5">
-      {links.map(l => {
-        const active = l.to === '/' ? loc.pathname === '/' : loc.pathname.startsWith(l.to);
-        return (
-          <NavLink key={l.to} to={l.to}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
-            style={{ background: active ? accent + '18' : 'transparent', color: active ? accent : '#7A7E85' }}>
-            <l.icon size={14} />
-            <span className="hidden sm:inline">{l.label}</span>
-          </NavLink>
-        );
-      })}
-    </nav>
+    <>
+      {/* Desktop top nav */}
+      <nav className="desktop-nav items-center gap-0.5 flex-1">
+        {links.map(l => {
+          const active = isActive(l.to);
+          return (
+            <NavLink key={l.to} to={l.to}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all"
+              style={{ background: active ? accent + '18' : 'transparent', color: active ? accent : '#7A7E85' }}>
+              <l.icon size={14} />
+              <span>{l.label}</span>
+            </NavLink>
+          );
+        })}
+      </nav>
+
+      {/* Mobile bottom nav */}
+      <div className="mobile-nav">
+        {links.slice(0, 5).map(l => {
+          const active = isActive(l.to);
+          return (
+            <NavLink key={l.to} to={l.to}
+              className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1 text-xs font-semibold rounded-lg transition-all"
+              style={{ color: active ? accent : '#9CA3AF' }}>
+              <l.icon size={20} strokeWidth={active ? 2.5 : 1.8} />
+              <span className="text-[10px]">{l.short}</span>
+            </NavLink>
+          );
+        })}
+      </div>
+    </>
   );
 }
 
@@ -118,83 +140,92 @@ function AppShell({ children }) {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: '#F5F7F8' }}>
-      <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
-        style={{ borderColor: accent, borderTopColor: 'transparent' }} />
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 rounded-full border-2 animate-spin"
+          style={{ borderColor: accent + '40', borderTopColor: accent }} />
+        <p className="text-sm text-ink-muted font-medium">Loading…</p>
+      </div>
     </div>
   );
 
   return (
     <div className="min-h-screen" style={{ background: '#F5F7F8' }}>
+      {/* Desktop / Mobile header */}
       <header className="bg-white border-b sticky top-0 z-40" style={{ borderColor: '#E5E8EB' }}>
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
+        <div className="max-w-7xl mx-auto px-3 sm:px-5 h-14 flex items-center gap-3">
           {/* Logo */}
           <div className="flex items-center gap-2 shrink-0">
             {account?.logo_url
-              ? <img src={account.logo_url} alt="" className="w-7 h-7 rounded object-contain border" style={{ borderColor:'#E5E8EB' }}/>
-              : <div className="w-7 h-7 rounded flex items-center justify-center text-white font-bold text-xs"
+              ? <img src={account.logo_url} alt="" className="w-8 h-8 rounded-lg object-contain border" style={{ borderColor:'#E5E8EB' }} />
+              : <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
                   style={{ background: accent }}>
                   {(account?.logo_initial || account?.name?.[0] || 'P').toUpperCase()}
                 </div>
             }
-            <span className="font-bold text-ink text-sm hidden md:block">{account?.name}</span>
+            <span className="font-bold text-ink text-sm hidden md:block">{account?.name || 'PLEX'}</span>
           </div>
-          <div className="h-5 w-px bg-gray-200 mx-1" />
+
+          <div className="h-5 w-px hidden md:block" style={{ background: '#E5E8EB' }} />
+
+          {/* Desktop nav (injected by Nav component) */}
           <Nav />
+
+          {/* Right actions */}
           <div className="ml-auto flex items-center gap-2">
             <NavLink to="/quotes/new"
-              className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-lg"
+              className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-white px-3 py-2 rounded-lg shadow-sm"
               style={{ background: accent }}>
-              <Plus size={12} /> New quote
+              <Plus size={13} /> New quote
             </NavLink>
             <AccountSwitcher
               onOpenSettings={() => setShowSettings(true)}
               onNewAccount={() => setShowNewAccount(true)}
             />
-            {/* User avatar + dropdown */}
+            {/* Avatar */}
             <div className="relative">
-              <button
-                onClick={() => setShowUserMenu(v => !v)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                style={{ background: accent }}
-                title={user?.email}>
+              <button onClick={() => setShowUserMenu(v => !v)}
+                className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm"
+                style={{ background: accent }}>
                 {(user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
               </button>
               {showUserMenu && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
-                  <div className="absolute right-0 top-full mt-1 w-52 bg-white border rounded-xl shadow-lg z-50 overflow-hidden" style={{ borderColor: '#E5E8EB' }}>
-                    <div className="px-4 py-3 border-b" style={{ borderColor: '#F0F3F5' }}>
-                      <p className="text-xs font-semibold text-ink truncate">{user?.user_metadata?.full_name || 'My account'}</p>
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white border rounded-2xl shadow-xl z-50 overflow-hidden" style={{ borderColor: '#E5E8EB' }}>
+                    <div className="px-4 py-3.5 border-b" style={{ borderColor: '#F0F3F5', background: '#FAFBFF' }}>
+                      <p className="text-xs font-bold text-ink truncate">{user?.user_metadata?.full_name || 'My account'}</p>
                       <p className="text-xs text-ink-muted truncate">{user?.email}</p>
                     </div>
-                    <button onClick={() => { setShowUserMenu(false); setShowSettings(true); }}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink hover:bg-gray-50">
-                      <CreditCard size={14} className="text-ink-muted" /> Account settings
-                    </button>
-                    <button onClick={() => { setShowUserMenu(false); signOut(); }}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50">
-                      <LogOut size={14} /> Sign out
-                    </button>
+                    <div className="py-1">
+                      <NavLink to="/billing" onClick={() => setShowUserMenu(false)}
+                        className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-ink hover:bg-gray-50">
+                        <CreditCard size={14} className="text-ink-muted" /> Billing & Plans
+                      </NavLink>
+                      <button onClick={() => { setShowUserMenu(false); setShowSettings(true); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-ink hover:bg-gray-50">
+                        <Shield size={14} className="text-ink-muted" /> Account settings
+                      </button>
+                      <div className="border-t my-1" style={{ borderColor: '#F0F3F5' }} />
+                      <button onClick={() => { setShowUserMenu(false); signOut(); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-red-500 hover:bg-red-50">
+                        <LogOut size={14} /> Sign out
+                      </button>
+                    </div>
                   </div>
                 </>
               )}
             </div>
           </div>
         </div>
-        <div className="h-0.5" style={{ background: accent }} />
+        {/* Accent stripe */}
+        <div className="h-0.5" style={{ background: `linear-gradient(90deg, ${accent}, ${accent}88)` }} />
       </header>
 
       {showSettings   && <AccountSettings onClose={() => setShowSettings(false)} />}
       {showNewAccount && <NewAccountModal onClose={() => setShowNewAccount(false)} onCreated={() => {}} />}
 
-      <main>{children}</main>
-
-      <footer className="border-t mt-8 py-4" style={{ borderColor: '#E5E8EB', background: '#FFFFFF' }}>
-        <div className="max-w-7xl mx-auto px-5 flex items-center justify-between">
-          <span className="text-xs text-ink-muted">{account?.name} · {account?.website} · {account?.phone}</span>
-          <span className="text-xs text-ink-muted">PLEX Invoicer</span>
-        </div>
-      </footer>
+      {/* Main content */}
+      <main className="page-content">{children}</main>
     </div>
   );
 }

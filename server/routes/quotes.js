@@ -77,7 +77,7 @@ router.post('/', async (req, res) => {
     const {
       account_id, contact_id, client_name, client_biz, client_email, client_phone,
       billing_mode, yearly_discount, disc_type, disc_value, disc_setup, disc_monthly,
-      notes, valid_days, setup_total, monthly_total, items = []
+      notes, valid_days, setup_total, monthly_total, tax_rate = 0, tax_amount = 0, items = []
     } = req.body;
 
     const existingQuotes = await db.execute(`SELECT number FROM quotes WHERE account_id = ?`, [account_id]);
@@ -97,7 +97,7 @@ router.post('/', async (req, res) => {
        yearly_discount || 15, disc_type || 'pct', disc_value || 0,
        disc_setup ? 1 : 0, disc_monthly ? 1 : 0,
        notes || '', valid_days || 30, setup_total || 0, monthly_total || 0,
-       body.tax_rate || 0, body.tax_amount || 0, public_token]
+       tax_rate || 0, tax_amount || 0, public_token]
     );
 
     // Batch insert items in parallel

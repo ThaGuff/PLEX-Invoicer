@@ -140,6 +140,7 @@ export const api = {
   },
 
   tax: {
+    lookup: (zip) => req('GET', `/tax/lookup?zip=${encodeURIComponent(zip)}`),
     summary: (accountId, year, quarter) => {
       const params = new URLSearchParams({ account_id: accountId });
       if (year)    params.set('year', year);

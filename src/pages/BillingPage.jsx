@@ -8,7 +8,7 @@ const PLANS = [
     key: 'starter',
     name: 'Starter',
     icon: Zap,
-    price: 29,
+    price: 19,
     color: '#13B5EA',
     description: 'Perfect for freelancers and solo operators just getting started.',
     features: [
@@ -27,7 +27,7 @@ const PLANS = [
     key: 'pro',
     name: 'Pro',
     icon: Star,
-    price: 79,
+    price: 49,
     color: '#7c3aed',
     badge: 'Most Popular',
     description: 'For growing agencies managing multiple clients and automating workflows.',
@@ -49,7 +49,7 @@ const PLANS = [
     key: 'agency',
     name: 'Agency',
     icon: Building2,
-    price: 149,
+    price: 99,
     color: '#d97706',
     description: 'For established agencies running full-service AI automation at scale.',
     features: [
