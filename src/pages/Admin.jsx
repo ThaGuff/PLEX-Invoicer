@@ -585,7 +585,7 @@ export default function Admin() {
       setMetrics(m);
       setSubs(s || []);
       setHealth(h);
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error('Admin load error:', e.message); setLoading(false); }
     setLoading(false);
   }, []);
 
@@ -714,8 +714,13 @@ export default function Admin() {
                       </div>
                     </div>
                     <div className="hidden md:flex items-center gap-4 text-xs text-ink-muted shrink-0">
-                      <span>{u.quote_count} Q</span>
-                      <span>{u.invoice_count} I</span>
+                      <span>{u.quote_count}Q · {u.invoice_count}I</span>
+                      {u.total_revenue > 0 && <span className="text-green-600 font-semibold">{fmt(u.total_revenue)}</span>}
+                      {u.trial_ends_at && u.sub_status === 'trialing' && (
+                        <span className="text-amber-600">
+                          Trial: {Math.max(0,Math.ceil((new Date(u.trial_ends_at)-Date.now())/86400000))}d left
+                        </span>
+                      )}
                       <span>{fmtAgo(u.last_sign_in)}</span>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
@@ -961,8 +966,8 @@ export default function Admin() {
             <button onClick={async () => {
               try {
                 const r = await api.analytics.runReminders();
-                alert(`Ran reminders: ${r.sent} sent, ${r.failed} failed`);
-              } catch (e) { alert('Error: ' + e.message); }
+                console.info(`Ran reminders: ${r.sent} sent, ${r.failed} failed`);
+              } catch (e) { console.error('Admin error:', e.message); }
             }}
               className="text-xs font-semibold px-4 py-2 rounded-lg border hover:bg-gray-50"
               style={{ borderColor:'#E5E8EB' }}>

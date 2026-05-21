@@ -54,51 +54,80 @@ async function sendEmail({ to, subject, html, attachments = [] }) {
 // ── GET /api/admin/users — all Supabase users + their accounts ───
 router.get('/users', async (req, res) => {
   try {
+    const ownerEmail = process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com';
     const sb = getSupabaseAdmin();
     let supabaseUsers = [];
     if (sb) {
       const { data, error } = await sb.auth.admin.listUsers({ perPage: 1000 });
-      if (!error) supabaseUsers = data.users || [];
+      if (!error) supabaseUsers = (data.users || []).filter(u => u.email !== ownerEmail);
     }
 
-    // Get all accounts from DB
+    // Get ALL accounts from DB (including those without a Supabase match)
     const accounts = await db.execute(`SELECT * FROM accounts WHERE id != 'plex-master' ORDER BY created_at DESC`);
-    const accountMap = {};
-    accounts.rows.forEach(a => { accountMap[a.owner_id] = a; });
 
-    // Quote/invoice counts per account
-    const quoteCounts = await db.execute(
-      `SELECT account_id, COUNT(*) as cnt FROM quotes GROUP BY account_id`
-    );
-    const invoiceCounts = await db.execute(
-      `SELECT account_id, COUNT(*) as cnt FROM invoices GROUP BY account_id`
-    );
-    const qMap = {}, iMap = {};
+    // Quote/invoice/revenue counts per account
+    const [quoteCounts, invoiceCounts, revenueCounts] = await Promise.all([
+      db.execute(`SELECT account_id, COUNT(*) as cnt FROM quotes GROUP BY account_id`),
+      db.execute(`SELECT account_id, COUNT(*) as cnt FROM invoices GROUP BY account_id`),
+      db.execute(`SELECT account_id, COALESCE(SUM(amount_paid),0) as total FROM invoices WHERE status='paid' GROUP BY account_id`),
+    ]);
+    const qMap = {}, iMap = {}, rMap = {};
     quoteCounts.rows.forEach(r => { qMap[r.account_id] = r.cnt; });
     invoiceCounts.rows.forEach(r => { iMap[r.account_id] = r.cnt; });
+    revenueCounts.rows.forEach(r => { rMap[r.account_id] = r.total; });
 
-    const users = supabaseUsers
-      .filter(u => u.email !== (process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com'))
-      .map(u => {
-        const acc = accountMap[u.id];
-        return {
+    // Build user map from Supabase
+    const supaMap = {};
+    supabaseUsers.forEach(u => { supaMap[u.id] = u; });
+
+    // Merge: start from DB accounts (source of truth for app data)
+    const users = accounts.rows.map(acc => {
+      const supaUser = supaMap[acc.owner_id] || null;
+      return {
+        id:           acc.owner_id || acc.id,
+        email:        supaUser?.email || acc.email || 'unknown',
+        name:         supaUser?.user_metadata?.full_name || supaUser?.user_metadata?.name || acc.name || null,
+        created_at:   supaUser?.created_at || acc.created_at,
+        last_sign_in: supaUser?.last_sign_in_at || null,
+        provider:     supaUser?.app_metadata?.provider || 'email',
+        confirmed:    supaUser ? !!supaUser.email_confirmed_at : true,
+        account:      acc,
+        plan:         acc.plan || 'starter',
+        sub_status:   acc.subscription_status || 'trialing',
+        quote_count:  qMap[acc.id] || 0,
+        invoice_count: iMap[acc.id] || 0,
+        total_revenue: rMap[acc.id] || 0,
+        trial_ends_at: acc.trial_ends_at,
+      };
+    });
+
+    // Also add Supabase users with no DB account (signed up but not onboarded)
+    const accountOwnerIds = new Set(accounts.rows.map(a => a.owner_id).filter(Boolean));
+    supabaseUsers
+      .filter(u => !accountOwnerIds.has(u.id))
+      .forEach(u => {
+        users.push({
           id:           u.id,
           email:        u.email,
-          name:         u.user_metadata?.full_name || u.user_metadata?.name || null,
+          name:         u.user_metadata?.full_name || null,
           created_at:   u.created_at,
           last_sign_in: u.last_sign_in_at,
           provider:     u.app_metadata?.provider || 'email',
           confirmed:    !!u.email_confirmed_at,
-          account:      acc || null,
-          plan:         acc?.plan || 'none',
-          sub_status:   acc?.subscription_status || 'none',
-          quote_count:  acc ? (qMap[acc.id] || 0) : 0,
-          invoice_count: acc ? (iMap[acc.id] || 0) : 0,
-        };
+          account:      null,
+          plan:         'none',
+          sub_status:   'none',
+          quote_count:  0,
+          invoice_count: 0,
+          total_revenue: 0,
+        });
       });
 
     res.json({ users, total: users.length });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    console.error('Admin /users error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // ── GET /api/admin/metrics — platform-wide stats ─────────────────
@@ -120,14 +149,18 @@ router.get('/metrics', async (req, res) => {
       db.execute(`SELECT COUNT(*) as cnt FROM invoices WHERE account_id != 'plex-master'`),
       db.execute(`SELECT COALESCE(SUM(amount_paid),0) as total FROM invoices WHERE account_id != 'plex-master'`),
       db.execute(`SELECT COUNT(*) as cnt FROM accounts WHERE id != 'plex-master'`),
-      db.execute(`SELECT COUNT(*) as cnt FROM accounts WHERE id != 'plex-master' AND created_at >= ?`, [weekAgo]),
+      db.execute(`SELECT COUNT(*) as cnt FROM accounts WHERE id != 'plex-master' AND created_at::timestamp >= ?::timestamp`, [weekAgo]),
     ]);
 
+    const revenueResult = await db.execute(
+      `SELECT COALESCE(SUM(amount_paid),0) as total FROM invoices WHERE account_id != 'plex-master' AND status = 'paid'`
+    );
     res.json({
-      total_users:    totalUsers,
+      total_users:    totalUsers || accounts.rows[0].cnt,
       total_accounts: accounts.rows[0].cnt,
       new_this_week:  newUsers.rows[0].cnt,
       total_quotes:   quotes.rows[0].cnt,
+      total_revenue:  revenueResult.rows[0].total,
       total_invoices: invoices.rows[0].cnt,
       total_revenue:  revenue.rows[0].total,
     });
@@ -592,8 +625,8 @@ router.get('/health', async (req, res) => {
     await db.execute('SELECT 1');
     checks.database = true;
     // Report which DB type is in use
-    checks.db_type = process.env.TURSO_DATABASE_URL ? 'turso_cloud' : 'sqlite_local';
-    checks.db_persistent = !!process.env.TURSO_DATABASE_URL;
+    checks.db_type = process.env.SUPABASE_DB_URL ? 'supabase_postgres' : 'sqlite_local';
+    checks.db_persistent = !!process.env.SUPABASE_DB_URL;
   } catch {}
 
   // Supabase

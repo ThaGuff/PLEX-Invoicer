@@ -74,12 +74,10 @@ export async function requireAuth(req, res, next) {
 }
 
 export async function optionalAuth(req, res, next) {
-  const sb = getSupabase();
-  if (!sb) { req.user = null; return next(); }
   const token = (req.headers.authorization || '').replace('Bearer ', '');
   if (!token) { req.user = null; return next(); }
   try {
-    const { data: { user } } = await sb.auth.getUser(token);
+    const user = await verifyToken(token);
     req.user = user || null;
   } catch { req.user = null; }
   next();

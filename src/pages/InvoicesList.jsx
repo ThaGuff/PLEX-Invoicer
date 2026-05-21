@@ -54,13 +54,13 @@ export default function InvoicesList() {
     try {
       const r = await api.invoices.remind(id);
       if (r.email_sent) {
-        alert('✅ Reminder email sent!');
+        console.info('✅ Reminder email sent!');
       } else if (r.email_error) {
-        alert('⚠️ Reminder logged but email failed: ' + r.email_error);
+        console.info('Reminder logged, email failed:', r.email_error);
       } else {
-        alert('ℹ️ Reminder logged. Configure SMTP in Railway to send real emails.');
+        console.info('ℹ️ Reminder logged. Configure SMTP in Railway to send real emails.');
       }
-    } catch (err) { alert(err.message); }
+    } catch (err) { console.error('Invoice action failed:', err.message); }
   };
 
   const filtered = invoices.filter(inv => {

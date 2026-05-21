@@ -43,7 +43,7 @@ export default function QuotesList() {
       const inv = await api.quotes.convert(id);
       setQuotes(q => q.map(x => x.id === id ? { ...x, status: 'accepted' } : x));
       navigate(`/invoices/${inv.id}`);
-    } catch (err) { alert(err.message); }
+    } catch (err) { console.error('Quote action failed:', err.message); }
   };
 
   const filtered = quotes.filter(q => {
