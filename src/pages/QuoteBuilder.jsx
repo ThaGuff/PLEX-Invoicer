@@ -1,3 +1,4 @@
+import FinancingCalculator from '../components/FinancingCalculator';
 import { canUseFeature } from '../utils/planFeatures';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -986,6 +987,14 @@ export default function QuoteBuilder() {
                 </div>
               )}
             </div>
+
+            {/* Financing options */}
+            {setupFinal > 0 && (
+              <FinancingCalculator
+                totalAmount={setupFinal + taxAmt}
+                onSelectFinancing={(plan) => console.info('Financing selected:', plan)}
+              />
+            )}
 
             {/* Action buttons */}
             <div className="space-y-2">

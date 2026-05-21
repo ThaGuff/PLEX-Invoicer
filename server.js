@@ -399,6 +399,42 @@ app.use('/api/track',        trackingRouter);
 app.use('/api/admin',        requireAuth, adminRouter);
 app.use('/api/stripe-connect', stripeConnectRouter); // callback is public
 app.use('/api/ai',           requireAuth, aiRouter);
+
+// ── AI Insights Summary ─────────────────────────────────────────
+app.post('/api/ai/insights-summary', requireAuth, async (req, res) => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return res.json({ summary: 'Connect your OpenAI key in Railway variables to enable AI analysis.' });
+  const { insights } = req.body;
+  try {
+    const prompt = `You are a business revenue advisor for a service business using Revanew. 
+Analyze this data and give 2-3 actionable insights in 80 words max. Be direct, specific, and encouraging.
+
+Data:
+- Quote acceptance rate: ${insights.accRate}%
+- Predicted revenue (next 30 days): $${insights.predicted30}
+- Revenue at risk (ghosting): $${insights.atRisk}
+- Overdue invoices: $${insights.overdueTotal} (${insights.overdueCount} invoices)
+- Quotes showing ghosting risk: ${insights.ghostingRisk?.length || 0}
+- High-probability closes: ${insights.highProbability}
+
+Write 2-3 specific next actions the owner should take today.`;
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': \`Bearer \${apiKey}\`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 150,
+        temperature: 0.7,
+      }),
+    });
+    const data = await response.json();
+    res.json({ summary: data.choices?.[0]?.message?.content || 'Unable to generate summary.' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 app.use('/api/analytics',    requireAuth, analyticsRouter);
 app.use('/api/v1/integrations', requireAuth, integrationsRouter);
 app.use('/api/tax',            requireAuth, taxRouter);
@@ -445,4 +481,82 @@ async function initDBWithRetry(attempts = 5, delayMs = 3000) {
   console.error('⚠️  DB schema init failed after all attempts — app running with limited DB functionality');
 }
 
-initDBWithRetry().then(() => startDbHealthMonitor());
+initDBWithRetry().then(() => {
+  startDbHealthMonitor();
+
+  // ── Automation cron — runs every 5 minutes ──────────────────
+  // Processes pending automation_runs and smart_reminders
+  const runAutomationQueue = async () => {
+    try {
+      const { db } = await import('./server/db/schema.js');
+      const now = new Date().toISOString();
+
+      // Get pending automation runs due now
+      const pending = await db.execute(`
+        SELECT r.id, r.sequence_id, r.step_id, r.invoice_id, r.quote_id, r.contact_id,
+               s.channel, s.subject, s.body, s.discount_pct,
+               seq.account_id,
+               COALESCE(i.client_name, q.client_name, c.name) as client_name,
+               COALESCE(i.client_email, q.client_email, c.email) as client_email,
+               COALESCE(i.number, q.number) as doc_number,
+               acc.name as agency_name
+        FROM automation_runs r
+        JOIN automation_steps s  ON r.step_id = s.id
+        JOIN automation_sequences seq ON r.sequence_id = seq.id
+        JOIN accounts acc ON seq.account_id = acc.id
+        LEFT JOIN invoices i  ON r.invoice_id = i.id
+        LEFT JOIN quotes q    ON r.quote_id = q.id
+        LEFT JOIN contacts c  ON r.contact_id = c.id
+        WHERE r.status = 'pending' AND r.scheduled_at <= ?
+        LIMIT 20
+      `, [now]);
+
+      for (const run of pending.rows) {
+        if (!run.client_email) {
+          await db.execute(`UPDATE automation_runs SET status = 'skipped', error = 'no_email' WHERE id = ?`, [run.id]);
+          continue;
+        }
+
+        // Personalize message
+        const body = (run.body || '')
+          .replace('{client_name}', run.client_name || 'there')
+          .replace('{agency_name}', run.agency_name || 'us')
+          .replace('{doc_number}', run.doc_number || '')
+          .replace('{discount_pct}', run.discount_pct || '10');
+
+        // Send email
+        const { SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_FROM, SMTP_PORT } = process.env;
+        if (SMTP_HOST && SMTP_USER) {
+          try {
+            const nodemailer = (await import('nodemailer')).default;
+            const port = parseInt(SMTP_PORT) || 587;
+            const transporter = nodemailer.createTransport({
+              host: SMTP_HOST, port, secure: port === 465,
+              auth: { user: SMTP_USER, pass: SMTP_PASS },
+            });
+            await transporter.sendMail({
+              from:    SMTP_FROM || SMTP_USER,
+              to:      run.client_email,
+              subject: (run.subject || 'Following up').replace('{client_name}', run.client_name || 'there'),
+              text:    body,
+              html:    `<div style="font-family:sans-serif;max-width:600px;margin:0 auto"><p>${body.replace(/
+/g,'<br>')}</p><hr><p style="color:#999;font-size:11px">Powered by Revanew · Unsubscribe</p></div>`,
+            });
+            await db.execute(`UPDATE automation_runs SET status = 'sent', sent_at = ? WHERE id = ?`, [new Date().toISOString(), run.id]);
+            console.log(`✅ Automation run ${run.id} sent to ${run.client_email}`);
+          } catch (emailErr) {
+            await db.execute(`UPDATE automation_runs SET status = 'error', error = ? WHERE id = ?`, [emailErr.message.slice(0,200), run.id]);
+          }
+        } else {
+          await db.execute(`UPDATE automation_runs SET status = 'skipped', error = 'smtp_not_configured' WHERE id = ?`, [run.id]);
+        }
+      }
+    } catch (e) {
+      console.error('Automation cron error:', e.message);
+    }
+  };
+
+  // Run immediately then every 5 minutes
+  setTimeout(runAutomationQueue, 10000); // 10s after startup
+  setInterval(runAutomationQueue, 5 * 60 * 1000); // every 5min
+});

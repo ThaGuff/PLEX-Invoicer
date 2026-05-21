@@ -1,3 +1,4 @@
+import AIInsightsPanel from '../components/AIInsightsPanel';
 import PlanGate, { UpgradeBadge } from '../components/PlanGate';
 import { canUseFeature } from '../utils/planFeatures';
 import React, { useState, useEffect } from 'react';
@@ -208,6 +209,11 @@ export default function Dashboard() {
           ? <CashflowDashboard accountId={account?.id} accent={accent} />
           : <PlanGate feature="cashflow_dashboard" />
         }
+      </div>
+
+      {/* AI Insights */}
+      <div className="mt-5">
+        <AIInsightsPanel accountId={account?.id} />
       </div>
     </div>
   );

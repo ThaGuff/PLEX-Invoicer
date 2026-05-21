@@ -2,6 +2,20 @@ import React, { useState } from 'react';
 import { Zap, X, RefreshCw, CheckCircle, AlertCircle, Mic, FileText } from 'lucide-react';
 import { api } from '../utils/api';
 
+// Voice-to-quote: uses Web Speech API (Chrome/Edge)
+const startVoiceInput = (onResult, onEnd) => {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) return null;
+  const recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.lang = 'en-US';
+  recognition.onresult = (e) => { onResult(e.results[0][0].transcript); };
+  recognition.onend = onEnd;
+  recognition.start();
+  return recognition;
+};
+
 const EXAMPLES = [
   'Billed John Smith at Acme Co 5 hours for website design at $85/hr plus a $200 flat fee for stock photos',
   'Monthly retainer for Sarah Jones — $750/month for social media management starting June',
@@ -14,6 +28,23 @@ export default function AIInvoiceParser({ accountId, onApply, accent = '#13B5EA'
   const [parsing, setParsing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+
+  const [isListening, setIsListening] = useState(false);
+  const [voiceSupported] = useState(() => !!(window.SpeechRecognition || window.webkitSpeechRecognition));
+  const recognitionRef = React.useRef(null);
+
+  const handleVoice = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+    const rec = startVoiceInput(
+      (transcript) => { setText(t => t + (t ? ' ' : '') + transcript); },
+      () => setIsListening(false)
+    );
+    if (rec) { recognitionRef.current = rec; setIsListening(true); }
+  };
 
   const parse = async () => {
     if (!text.trim()) return;
