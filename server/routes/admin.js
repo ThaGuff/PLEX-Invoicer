@@ -59,7 +59,14 @@ router.get('/users', async (req, res) => {
     let supabaseUsers = [];
     if (sb) {
       const { data, error } = await sb.auth.admin.listUsers({ perPage: 1000 });
-      if (!error) supabaseUsers = (data.users || []).filter(u => u.email !== ownerEmail);
+      if (error) {
+        console.error('Supabase admin listUsers error:', error.message);
+      } else {
+        supabaseUsers = (data.users || []).filter(u => u.email !== ownerEmail);
+        console.log(`Admin: loaded ${supabaseUsers.length} Supabase users`);
+      }
+    } else {
+      console.warn('Admin: Supabase admin client not available');
     }
 
     // Get ALL accounts from DB (including those without a Supabase match)
@@ -136,8 +143,9 @@ router.get('/metrics', async (req, res) => {
     const sb = getSupabaseAdmin();
     let totalUsers = 0;
     if (sb) {
-      const { data } = await sb.auth.admin.listUsers({ perPage: 1000 });
-      totalUsers = (data?.users || []).filter(u =>
+      const { data, error } = await sb.auth.admin.listUsers({ perPage: 1000 });
+      if (error) console.error('Admin metrics listUsers error:', error.message);
+      else totalUsers = (data?.users || []).filter(u =>
         u.email !== (process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com')
       ).length;
     }

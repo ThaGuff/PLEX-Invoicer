@@ -96,6 +96,14 @@ export function AuthProvider({ children }) {
       setSession(session);
       setUser(session?.user ?? null);
 
+      // Track new signups for onboarding redirect
+      if (event === 'SIGNED_IN') {
+        const isNew = !session?.user?.last_sign_in_at || 
+          (new Date() - new Date(session.user.created_at)) < 60000; // within 1 min of creation
+        if (isNew) {
+          localStorage.setItem('revanew_new_user', '1');
+        }
+      }
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         const wasExpired = sessionExpired;
         setSessionExpired(false);

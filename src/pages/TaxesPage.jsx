@@ -1,3 +1,4 @@
+import { canUseFeature } from '../utils/planFeatures';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Download, FileText, RefreshCw, TrendingUp, DollarSign,
          Receipt, ChevronDown, ChevronUp, Filter } from 'lucide-react';

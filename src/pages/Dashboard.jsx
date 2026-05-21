@@ -1,3 +1,5 @@
+import PlanGate, { UpgradeBadge } from '../components/PlanGate';
+import { canUseFeature } from '../utils/planFeatures';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -200,9 +202,12 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-      {/* F10: Predictive cashflow */}
+      {/* F10: Predictive cashflow — Pro+ only */}
       <div className="mt-6">
-        <CashflowDashboard accountId={account?.id} accent={accent} />
+        {canUseFeature(account?.plan, 'cashflow_dashboard')
+          ? <CashflowDashboard accountId={account?.id} accent={accent} />
+          : <PlanGate feature="cashflow_dashboard" />
+        }
       </div>
     </div>
   );

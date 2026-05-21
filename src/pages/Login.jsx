@@ -68,7 +68,13 @@ export default function Login() {
         setSuccess('Account created! Check your email to confirm, then sign in.');
         setMode('login');
       } else {
-        navigate('/dashboard');
+        // Check if new user needs onboarding
+        const path = window.location.pathname;
+        if (mode === 'login') {
+          navigate('/dashboard');
+        } else {
+          navigate('/onboarding');
+        }
       }
     } catch (e) { setError(e.message || 'Something went wrong'); }
     setLoading('');
