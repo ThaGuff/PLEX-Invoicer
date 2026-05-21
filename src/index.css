@@ -205,18 +205,20 @@
 
   /* ── NAV ────────────────────────────────────────────────────────── */
   .nav-pill {
-    @apply flex items-center gap-1.5 font-medium transition-all rounded-lg;
-    font-size: 12px;
+    @apply flex items-center gap-1.5 font-medium transition-all rounded-xl;
+    font-size: 13px;
     font-weight: 500;
-    padding: 6px 10px;
+    padding: 8px 14px;
     color: var(--text-secondary);
     font-family: 'Plus Jakarta Sans', sans-serif;
+    white-space: nowrap;
   }
-  .nav-pill:hover { color: var(--text-primary); background: var(--bg-page); }
+  .nav-pill:hover { color: var(--text-primary); background: var(--bg-page); transform: translateY(-1px); }
   .nav-pill.active {
     background: var(--navy);
     color: #FFFFFF;
-    font-weight: 600;
+    font-weight: 700;
+    transform: translateY(-1px);
   }
   .dark .nav-pill.active { background: var(--bg-raised); color: #C8D8F0; }
 
@@ -272,11 +274,12 @@
       bottom: 0; left: 0; right: 0;
       background: var(--bg-surface);
       border-top: 0.5px solid var(--border);
-      padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+      padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
       z-index: 100;
-      box-shadow: 0 -4px 24px rgba(8,13,26,0.08);
+      box-shadow: 0 -8px 32px rgba(8,13,26,0.12);
+      gap: 4px;
     }
-    .page-content { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+    .page-content { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
   }
   .desktop-nav { display: flex; }
   @media (max-width: 767px) { .desktop-nav { display: none; } }
@@ -333,4 +336,84 @@
   .no-print { display: none !important; }
   body { background: white; }
   .mobile-nav, .desktop-nav { display: none; }
+}
+
+/* ── Page fill utilities ────────────────────────────────────────── */
+.page-fill {
+  min-height: calc(100dvh - 66px);
+  display: flex;
+  flex-direction: column;
+}
+@media (max-width: 767px) {
+  .page-fill { min-height: calc(100dvh - 88px - env(safe-area-inset-bottom)); }
+}
+
+/* ── Interactive tab card hover ─────────────────────────────────── */
+.tab-card {
+  background: var(--bg-surface);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+.tab-card:hover {
+  border-color: #4B7BFF;
+  box-shadow: 0 8px 28px rgba(75,123,255,0.15), 0 2px 8px rgba(75,123,255,0.1);
+  transform: translateY(-3px) scale(1.01);
+}
+.tab-card:active { transform: translateY(-1px) scale(1.005); }
+.tab-card.selected {
+  border-color: #4B7BFF;
+  background: rgba(75,123,255,0.05);
+  box-shadow: 0 0 0 2px rgba(75,123,255,0.2), 0 8px 24px rgba(75,123,255,0.12);
+  transform: translateY(-2px);
+}
+
+/* ── Stat number large ──────────────────────────────────────────── */
+.stat-value {
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+/* ── Gradient glow card ─────────────────────────────────────────── */
+.glow-card {
+  background: var(--bg-surface);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.glow-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(0,229,200,0.04), rgba(75,123,255,0.04), rgba(123,79,232,0.04));
+  pointer-events: none;
+}
+
+/* ── Smooth page transitions ────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { animation: fadeUp 0.3s ease forwards; }
+.animate-fade-up-delay-1 { animation: fadeUp 0.3s ease 0.05s both; }
+.animate-fade-up-delay-2 { animation: fadeUp 0.3s ease 0.1s both; }
+.animate-fade-up-delay-3 { animation: fadeUp 0.3s ease 0.15s both; }
+.animate-fade-up-delay-4 { animation: fadeUp 0.3s ease 0.2s both; }
+
+/* ── Glassmorphism cards ────────────────────────────────────────── */
+.glass-card {
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 0.5px solid rgba(200,212,232,0.6);
+  border-radius: 14px;
+}
+.dark .glass-card {
+  background: rgba(13,21,38,0.7);
+  border-color: rgba(26,38,64,0.6);
 }

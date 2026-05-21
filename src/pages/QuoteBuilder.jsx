@@ -420,6 +420,7 @@ export default function QuoteBuilder() {
   const [discSetup,   setDiscSetup]   = useState(true);
   const [discMonthly, setDiscMonthly] = useState(true);
   const [taxRate, setTaxRate]             = useState(0);
+  const [activePackage, setActivePackage] = useState(null); // null | 'good' | 'better' | 'best'
   const [taxZip, setTaxZip]               = useState('');
   const [taxLooking, setTaxLooking]       = useState(false);
   const [taxLookupResult, setTaxLookupResult] = useState(null);
@@ -948,9 +949,44 @@ export default function QuoteBuilder() {
               </div>
             </div>
 
+            {/* Good / Better / Best pricing packages */}
+            <div className="card p-4">
+              <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--text-muted)', letterSpacing: '0.9px' }}>Pricing packages</p>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>Let clients choose a tier that fits their budget.</p>
+              <div className="space-y-2 mb-3">
+                {[
+                  { key: 'good',   label: 'Good',   emoji: '✅', desc: 'Essentials only',   discount: 0  },
+                  { key: 'better', label: 'Better', emoji: '⭐', desc: 'Most popular',       discount: 0, badge: true },
+                  { key: 'best',   label: 'Best',   emoji: '🚀', desc: 'Full service',       discount: 0  },
+                ].map(pkg => (
+                  <button key={pkg.key}
+                    onClick={() => setActivePackage(activePackage === pkg.key ? null : pkg.key)}
+                    className="w-full text-left p-2.5 rounded-xl text-sm transition-all"
+                    style={{
+                      border: activePackage === pkg.key ? '1.5px solid #4B7BFF' : '1px solid var(--border)',
+                      background: activePackage === pkg.key ? 'rgba(75,123,255,0.06)' : 'var(--bg-page)',
+                      fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      cursor: 'pointer',
+                    }}>
+                    <div className="flex items-center gap-2">
+                      <span>{pkg.emoji}</span>
+                      <span style={{ fontWeight: 700, color: activePackage === pkg.key ? '#4B7BFF' : 'var(--text-primary)' }}>{pkg.label}</span>
+                      {pkg.badge && <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 10, background: 'linear-gradient(135deg, #4B7BFF, #7B4FE8)', color: '#fff' }}>Popular</span>}
+                      <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-muted)' }}>{pkg.desc}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              {activePackage && (
+                <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(75,123,255,0.06)', border: '0.5px solid rgba(75,123,255,0.2)', fontSize: 11, color: '#4B7BFF', fontWeight: 600 }}>
+                  💡 "{activePackage.charAt(0).toUpperCase()+activePackage.slice(1)}" package selected. Clients will see this highlighted when viewing their quote.
+                </div>
+              )}
+            </div>
+
             {/* Tax rate */}
             <div className="card p-4">
-              <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">Tax rate</p>
+              <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--text-muted)', letterSpacing: '0.9px' }}>Tax rate</p>
               {/* Zip code lookup */}
               <div className="flex items-center gap-2 mb-3">
                 <input
