@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import helmet         from 'helmet';
 import rateLimit      from 'express-rate-limit';
 import { initDB, initSchemaV2, initStripeConnect } from './server/db/schema.js';
+import { startDbHealthMonitor, getDbHealth } from './server/db/healthcheck.js';
 import { requireAuth, sanitizeRequest } from './server/middleware/auth.js';
 import accountsRouter from './server/routes/accounts.js';
 import contactsRouter from './server/routes/contacts.js';
@@ -133,6 +134,18 @@ app.use((req, res, next) => {
 app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '2mb' }));
 app.use(sanitizeRequest); // strip XSS and injection from all request bodies
+
+// ── System health endpoint ───────────────────────────────────────
+app.get('/health', (req, res) => {
+  const dbHealth = getDbHealth();
+  const status = dbHealth.healthy ? 200 : 503;
+  res.status(status).json({
+    status: dbHealth.healthy ? 'ok' : 'degraded',
+    db: dbHealth,
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // ── Public routes (no auth) ───────────────────────────────────────
 app.use('/api/auth', authRouter);
@@ -359,4 +372,4 @@ async function initDBWithRetry(attempts = 5, delayMs = 3000) {
   console.error('⚠️  DB schema init failed after all attempts — app running with limited DB functionality');
 }
 
-initDBWithRetry();
+initDBWithRetry().then(() => startDbHealthMonitor());

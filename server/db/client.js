@@ -155,9 +155,18 @@ if (process.env.SUPABASE_DB_URL) {
   db = new SqliteAdapter(client);
   dbType = 'sqlite';
 
-  if (process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT) {
-    console.warn('⚠️  WARNING: Using local SQLite in production — ALL DATA LOST ON EVERY DEPLOY');
-    console.warn('   Set SUPABASE_DB_URL in Railway to use your Supabase PostgreSQL database');
+  if (process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_SERVICE_ID) {
+    // On Railway without SUPABASE_DB_URL — data will be lost. Refuse to start.
+    console.error('🚨 FATAL: Running on Railway without SUPABASE_DB_URL set.');
+    console.error('   Data stored in SQLite will be WIPED on every deploy.');
+    console.error('   Set SUPABASE_DB_URL in Railway Variables and redeploy.');
+    // Do not exit — keep running so Railway shows the error in logs
+    // but log it very loudly every minute
+    setInterval(() => {
+      console.error('🚨 NO PERSISTENT DATABASE — DATA IS NOT BEING SAVED');
+    }, 60000);
+  } else if (process.env.NODE_ENV === 'production') {
+    console.warn('⚠️  SQLite fallback in production — data will not persist across restarts');
   } else {
     console.log('📁 Database: Local SQLite (dev mode)');
   }
