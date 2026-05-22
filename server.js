@@ -539,8 +539,7 @@ initDBWithRetry().then(() => {
               to:      run.client_email,
               subject: (run.subject || 'Following up').replace('{client_name}', run.client_name || 'there'),
               text:    body,
-              html:    `<div style="font-family:sans-serif;max-width:600px;margin:0 auto"><p>${body.replace(/
-/g,'<br>')}</p><hr><p style="color:#999;font-size:11px">Powered by Revanew · Unsubscribe</p></div>`,
+              html:    '<div style="font-family:sans-serif;max-width:600px;margin:0 auto"><p>' + body.split('\n').join('<br>') + '</p><hr><p style="color:#999;font-size:11px">Powered by Revanew · Unsubscribe</p></div>',
             });
             await db.execute(`UPDATE automation_runs SET status = 'sent', sent_at = ? WHERE id = ?`, [new Date().toISOString(), run.id]);
             console.log(`✅ Automation run ${run.id} sent to ${run.client_email}`);
