@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db/schema.js';
+import { requirePlanFeature } from '../middleware/planGuard.js';
 import { v4 as uuid } from 'uuid';
 
 const router = Router();

@@ -71,20 +71,30 @@ export default function Dashboard() {
     setLoading(true);
     Promise.all([
       api.invoices.dashboard(account.id).catch(() => null),
-      api.quotes.list(account.id).catch(() => ({ quotes: [] })),
-      api.invoices.list(account.id).catch(() => ({ invoices: [] })),
+      api.quotes.list(account.id).catch(() => []),
+      api.invoices.list(account.id).catch(() => []),
     ]).then(([s, q, inv]) => {
+      // Normalize API field names for backwards compatibility
+      if (s && s.total_collected !== undefined && s.collected_all_time === undefined) {
+        s.collected_all_time = s.total_collected;
+      }
+      if (s && s.this_month_invoiced !== undefined && s.invoiced_this_month === undefined) {
+        s.invoiced_this_month = s.this_month_invoiced;
+      }
       setStats(s);
-      setQuotes((q?.quotes || []).slice(0, 5));
-      setInvoices((inv?.invoices || []).filter(i => i.status !== 'paid' && i.status !== 'cancelled').slice(0, 5));
+      // API returns plain arrays
+      const quoteArr   = Array.isArray(q) ? q : (q?.quotes || []);
+      const invoiceArr = Array.isArray(inv) ? inv : (inv?.invoices || []);
+      setQuotes(quoteArr.slice(0, 5));
+      setInvoices(invoiceArr.filter(i => i.status !== 'paid' && i.status !== 'cancelled').slice(0, 5));
       setLoading(false);
     });
   }, [account?.id]);
 
   const statCards = [
-    { label: 'Collected',    value: fmt(stats?.collected_all_time  || 0), sub: 'all time',         icon: DollarSign, gradient: '#0D9488', delay: 0 },
-    { label: 'Outstanding',  value: fmt(stats?.total_outstanding   || 0), sub: 'across all invoices', icon: AlertCircle, gradient: 'linear-gradient(90deg,#00E5C8,#4B7BFF)', delay: 50 },
-    { label: 'This month',   value: fmt(stats?.invoiced_this_month || 0), sub: 'invoiced',          icon: TrendingUp, gradient: 'linear-gradient(90deg,#4B7BFF,#7B4FE8)', delay: 100 },
+    { label: 'Collected',    value: fmt(stats?.total_collected  || 0), sub: 'all time',         icon: DollarSign, gradient: '#0D9488', delay: 0 },
+    { label: 'Outstanding',  value: fmt(stats?.total_outstanding   || 0), sub: 'across all invoices', icon: AlertCircle, gradient: 'linear-gradient(90deg,#2563EB,#0D9488)', delay: 50 },
+    { label: 'This month',   value: fmt(stats?.this_month_invoiced || 0), sub: 'invoiced',          icon: TrendingUp, gradient: 'linear-gradient(90deg,#7C3AED,#2563EB)', delay: 100 },
     { label: 'Total quotes', value: stats?.total_quotes || 0,             sub: `${stats?.total_invoices||0} invoices`, icon: FileText, gradient: '#7C3AED', delay: 150 },
   ];
 
@@ -111,7 +121,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-2">
           <button onClick={() => navigate('/quotes/new')}
             className="flex items-center gap-2 text-white font-bold rounded-xl"
-            style={{ background: 'linear-gradient(135deg, #00E5C8, #4B7BFF)', padding: '10px 20px', fontSize: 13, border: 'none', cursor: 'pointer', boxShadow: '0 4px 14px rgba(75,123,255,0.35)' }}>
+            style={{ background: 'var(--gradient)', padding: '10px 20px', fontSize: 13, border: 'none', cursor: 'pointer', boxShadow: '0 4px 14px rgba(37,99,235,0.35)' }}>
             <Plus size={15} /> New quote
           </button>
         </div>
@@ -162,7 +172,7 @@ export default function Dashboard() {
               <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>No quotes yet</p>
               <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>Create your first quote to get started.</p>
               <button onClick={() => navigate('/quotes/new')}
-                style={{ fontSize: 12, fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #00E5C8, #4B7BFF)', border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                style={{ fontSize: 12, fontWeight: 700, color: '#fff', background: 'var(--gradient)', border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <Plus size={12} /> New quote
               </button>
             </div>

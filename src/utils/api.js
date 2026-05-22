@@ -72,7 +72,7 @@ export const api = {
     create:    (body)      => req('POST',   '/quotes', body),
     update:    (id, body)  => req('PATCH',  `/quotes/${id}`, body),
     convert:   (id)        => req('POST',   `/quotes/${id}/convert`),
-    accept:    (token)     => req('POST',   `/quotes/public/${token}/accept`),
+    accept:    (token, body={}) => req('POST', `/quotes/public/${token}/accept`, body),
     delete:    (id)        => req('DELETE', `/quotes/${id}`),
   },
   invoices: {
