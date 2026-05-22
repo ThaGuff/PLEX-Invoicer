@@ -82,7 +82,7 @@ export default function QuotesList() {
       </div>
 
       {/* Stats row */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, marginBottom:16 }} className="animate-fade-up-delay-1">
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:8, marginBottom:16 }} className="animate-fade-up-delay-1">
         {[
           { label:'Total', value:total, color:'#7B4FE8', bg:'linear-gradient(90deg,#7B4FE8,#4B7BFF)' },
           { label:'Pending', value:pending, color:'#f59e0b', bg:'#f59e0b' },

@@ -22,7 +22,7 @@ import BillingPage from './pages/BillingPage';
 import Onboarding from './pages/Onboarding';
 import AutomationsPage from './pages/AutomationsPage';
 import AnalyticsPage  from './pages/AnalyticsPage';
-import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield, BarChart2, Sun, Moon } from 'lucide-react';
 import { IdleWarningBanner, SessionExpiredModal } from './components/SessionModals';
 
 
@@ -86,6 +86,7 @@ function Nav() {
   const loc = useLocation();
   const isOwner = user?.email === 'guffey.ryan@gmail.com' || user?.id === 'dev-user';
 
+  // Mobile nav shows top 5; desktop shows all
   const links = [
     { to: '/',              label: 'Dashboard',   icon: LayoutDashboard, short: 'Home',    color: '#00E5C8' },
     { to: '/quotes',        label: 'Quotes',      icon: FileText,        short: 'Quotes',  color: '#4B7BFF' },
@@ -96,6 +97,8 @@ function Nav() {
     { to: '/billing',       label: 'Billing',     icon: CreditCard,      short: 'Billing', color: '#7B4FE8' },
     ...(isOwner ? [{ to: '/admin', label: 'Admin', icon: Shield, short: 'Admin', color: '#ef4444' }] : []),
   ];
+  // Mobile bottom nav: Home, Quotes, Invoices, Clients, More (Automate)
+  const mobileLinks = links.slice(0, 5);
 
   const isActive = (to) => to === '/' ? loc.pathname === '/' : loc.pathname.startsWith(to);
 
@@ -133,7 +136,7 @@ function Nav() {
 
       {/* Mobile bottom nav — larger, gradient active pill */}
       <div className="mobile-nav">
-        {links.slice(0, 5).map(l => {
+        {mobileLinks.map(l => {
           const active = isActive(l.to);
           return (
             <NavLink key={l.to} to={l.to}
@@ -182,9 +185,9 @@ function AppShell({ children }) {
   );
 
   return (
-    <div className="min-h-screen" style={{ background: '#F5F7F8' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-page)', overflowX: 'hidden', maxWidth: '100vw' }}>
       {/* Desktop / Mobile header */}
-      <header className="bg-white border-b sticky top-0 z-40" style={{ borderColor: '#E5E8EB' }}>
+      <header className="border-b sticky top-0 z-40" style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', maxWidth: '100vw', overflowX: 'hidden' }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-5 h-16 flex items-center gap-3">
           {/* Logo */}
           <div className="flex items-center gap-2.5 shrink-0">
@@ -209,6 +212,15 @@ function AppShell({ children }) {
 
           {/* Right actions */}
           <div className="ml-auto flex items-center gap-2">
+            {/* Dark mode toggle */}
+            <button
+              onClick={() => setDark(d => !d)}
+              title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+              style={{ width:36, height:36, borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center', border:'0.5px solid var(--border)', background:'var(--bg-page)', cursor:'pointer', color:'var(--text-secondary)', transition:'all 0.2s', flexShrink:0 }}
+              onMouseEnter={e => { e.currentTarget.style.background='var(--bg-raised)'; e.currentTarget.style.color='var(--text-primary)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background='var(--bg-page)'; e.currentTarget.style.color='var(--text-secondary)'; }}>
+              {dark ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
             <NavLink to="/quotes/new"
               className="hidden sm:flex items-center gap-2 text-white rounded-xl"
               style={{ background: 'linear-gradient(135deg, #00E5C8, #4B7BFF, #7B4FE8)', fontSize:'13px', fontWeight:700, padding:'9px 18px', boxShadow: '0 4px 14px rgba(75,123,255,0.4)', letterSpacing:'-0.01em' }}>
@@ -267,7 +279,25 @@ function AppShell({ children }) {
   );
 }
 
+function useDarkMode() {
+  const [dark, setDark] = React.useState(() => {
+    const stored = localStorage.getItem('revanew_theme');
+    if (stored) return stored === 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  React.useEffect(() => {
+    const root = document.documentElement;
+    if (dark) { root.classList.add('dark'); }
+    else       { root.classList.remove('dark'); }
+    localStorage.setItem('revanew_theme', dark ? 'dark' : 'light');
+  }, [dark]);
+
+  return [dark, setDark];
+}
+
 export default function App() {
+  const [dark, setDark] = useDarkMode();
   return (
     <ErrorBoundary>
     <BrowserRouter>

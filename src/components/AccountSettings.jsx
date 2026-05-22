@@ -296,6 +296,44 @@ function SectionBlock({ accountId, section, items, onRename, onDelete, onItemAdd
 }
 
 // ── Main AccountSettings ──────────────────────────────────────────
+
+function EmailStatus() {
+  const [status, setStatus] = React.useState(null);
+  const token = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
+
+  React.useEffect(() => {
+    fetch('/api/admin/email-status', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json()).then(setStatus).catch(() => {});
+  }, []);
+
+  if (!status) return null;
+
+  const items = [
+    { key: 'email', label: '📧 Email (SMTP)', data: status.email },
+    { key: 'sms',   label: '💬 SMS (Twilio)', data: status.sms },
+    { key: 'ai',    label: '🤖 AI (OpenAI)',  data: status.ai },
+  ];
+
+  return (
+    <div style={{ margin: '0 20px 16px', borderRadius: 12, overflow: 'hidden', border: '0.5px solid var(--border)' }}>
+      <div style={{ padding: '10px 14px', background: 'var(--bg-page)', borderBottom: '0.5px solid var(--border)' }}>
+        <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.9px' }}>Integrations status</p>
+      </div>
+      {items.map(({ key, label, data }) => (
+        <div key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 14px', borderBottom: '0.5px solid var(--border-subtle)' }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: data.configured ? '#00E5C8' : '#f59e0b', flexShrink: 0, marginTop: 4 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>{label}</p>
+            <p style={{ fontSize: 11, color: data.configured ? '#00E5C8' : 'var(--text-muted)', lineHeight: 1.5 }}>
+              {data.configured ? '✓ Connected' : data.instructions}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function AccountSettings({ onClose }) {
   const { account, activeId, updateAccount, refreshAccount } = useAccount();
   const accent = account?.primary_color || '#13B5EA';

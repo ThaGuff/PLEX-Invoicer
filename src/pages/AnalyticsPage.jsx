@@ -10,8 +10,6 @@ import {
   AlertCircle, BarChart2, RefreshCw, Zap, DollarSign,
   ArrowUp, ArrowDown, Minus,
 } from 'lucide-react';
-import PlanGate from '../components/PlanGate';
-import { canUseFeature } from '../utils/planFeatures';
 
 const fmt  = n => '$' + Math.round(n||0).toLocaleString();
 const pct  = n => Math.round((n||0)*10)/10 + '%';
@@ -71,8 +69,6 @@ function QuoteRow({ q }) {
 
 export default function AnalyticsPage() {
   const { account } = useAccount();
-  const plan = account?.plan || 'starter';
-
   const [quotes,  setQuotes]  = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -81,8 +77,9 @@ export default function AnalyticsPage() {
     setLoading(true);
     try {
       const q = await api.quotes.list(account.id);
-      setQuotes(q?.quotes || []);
-    } catch {}
+      // API returns a plain array
+      setQuotes(Array.isArray(q) ? q : q?.quotes || []);
+    } catch(e) { console.error('Analytics load error:', e); }
     setLoading(false);
   }, [account?.id]);
 
@@ -117,13 +114,7 @@ export default function AnalyticsPage() {
   });
   const topList = Object.entries(topServices).sort((a,b)=>b[1].revenue-a[1].revenue).slice(0,5);
 
-  if (!canUseFeature(plan, 'cashflow_dashboard')) {
-    return (
-      <div style={{ maxWidth:680, margin:'0 auto', padding:'40px 16px' }}>
-        <PlanGate feature="cashflow_dashboard" />
-      </div>
-    );
-  }
+  // Analytics shown for all plans
 
   return (
     <div style={{ maxWidth:1280, margin:'0 auto', padding:'24px 16px' }}>
@@ -138,12 +129,12 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Metric cards */}
-      <div className="grid-auto-stack mb-6" style={{ gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:7 }}>
+      <div className="grid-auto-stack mb-6" style={{ gap:7 }}>
         {metrics.map(m => <MetricCard key={m.label} {...m} />)}
       </div>
 
       {/* Main grid */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 340px', gap:16 }} className="animate-fade-up-delay-2">
+      <div style={{ display:'grid', gridTemplateColumns:'minmax(0, 1fr)', gap:12 }} className="animate-fade-up-delay-2 md:grid-cols-analytics">
 
         {/* Quote funnel table */}
         <div className="glow-card overflow-hidden">

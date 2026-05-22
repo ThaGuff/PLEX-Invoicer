@@ -84,7 +84,7 @@ export default function InvoicesList() {
       </div>
 
       {/* Stats */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, marginBottom:16 }} className="animate-fade-up-delay-1">
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:8, marginBottom:16 }} className="animate-fade-up-delay-1">
         {[
           { label:'Collected',    value:fmt(stats.collected),    bg:'#00E5C8' },
           { label:'Outstanding',  value:fmt(stats.outstanding),  bg:'linear-gradient(90deg,#00E5C8,#4B7BFF)' },

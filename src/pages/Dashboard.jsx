@@ -139,13 +139,13 @@ export default function Dashboard() {
       {/* Quick actions */}
       <div className="mb-6 animate-fade-up-delay-2">
         <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.9px', marginBottom: 12 }}>Quick actions</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 150px), 1fr))', gap: 10 }}>
           {quickActions.map(a => <QuickAction key={a.label} {...a} />)}
         </div>
       </div>
 
       {/* Main content grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }} className="animate-fade-up-delay-3">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 440px), 1fr))', gap: 12 }} className="animate-fade-up-delay-3">
 
         {/* Recent quotes */}
         <div className="glow-card overflow-hidden">

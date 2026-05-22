@@ -520,6 +520,34 @@ async function generateWelcomePDF({ displayName, businessName, loginUrl, support
   } catch { /* ignore */ }
 })();
 
+// ── GET /api/admin/email-status ─────────────────────────────────
+router.get('/email-status', async (req, res) => {
+  const smtpConfigured = !!(process.env.SMTP_HOST && process.env.SMTP_USER);
+  const twilioConfigured = !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN);
+  const openaiConfigured = !!(process.env.OPENAI_API_KEY);
+  
+  res.json({
+    email: {
+      configured: smtpConfigured,
+      host: process.env.SMTP_HOST || null,
+      from: process.env.SMTP_FROM || process.env.SMTP_USER || null,
+      instructions: smtpConfigured ? 'SMTP email is configured and ready.' : 
+        'To enable email: add SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_FROM to Railway variables. ' +
+        'Recommended: use Gmail App Password, Mailgun, or SendGrid.',
+    },
+    sms: {
+      configured: twilioConfigured,
+      instructions: twilioConfigured ? 'Twilio SMS is configured.' :
+        'To enable SMS: add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE to Railway variables.',
+    },
+    ai: {
+      configured: openaiConfigured,
+      instructions: openaiConfigured ? 'OpenAI AI features enabled.' :
+        'To enable AI features: add OPENAI_API_KEY to Railway variables.',
+    },
+  });
+});
+
 export default router;
 
 // ── Account suspension ────────────────────────────────────────────
