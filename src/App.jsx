@@ -160,6 +160,20 @@ function Nav() {
   );
 }
 
+// Crash-proof wrapper — if TrialBanner errors, app keeps running
+function SafeTrialBanner() {
+  const [failed, setFailed] = React.useState(false);
+  if (failed) return null;
+  try {
+    return <TrialBanner />;
+  } catch(e) {
+    console.warn('TrialBanner failed:', e.message);
+    setFailed(true);
+    return null;
+  }
+}
+
+
 function AppShell({ children }) {
   const { account, loading } = useAccount();
   const { user, signOut } = useAuth();
@@ -259,7 +273,7 @@ function AppShell({ children }) {
         {/* Accent stripe */}
         <div className="h-0.5" style={{ background: 'linear-gradient(90deg, #00C9B1, #3B6FE8, #6B3FD8)' }} />
       </header>
-      <TrialBanner />
+      <SafeTrialBanner />
 
       {/* Mobile FAB - new quote */}
       <NavLink to="/quotes/new" className="fab md:hidden" title="New quote">
