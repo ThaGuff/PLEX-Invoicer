@@ -85,6 +85,7 @@ function Nav() {
   const { user } = useAuth();
   const accent = account?.primary_color || '#13B5EA';
   const loc = useLocation();
+  const [showMobileMore, setShowMobileMore] = useState(false);
   const isOwner = user?.email === 'guffey.ryan@gmail.com' || user?.id === 'dev-user';
 
   // Mobile nav shows top 5; desktop shows all
@@ -156,34 +157,7 @@ function Nav() {
         </button>
       </div>
 
-      {/* Mobile More drawer */}
-      {showMobileMore && (
-        <>
-          <div style={{ position:'fixed', inset:0, zIndex:95, background:'rgba(11,18,32,0.4)', backdropFilter:'blur(2px)' }} onClick={() => setShowMobileMore(false)} />
-          <div style={{ position:'fixed', bottom:'calc(72px + env(safe-area-inset-bottom))', left:12, right:12, zIndex:96, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden', boxShadow:'0 -8px 40px rgba(11,18,32,0.25)' }}>
-            <div style={{ padding:'10px 16px 6px', borderBottom:'1px solid var(--border-subtle)' }}>
-              <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'1px' }}>More features</p>
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:0 }}>
-              {mobileMoreLinks.map(l => {
-                const active = isActive(l.to);
-                return (
-                  <NavLink key={l.to} to={l.to}
-                    onClick={() => setShowMobileMore(false)}
-                    style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:6, padding:'16px 8px', textDecoration:'none', transition:'background 0.15s', background: active ? `${l.color}10` : 'transparent' }}
-                    onMouseEnter={e => e.currentTarget.style.background='var(--bg-raised)'}
-                    onMouseLeave={e => e.currentTarget.style.background = active ? `${l.color}10` : 'transparent'}>
-                    <div style={{ width:44, height:44, borderRadius:13, display:'flex', alignItems:'center', justifyContent:'center', background: active ? `linear-gradient(135deg,${l.color},#6B3FD8)` : 'var(--bg-raised)', border:`1px solid ${active ? l.color+'44' : 'var(--border)'}`, boxShadow: active ? `0 4px 14px ${l.color}33` : 'none', transition:'all 0.2s' }}>
-                      <l.icon size={20} color={active ? '#fff' : l.color} strokeWidth={1.8} />
-                    </div>
-                    <span style={{ fontSize:11, fontWeight: active?700:500, color: active ? l.color : 'var(--text-secondary)', textAlign:'center', lineHeight:1.2 }}>{l.short}</span>
-                  </NavLink>
-                );
-              })}
-            </div>
-          </div>
-        </>
-      )}
+
     </>
   );
 }
@@ -205,7 +179,6 @@ function AppShell({ children }) {
   const [showSettings, setShowSettings] = useState(false);
   const [showNewAccount, setShowNewAccount] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showMobileMore, setShowMobileMore] = useState(false);
   const [dark, setDark] = useDarkMode();
   const accent = account?.primary_color || '#13B5EA';
 
