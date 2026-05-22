@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, Plus, Settings, Check, LogOut, Trash2 } from 'lucide-react';
+import { ChevronDown, Plus, Settings, Check, Trash2 } from 'lucide-react';
 import { useAccount } from '../context/AccountContext';
 
 export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
@@ -7,57 +7,60 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded border text-sm transition-colors "
-        style={{ borderColor: 'var(--border)' }}
-      >
-        {/* Account badge */}
-        <div
-          className="w-5 h-5 rounded flex items-center justify-center text-white text-xs font-bold shrink-0"
-          style={{ background: account?.primary_color || '#13B5EA' }}
-        >
-          {(account?.logo_initial || account?.name?.[0] || 'A').toUpperCase()}
+    <div style={{ position:'relative' }}>
+      {/* Trigger button */}
+      <button onClick={() => setOpen(o => !o)}
+        style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 12px', borderRadius:10, border:'1px solid var(--border)', background:'var(--bg-raised)', cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif", transition:'all 0.15s' }}
+        onMouseEnter={e => e.currentTarget.style.borderColor='var(--blue)'}
+        onMouseLeave={e => e.currentTarget.style.borderColor='var(--border)'}>
+        <div style={{ width:22, height:22, borderRadius:6, background:account?.primary_color||'linear-gradient(135deg,#3B6FE8,#6B3FD8)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:11, fontWeight:800, flexShrink:0 }}>
+          {(account?.logo_initial||account?.name?.[0]||'A').toUpperCase()}
         </div>
-        <span className="font-medium text-ink max-w-[120px] truncate">{account?.name}</span>
-        <ChevronDown size={13} className="text-ink-muted" />
+        <span style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', maxWidth:110, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{account?.name}</span>
+        <ChevronDown size={13} style={{ color:'var(--text-muted)', flexShrink:0 }} />
       </button>
 
       {open && (
         <>
-          <div style={{ position:"fixed", inset:0, zIndex:199 }} onClick={() => setOpen(false)} />
-          <div
-            style={{ position:"absolute", right:0, top:"calc(100% + 6px)", width:260, background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:12, boxShadow:"0 20px 60px rgba(11,18,32,0.2), 0 4px 16px rgba(11,18,32,0.1)", zIndex:200, overflow:"hidden" }}
-            style={{ borderColor: 'var(--border)' }}
-          >
-            <div className="px-3 py-2 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-              <p className="text-xs text-ink-muted font-medium uppercase tracking-wider">Accounts</p>
+          <div style={{ position:'fixed', inset:0, zIndex:199 }} onClick={() => setOpen(false)} />
+          <div style={{
+            position:'absolute', right:0, top:'calc(100% + 8px)',
+            width:264, zIndex:200, overflow:'hidden',
+            background:'var(--bg-surface)',
+            border:'1px solid var(--border)',
+            borderRadius:14,
+            boxShadow:'0 24px 64px rgba(11,18,32,0.18), 0 6px 20px rgba(11,18,32,0.1)',
+          }}>
+            {/* Header */}
+            <div style={{ padding:'10px 14px', background:'var(--bg-raised)', borderBottom:'1px solid var(--border-subtle)' }}>
+              <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.9px' }}>Accounts</p>
             </div>
 
-            <div className="max-h-52 overflow-y-auto">
+            {/* Account list */}
+            <div style={{ maxHeight:220, overflowY:'auto' }}>
               {accounts.map(acc => (
-                <button
-                  key={acc.id}
+                <button key={acc.id}
                   onClick={() => { switchAccount(acc.id); setOpen(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5  transition-colors text-left"
-                >
-                  <div
-                    className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold shrink-0"
-                    style={{ background: acc.primary_color || '#13B5EA' }}
-                  >
-                    {(acc.logo_initial || acc.name?.[0] || 'A').toUpperCase()}
+                  style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', background:'transparent', border:'none', cursor:'pointer', textAlign:'left', transition:'background 0.12s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
+                  onMouseEnter={e => e.currentTarget.style.background='var(--bg-page)'}
+                  onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                  <div style={{ width:28, height:28, borderRadius:8, background:acc.primary_color||'linear-gradient(135deg,#3B6FE8,#6B3FD8)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:12, fontWeight:800, flexShrink:0 }}>
+                    {(acc.logo_initial||acc.name?.[0]||'A').toUpperCase()}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-ink truncate">{acc.name}</p>
-                    <p className="text-xs text-ink-muted truncate">{acc.website || acc.email || ''}</p>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{acc.name}</p>
+                    <p style={{ fontSize:11, color:'var(--text-muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginTop:1 }}>{acc.website||acc.email||''}</p>
                   </div>
-                  {acc.id === account?.id && <Check size={13} style={{ color: '#13B5EA' }} />}
+                  {acc.id === account?.id && (
+                    <div style={{ width:18, height:18, borderRadius:'50%', background:'linear-gradient(135deg,#00C9B1,#3B6FE8)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      <Check size={10} color="#fff" />
+                    </div>
+                  )}
                   {acc.id !== 'plex-master' && acc.id !== account?.id && (
-                    <button
-                      onClick={e => { e.stopPropagation(); deleteAccount(acc.id); }}
-                      className="ml-auto text-gray-300 hover:text-red-400 transition-colors p-0.5"
-                    >
+                    <button onClick={e => { e.stopPropagation(); deleteAccount(acc.id); }}
+                      style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:2, borderRadius:4, transition:'color 0.12s', flexShrink:0 }}
+                      onMouseEnter={e => e.currentTarget.style.color='#ef4444'}
+                      onMouseLeave={e => e.currentTarget.style.color='var(--text-muted)'}>
                       <Trash2 size={12} />
                     </button>
                   )}
@@ -65,20 +68,22 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
               ))}
             </div>
 
-            <div className="border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-              <button
-                onClick={() => { setOpen(false); onNewAccount(); }}
-                className="w-full flex items-center gap-2 px-3 py-2.5  transition-colors text-left text-sm font-medium"
-                style={{ color: '#13B5EA' }}
-              >
-                <Plus size={14} />
+            {/* Footer actions */}
+            <div style={{ borderTop:'1px solid var(--border-subtle)' }}>
+              <button onClick={() => { setOpen(false); onNewAccount(); }}
+                style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', background:'transparent', border:'none', cursor:'pointer', textAlign:'left', fontSize:13, fontWeight:600, color:'var(--blue)', transition:'background 0.12s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
+                onMouseEnter={e => e.currentTarget.style.background='rgba(59,111,232,0.06)'}
+                onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                <div style={{ width:22, height:22, borderRadius:6, border:'1.5px dashed var(--blue)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <Plus size={12} style={{ color:'var(--blue)' }} />
+                </div>
                 Add account
               </button>
-              <button
-                onClick={() => { setOpen(false); onOpenSettings(); }}
-                className="w-full flex items-center gap-2 px-3 py-2.5  transition-colors text-left text-sm text-ink-muted"
-              >
-                <Settings size={14} />
+              <button onClick={() => { setOpen(false); onOpenSettings(); }}
+                style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', background:'transparent', border:'none', cursor:'pointer', textAlign:'left', fontSize:13, fontWeight:500, color:'var(--text-secondary)', transition:'background 0.12s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
+                onMouseEnter={e => e.currentTarget.style.background='var(--bg-page)'}
+                onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                <Settings size={14} style={{ color:'var(--text-muted)' }} />
                 Account settings
               </button>
             </div>

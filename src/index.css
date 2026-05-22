@@ -451,3 +451,150 @@
   .mobile-nav, .fab, .desktop-nav, header { display: none !important; }
   body { background: white; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE-FIRST INTERACTIVE SYSTEM
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* iOS-style pull-to-refresh feel */
+html { overscroll-behavior-y: contain; }
+
+/* Touch action optimizations */
+button, a, [role="button"] { -webkit-tap-highlight-color: rgba(59,111,232,0.12); touch-action: manipulation; }
+
+/* Mobile swipe card */
+.swipe-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative;
+  overflow: hidden;
+}
+.swipe-card:active {
+  transform: scale(0.98);
+  background: var(--bg-raised);
+}
+
+/* Row item — iOS List style */
+.list-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  min-height: 62px;
+  cursor: pointer;
+  transition: background 0.12s;
+  -webkit-tap-highlight-color: rgba(59,111,232,0.08);
+  text-decoration: none;
+}
+.list-item:active { background: var(--bg-raised); }
+.list-item:last-child { border-bottom: none; }
+
+/* Icon container — gradient square for list items */
+.list-icon {
+  width: 40px; height: 40px; min-width: 40px;
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Status pill */
+.status-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 700;
+  padding: 4px 10px; border-radius: 20px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+/* Amount display */
+.amount-display {
+  font-size: 22px; font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Section group container */
+.section-group {
+  margin-bottom: 24px;
+}
+.section-group-label {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-muted);
+  padding: 0 16px 8px;
+}
+.section-group-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* Mobile-only padding adjustments */
+@media (max-width: 767px) {
+  /* Pages get proper mobile padding */
+  .page-max { padding: 14px; }
+
+  /* Header should be shorter on mobile */
+  header { min-height: 58px; }
+
+  /* Stat cards should be 2-wide on small mobile */
+  .stats-2col { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Hide non-essential columns in tables */
+  .hide-mobile { display: none !important; }
+  
+  /* Full-width primary buttons on mobile */
+  .mobile-cta { width: 100% !important; }
+
+  /* Better spacing for stacked content */
+  .mobile-stack > * + * { margin-top: 12px; }
+
+  /* Compact list rows */
+  .list-item { padding: 12px 14px; min-height: 56px; }
+
+  /* Improve scrolling lists */
+  .scroll-x { 
+    overflow-x: auto; 
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .scroll-x::-webkit-scrollbar { display: none; }
+  
+  /* Horizontal chip row */
+  .chip-row {
+    display: flex; gap: 8px;
+    overflow-x: auto; padding: 4px 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .chip-row::-webkit-scrollbar { display: none; }
+  .chip-row .chip {
+    flex-shrink: 0;
+    padding: 7px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 600;
+    border: 1.5px solid var(--border);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    cursor: pointer; white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .chip-row .chip.active {
+    background: var(--gradient);
+    color: #fff; border-color: transparent;
+    box-shadow: 0 4px 12px rgba(59,111,232,0.35);
+  }
+}
+
+/* Animated counter */
+@keyframes countUp {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+.count-up { animation: countUp 0.4s ease both; }
+
