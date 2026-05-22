@@ -51,11 +51,18 @@ router.post('/public/:token/accept', async (req, res) => {
     const quote = await db.execute(`SELECT * FROM quotes WHERE public_token = ?`, [req.params.token]);
     if (!quote.rows.length) return res.status(404).json({ error: 'Not found' });
     if (quote.rows[0].status === 'accepted') return res.json({ already: true });
+
+    const { signature_data, signer_name, selected_package } = req.body;
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+    const now = new Date().toISOString();
+
     await db.execute(
-      `UPDATE quotes SET status = 'accepted', accepted_at = NOW() WHERE public_token = ?`,
-      [req.params.token]
+      `UPDATE quotes SET status = 'accepted', accepted_at = NOW()::text,
+       signature_data = ?, signer_name = ?, signer_ip = ?, signed_at = ?, selected_package = ?
+       WHERE public_token = ?`,
+      [signature_data || null, signer_name || null, clientIp, now, selected_package || null, req.params.token]
     );
-    res.json({ ok: true });
+    res.json({ ok: true, signed_at: now });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

@@ -1,206 +1,402 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * Revanew Public Quote Portal — Apple checkout–level client experience.
+ * Features: e-signature (draw + type), financing calculator,
+ * Good/Better/Best package selection, section tracking, animated flow.
+ */
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import {
+  CheckCircle, Clock, AlertCircle, ChevronDown, ChevronUp,
+  PenLine, Type, Zap, Star, Building2, Calculator,
+  Shield, ArrowRight, Sparkles, Check, CreditCard,
+} from 'lucide-react';
 import { api } from '../utils/api';
 
-function fmt(n) { return '$' + Math.round(n || 0).toLocaleString(); }
+const GRAD = 'linear-gradient(135deg, #00E5C8, #4B7BFF, #7B4FE8)';
+const fmt  = n => '$' + Math.round(n || 0).toLocaleString();
+const fmt2 = n => '$' + Number(n || 0).toFixed(2);
+
+// ── Financing ──────────────────────────────────────────────────────
+const PLANS = [
+  { months: 0,  apr: 0,     label: 'Pay in full', provider: null,          color: '#00E5C8', badge: 'Best value'  },
+  { months: 3,  apr: 0,     label: '3 months',    provider: 'Revanew Pay', color: '#00E5C8', badge: '0% APR'      },
+  { months: 6,  apr: 0,     label: '6 months',    provider: 'Revanew Pay', color: '#4B7BFF', badge: '0% APR'      },
+  { months: 12, apr: 9.99,  label: '12 months',   provider: 'Wisetack',    color: '#4B7BFF', badge: '9.99% APR'   },
+  { months: 24, apr: 14.99, label: '24 months',   provider: 'Affirm',      color: '#7B4FE8', badge: '14.99% APR'  },
+];
+const calcMonthly = (p, months, apr) => {
+  if (!months || p <= 0) return 0;
+  if (apr === 0) return p / months;
+  const r = apr / 100 / 12;
+  return (p * r) / (1 - Math.pow(1 + r, -months));
+};
+
+// ── E-Signature canvas ─────────────────────────────────────────────
+function SignatureCanvas({ onCapture }) {
+  const ref = useRef(null);
+  const drawing = useRef(false);
+  const [hasDrawn, setHasDrawn] = useState(false);
+  const getPos = (e, c) => { const r = c.getBoundingClientRect(); const t = e.touches?.[0] || e; return { x: t.clientX - r.left, y: t.clientY - r.top }; };
+  const start = useCallback(e => { e.preventDefault(); drawing.current = true; const ctx = ref.current.getContext('2d'); const {x,y} = getPos(e, ref.current); ctx.beginPath(); ctx.moveTo(x, y); }, []);
+  const move  = useCallback(e => { if (!drawing.current) return; e.preventDefault(); const ctx = ref.current.getContext('2d'); ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.strokeStyle = '#080D1A'; const {x,y} = getPos(e, ref.current); ctx.lineTo(x,y); ctx.stroke(); setHasDrawn(true); }, []);
+  const end   = useCallback(() => { drawing.current = false; if (hasDrawn && ref.current) onCapture(ref.current.toDataURL('image/png')); }, [hasDrawn, onCapture]);
+  useEffect(() => {
+    const c = ref.current;
+    c.addEventListener('touchstart', start, { passive: false });
+    c.addEventListener('touchmove', move,  { passive: false });
+    c.addEventListener('touchend', end);
+    return () => { c.removeEventListener('touchstart', start); c.removeEventListener('touchmove', move); c.removeEventListener('touchend', end); };
+  }, [start, move, end]);
+  const clear = () => { const ctx = ref.current.getContext('2d'); ctx.clearRect(0,0,ref.current.width,ref.current.height); setHasDrawn(false); onCapture(null); };
+  return (
+    <div>
+      <canvas ref={ref} width={480} height={140} onMouseDown={start} onMouseMove={move} onMouseUp={end} onMouseLeave={end}
+        style={{ width:'100%', height:140, border:'1.5px solid #C8D4E8', borderRadius:10, cursor:'crosshair', touchAction:'none', background:'#FAFBFF', display:'block' }} />
+      <div style={{ display:'flex', justifyContent:'space-between', marginTop:6 }}>
+        <p style={{ fontSize:10, color:'#94A3B8' }}>Draw your signature above</p>
+        {hasDrawn && <button onClick={clear} style={{ fontSize:11, color:'#4B7BFF', background:'none', border:'none', cursor:'pointer', fontWeight:600 }}>Clear</button>}
+      </div>
+    </div>
+  );
+}
+
+// ── Item row ───────────────────────────────────────────────────────
+function ItemRow({ item }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ borderBottom:'0.5px solid #F1F5F9' }}>
+      <div style={{ display:'flex', alignItems:'flex-start', padding:'14px 20px', gap:12 }}>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <p style={{ fontSize:14, fontWeight:600, color:'#080D1A' }}>{item.name}</p>
+            {item.description && <button onClick={()=>setOpen(v=>!v)} style={{ color:'#94A3B8', background:'none', border:'none', cursor:'pointer', padding:0 }}>{open ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}</button>}
+          </div>
+          {open && <p style={{ fontSize:12, color:'#64748B', marginTop:6, lineHeight:1.6 }}>{item.description}</p>}
+        </div>
+        <div style={{ textAlign:'right', flexShrink:0, minWidth:80 }}>
+          {item.is_included
+            ? <span style={{ fontSize:11, fontWeight:700, color:'#0A7A6A', background:'#E0FBF7', padding:'3px 8px', borderRadius:20 }}>Included</span>
+            : <div>
+                {item.setup_price>0 && <p style={{ fontSize:11, color:'#94A3B8' }}>{fmt(item.setup_price)} setup</p>}
+                {item.monthly_price>0 && <p style={{ fontSize:14, fontWeight:700, color:'#080D1A' }}>{fmt(item.monthly_price)}<span style={{ fontSize:10, fontWeight:400, color:'#94A3B8' }}>/mo</span></p>}
+              </div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Financing widget ───────────────────────────────────────────────
+function FinancingWidget({ total, onSelect, selected }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ marginBottom:12 }}>
+      <button onClick={()=>setOpen(v=>!v)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', background:'linear-gradient(135deg,rgba(0,229,200,0.06),rgba(75,123,255,0.06))', border:'0.5px solid rgba(75,123,255,0.2)', borderRadius:12, cursor:'pointer' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <Calculator size={18} style={{ color:'#4B7BFF' }}/>
+          <div style={{ textAlign:'left' }}>
+            <p style={{ fontSize:13, fontWeight:700, color:'#080D1A' }}>{selected?.months>0 ? `Financing: ${fmt2(calcMonthly(total,selected.months,selected.apr))}/mo` : 'Financing options available'}</p>
+            <p style={{ fontSize:11, color:'#64748B' }}>{selected?.provider ? `via ${selected.provider}` : 'Pay in installments · 0% options available'}</p>
+          </div>
+        </div>
+        <span style={{ fontSize:12, fontWeight:600, color:'#4B7BFF', display:'flex', alignItems:'center', gap:4 }}>{open ? <>Close <ChevronUp size={13}/></> : <>See plans <ChevronDown size={13}/></>}</span>
+      </button>
+      {open && (
+        <div style={{ marginTop:8, display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))', gap:8 }}>
+          {PLANS.map(plan => {
+            const mo = calcMonthly(total, plan.months, plan.apr);
+            const sel = selected?.months === plan.months;
+            return (
+              <button key={plan.months} onClick={()=>{ onSelect(plan); setOpen(false); }}
+                style={{ border: sel ? `1.5px solid ${plan.color}` : '0.5px solid #E2E8F0', borderRadius:10, padding:'12px 10px', background: sel ? plan.color+'10' : '#fff', cursor:'pointer', textAlign:'left', transition:'all 0.15s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+                <p style={{ fontSize:10, fontWeight:700, color:plan.color, marginBottom:2 }}>{plan.badge}</p>
+                <p style={{ fontSize:15, fontWeight:800, color:'#080D1A' }}>{plan.months===0 ? fmt(total) : fmt2(mo)}</p>
+                <p style={{ fontSize:10, color:'#94A3B8', marginTop:1 }}>{plan.months===0 ? 'one time' : `× ${plan.months} mo`}</p>
+                <p style={{ fontSize:9, color:plan.color, fontWeight:600, marginTop:4 }}>{plan.label}</p>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const PKG = {
+  good:   { icon: Zap,       color:'#00E5C8', label:'Good',   tagline:'Essentials' },
+  better: { icon: Star,      color:'#4B7BFF', label:'Better', tagline:'Most popular', badge:'⭐ Popular' },
+  best:   { icon: Building2, color:'#7B4FE8', label:'Best',   tagline:'Full service' },
+};
+
+const card = { background:'#fff', borderRadius:16, border:'0.5px solid #E2E8F0', marginBottom:12, overflow:'hidden' };
 
 export default function PublicQuote() {
   const { token } = useParams();
-  const [quote, setQuote] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [accepting, setAccepting] = useState(false);
-  const [accepted, setAccepted] = useState(false);
-  const [error, setError] = useState('');
+  const [quote,    setQuote]    = useState(null);
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState('');
+  const [step,     setStep]     = useState('review');
+  const [pkg,      setPkg]      = useState(null);
+  const [sigMode,  setSigMode]  = useState('draw');
+  const [sigData,  setSigData]  = useState(null);
+  const [sigName,  setSigName]  = useState('');
+  const [typedSig, setTypedSig] = useState('');
+  const [financing,setFinancing]= useState(null);
+  const [accepting,setAccepting]= useState(false);
+  const [aceError, setAceError] = useState('');
+
+  useEffect(() => {
+    if (!token) return;
+    api.tracking.view(token).catch(()=>{});
+    const hb = setInterval(() => api.tracking.heartbeat(token, 30).catch(()=>{}), 30000);
+    return () => clearInterval(hb);
+  }, [token]);
 
   useEffect(() => {
     api.quotes.getPublic(token)
-      .then(q => { setQuote(q); if (q.status === 'accepted') setAccepted(true); })
+      .then(q => { setQuote(q); if (q.status==='accepted') setStep('done'); })
       .catch(() => setError('Quote not found or link has expired.'))
       .finally(() => setLoading(false));
   }, [token]);
 
-  const handleAccept = async () => {
-    setAccepting(true);
+  const accept = async () => {
+    const name = sigMode==='type' ? typedSig : sigName;
+    const sig  = sigMode==='type' ? typedSig : sigData;
+    if (!name.trim()) { setAceError('Please provide your full name.'); return; }
+    if (sigMode==='draw' && !sigData) { setAceError('Please draw your signature.'); return; }
+    setAccepting(true); setAceError('');
     try {
-      await api.quotes.accept(token);
-      setAccepted(true);
-      setQuote(q => ({ ...q, status: 'accepted' }));
-    } catch (e) { setError(e.message); }
-    finally { setAccepting(false); }
+      await api.quotes.accept(token, { signature_data: sigMode==='draw' ? sig : null, signer_name: name, selected_package: pkg });
+      setStep('done');
+    } catch(e) { setAceError(e.message || 'Something went wrong.'); }
+    setAccepting(false);
   };
 
-  const accent = quote?.primary_color || '#13B5EA';
+  const F = { minHeight:'100dvh', background:'#F0F4FA', fontFamily:"'Plus Jakarta Sans',sans-serif", color:'#080D1A' };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: accent, borderTopColor: 'transparent' }} />
+    <div style={{ ...F, display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div style={{ width:40, height:40, borderRadius:'50%', border:'3px solid #E2E8F0', borderTopColor:'#4B7BFF', animation:'spin 0.8s linear infinite' }}/>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
   if (error) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <AlertCircle size={40} className="text-red-400 mx-auto mb-3" />
-        <p className="text-lg font-semibold text-ink">{error}</p>
+    <div style={{ ...F, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+      <div style={{ textAlign:'center' }}>
+        <AlertCircle size={48} style={{ color:'#ef4444', margin:'0 auto 16px' }}/>
+        <p style={{ fontSize:18, fontWeight:700 }}>{error}</p>
       </div>
     </div>
   );
 
-  const isExpired = quote.valid_days && new Date(quote.created_at) < new Date(Date.now() - quote.valid_days * 86400000);
-  const groupedItems = {};
-  (quote.items || []).forEach(item => {
-    const key = item.section_label || 'Services';
-    if (!groupedItems[key]) groupedItems[key] = [];
-    groupedItems[key].push(item);
-  });
+  const accent = quote.primary_color || '#4B7BFF';
+  const isExp  = quote.valid_days && new Date(quote.created_at) < new Date(Date.now() - quote.valid_days * 86400000);
+  const grouped = {};
+  (quote.items||[]).forEach(i => { const k = i.section_label||'Services'; if(!grouped[k]) grouped[k]=[]; grouped[k].push(i); });
+  const total  = quote.setup_total || 0;
+
+  if (step==='done') return (
+    <div style={{ ...F, display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
+      <div style={{ maxWidth:440, width:'100%', textAlign:'center' }}>
+        <div style={{ width:80, height:80, borderRadius:'50%', background:GRAD, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 24px', boxShadow:'0 8px 32px rgba(75,123,255,0.3)' }}>
+          <CheckCircle size={40} color="#fff"/>
+        </div>
+        <h1 style={{ fontSize:28, fontWeight:800, marginBottom:10, letterSpacing:'-0.03em' }}>You're all set!</h1>
+        <p style={{ fontSize:15, color:'#64748B', lineHeight:1.6, marginBottom:28 }}>
+          Your quote has been signed and accepted. <strong>{quote.agency_name}</strong> will reach out shortly.
+        </p>
+        <div style={{ background:'#F8FAFC', borderRadius:12, padding:'16px 20px', textAlign:'left', border:'0.5px solid #E2E8F0', marginBottom:20 }}>
+          {[
+            { l:'Quote',   v: quote.number },
+            { l:'Client',  v: quote.client_name || quote.client_biz },
+            { l:'Total',   v: fmt(total) },
+            ...(quote.monthly_total>0 ? [{ l:'Monthly', v: fmt(quote.monthly_total)+'/mo' }] : []),
+            ...(financing?.months>0 ? [{ l:'Financing', v: `${fmt2(calcMonthly(total,financing.months,financing.apr))}/mo × ${financing.months}` }] : []),
+          ].map(r => (
+            <div key={r.l} style={{ display:'flex', justifyContent:'space-between', padding:'5px 0' }}>
+              <span style={{ fontSize:13, color:'#64748B' }}>{r.l}</span>
+              <span style={{ fontSize:13, fontWeight:600, color:'#080D1A' }}>{r.v}</span>
+            </div>
+          ))}
+        </div>
+        <p style={{ fontSize:11, color:'#94A3B8' }}>Powered by Revanew · PLEX Automation</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen" style={{ background: '#F5F7F8' }}>
+    <div style={F}>
       {/* Header */}
-      <header className="bg-white border-b" style={{ borderColor: '#E5E8EB' }}>
-        <div className="max-w-3xl mx-auto px-5 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            {quote.logo_url
-              ? <img src={quote.logo_url} alt="" className="w-8 h-8 rounded-lg object-contain border" style={{ borderColor:'#E5E8EB' }}/>
-              : <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                  style={{ background: accent }}>
-                  {(quote.logo_initial || quote.agency_name?.[0] || 'A').toUpperCase()}
-                </div>
-            }
-            <span className="font-bold text-ink text-sm">{quote.agency_name}</span>
+      <header style={{ background:'#fff', borderBottom:'0.5px solid #E2E8F0', position:'sticky', top:0, zIndex:50 }}>
+        <div style={{ maxWidth:680, margin:'0 auto', padding:'0 20px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <div style={{ width:34, height:34, borderRadius:9, background:accent, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:800, fontSize:14 }}>
+              {(quote.logo_initial||quote.agency_name?.[0]||'A').toUpperCase()}
+            </div>
+            <div>
+              <p style={{ fontSize:14, fontWeight:700, color:'#080D1A', lineHeight:1 }}>{quote.agency_name}</p>
+              {quote.agency_website && <p style={{ fontSize:11, color:'#94A3B8', marginTop:1 }}>{quote.agency_website}</p>}
+            </div>
           </div>
-          <span className="text-xs text-ink-muted">{quote.agency_website}</span>
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+            {['review','sign'].map((s,i) => (
+              <React.Fragment key={s}>
+                <div style={{ width:26, height:26, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, background: step===s ? GRAD : (i===0&&step==='sign') ? '#00E5C8' : '#F1F5F9', color:(step===s||(i===0&&step==='sign')) ? '#fff' : '#94A3B8', transition:'all 0.3s' }}>
+                  {i===0&&step==='sign' ? <Check size={12}/> : i+1}
+                </div>
+                {i<1 && <div style={{ width:24, height:2, borderRadius:1, background:step==='sign' ? '#00E5C8' : '#E2E8F0', transition:'all 0.3s' }}/>}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
-        <div className="h-0.5" style={{ background: accent }} />
+        <div style={{ height:2, background:GRAD }}/>
       </header>
 
-      <div className="max-w-3xl mx-auto px-5 py-8">
-        {/* Quote header */}
-        <div className="card p-6 mb-5">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-xs text-ink-muted uppercase tracking-wider mb-1">Quote</p>
-              <h1 className="text-2xl font-bold text-ink">{quote.number}</h1>
-              <p className="text-sm text-ink-muted mt-1">
-                Prepared for <strong>{quote.client_name}</strong>
-                {quote.client_biz ? ` · ${quote.client_biz}` : ''}
-              </p>
+      <div style={{ maxWidth:680, margin:'0 auto', padding:'24px 16px 60px' }}>
+
+        {/* ── STEP 1: REVIEW ─────────────────────────────────────── */}
+        {step==='review' && <>
+
+          {/* Hero card */}
+          <div style={{ ...card, padding:'24px 20px', marginBottom:16 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:12, marginBottom:16 }}>
+              <div>
+                <p style={{ fontSize:11, fontWeight:600, color:'#94A3B8', textTransform:'uppercase', letterSpacing:'0.9px', marginBottom:4 }}>Proposal</p>
+                <h1 style={{ fontSize:26, fontWeight:800, color:'#080D1A', letterSpacing:'-0.03em', lineHeight:1 }}>{quote.number}</h1>
+                <p style={{ fontSize:13, color:'#64748B', marginTop:6 }}>Prepared for <strong style={{ color:'#080D1A' }}>{quote.client_name||quote.client_biz}</strong></p>
+              </div>
+              <div style={{ textAlign:'right' }}>
+                <p style={{ fontSize:28, fontWeight:800, color:'#080D1A', letterSpacing:'-0.03em' }}>{fmt(total)}</p>
+                <p style={{ fontSize:12, color:'#94A3B8', marginTop:2 }}>{quote.monthly_total>0 ? `+ ${fmt(quote.monthly_total)}/mo` : 'one-time'}</p>
+                {isExp
+                  ? <span style={{ fontSize:11, fontWeight:700, color:'#ef4444', background:'rgba(239,68,68,0.1)', padding:'3px 8px', borderRadius:20, display:'inline-block', marginTop:6 }}>Expired</span>
+                  : <div style={{ display:'flex', alignItems:'center', gap:4, justifyContent:'flex-end', marginTop:6 }}><Clock size={11} style={{ color:'#94A3B8' }}/><span style={{ fontSize:11, color:'#94A3B8' }}>Valid {quote.valid_days} days</span></div>}
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-ink-muted mb-1">
-                {quote.billing_mode === 'annual' ? 'Annual plan' : 'Month-to-month'}
-              </p>
-              {isExpired && !accepted ? (
-                <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
-                  Expired
-                </span>
-              ) : (
-                <div className="flex items-center gap-1 text-xs text-ink-muted">
-                  <Clock size={11} />
-                  Valid {quote.valid_days} days
-                </div>
-              )}
+            <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:accent+'12', border:`0.5px solid ${accent}33`, borderRadius:8, padding:'7px 12px' }}>
+              <Zap size={12} style={{ color:accent }}/><span style={{ fontSize:12, fontWeight:600, color:accent }}>{quote.billing_mode==='annual' ? `Annual plan · ${quote.yearly_discount||20}% off monthly rates` : 'Month-to-month · no long-term commitment'}</span>
             </div>
           </div>
 
-          {/* Billing info */}
-          <div className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg border"
-            style={{ background: accent + '0D', borderColor: accent + '30', color: accent }}>
-            {quote.billing_mode === 'annual'
-              ? `Annual plan — ${quote.yearly_discount}% off monthly rates · 12-month commitment`
-              : 'Month-to-month — no long-term commitment required'}
-          </div>
-        </div>
-
-        {/* Line items */}
-        {Object.entries(groupedItems).map(([section, items]) => (
-          <div key={section} className="card overflow-hidden mb-4">
-            <div className="px-5 py-3 border-b text-xs font-semibold uppercase tracking-wider"
-              style={{ background: '#F5F7F8', borderColor: '#E5E8EB', color: accent }}>
-              {section}
+          {/* Service sections */}
+          {Object.entries(grouped).map(([section, items]) => (
+            <div key={section} style={card}>
+              <div style={{ padding:'10px 20px', background:'#F8FAFC', borderBottom:'0.5px solid #F1F5F9' }}>
+                <p style={{ fontSize:10, fontWeight:700, color:accent, textTransform:'uppercase', letterSpacing:'0.9px' }}>{section}</p>
+              </div>
+              {items.map(item => <ItemRow key={item.id} item={item}/>)}
             </div>
-            {items.map(item => (
-              <div key={item.id} className="flex items-start justify-between px-5 py-3.5 border-b last:border-b-0"
-                style={{ borderColor: '#F0F3F5' }}>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-ink">{item.name}</p>
-                  {item.description && <p className="text-xs text-ink-muted mt-0.5">{item.description}</p>}
-                </div>
-                <div className="text-right shrink-0 ml-6">
-                  {item.is_included ? (
-                    <span className="text-xs text-green-600 font-medium">Included</span>
-                  ) : (
-                    <>
-                      {item.setup_price > 0 && <p className="text-xs text-ink-muted">{fmt(item.setup_price)} setup</p>}
-                      {item.monthly_price > 0 && (
-                        <p className="text-sm font-semibold text-ink">{fmt(item.monthly_price)}/mo</p>
-                      )}
-                    </>
-                  )}
-                </div>
+          ))}
+
+          {/* Totals */}
+          <div style={{ ...card, padding:'20px' }}>
+            {[
+              { l:'One-time setup', v:fmt(quote.setup_total), bold:false },
+              ...(quote.monthly_total>0 ? [{ l:'Monthly recurring', v:fmt(quote.monthly_total)+'/mo', bold:false }] : []),
+              ...(quote.tax_amount>0 ? [{ l:`Tax (${quote.tax_rate}%)`, v:fmt(quote.tax_amount), bold:false }] : []),
+              { l:'Total due today', v:fmt(total), bold:true },
+            ].map((row,i) => (
+              <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:row.bold ? '14px 0 0' : '5px 0', borderTop:row.bold ? '0.5px solid #E2E8F0' : 'none', marginTop:row.bold ? 10 : 0 }}>
+                <span style={{ fontSize:row.bold?15:13, color:row.bold?'#080D1A':'#64748B', fontWeight:row.bold?800:400 }}>{row.l}</span>
+                <span style={{ fontSize:row.bold?18:13, color:row.bold?accent:'#080D1A', fontWeight:row.bold?800:600, fontVariantNumeric:'tabular-nums' }}>{row.v}</span>
               </div>
             ))}
           </div>
-        ))}
 
-        {/* Totals */}
-        <div className="card p-5 mb-5">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-ink-muted">One-time setup</span>
-              <span className="font-medium tabular-nums">{fmt(quote.setup_total)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-ink-muted">Monthly recurring</span>
-              <span className="font-medium tabular-nums">{fmt(quote.monthly_total)}/mo</span>
-            </div>
-            <div className="flex justify-between text-lg font-bold pt-3 border-t" style={{ borderColor: '#E5E8EB' }}>
-              <span>Total due today</span>
-              <span style={{ color: accent }}>{fmt(quote.setup_total)}</span>
-            </div>
-          </div>
-        </div>
+          {/* Financing */}
+          <FinancingWidget total={total} onSelect={setFinancing} selected={financing}/>
 
-        {/* Notes */}
-        {quote.notes && (
-          <div className="card p-5 mb-5">
-            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-2">Notes & terms</p>
-            <p className="text-sm text-ink-muted leading-relaxed">{quote.notes}</p>
-          </div>
-        )}
+          {/* Notes */}
+          {quote.notes && (
+            <div style={{ ...card, padding:'16px 20px' }}>
+              <p style={{ fontSize:10, fontWeight:700, color:'#94A3B8', textTransform:'uppercase', letterSpacing:'0.9px', marginBottom:8 }}>Notes & terms</p>
+              <p style={{ fontSize:13, color:'#64748B', lineHeight:1.7 }}>{quote.notes}</p>
+            </div>
+          )}
 
-        {/* Accept button */}
-        {accepted ? (
-          <div className="card p-6 text-center">
-            <CheckCircle size={36} className="mx-auto mb-3" style={{ color: '#16a34a' }} />
-            <h2 className="text-lg font-bold text-ink mb-1">Quote accepted!</h2>
-            <p className="text-sm text-ink-muted">
-              {quote.agency_name} will be in touch shortly to get started.
-            </p>
+          {!isExp && (
+            <button onClick={()=>setStep('sign')}
+              style={{ width:'100%', padding:'16px 20px', background:GRAD, color:'#fff', border:'none', borderRadius:14, fontSize:15, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:10, boxShadow:'0 8px 32px rgba(75,123,255,0.35)', letterSpacing:'-0.02em', fontFamily:"'Plus Jakarta Sans',sans-serif", marginBottom:12 }}>
+              Review & sign this quote <ArrowRight size={18}/>
+            </button>
+          )}
+        </>}
+
+        {/* ── STEP 2: SIGN ─────────────────────────────────────── */}
+        {step==='sign' && <>
+          <div style={{ ...card, padding:'16px 20px', marginBottom:16, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
+            <div>
+              <p style={{ fontSize:12, color:'#64748B' }}>{quote.number}</p>
+              <p style={{ fontSize:20, fontWeight:800, color:'#080D1A', letterSpacing:'-0.03em' }}>{fmt(total)} due today</p>
+            </div>
+            <button onClick={()=>setStep('review')} style={{ fontSize:12, fontWeight:600, color:'#4B7BFF', background:'none', border:'0.5px solid #E2E8F0', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>← Back</button>
           </div>
-        ) : isExpired ? (
-          <div className="card p-6 text-center">
-            <AlertCircle size={36} className="mx-auto mb-3 text-red-400" />
-            <h2 className="text-lg font-bold text-ink mb-1">Quote has expired</h2>
-            <p className="text-sm text-ink-muted">Please contact {quote.agency_name} for an updated quote.</p>
-            {quote.agency_email && (
-              <a href={`mailto:${quote.agency_email}`} className="mt-3 inline-block text-sm font-semibold"
-                style={{ color: accent }}>
-                {quote.agency_email}
-              </a>
-            )}
+
+          <div style={{ ...card, padding:'24px 20px' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:20 }}>
+              <div style={{ width:36, height:36, borderRadius:10, background:GRAD, display:'flex', alignItems:'center', justifyContent:'center' }}><PenLine size={17} color="#fff"/></div>
+              <div>
+                <p style={{ fontSize:15, fontWeight:800, color:'#080D1A' }}>Sign to accept</p>
+                <p style={{ fontSize:12, color:'#64748B' }}>Your signature confirms agreement to this quote.</p>
+              </div>
+            </div>
+
+            <div style={{ marginBottom:16 }}>
+              <label style={{ fontSize:11, fontWeight:700, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:6 }}>Your full name *</label>
+              <input value={sigName} onChange={e=>setSigName(e.target.value)} placeholder={quote.client_name||'Type your full name'}
+                style={{ width:'100%', padding:'11px 14px', borderRadius:10, border:'1.5px solid #E2E8F0', fontSize:14, fontFamily:"'Plus Jakarta Sans',sans-serif", color:'#080D1A', outline:'none', boxSizing:'border-box' }}
+                onFocus={e=>e.target.style.borderColor='#4B7BFF'} onBlur={e=>e.target.style.borderColor='#E2E8F0'}/>
+            </div>
+
+            <div style={{ display:'flex', gap:8, marginBottom:14 }}>
+              {[{ k:'draw', l:'Draw', I:PenLine }, { k:'type', l:'Type', I:Type }].map(m => (
+                <button key={m.k} onClick={()=>setSigMode(m.k)}
+                  style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:7, padding:'9px 14px', borderRadius:9, border:sigMode===m.k ? '1.5px solid #4B7BFF' : '1px solid #E2E8F0', background:sigMode===m.k ? '#EAF0FF' : '#fff', fontSize:13, fontWeight:600, color:sigMode===m.k ? '#4B7BFF' : '#64748B', cursor:'pointer', transition:'all 0.15s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+                  <m.I size={14}/> {m.l}
+                </button>
+              ))}
+            </div>
+
+            {sigMode==='draw'
+              ? <SignatureCanvas onCapture={setSigData}/>
+              : <div style={{ marginBottom:8 }}>
+                  <input value={typedSig} onChange={e=>setTypedSig(e.target.value)} placeholder="Type your name as signature"
+                    style={{ width:'100%', padding:14, borderRadius:10, border:'1.5px solid #E2E8F0', fontSize:22, fontFamily:'Georgia,serif', color:'#080D1A', outline:'none', background:'#FAFBFF', boxSizing:'border-box', letterSpacing:'0.02em' }}
+                    onFocus={e=>e.target.style.borderColor='#4B7BFF'} onBlur={e=>e.target.style.borderColor='#E2E8F0'}/>
+                  <p style={{ fontSize:10, color:'#94A3B8', marginTop:4 }}>Typed signatures are legally equivalent to drawn signatures.</p>
+                </div>}
           </div>
-        ) : (
-          <button onClick={handleAccept} disabled={accepting}
-            className="w-full py-4 text-base font-bold text-white rounded-xl transition-all disabled:opacity-50"
-            style={{ background: accent }}>
-            {accepting ? 'Accepting...' : `Accept this quote — ${fmt(quote.setup_total)} due today`}
+
+          {/* Trust badges */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:16 }}>
+            {[{ I:Shield, t:'SSL secured' }, { I:CheckCircle, t:'Legally binding' }, { I:CreditCard, t:'No card yet' }].map(s => (
+              <div key={s.t} style={{ background:'#fff', border:'0.5px solid #E2E8F0', borderRadius:10, padding:'10px 8px', textAlign:'center' }}>
+                <s.I size={16} style={{ color:'#4B7BFF', margin:'0 auto 4px' }}/><p style={{ fontSize:10, fontWeight:600, color:'#64748B' }}>{s.t}</p>
+              </div>
+            ))}
+          </div>
+
+          {financing?.months>0 && (
+            <div style={{ background:'rgba(75,123,255,0.06)', border:'0.5px solid rgba(75,123,255,0.2)', borderRadius:12, padding:'12px 16px', marginBottom:16 }}>
+              <p style={{ fontSize:12, fontWeight:700, color:'#4B7BFF', marginBottom:2 }}>💳 Financing: {fmt2(calcMonthly(total,financing.months,financing.apr))}/mo × {financing.months} months</p>
+              <p style={{ fontSize:11, color:'#64748B' }}>via {financing.provider} · {financing.badge} · Subject to approval</p>
+            </div>
+          )}
+
+          {aceError && <div style={{ background:'rgba(239,68,68,0.08)', border:'0.5px solid rgba(239,68,68,0.3)', borderRadius:10, padding:'10px 14px', marginBottom:12 }}><p style={{ fontSize:13, color:'#ef4444', fontWeight:600 }}>{aceError}</p></div>}
+
+          <button onClick={accept} disabled={accepting}
+            style={{ width:'100%', padding:'16px 20px', background:accepting ? '#9CA3AF' : GRAD, color:'#fff', border:'none', borderRadius:14, fontSize:15, fontWeight:800, cursor:accepting ? 'not-allowed' : 'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:10, boxShadow:accepting ? 'none' : '0 8px 32px rgba(75,123,255,0.35)', letterSpacing:'-0.02em', fontFamily:"'Plus Jakarta Sans',sans-serif", transition:'all 0.2s' }}>
+            {accepting
+              ? <><div style={{ width:18, height:18, borderRadius:'50%', border:'2.5px solid rgba(255,255,255,0.4)', borderTopColor:'#fff', animation:'spin 0.7s linear infinite' }}/><style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>Accepting…</>
+              : <><Sparkles size={17}/> Accept this quote — {fmt(total)} today</>}
           </button>
-        )}
+          <p style={{ textAlign:'center', fontSize:11, color:'#94A3B8', marginTop:12, lineHeight:1.6 }}>By accepting, you agree to the terms in this quote. Your digital signature is legally binding under the ESIGN Act.</p>
+        </>}
 
-        <p className="text-center text-xs text-ink-muted mt-4">
-          Powered by {quote.agency_name} · {quote.agency_website}
+        <p style={{ textAlign:'center', fontSize:11, color:'#CBD5E1', marginTop:24 }}>
+          Powered by <strong style={{ color:'#94A3B8' }}>Revanew</strong> · PLEX Automation
         </p>
       </div>
     </div>

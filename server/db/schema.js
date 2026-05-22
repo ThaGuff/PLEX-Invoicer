@@ -384,6 +384,22 @@ export async function initSchemaV2() {
   }
 
 
+  // ── Add signature columns to quotes ────────────────────────────
+  const sigCols = [
+    `ALTER TABLE quotes ADD COLUMN IF NOT EXISTS signature_data TEXT`,
+    `ALTER TABLE quotes ADD COLUMN IF NOT EXISTS signer_name TEXT`,
+    `ALTER TABLE quotes ADD COLUMN IF NOT EXISTS signer_ip TEXT`,
+    `ALTER TABLE quotes ADD COLUMN IF NOT EXISTS signed_at TEXT`,
+    `ALTER TABLE quotes ADD COLUMN IF NOT EXISTS deposit_paid REAL DEFAULT 0`,
+    `ALTER TABLE quotes ADD COLUMN IF NOT EXISTS deposit_stripe_id TEXT`,
+    `ALTER TABLE quotes ADD COLUMN IF NOT EXISTS selected_package TEXT`,
+  ];
+  for (const sql of sigCols) {
+    try { await db.execute(sql); } catch(e) {
+      if (!e.message?.includes('already exists') && !e.message?.includes('duplicate')) throw e;
+    }
+  }
+
   // ── Automation sequences ────────────────────────────────────────
   await db.execute(`CREATE TABLE IF NOT EXISTS automation_sequences (
     id          TEXT PRIMARY KEY,

@@ -21,7 +21,8 @@ import TaxesPage from './pages/TaxesPage';
 import BillingPage from './pages/BillingPage';
 import Onboarding from './pages/Onboarding';
 import AutomationsPage from './pages/AutomationsPage';
-import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield } from 'lucide-react';
+import AnalyticsPage  from './pages/AnalyticsPage';
+import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield, BarChart2 } from 'lucide-react';
 import { IdleWarningBanner, SessionExpiredModal } from './components/SessionModals';
 
 
@@ -91,7 +92,7 @@ function Nav() {
     { to: '/invoices',      label: 'Invoices',    icon: Receipt,         short: 'Invoice', color: '#7B4FE8' },
     { to: '/contacts',      label: 'Clients',     icon: Users,           short: 'Clients', color: '#00E5C8' },
     { to: '/automations',   label: 'Automate',    icon: Zap,             short: 'Auto',    color: '#f59e0b' },
-    { to: '/taxes',         label: 'Taxes',       icon: Receipt,         short: 'Taxes',   color: '#4B7BFF' },
+    { to: '/analytics',     label: 'Analytics',   icon: BarChart2,       short: 'Stats',   color: '#4B7BFF' },
     { to: '/billing',       label: 'Billing',     icon: CreditCard,      short: 'Billing', color: '#7B4FE8' },
     ...(isOwner ? [{ to: '/admin', label: 'Admin', icon: Shield, short: 'Admin', color: '#ef4444' }] : []),
   ];
@@ -299,6 +300,7 @@ export default function App() {
                     <Route path="/billing"         element={<BillingPage />} />
                     <Route path="/onboarding"      element={<Onboarding />} />
                     <Route path="/automations"     element={<AutomationsPage />} />
+                    <Route path="/analytics"       element={<AnalyticsPage />} />
                   </Routes>
                 </AppShell>
               </AccountProvider>
