@@ -31,6 +31,7 @@ const app = express();
 app.set('trust proxy', 1); // 1 = trust exactly Railway's single nginx proxy hop
 
 // ── Security headers (helmet) ─────────────────────────────────────
+// ── Security headers ─────────────────────────────────────────────
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -261,9 +262,23 @@ app.post('/api/webhooks/stripe', async (req, res) => {
 });
 
 // ── OpenAI scraper proxy (no auth required — uses server API key only) ───
-app.post('/api/scrape', async (req, res) => {
+app.post('/api/scrape', requireAuth, strictLimiter, async (req, res) => {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'url required' });
+  // SSRF prevention: only allow http/https public URLs
+  try {
+    const parsed = new URL(url);
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return res.status(400).json({ error: 'Only http/https URLs allowed' });
+    }
+    const hostname = parsed.hostname;
+    // Block internal/private addresses
+    if (/^(localhost|127\.0\.0\.1|0\.0\.0\.0|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(hostname)) {
+      return res.status(400).json({ error: 'Internal URLs not allowed' });
+    }
+  } catch {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
   const result = await scrapeWithOpenAI(url);
   if (result.success) {
     res.json(result);

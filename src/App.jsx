@@ -193,8 +193,8 @@ function AppShell({ children }) {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-page)', overflowX: 'hidden', maxWidth: '100vw' }}>
       {/* Desktop / Mobile header */}
-      <header className="border-b sticky top-0 z-40" style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', maxWidth: '100vw', overflowX: 'hidden' }}>
-        <div style={{ maxWidth:'1280px', margin:'0 auto', padding:'0 16px', height:64, display:'flex', alignItems:'center', gap:12, width:'100%', boxSizing:'border-box' }}>
+      <header className="border-b sticky top-0 z-40" style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)' }}>
+        <div style={{ maxWidth:'1280px', margin:'0 auto', padding:'0 16px', height:64, display:'flex', alignItems:'center', gap:12, width:'100%', boxSizing:'border-box', overflow:'visible', position:'relative' }}>
           {/* Logo */}
           <div style={{ display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
             <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" width="34" height="34">
@@ -233,31 +233,37 @@ function AppShell({ children }) {
               <AccountSwitcher onOpenSettings={() => setShowSettings(true)} onNewAccount={() => setShowNewAccount(true)} />
             </div>
             {/* Avatar */}
-            <div className="relative" style={{ flexShrink:0 }}>
+            <div className="relative" style={{ flexShrink:0, isolation:"isolate" }}>
               <button onClick={() => setShowUserMenu(v => !v)}
                 style={{ width:36, height:36, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:'14px', fontWeight:800, background:accent, border:'none', cursor:'pointer', flexShrink:0 }}>
                 {(user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
               </button>
               {showUserMenu && (
                 <>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-white border rounded-2xl shadow-xl z-50 overflow-hidden" style={{ borderColor: '#E5E8EB' }}>
-                    <div className="px-4 py-3.5 border-b" style={{ borderColor: '#F0F3F5', background: '#FAFBFF' }}>
-                      <p className="text-xs font-bold text-ink truncate">{user?.user_metadata?.full_name || 'My account'}</p>
-                      <p className="text-xs text-ink-muted truncate">{user?.email}</p>
+                  <div style={{ position:'fixed', inset:0, zIndex:199 }} onClick={() => setShowUserMenu(false)} />
+                  <div style={{ position:'absolute', right:0, top:'calc(100% + 8px)', width:224, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:16, boxShadow:'0 20px 60px rgba(11,18,32,0.2), 0 4px 16px rgba(11,18,32,0.1)', zIndex:200, overflow:'hidden', minWidth:200 }}>
+                    <div style={{ padding:'12px 16px', borderBottom:'1px solid var(--border-subtle)', background:'var(--bg-raised)' }}>
+                      <p style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{user?.user_metadata?.full_name || 'My account'}</p>
+                      <p style={{ fontSize:11, color:'var(--text-muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginTop:2 }}>{user?.email}</p>
                     </div>
-                    <div className="py-1">
+                    <div style={{ padding:'4px 0' }}>
                       <NavLink to="/billing" onClick={() => setShowUserMenu(false)}
-                        className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-ink hover:bg-gray-50">
-                        <CreditCard size={14} className="text-ink-muted" /> Billing & Plans
+                        style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 16px', fontSize:13, fontWeight:500, color:'var(--text-secondary)', textDecoration:'none', transition:'background 0.12s' }}
+                        onMouseEnter={e => e.currentTarget.style.background='var(--bg-page)'}
+                        onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                        <CreditCard size={14} style={{ color:'var(--text-muted)' }} /> Billing & plans
                       </NavLink>
                       <button onClick={() => { setShowUserMenu(false); setShowSettings(true); }}
-                        className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-ink hover:bg-gray-50">
-                        <Shield size={14} className="text-ink-muted" /> Account settings
+                        style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 16px', fontSize:13, fontWeight:500, color:'var(--text-secondary)', background:'transparent', border:'none', cursor:'pointer', width:'100%', textAlign:'left', transition:'background 0.12s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
+                        onMouseEnter={e => e.currentTarget.style.background='var(--bg-page)'}
+                        onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                        <Shield size={14} style={{ color:'var(--text-muted)' }} /> Account settings
                       </button>
-                      <div className="border-t my-1" style={{ borderColor: '#F0F3F5' }} />
+                      <div style={{ height:'1px', background:'var(--border-subtle)', margin:'4px 0' }} />
                       <button onClick={() => { setShowUserMenu(false); signOut(); }}
-                        className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-red-500 hover:bg-red-50">
+                        style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 16px', fontSize:13, fontWeight:500, color:'#ef4444', background:'transparent', border:'none', cursor:'pointer', width:'100%', textAlign:'left', transition:'background 0.12s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
+                        onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.06)'}
+                        onMouseLeave={e => e.currentTarget.style.background='transparent'}>
                         <LogOut size={14} /> Sign out
                       </button>
                     </div>

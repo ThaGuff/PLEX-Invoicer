@@ -491,7 +491,7 @@ export default function AccountSettings({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div style={{ position:"fixed", inset:0, background:"rgba(11,18,32,0.5)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:"16px", backdropFilter:"blur(4px)", WebkitBackdropFilter:"blur(4px)" }}>
       <div className="bg-white w-full sm:rounded-2xl sm:max-w-2xl shadow-xl overflow-hidden flex flex-col" style={{ maxHeight: '92vh' }}>
 
         {/* Header */}

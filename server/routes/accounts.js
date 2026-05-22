@@ -14,10 +14,17 @@ function isOwner(req) {
 // Enrich account rows with customSections and customItems
 async function enrichAccounts(accountRows) {
   if (!accountRows.length) return accountRows;
-  const ids = accountRows.map(a => `'${a.id}'`).join(',');
+  // Use safe parameterized query — no string interpolation of user data
+  const ids = accountRows.map(a => a.id);
   const [sections, items] = await Promise.all([
-    db.execute(`SELECT * FROM custom_sections WHERE account_id IN (${ids}) ORDER BY sort_order`),
-    db.execute(`SELECT * FROM custom_items WHERE account_id IN (${ids}) ORDER BY sort_order`),
+    db.execute(
+      `SELECT * FROM custom_sections WHERE account_id = ANY($1::text[]) ORDER BY sort_order`,
+      [ids]
+    ),
+    db.execute(
+      `SELECT * FROM custom_items WHERE account_id = ANY($1::text[]) ORDER BY sort_order`,
+      [ids]
+    ),
   ]);
   return accountRows.map(a => ({
     ...a,
@@ -109,6 +116,15 @@ router.post('/', async (req, res) => {
 // PATCH update account
 router.patch('/:id', async (req, res) => {
   try {
+    // Whitelist of allowed fields — never allow owner_id, id, stripe_customer_id updates via PATCH
+    const VALID_PLANS = ['starter', 'pro', 'agency'];
+    const VALID_STATUSES = ['trialing', 'active', 'cancelled', 'cancel_at_period_end', 'past_due'];
+    if (req.body.plan && !VALID_PLANS.includes(req.body.plan)) {
+      return res.status(400).json({ error: 'Invalid plan' });
+    }
+    if (req.body.subscription_status && !VALID_STATUSES.includes(req.body.subscription_status)) {
+      return res.status(400).json({ error: 'Invalid subscription_status' });
+    }
     const fields = ['name', 'email', 'phone', 'website', 'logo_initial', 'logo_url', 'primary_color', 'plan', 'subscription_status', 'trial_ends_at', 'default_tax_rate', 'tax_name', 'tax_number', 'business_address'];
     const updates = [];
     const vals = [];

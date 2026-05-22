@@ -10,7 +10,7 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
     <div className="relative">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded border text-sm transition-colors hover:bg-gray-50"
+        className="flex items-center gap-2 px-3 py-1.5 rounded border text-sm transition-colors "
         style={{ borderColor: '#E5E8EB' }}
       >
         {/* Account badge */}
@@ -26,9 +26,9 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
 
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div style={{ position:"fixed", inset:0, zIndex:199 }} onClick={() => setOpen(false)} />
           <div
-            className="absolute right-0 top-full mt-1 w-64 bg-white border rounded-xl shadow-lg z-50 overflow-hidden"
+            style={{ position:"absolute", right:0, top:"calc(100% + 6px)", width:260, background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:12, boxShadow:"0 20px 60px rgba(11,18,32,0.2), 0 4px 16px rgba(11,18,32,0.1)", zIndex:200, overflow:"hidden" }}
             style={{ borderColor: '#E5E8EB' }}
           >
             <div className="px-3 py-2 border-b" style={{ borderColor: '#F0F3F5' }}>
@@ -40,7 +40,7 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
                 <button
                   key={acc.id}
                   onClick={() => { switchAccount(acc.id); setOpen(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5  transition-colors text-left"
                 >
                   <div
                     className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold shrink-0"
@@ -68,7 +68,7 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
             <div className="border-t" style={{ borderColor: '#F0F3F5' }}>
               <button
                 onClick={() => { setOpen(false); onNewAccount(); }}
-                className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left text-sm font-medium"
+                className="w-full flex items-center gap-2 px-3 py-2.5  transition-colors text-left text-sm font-medium"
                 style={{ color: '#13B5EA' }}
               >
                 <Plus size={14} />
@@ -76,7 +76,7 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
               </button>
               <button
                 onClick={() => { setOpen(false); onOpenSettings(); }}
-                className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left text-sm text-ink-muted"
+                className="w-full flex items-center gap-2 px-3 py-2.5  transition-colors text-left text-sm text-ink-muted"
               >
                 <Settings size={14} />
                 Account settings
