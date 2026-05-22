@@ -162,7 +162,7 @@ export default function BillingPage() {
           <span className={`text-sm font-medium ${!annual ? 'text-ink' : 'text-ink-muted'}`}>Monthly</span>
           <button onClick={() => setAnnual(a => !a)}
             className="relative w-12 h-6 rounded-full transition-colors"
-            style={{ background: annual ? accent : '#E5E8EB' }}>
+            style={{ background: annual ? accent : 'var(--border)' }}>
             <span className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform"
               style={{ transform: annual ? 'translateX(24px)' : 'translateX(0)' }} />
           </button>

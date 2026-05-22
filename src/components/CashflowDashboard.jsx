@@ -7,7 +7,7 @@ function fmt(n) { return '$' + Math.round(n || 0).toLocaleString(); }
 function MiniBar({ amount, max, color }) {
   const pct = max > 0 ? Math.min(100, (amount / max) * 100) : 0;
   return (
-    <div style={{ flex: 1, height: 32, background: '#F5F7F8', borderRadius: 4, overflow: 'hidden', position: 'relative' }}>
+    <div style={{ flex: 1, height: 32, background: 'var(--bg-page)', borderRadius: 4, overflow: 'hidden', position: 'relative' }}>
       <div style={{ height: '100%', width: `${pct}%`, background: color, opacity: 0.85, transition: 'width 0.6s ease', borderRadius: 4 }} />
       {amount > 0 && (
         <span style={{ position: 'absolute', left: 6, top: '50%', transform: 'translateY(-50%)', fontSize: 10, fontWeight: 500, color: '#1a1a1a' }}>
@@ -69,7 +69,7 @@ export default function CashflowDashboard({ accountId, accent = '#13B5EA' }) {
   return (
     <div className="card overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: '#E5E8EB' }}>
+      <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: accent + '18' }}>
             <TrendingUp size={16} style={{ color: accent }} />
@@ -87,9 +87,9 @@ export default function CashflowDashboard({ accountId, accent = '#13B5EA' }) {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-4 gap-0 border-b" style={{ borderColor: '#E5E8EB' }}>
+      <div className="grid grid-cols-4 gap-0 border-b" style={{ borderColor: 'var(--border)' }}>
         {summaryCards.map((c, i) => (
-          <div key={c.label} className={`px-4 py-4 ${i < 3 ? 'border-r' : ''}`} style={{ borderColor: '#E5E8EB' }}>
+          <div key={c.label} className={`px-4 py-4 ${i < 3 ? 'border-r' : ''}`} style={{ borderColor: 'var(--border)' }}>
             <p className="text-lg font-bold tabular-nums" style={{ color: c.value > 0 ? c.color : '#9ca3af' }}>
               {fmt(c.value)}
             </p>
@@ -128,7 +128,7 @@ export default function CashflowDashboard({ accountId, accent = '#13B5EA' }) {
                 <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-2">Invoice predictions</p>
                 <div className="space-y-1">
                   {predictions.map(p => (
-                    <div key={p.invoice_id} className="flex items-center gap-3 py-1.5 border-b last:border-0 text-xs" style={{ borderColor: '#F5F7F8' }}>
+                    <div key={p.invoice_id} className="flex items-center gap-3 py-1.5 border-b last:border-0 text-xs" style={{ borderColor: 'var(--bg-page)' }}>
                       <div className="flex-1 min-w-0">
                         <span className="font-medium text-ink">{p.client || 'Unknown client'}</span>
                         <span className="text-ink-muted ml-2">{p.dtp_source}</span>

@@ -35,19 +35,21 @@
   }
 
   .dark {
-    --bg-page:        #080D1A;
-    --bg-surface:     #0D1526;
-    --bg-raised:      #1A2640;
-    --border:         #1E2E48;
-    --border-subtle:  #121C30;
-    --text-primary:   #F0F6FF;
-    --text-secondary: #8BA4C0;
-    --text-muted:     #4A6080;
+    /* Revanew dark mode — warm slate, NOT pitch black */
+    /* Think: premium SaaS at night — readable, polished, alive */
+    --bg-page:        #141820;   /* warm dark slate — not pure navy */
+    --bg-surface:     #1C2130;   /* card backgrounds — clearly lighter than page */
+    --bg-raised:      #242B3D;   /* elevated elements, inputs */
+    --border:         #2E3A50;   /* clearly visible borders */
+    --border-subtle:  #1F2838;   /* subtle dividers */
+    --text-primary:   #EDF2FF;   /* near-white with slight blue tint */
+    --text-secondary: #9AACCC;   /* readable secondary — not too dim */
+    --text-muted:     #5E7494;   /* muted but still legible */
 
-    --ink:       #F0F6FF;
-    --ink-muted: #8BA4C0;
-    --surface:   #080D1A;
-    --card-bg:   #0D1526;
+    --ink:       #EDF2FF;
+    --ink-muted: #9AACCC;
+    --surface:   #141820;
+    --card-bg:   #1C2130;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -297,6 +299,68 @@
   @media (max-width: 420px)  { .grid-auto-stack { grid-template-columns: 1fr; } }
   @media (min-width: 900px)  { .grid-auto-stack { grid-template-columns: repeat(4, 1fr); } }
 
+  /* ── Custom Checkbox ────────────────────────────────────────────── */
+  .custom-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    background: var(--bg-surface);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s cubic-bezier(0.34,1.56,0.64,1);
+    flex-shrink: 0;
+  }
+  .custom-checkbox:hover {
+    border-color: var(--blue);
+    background: rgba(59,111,232,0.06);
+    transform: scale(1.08);
+  }
+  .custom-checkbox:checked {
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    border-color: transparent;
+    transform: scale(1.05);
+    box-shadow: 0 3px 10px rgba(59,111,232,0.35);
+  }
+  .custom-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    left: 5px; top: 2px;
+    width: 6px; height: 10px;
+    border: 2.5px solid white;
+    border-top: none; border-left: none;
+    transform: rotate(45deg);
+  }
+  .custom-checkbox:focus { outline: none; box-shadow: 0 0 0 3px rgba(59,111,232,0.2); }
+
+  /* ── Service row ─────────────────────────────────────────────────── */
+  .svc-row {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-subtle);
+    transition: background 0.12s ease;
+  }
+  .svc-row:last-child { border-bottom: none; }
+  .svc-row:hover { background: rgba(59,111,232,0.03); }
+  .svc-row.active { background: rgba(59,111,232,0.05); }
+
+  /* ── Section header ──────────────────────────────────────────────── */
+  .section-trigger {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 18px;
+    min-height: 52px;
+    cursor: pointer;
+    transition: background 0.12s;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .section-trigger:hover { background: var(--bg-page); }
+
   /* ── MOBILE CARD LIST ───────────────────────────────────────────── */
   .mobile-list-row {
     display: flex; align-items: center; gap: 12px;
@@ -359,12 +423,28 @@
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 /* ── DARK MODE OVERRIDES ──────────────────────────────────────────── */
-.dark header  { background: var(--bg-surface) !important; border-color: var(--border) !important; }
-.dark input, .dark textarea, .dark select {
+.dark header { background: var(--bg-surface) !important; border-color: var(--border) !important; }
+/* Input fields */
+.dark .field, .dark input:not([type="checkbox"]):not([type="radio"]),
+.dark textarea, .dark select {
   background: var(--bg-raised) !important;
   color: var(--text-primary) !important;
   border-color: var(--border) !important;
 }
+/* Modal/surface whites → dark surface */
+.dark .bg-white  { background: var(--bg-surface) !important; }
+.dark .bg-gray-50, .dark .bg-\[\#FAFAFA\], .dark .bg-\[\#FAFBFF\] { background: var(--bg-page) !important; }
+/* Border colors */
+.dark .border-b, .dark .border-t { border-color: var(--border) !important; }
+.dark [style*="borderColor: '#E5E8EB'"]  { border-color: var(--border) !important; }
+.dark [style*="borderColor: '#F0F3F5'"]  { border-color: var(--border-subtle) !important; }
+/* Text */
+.dark .text-ink        { color: var(--text-primary)   !important; }
+.dark .text-ink-muted  { color: var(--text-secondary) !important; }
+/* Modal backgrounds */
+.dark .sm\:rounded-2xl { background: var(--bg-surface) !important; }
+/* Stat card gradient overlays look better in dark */
+.dark .glow-card { background: var(--bg-surface); border-color: var(--border); }
 
 /* ── PRINT ────────────────────────────────────────────────────────── */
 @media print {

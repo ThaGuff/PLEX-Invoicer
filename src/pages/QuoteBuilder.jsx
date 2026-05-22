@@ -59,14 +59,14 @@ function ServiceRow({ svc, sectionId, isSelected, isIncluded, setupPrice, monthl
         <div className="pt-0.5 shrink-0">
           <input type="checkbox" checked={isSelected}
             onChange={e => onToggle(svc.id, sectionId, e.target.checked)}
-            className="w-4 h-4 rounded cursor-pointer" style={{ accentColor: accent }} />
+            className="custom-checkbox" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center flex-wrap">
-            <span className={`text-sm font-medium ${isSelected ? 'text-ink' : 'text-ink-muted'}`}>{svc.name}</span>
+            <span style={{ fontSize:14, fontWeight: isSelected ? 700 : 600, color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)', letterSpacing:'-0.01em', transition:'color 0.15s' }}>{svc.name}</span>
             <Badge type={svc.badge} />
           </div>
-          <p className="text-xs text-ink-muted mt-0.5 leading-relaxed">{svc.desc || svc.description}</p>
+          <p style={{ fontSize:12, color:'var(--text-muted)', marginTop:3, lineHeight:1.6 }}>{svc.desc || svc.description}</p>
           {isSelected && billingMode === 'annual' && monthlyPrice > 0 && !isIncluded && (
             <p className="text-xs font-semibold mt-1" style={{ color: accent }}>
               Annual saves {fmt(savings)}/mo · {fmt(savings * 12)}/yr
@@ -139,10 +139,10 @@ function CustomSection({ section, services, selected, included, prices, billingM
   };
 
   return (
-    <div className="card overflow-hidden mb-3">
-      <button onClick={() => setOpen(o => !o)} className="section-trigger w-full text-left">
-        <div className="w-7 h-7 rounded flex items-center justify-center shrink-0 text-white" style={{ background: accent }}>
-          <PlusCircle size={14} />
+    <div style={{ background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:14, overflow:"hidden", marginBottom:12 }}>
+      <button onClick={() => setOpen(o => !o)} className="section-trigger">
+        <div style={{ width:32, height:32, borderRadius:9, background:'linear-gradient(135deg,var(--blue),var(--purple))', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:'0 3px 10px rgba(59,111,232,0.25)' }}>
+          <PlusCircle size={14} color="#fff" />
         </div>
         {editingLabel ? (
           <div className="flex items-center gap-2 flex-1" onClick={e => e.stopPropagation()}>
@@ -155,8 +155,8 @@ function CustomSection({ section, services, selected, included, prices, billingM
           </div>
         ) : (
           <>
-            <span className="text-sm font-semibold text-ink flex-1">{section.label}</span>
-            <span className="text-xs text-ink-muted border px-1.5 py-0.5 rounded" style={{ borderColor: '#E5E8EB' }}>custom</span>
+            <span style={{ fontSize:14, fontWeight:700, color:'var(--text-primary)', letterSpacing:'-0.01em', flex:1 }}>{section.label}</span>
+            <span className="text-xs text-ink-muted border px-1.5 py-0.5 rounded" style={{ borderColor: 'var(--border)' }}>custom</span>
             <button onClick={e => { e.stopPropagation(); setEditingLabel(true); }} className="p-1 text-ink-muted hover:text-ink ml-1" title="Rename section">
               <Edit2 size={12} />
             </button>
@@ -169,7 +169,7 @@ function CustomSection({ section, services, selected, included, prices, billingM
       {open && (
         <div>
           {services.length === 0 && !addingItem && (
-            <div className="px-5 py-3 text-xs text-ink-muted italic border-t" style={{ borderColor: '#F0F3F5' }}>
+            <div className="px-5 py-3 text-xs text-ink-muted italic border-t" style={{ borderColor: 'var(--border-subtle)' }}>
               No services yet — add one below.
             </div>
           )}
@@ -185,7 +185,7 @@ function CustomSection({ section, services, selected, included, prices, billingM
 
           {/* Add service inline */}
           {addingItem ? (
-            <div className="px-5 py-4 border-t space-y-2.5" style={{ borderColor: '#F0F3F5', background: '#FAFAFA' }}>
+            <div className="px-5 py-4 border-t space-y-2.5" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-page)' }}>
               <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider">Add service to {section.label}</p>
               <input value={newItem.name} onChange={e => setNewItem(p => ({ ...p, name: e.target.value }))}
                 className="field text-sm" placeholder="Service name *" autoFocus />
@@ -217,7 +217,7 @@ function CustomSection({ section, services, selected, included, prices, billingM
               </div>
             </div>
           ) : (
-            <div className="border-t" style={{ borderColor: '#F0F3F5' }}>
+            <div className="border-t" style={{ borderColor: 'var(--border-subtle)' }}>
               <button onClick={() => setAddingItem(true)}
                 className="w-full flex items-center gap-2 px-5 py-2.5 text-xs font-medium transition-colors hover:bg-gray-50"
                 style={{ color: accent }}>
@@ -327,7 +327,7 @@ function AddSectionModal({ accent, accountId, onCreated, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: '#E5E8EB' }}>
+        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
           <h3 className="text-sm font-bold text-ink">Add service section</h3>
           <button onClick={onClose}><X size={16} className="text-ink-muted" /></button>
         </div>
@@ -339,7 +339,7 @@ function AddSectionModal({ accent, accountId, onCreated, onClose }) {
               autoFocus onKeyDown={e => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') onClose(); }} />
           </div>
         </div>
-        <div className="flex items-center justify-between px-6 py-4 border-t" style={{ borderColor: '#E5E8EB', background: '#FAFAFA' }}>
+        <div className="flex items-center justify-between px-6 py-4 border-t" style={{ borderColor: 'var(--border)', background: 'var(--bg-page)' }}>
           <button onClick={onClose} className="btn-ghost text-sm">Cancel</button>
           <button onClick={handleCreate} disabled={!label.trim() || saving}
             className="text-sm font-semibold px-5 py-2 rounded-xl text-white disabled:opacity-40"
@@ -661,7 +661,7 @@ export default function QuoteBuilder() {
 
           {/* Client info */}
           <div className="card p-5 mb-4">
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b" style={{ borderColor: '#E5E8EB' }}>
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
               <Users size={14} style={{ color: accent }} />
               <span className="text-sm font-semibold text-ink">Client details</span>
               <div className="ml-auto flex items-center gap-2">
@@ -690,7 +690,7 @@ export default function QuoteBuilder() {
 
           {/* Billing mode */}
           <div className="card p-5 mb-4">
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b" style={{ borderColor: '#E5E8EB' }}>
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
               <Calendar size={14} style={{ color: accent }} />
               <span className="text-sm font-semibold text-ink">Billing mode</span>
             </div>
@@ -703,7 +703,7 @@ export default function QuoteBuilder() {
                 return (
                   <button key={opt.key} onClick={() => setBillingMode(opt.key)}
                     className="relative flex flex-col items-start p-4 text-left transition-all border-2 rounded-lg"
-                    style={{ borderColor: active ? accent : '#E5E8EB', background: active ? accent + '10' : '#FFFFFF' }}>
+                    style={{ borderColor: active ? accent : 'var(--border)', background: active ? accent + '10' : '#FFFFFF' }}>
                     {opt.badge && (
                       <span className="absolute top-3 right-3 text-xs font-bold px-2 py-0.5 rounded text-white" style={{ background: accent }}>
                         {opt.badge}
@@ -790,7 +790,7 @@ export default function QuoteBuilder() {
 
           {/* Notes */}
           <div className="card p-5">
-            <div className="flex items-center gap-2 mb-3 pb-3 border-b" style={{ borderColor: '#E5E8EB' }}>
+            <div className="flex items-center gap-2 mb-3 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
               <FileText size={14} style={{ color: accent }} />
               <span className="text-sm font-semibold text-ink">Quote notes & terms</span>
             </div>
@@ -834,7 +834,7 @@ export default function QuoteBuilder() {
                       {billingMode === 'annual' ? `Annual · ${yearlyDiscount}% off monthly` : 'Month-to-month'}
                     </div>
 
-                    <div className="mb-4 pb-4 border-b" style={{ borderColor: '#E5E8EB' }}>
+                    <div className="mb-4 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
                       <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-2">One-time setup</p>
                       <div className="space-y-1.5">
                         <div className="flex justify-between text-sm">
@@ -847,7 +847,7 @@ export default function QuoteBuilder() {
                             <span className="font-semibold tabular-nums" style={{ color: accent }}>−{fmt(setupDiscAmt)}</span>
                           </div>
                         )}
-                        <div className="flex justify-between items-baseline pt-1.5 border-t" style={{ borderColor: '#E5E8EB' }}>
+                        <div className="flex justify-between items-baseline pt-1.5 border-t" style={{ borderColor: 'var(--border)' }}>
                           <span className="text-sm font-bold text-ink">Due today</span>
                           <span className="text-xl font-bold text-ink tabular-nums">{fmt(setupFinal)}</span>
                         </div>
@@ -857,7 +857,7 @@ export default function QuoteBuilder() {
                               <span className="text-ink-muted">Tax ({taxRate}%)</span>
                               <span className="tabular-nums text-red-600">+{fmt(taxAmt)}</span>
                             </div>
-                            <div className="flex justify-between items-baseline pt-1.5 border-t font-bold" style={{ borderColor: '#E5E8EB' }}>
+                            <div className="flex justify-between items-baseline pt-1.5 border-t font-bold" style={{ borderColor: 'var(--border)' }}>
                               <span className="text-sm text-ink">Total incl. tax</span>
                               <span className="text-xl text-ink tabular-nums" style={{ color: accent }}>{fmt(grandTotal)}</span>
                             </div>
@@ -866,7 +866,7 @@ export default function QuoteBuilder() {
                       </div>
                     </div>
 
-                    <div className="mb-4 pb-4 border-b" style={{ borderColor: '#E5E8EB' }}>
+                    <div className="mb-4 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
                       <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-2">Monthly recurring</p>
                       <div className="space-y-1.5">
                         <div className="flex justify-between text-sm">
@@ -879,7 +879,7 @@ export default function QuoteBuilder() {
                             <span className="font-semibold tabular-nums" style={{ color: accent }}>−{fmt(mthDiscAmt)}</span>
                           </div>
                         )}
-                        <div className="flex justify-between items-baseline pt-1.5 border-t" style={{ borderColor: '#E5E8EB' }}>
+                        <div className="flex justify-between items-baseline pt-1.5 border-t" style={{ borderColor: 'var(--border)' }}>
                           <span className="text-sm font-bold text-ink">Monthly total</span>
                           <span className="text-xl font-bold text-ink tabular-nums">
                             {fmt(mthFinal)}<span className="text-sm font-normal text-ink-muted">/mo</span>
@@ -924,7 +924,7 @@ export default function QuoteBuilder() {
                     style={{
                       background: discType === t.k ? accent : '#FFFFFF',
                       color: discType === t.k ? '#FFFFFF' : '#7A7E85',
-                      borderColor: discType === t.k ? accent : '#E5E8EB',
+                      borderColor: discType === t.k ? accent : 'var(--border)',
                     }}>
                     {t.label}
                   </button>
@@ -1010,7 +1010,7 @@ export default function QuoteBuilder() {
                 <span className="text-sm text-ink-muted">% sales tax</span>
               </div>
               {taxRate > 0 && (
-                <div className="text-xs text-ink-muted space-y-0.5 pt-2 border-t" style={{ borderColor: '#E5E8EB' }}>
+                <div className="text-xs text-ink-muted space-y-0.5 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
                   <div className="flex justify-between">
                     <span>Setup subtotal</span><span>{fmt(setupFinal)}</span>
                   </div>

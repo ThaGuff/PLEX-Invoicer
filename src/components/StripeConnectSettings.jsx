@@ -121,7 +121,7 @@ export default function StripeConnectSettings({ accountId, accent = '#13B5EA' })
 
       {/* Connected state */}
       {isConnected && (
-        <div className="border rounded-xl overflow-hidden" style={{ borderColor: '#E5E8EB' }}>
+        <div className="border rounded-xl overflow-hidden" style={{ borderColor: 'var(--border)' }}>
           {/* Green header */}
           <div className="flex items-center gap-3 px-4 py-3" style={{ background: '#f0fdf4', borderBottom: '0.5px solid #bbf7d0' }}>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#22c55e20' }}>
@@ -137,7 +137,7 @@ export default function StripeConnectSettings({ accountId, accent = '#13B5EA' })
           </div>
 
           {/* Account details */}
-          <div className="divide-y" style={{ '--tw-divide-color': '#F5F7F8' }}>
+          <div className="divide-y" style={{ '--tw-divide-color': 'var(--bg-page)' }}>
             {[
               ['Account', status.display_name || status.email || status.account_id],
               ['Email', status.email],
@@ -156,7 +156,7 @@ export default function StripeConnectSettings({ accountId, accent = '#13B5EA' })
           <div className="px-4 py-3 flex items-center gap-2 flex-wrap" style={{ borderTop: '0.5px solid #F0F3F5' }}>
             <a href={status.dashboard_url} target="_blank" rel="noreferrer"
               className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border hover:bg-gray-50 transition-colors"
-              style={{ borderColor: '#E5E8EB' }}>
+              style={{ borderColor: 'var(--border)' }}>
               <ExternalLink size={11} /> Stripe Dashboard
             </a>
             <button onClick={handleDisconnect} disabled={!!working}
@@ -188,7 +188,7 @@ export default function StripeConnectSettings({ accountId, accent = '#13B5EA' })
 
       {/* Disconnected state */}
       {isDisconnected && (
-        <div className="border rounded-xl p-5" style={{ borderColor: '#E5E8EB' }}>
+        <div className="border rounded-xl p-5" style={{ borderColor: 'var(--border)' }}>
           <div className="flex items-start gap-4 mb-4">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
               style={{ background: accent + '15' }}>
@@ -232,7 +232,7 @@ export default function StripeConnectSettings({ accountId, accent = '#13B5EA' })
 
       {/* Platform fee (shown when connected) */}
       {isConnected && (
-        <div className="border rounded-xl p-4" style={{ borderColor: '#E5E8EB' }}>
+        <div className="border rounded-xl p-4" style={{ borderColor: 'var(--border)' }}>
           <div className="flex items-center justify-between mb-1">
             <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider">Platform fee</p>
             {!feeEdit && (

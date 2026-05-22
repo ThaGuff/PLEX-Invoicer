@@ -61,11 +61,11 @@ function LogoUploader({ accountId, currentLogoUrl, currentInitial, accentColor, 
       </div>
       <div className="flex-1">
         <p className="text-xs font-medium text-ink mb-1">Business logo</p>
-        <p className="text-xs text-ink-muted mb-2">PNG, JPG or SVG · max 2 MB · shown on quotes and invoices.</p>
+        <p className="text-xs text-muted mb-2">PNG, JPG or SVG · max 2 MB · shown on quotes and invoices.</p>
         <div className="flex gap-2">
           <button onClick={() => fileRef.current?.click()} disabled={uploading}
             className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors hover:bg-gray-50 disabled:opacity-50"
-            style={{ borderColor: '#E5E8EB' }}>
+            style={{ borderColor: 'var(--border)' }}>
             {uploading ? <RefreshCw size={11} className="animate-spin" /> : <Upload size={11} />}
             {uploading ? 'Uploading…' : preview ? 'Replace' : 'Upload logo'}
           </button>
@@ -104,20 +104,20 @@ function ItemRow({ item, onSave, onDelete }) {
   };
 
   if (editing) return (
-    <div className="p-3 rounded-lg border space-y-2 my-1" style={{ borderColor: '#E5E8EB', background: '#FAFAFA' }}>
+    <div className="p-3 rounded-lg border space-y-2 my-1" style={{ borderColor: 'var(--border)', background: 'var(--bg-page)' }}>
       <input value={v.name} onChange={e => setV(p => ({ ...p, name: e.target.value }))}
         className="field text-sm" placeholder="Service name *" autoFocus />
       <input value={v.description} onChange={e => setV(p => ({ ...p, description: e.target.value }))}
         className="field text-sm" placeholder="Short description (optional)" />
       <div className="grid grid-cols-2 gap-2">
         <div className="relative">
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted">$</span>
           <input type="number" min={0} value={v.setup_price}
             onChange={e => setV(p => ({ ...p, setup_price: e.target.value }))}
             className="field pl-6 text-sm" placeholder="Setup / one-time" />
         </div>
         <div className="relative">
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted">$</span>
           <input type="number" min={0} value={v.monthly_price}
             onChange={e => setV(p => ({ ...p, monthly_price: e.target.value }))}
             className="field pl-6 text-sm" placeholder="Monthly recurring" />
@@ -138,8 +138,8 @@ function ItemRow({ item, onSave, onDelete }) {
     <div className="flex items-start gap-2 py-2 px-1 group">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-ink leading-snug">{item.name}</p>
-        {item.description && <p className="text-xs text-ink-muted mt-0.5 leading-relaxed">{item.description}</p>}
-        <p className="text-xs text-ink-muted mt-0.5">
+        {item.description && <p className="text-xs text-muted mt-0.5 leading-relaxed">{item.description}</p>}
+        <p className="text-xs text-muted mt-0.5">
           {item.setup_price > 0 && <span>${Number(item.setup_price).toLocaleString()} setup</span>}
           {item.setup_price > 0 && item.monthly_price > 0 && <span className="mx-1 opacity-40">·</span>}
           {item.monthly_price > 0 && <span>${Number(item.monthly_price).toLocaleString()}/mo</span>}
@@ -147,11 +147,11 @@ function ItemRow({ item, onSave, onDelete }) {
         </p>
       </div>
       <button onClick={() => setEditing(true)}
-        className="p-1.5 text-ink-muted hover:text-ink opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+        className="p-1.5 text-muted hover:text-ink opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
         <Edit2 size={12} />
       </button>
       <button onClick={() => onDelete(item.id)}
-        className="p-1.5 text-ink-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+        className="p-1.5 text-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
         <Trash2 size={12} />
       </button>
     </div>
@@ -211,7 +211,7 @@ function SectionBlock({ accountId, section, items, onRename, onDelete, onItemAdd
   };
 
   return (
-    <div className="border rounded-xl overflow-hidden mb-3" style={{ borderColor: '#E5E8EB' }}>
+    <div className="border rounded-xl overflow-hidden mb-3" style={{ borderColor: 'var(--border)' }}>
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3" style={{ background: '#F5F7F8' }}>
         {editLabel ? (
@@ -226,12 +226,12 @@ function SectionBlock({ accountId, section, items, onRename, onDelete, onItemAdd
         ) : (
           <>
             <span className="text-sm font-semibold text-ink flex-1">{section.label}</span>
-            <span className="text-xs text-ink-muted">{items.length} service{items.length !== 1 ? 's' : ''}</span>
-            <button onClick={() => setEditLabel(true)} className="p-1 text-ink-muted hover:text-ink" title="Rename"><Edit2 size={12} /></button>
-            <button onClick={() => onDelete(section.id)} className="p-1 text-ink-muted hover:text-red-500" title="Delete section"><Trash2 size={12} /></button>
+            <span className="text-xs text-muted">{items.length} service{items.length !== 1 ? 's' : ''}</span>
+            <button onClick={() => setEditLabel(true)} className="p-1 text-muted hover:text-ink" title="Rename"><Edit2 size={12} /></button>
+            <button onClick={() => onDelete(section.id)} className="p-1 text-muted hover:text-red-500" title="Delete section"><Trash2 size={12} /></button>
           </>
         )}
-        <button onClick={() => setOpen(o => !o)} className="p-1 text-ink-muted ml-1">
+        <button onClick={() => setOpen(o => !o)} className="p-1 text-muted ml-1">
           {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
       </div>
@@ -239,7 +239,7 @@ function SectionBlock({ accountId, section, items, onRename, onDelete, onItemAdd
       {open && (
         <div className="px-4 pb-3 pt-1">
           {items.length === 0 && !addingItem && (
-            <p className="text-xs text-ink-muted italic py-2 px-1">No services yet — add one below.</p>
+            <p className="text-xs text-muted italic py-2 px-1">No services yet — add one below.</p>
           )}
 
           {items.map(item => (
@@ -253,20 +253,20 @@ function SectionBlock({ accountId, section, items, onRename, onDelete, onItemAdd
 
           {/* Add item form */}
           {addingItem ? (
-            <div className="pt-2 mt-1 border-t space-y-2" style={{ borderColor: '#F0F3F5' }}>
+            <div className="pt-2 mt-1 border-t space-y-2" style={{ borderColor: 'var(--border-subtle)' }}>
               <input value={newItem.name} onChange={e => setNewItem(p => ({ ...p, name: e.target.value }))}
                 className="field text-sm" placeholder="Service name *" autoFocus />
               <input value={newItem.description} onChange={e => setNewItem(p => ({ ...p, description: e.target.value }))}
                 className="field text-sm" placeholder="Description (optional)" />
               <div className="grid grid-cols-2 gap-2">
                 <div className="relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted">$</span>
                   <input type="number" min={0} value={newItem.setup_price}
                     onChange={e => setNewItem(p => ({ ...p, setup_price: e.target.value }))}
                     className="field pl-6 text-sm" placeholder="Setup / one-time" />
                 </div>
                 <div className="relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted">$</span>
                   <input type="number" min={0} value={newItem.monthly_price}
                     onChange={e => setNewItem(p => ({ ...p, monthly_price: e.target.value }))}
                     className="field pl-6 text-sm" placeholder="Monthly" />
@@ -285,7 +285,7 @@ function SectionBlock({ accountId, section, items, onRename, onDelete, onItemAdd
             </div>
           ) : (
             <button onClick={() => setAddingItem(true)}
-              className="mt-1 text-xs font-medium flex items-center gap-1.5 text-ink-muted hover:text-ink py-1.5 px-1 transition-colors">
+              className="mt-1 text-xs font-medium flex items-center gap-1.5 text-muted hover:text-ink py-1.5 px-1 transition-colors">
               <Plus size={13} /> Add service to this section
             </button>
           )}
@@ -492,23 +492,23 @@ export default function AccountSettings({ onClose }) {
 
   return (
     <div style={{ position:"fixed", inset:0, background:"rgba(11,18,32,0.5)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:"16px", backdropFilter:"blur(4px)", WebkitBackdropFilter:"blur(4px)" }}>
-      <div className="bg-white w-full sm:rounded-2xl sm:max-w-2xl shadow-xl overflow-hidden flex flex-col" style={{ maxHeight: '92vh' }}>
+      <div style={{ background:"var(--bg-surface)", width:"100%", borderRadius:16, maxWidth:672, boxShadow:"0 24px 64px rgba(11,18,32,0.25), 0 8px 24px rgba(11,18,32,0.15)", overflow:"hidden", display:"flex", flexDirection:"column", maxHeight:"92vh", border:"1px solid var(--border)" }}>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b shrink-0" style={{ borderColor: '#E5E8EB' }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 24px", borderBottom:"1px solid var(--border)", flexShrink:0, background:"var(--bg-raised)" }}>
           <div className="flex items-center gap-3">
             {logoUrl
-              ? <img src={logoUrl} alt="" className="w-8 h-8 rounded-lg object-contain border" style={{ borderColor: '#E5E8EB' }} />
+              ? <img src={logoUrl} alt="" className="w-8 h-8 rounded-lg object-contain border" style={{ borderColor: 'var(--border)' }} />
               : <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold" style={{ background: form.primary_color }}>
                   {(form.logo_initial || form.name?.[0] || 'A').toUpperCase()}
                 </div>
             }
             <div>
-              <h2 className="text-base font-bold text-ink">Account settings</h2>
-              <p className="text-xs text-ink-muted">{account?.name}</p>
+              <h2 style={{ fontSize:15, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.02em" }}>Account settings</h2>
+              <p style={{ fontSize:12, color:"var(--text-muted)", marginTop:2 }}>{account?.name}</p>
             </div>
           </div>
-          <button onClick={onClose}><X size={18} className="text-ink-muted hover:text-ink" /></button>
+          <button onClick={onClose}><X size={18} className="text-muted hover:text-ink" /></button>
         </div>
 
         {/* Body */}
@@ -524,7 +524,7 @@ export default function AccountSettings({ onClose }) {
 
           {/* Logo */}
           <section>
-            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">Logo</p>
+            <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Logo</p>
             <LogoUploader
               accountId={activeId}
               currentLogoUrl={logoUrl}
@@ -536,7 +536,7 @@ export default function AccountSettings({ onClose }) {
 
           {/* Business info */}
           <section>
-            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">Business info</p>
+            <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Business info</p>
             <div className="grid grid-cols-2 gap-3">
               {[
                 { k: 'name',         label: 'Business name',       ph: 'Acme Powerwash',     span: 2 },
@@ -546,7 +546,7 @@ export default function AccountSettings({ onClose }) {
                 { k: 'logo_initial', label: 'Logo letter (1 char)', ph: 'A' },
               ].map(f => (
                 <div key={f.k} className={f.span === 2 ? 'col-span-2' : ''}>
-                  <label className="text-xs text-ink-muted block mb-1">{f.label}</label>
+                  <label className="text-xs text-muted block mb-1">{f.label}</label>
                   <input value={form[f.k]} onChange={e => set(f.k, e.target.value)}
                     placeholder={f.ph} maxLength={f.k === 'logo_initial' ? 1 : undefined}
                     className="field" />
@@ -554,7 +554,7 @@ export default function AccountSettings({ onClose }) {
               ))}
             </div>
             <div className="mt-3">
-              <label className="text-xs text-ink-muted block mb-2">Brand color</label>
+              <label className="text-xs text-muted block mb-2">Brand color</label>
               <div className="flex items-center gap-2 flex-wrap">
                 {COLORS.map(c => (
                   <button key={c} onClick={() => set('primary_color', c)}
@@ -562,20 +562,20 @@ export default function AccountSettings({ onClose }) {
                     style={{ background: c, outline: form.primary_color === c ? `3px solid ${c}` : 'none', outlineOffset: '2px' }} />
                 ))}
                 <input type="color" value={form.primary_color} onChange={e => set('primary_color', e.target.value)}
-                  className="w-6 h-6 rounded border cursor-pointer" style={{ borderColor: '#E5E8EB' }} />
+                  className="w-6 h-6 rounded border cursor-pointer" style={{ borderColor: 'var(--border)' }} />
               </div>
             </div>
           </section>
 
           {/* Website scanner */}
-          <section className="border rounded-xl p-4" style={{ borderColor: '#E5E8EB' }}>
-            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1">Import services from your website</p>
-            <p className="text-xs text-ink-muted mb-3">
+          <section className="border rounded-xl p-4" style={{ borderColor: 'var(--border)' }}>
+            <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-1">Import services from your website</p>
+            <p className="text-xs text-muted mb-3">
               AI scans your website and auto-creates your service catalog with pricing where available.
             </p>
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Globe size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                <Globe size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
                 <input type="text" value={scanUrl} onChange={e => setScanUrl(e.target.value)}
                   placeholder="https://yourbusiness.com"
                   className="field pl-8"
@@ -604,8 +604,8 @@ export default function AccountSettings({ onClose }) {
           <section>
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider">Service catalog</p>
-                <p className="text-xs text-ink-muted mt-0.5">These services appear in the Quote Builder.</p>
+                <p className="text-xs font-semibold text-muted uppercase tracking-wider">Service catalog</p>
+                <p className="text-xs text-muted mt-0.5">These services appear in the Quote Builder.</p>
               </div>
               <div className="flex items-center gap-2">
                 <ServiceImporter
@@ -619,15 +619,15 @@ export default function AccountSettings({ onClose }) {
                 />
                 <button onClick={() => setAddingSection(true)}
                   className="text-xs font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors hover:bg-gray-50"
-                  style={{ borderColor: '#E5E8EB', color: accent }}>
+                  style={{ borderColor: 'var(--border)', color: accent }}>
                   <Plus size={12} /> Add section
                 </button>
               </div>
             </div>
 
             {addingSection && (
-              <div className="mb-3 p-3 border rounded-xl" style={{ borderColor: '#E5E8EB' }}>
-                <label className="text-xs font-medium text-ink-muted block mb-2">Section name</label>
+              <div className="mb-3 p-3 border rounded-xl" style={{ borderColor: 'var(--border)' }}>
+                <label className="text-xs font-medium text-muted block mb-2">Section name</label>
                 <div className="flex gap-2">
                   <input value={newSectionName} onChange={e => setNewSectionName(e.target.value)}
                     placeholder="e.g. Pressure Washing, HVAC, Lawn Care…"
@@ -647,13 +647,13 @@ export default function AccountSettings({ onClose }) {
 
             {catalogLoading ? (
               <div className="flex items-center gap-2 py-6 justify-center">
-                <RefreshCw size={14} className="animate-spin text-ink-muted" />
-                <span className="text-xs text-ink-muted">Loading your service catalog…</span>
+                <RefreshCw size={14} className="animate-spin text-muted" />
+                <span className="text-xs text-muted">Loading your service catalog…</span>
               </div>
             ) : sections.length === 0 ? (
-              <div className="text-center py-8 border rounded-xl border-dashed" style={{ borderColor: '#E5E8EB' }}>
+              <div className="text-center py-8 border rounded-xl border-dashed" style={{ borderColor: 'var(--border)' }}>
                 <p className="text-sm font-medium text-ink mb-1">No services yet</p>
-                <p className="text-xs text-ink-muted mb-3">Scan your website above or add sections manually.</p>
+                <p className="text-xs text-muted mb-3">Scan your website above or add sections manually.</p>
                 <button onClick={() => setAddingSection(true)}
                   className="text-xs font-semibold px-4 py-2 rounded-lg text-white"
                   style={{ background: accent }}>
@@ -677,20 +677,20 @@ export default function AccountSettings({ onClose }) {
 
           {/* Stripe Connect */}
           <section>
-            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">Stripe payments</p>
+            <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Stripe payments</p>
             <StripeConnectSettings accountId={activeId} accent={accent} />
           </section>
 
           {/* F8: Fee rules */}
           <section>
-            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">Payment & fee rules</p>
+            <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Payment & fee rules</p>
             <FeeRulesSettings accountId={activeId} accent={accent} />
           </section>
 
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t shrink-0" style={{ borderColor: '#E5E8EB', background: '#FAFAFA' }}>
+        <div className="flex items-center justify-between px-6 py-4 border-t shrink-0" style={{ borderColor: 'var(--border)', background: 'var(--bg-page)' }}>
           <button onClick={onClose} className="btn-ghost">Close</button>
           <button onClick={handleSave} disabled={saving}
             className="btn-primary flex items-center gap-2 disabled:opacity-50">

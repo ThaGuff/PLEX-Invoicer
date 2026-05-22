@@ -294,16 +294,23 @@ function AppShell({ children }) {
 
 function useDarkMode() {
   const [dark, setDark] = React.useState(() => {
+    // DEFAULT: always light mode unless user has EXPLICITLY chosen dark
     const stored = localStorage.getItem('revanew_theme');
-    if (stored) return stored === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    // Only go dark if the user explicitly saved 'dark' — never infer from OS
+    return stored === 'dark';
   });
 
   React.useEffect(() => {
     const root = document.documentElement;
     if (dark) { root.classList.add('dark'); }
     else       { root.classList.remove('dark'); }
-    localStorage.setItem('revanew_theme', dark ? 'dark' : 'light');
+    // Only persist if user toggles — null means "never set, default to light"
+    if (dark) {
+      localStorage.setItem('revanew_theme', 'dark');
+    } else {
+      // Remove so a fresh session always starts light
+      localStorage.removeItem('revanew_theme');
+    }
   }, [dark]);
 
   return [dark, setDark];

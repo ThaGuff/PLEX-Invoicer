@@ -11,7 +11,7 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
       <button
         onClick={() => setOpen(o => !o)}
         className="flex items-center gap-2 px-3 py-1.5 rounded border text-sm transition-colors "
-        style={{ borderColor: '#E5E8EB' }}
+        style={{ borderColor: 'var(--border)' }}
       >
         {/* Account badge */}
         <div
@@ -29,9 +29,9 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
           <div style={{ position:"fixed", inset:0, zIndex:199 }} onClick={() => setOpen(false)} />
           <div
             style={{ position:"absolute", right:0, top:"calc(100% + 6px)", width:260, background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:12, boxShadow:"0 20px 60px rgba(11,18,32,0.2), 0 4px 16px rgba(11,18,32,0.1)", zIndex:200, overflow:"hidden" }}
-            style={{ borderColor: '#E5E8EB' }}
+            style={{ borderColor: 'var(--border)' }}
           >
-            <div className="px-3 py-2 border-b" style={{ borderColor: '#F0F3F5' }}>
+            <div className="px-3 py-2 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
               <p className="text-xs text-ink-muted font-medium uppercase tracking-wider">Accounts</p>
             </div>
 
@@ -65,7 +65,7 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
               ))}
             </div>
 
-            <div className="border-t" style={{ borderColor: '#F0F3F5' }}>
+            <div className="border-t" style={{ borderColor: 'var(--border-subtle)' }}>
               <button
                 onClick={() => { setOpen(false); onNewAccount(); }}
                 className="w-full flex items-center gap-2 px-3 py-2.5  transition-colors text-left text-sm font-medium"
