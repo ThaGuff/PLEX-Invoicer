@@ -6,6 +6,7 @@ import rateLimit      from 'express-rate-limit';
 import { initDB, initSchemaV2, initStripeConnect } from './server/db/schema.js';
 import { startDbHealthMonitor, getDbHealth } from './server/db/healthcheck.js';
 import { requireAuth, sanitizeRequest } from './server/middleware/auth.js';
+import { requirePlanFeature } from './server/middleware/planGuard.js';
 import accountsRouter from './server/routes/accounts.js';
 import contactsRouter from './server/routes/contacts.js';
 import quotesRouter  from './server/routes/quotes.js';
