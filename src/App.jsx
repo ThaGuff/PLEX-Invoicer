@@ -104,30 +104,23 @@ function Nav() {
 
   return (
     <>
-      {/* Desktop top nav — larger, interactive, tabular */}
-      <nav className="desktop-nav items-center gap-1 flex-1">
+      {/* Desktop nav — hidden on mobile via CSS */}
+      <nav className="desktop-nav">
         {links.map(l => {
           const active = isActive(l.to);
           return (
             <NavLink key={l.to} to={l.to}
+              className="nav-pill"
               style={{
-                display: 'flex', alignItems: 'center', gap: '7px',
-                padding: '8px 14px', borderRadius: '10px',
-                fontSize: '13px', fontWeight: active ? 700 : 500,
-                color: active ? '#FFFFFF' : 'var(--text-secondary)',
-                background: active
-                  ? `linear-gradient(135deg, ${l.color || '#4B7BFF'}cc, ${l.color || '#7B4FE8'}99)`
-                  : 'transparent',
-                border: active ? `1px solid ${l.color || '#4B7BFF'}44` : '1px solid transparent',
-                boxShadow: active ? `0 2px 12px ${l.color || '#4B7BFF'}33, inset 0 1px 0 rgba(255,255,255,0.15)` : 'none',
-                transition: 'all 0.18s cubic-bezier(0.4,0,0.2,1)',
+                color: active ? '#fff' : 'var(--text-secondary)',
+                background: active ? `linear-gradient(135deg, ${l.color}cc, ${l.color}88)` : 'transparent',
+                borderColor: active ? `${l.color}33` : 'transparent',
+                boxShadow: active ? `0 2px 12px ${l.color}33` : 'none',
                 transform: active ? 'translateY(-1px)' : 'translateY(0)',
-                textDecoration: 'none', whiteSpace: 'nowrap',
-                letterSpacing: active ? '0' : '0.01em',
               }}
-              onMouseEnter={e => { if (!active) { e.currentTarget.style.background = `${l.color || '#4B7BFF'}14`; e.currentTarget.style.color = l.color || '#4B7BFF'; e.currentTarget.style.borderColor = `${l.color || '#4B7BFF'}30`; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
-              onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.transform = 'translateY(0)'; } }}>
-              <l.icon size={15} style={{ flexShrink: 0 }} />
+              onMouseEnter={e => { if (!active) { e.currentTarget.style.background=`${l.color}12`; e.currentTarget.style.color=l.color; e.currentTarget.style.borderColor=`${l.color}25`; e.currentTarget.style.transform='translateY(-1px)'; }}}
+              onMouseLeave={e => { if (!active) { e.currentTarget.style.background='transparent'; e.currentTarget.style.color='var(--text-secondary)'; e.currentTarget.style.borderColor='transparent'; e.currentTarget.style.transform='translateY(0)'; }}}>
+              <l.icon size={14} style={{ flexShrink:0 }} />
               <span>{l.label}</span>
             </NavLink>
           );
@@ -189,9 +182,9 @@ function AppShell({ children }) {
     <div className="min-h-screen" style={{ background: 'var(--bg-page)', overflowX: 'hidden', maxWidth: '100vw' }}>
       {/* Desktop / Mobile header */}
       <header className="border-b sticky top-0 z-40" style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', maxWidth: '100vw', overflowX: 'hidden' }}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-5 h-16 flex items-center gap-3">
+        <div style={{ maxWidth:'1280px', margin:'0 auto', padding:'0 16px', height:64, display:'flex', alignItems:'center', gap:12, width:'100%', boxSizing:'border-box' }}>
           {/* Logo */}
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div style={{ display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
             <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" width="34" height="34">
               <rect width="100" height="100" rx="18" fill="#080D1A"/>
               <defs>
@@ -203,39 +196,34 @@ function AppShell({ children }) {
               </defs>
               <text x="14" y="80" fontFamily="Arial Black, sans-serif" fontWeight="900" fontSize="80" fill="url(#rgrad-nav)">R</text>
             </svg>
-            <span className="hidden md:block" style={{ fontSize:'16px', fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.5px' }}>Revanew</span>
+            <span className="hidden md:block" style={{ fontSize:'17px', fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.5px' }}>Revanew</span>
           </div>
 
-          <div className="h-5 w-px hidden md:block" style={{ background: '#E5E8EB' }} />
-
-          {/* Desktop nav (injected by Nav component) */}
+          {/* Desktop nav — hidden on mobile */}
+          <div className="hidden md:block w-px h-5 shrink-0" style={{ background:'var(--border)' }} />
           <Nav />
 
           {/* Right actions */}
-          <div className="ml-auto flex items-center gap-2">
+          <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
             {/* Dark mode toggle */}
-            <button
-              onClick={() => setDark(d => !d)}
-              title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-              style={{ width:36, height:36, borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center', border:'0.5px solid var(--border)', background:'var(--bg-page)', cursor:'pointer', color:'var(--text-secondary)', transition:'all 0.2s', flexShrink:0 }}
-              onMouseEnter={e => { e.currentTarget.style.background='var(--bg-raised)'; e.currentTarget.style.color='var(--text-primary)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background='var(--bg-page)'; e.currentTarget.style.color='var(--text-secondary)'; }}>
-              {dark ? <Sun size={16} /> : <Moon size={16} />}
+            <button onClick={() => setDark(d => !d)}
+              title={dark ? 'Light mode' : 'Dark mode'}
+              style={{ width:36, height:36, borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center', border:'0.5px solid var(--border)', background:'var(--bg-page)', cursor:'pointer', color:'var(--text-secondary)', flexShrink:0 }}>
+              {dark ? <Sun size={15}/> : <Moon size={15}/>}
             </button>
+            {/* New quote — hidden on mobile (FAB handles it) */}
             <NavLink to="/quotes/new"
-              className="hidden sm:flex items-center gap-2 text-white rounded-xl"
-              style={{ background: 'linear-gradient(135deg, #00E5C8, #4B7BFF, #7B4FE8)', fontSize:'13px', fontWeight:700, padding:'9px 18px', boxShadow: '0 4px 14px rgba(75,123,255,0.4)', letterSpacing:'-0.01em' }}>
-              <Plus size={15} /> New quote
+              className="hidden md:flex items-center gap-2 text-white rounded-xl"
+              style={{ background:'linear-gradient(135deg,#00E5C8,#4B7BFF,#7B4FE8)', fontSize:'13px', fontWeight:700, padding:'9px 16px', boxShadow:'0 4px 14px rgba(75,123,255,0.35)', letterSpacing:'-0.01em', textDecoration:'none', flexShrink:0 }}>
+              <Plus size={14}/> New quote
             </NavLink>
-            <AccountSwitcher
-              onOpenSettings={() => setShowSettings(true)}
-              onNewAccount={() => setShowNewAccount(true)}
-            />
+            <div className="hidden md:block">
+              <AccountSwitcher onOpenSettings={() => setShowSettings(true)} onNewAccount={() => setShowNewAccount(true)} />
+            </div>
             {/* Avatar */}
-            <div className="relative">
+            <div className="relative" style={{ flexShrink:0 }}>
               <button onClick={() => setShowUserMenu(v => !v)}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm"
-                style={{ background: accent }}>
+                style={{ width:36, height:36, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:'14px', fontWeight:800, background:accent, border:'none', cursor:'pointer', flexShrink:0 }}>
                 {(user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
               </button>
               {showUserMenu && (
@@ -271,11 +259,16 @@ function AppShell({ children }) {
         <div className="h-0.5" style={{ background: 'linear-gradient(90deg, #00E5C8, #4B7BFF, #7B4FE8)' }} />
       </header>
 
+      {/* Mobile FAB - new quote */}
+      <NavLink to="/quotes/new" className="fab md:hidden" title="New quote">
+        <Plus size={26} />
+      </NavLink>
+
       {showSettings   && <AccountSettings onClose={() => setShowSettings(false)} />}
       {showNewAccount && <NewAccountModal onClose={() => setShowNewAccount(false)} onCreated={() => {}} />}
 
       {/* Main content */}
-      <main className="page-content">{children}</main>
+      <main className="page-content" style={{ flex:1, minWidth:0, overflowX:"hidden" }}>{children}</main>
     </div>
   );
 }
