@@ -172,6 +172,7 @@ function AppShell({ children }) {
   const [showSettings, setShowSettings] = useState(false);
   const [showNewAccount, setShowNewAccount] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [dark, setDark] = useDarkMode();
   const accent = account?.primary_color || '#13B5EA';
 
   if (loading) return (
@@ -297,7 +298,6 @@ function useDarkMode() {
 }
 
 export default function App() {
-  const [dark, setDark] = useDarkMode();
   return (
     <ErrorBoundary>
     <BrowserRouter>
