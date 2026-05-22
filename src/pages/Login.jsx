@@ -184,10 +184,10 @@ export default function Login() {
   });
 
   return (
-    <div style={{ ...F, minHeight:'100dvh', background:'#0B1220', display:'flex', overflow:'hidden' }}>
+    <div style={{ ...F, minHeight:'100dvh', background:'#0B1220', display:'flex', overflow:'hidden', maxWidth:'100vw' }}>
 
       {/* ── LEFT PANEL ────────────────────────────────────────────── */}
-      <div style={{ width:480, flexShrink:0, background:'#0F1628', borderRight:'1px solid #1E2E48', display:'flex', flexDirection:'column', padding:'40px 44px', minHeight:'100dvh' }}
+      <div style={{ width:480, flexShrink:0, background:'#0F1628', borderRight:'1px solid #1E2E48', flexDirection:'column', padding:'40px 44px', minHeight:'100dvh', overflowY:'auto' }}
         className="hidden lg:flex">
 
         {/* Logo */}
@@ -243,8 +243,8 @@ export default function Login() {
         </div>
       </div>
 
-      {/* ── RIGHT PANEL — Auth form ───────────────────────────────── */}
-      <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'32px 20px', minHeight:'100dvh', overflow:'auto' }}>
+      {/* ── RIGHT PANEL — Auth form (full screen on mobile) ─────── */}
+      <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'24px 20px', minHeight:'100dvh', overflow:'auto', width:'100%', minWidth:0 }}>
 
         {/* Mobile logo */}
         <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:36 }} className="lg:hidden">

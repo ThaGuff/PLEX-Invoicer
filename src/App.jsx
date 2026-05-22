@@ -157,7 +157,33 @@ function Nav() {
         </button>
       </div>
 
-
+      {/* Mobile More drawer — renders inside Nav() so it has state access */}
+      {showMobileMore && (
+        <>
+          <div style={{ position:'fixed', inset:0, zIndex:95, background:'rgba(11,18,32,0.45)', backdropFilter:'blur(3px)', WebkitBackdropFilter:'blur(3px)' }} onClick={() => setShowMobileMore(false)} />
+          <div style={{ position:'fixed', bottom:'calc(74px + env(safe-area-inset-bottom))', left:12, right:12, zIndex:96, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden', boxShadow:'0 -8px 40px rgba(11,18,32,0.25)', animation:'fadeUp 0.2s ease both' }}>
+            <div style={{ padding:'12px 16px 8px', borderBottom:'1px solid var(--border-subtle)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <p style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'1px' }}>More</p>
+              <button onClick={() => setShowMobileMore(false)} style={{ background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', padding:4 }}>✕</button>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', padding:'8px 4px 12px' }}>
+              {mobileMoreLinks.map(l => {
+                const active = isActive(l.to);
+                return (
+                  <NavLink key={l.to} to={l.to}
+                    onClick={() => setShowMobileMore(false)}
+                    style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, padding:'12px 6px', textDecoration:'none', borderRadius:12, background: active ? `${l.color}12` : 'transparent', transition:'background 0.15s' }}>
+                    <div style={{ width:46, height:46, borderRadius:14, display:'flex', alignItems:'center', justifyContent:'center', background: active ? `linear-gradient(135deg,${l.color},#7C3AED)` : 'var(--bg-raised)', border:`1px solid ${active ? l.color+'55' : 'var(--border)'}`, boxShadow: active ? `0 4px 14px ${l.color}44` : 'none', transition:'all 0.2s' }}>
+                      <l.icon size={22} color={active ? '#fff' : l.color} strokeWidth={1.8} />
+                    </div>
+                    <span style={{ fontSize:11, fontWeight: active?700:600, color: active ? l.color : 'var(--text-secondary)', textAlign:'center', lineHeight:1.2 }}>{l.short}</span>
+                  </NavLink>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }
