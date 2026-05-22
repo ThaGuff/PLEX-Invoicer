@@ -68,12 +68,12 @@ export default function Login() {
         setSuccess('Account created! Check your email to confirm, then sign in.');
         setMode('login');
       } else {
-        // Check if new user needs onboarding
-        const path = window.location.pathname;
         if (mode === 'login') {
           navigate('/dashboard');
         } else {
-          navigate('/onboarding');
+          // New user — go to billing to select a plan first
+          localStorage.setItem('revanew_new_user', '1');
+          navigate('/billing?welcome=1');
         }
       }
     } catch (e) { setError(e.message || 'Something went wrong'); }

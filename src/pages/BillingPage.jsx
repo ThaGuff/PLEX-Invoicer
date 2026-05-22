@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, Zap, Building2, Star, RefreshCw, ExternalLink, Crown } from 'lucide-react';
 import { useAccount } from '../context/AccountContext';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../utils/api';
 
 const PLANS = [
@@ -77,7 +78,10 @@ const STATUS_LABELS = {
 };
 
 export default function BillingPage() {
-  const { account } = useAccount();
+  const { account }    = useAccount();
+  const navigate       = useNavigate();
+  const [params]       = useSearchParams();
+  const isWelcome      = params.get('welcome') === '1';
   const accent = account?.primary_color || '#13B5EA';
 
   const [loading, setLoading]   = useState(false);
@@ -301,7 +305,7 @@ export default function BillingPage() {
         <h3 className="text-sm font-bold text-ink mb-4">Frequently asked questions</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
-            ['Can I cancel anytime?', 'Yes. Cancel from the billing portal with one click. No questions asked, no cancellation fees.'],
+            ['Can I cancel anytime?', 'Yes. Cancel from the billing portal with one click. No questions asked, no cancellation fees. If you change your mind, we may offer you a special rate to come back.'],
             ['What happens when my trial ends?', 'You\'ll be notified 2 days before your trial expires. Your data is always safe — upgrading restores full access instantly.'],
             ['Can I switch plans?', 'Absolutely. Upgrade or downgrade at any time. Prorated billing means you only pay for what you use.'],
             ['Is my data safe?', 'All data is stored in Supabase PostgreSQL with daily backups. Your data is never deleted, even if you cancel.'],

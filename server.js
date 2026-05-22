@@ -276,7 +276,7 @@ app.post('/api/scrape', async (req, res) => {
 app.post('/api/billing/create-checkout', requireAuth, async (req, res) => {
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   if (!stripeKey) return res.status(503).json({ error: 'Stripe not configured. Set STRIPE_SECRET_KEY.' });
-  const { plan = 'pro' } = req.body;
+  const { plan = 'pro', winback = false } = req.body;
   const origin = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
 
   // Plan config — uses STRIPE_PRICE_* env vars if set (real Stripe price IDs),
@@ -340,8 +340,19 @@ app.post('/api/billing/create-checkout', requireAuth, async (req, res) => {
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
       subscription_data: {
-        trial_period_days: 7,
-        metadata: { plan, user_id: req.user.id, account_id: acc?.id || '' },
+        trial_period_days: winback ? 0 : 7,
+        metadata: { plan, user_id: req.user.id, account_id: acc?.id || '', winback: winback ? '1' : '0' },
+        ...(winback ? {
+          // 50% off first month for win-back customers
+          coupon: await (async () => {
+            const coupon = await stripe.coupons.create({
+              percent_off: 50, duration: 'once',
+              name: 'Revanew Welcome Back — 50% off',
+              max_redemptions: 1,
+            });
+            return coupon.id;
+          })(),
+        } : {}),
       },
       success_url: `${origin}/dashboard?subscribed=1&plan=${plan}`,
       cancel_url:  `${origin}/billing?cancelled=1`,

@@ -41,20 +41,14 @@ export function AccountProvider({ children }) {
     } finally {
       setLoading(false);
 
-    // Redirect new users to onboarding if they haven't selected a plan
+    // New user flow: go to billing first so they can choose a plan
     const isNewUser = localStorage.getItem('revanew_new_user') === '1';
-    if (isNewUser && result.length > 0) {
-      const primary = result[0];
-      const needsOnboarding = !primary.plan || primary.subscription_status === null;
-      if (needsOnboarding) {
-        // Don't redirect if already on onboarding or auth pages
-        const path = window.location.pathname;
-        if (!path.includes('/onboarding') && !path.includes('/login')) {
-          localStorage.removeItem('revanew_new_user');
-          window.location.href = '/onboarding';
-        }
-      } else {
-        localStorage.removeItem('revanew_new_user');
+    if (isNewUser && list.length > 0) {
+      localStorage.removeItem('revanew_new_user');
+      const path = window.location.pathname;
+      // Only redirect if not already on billing/onboarding/login
+      if (!path.includes('/billing') && !path.includes('/onboarding') && !path.includes('/login')) {
+        window.location.href = '/billing?welcome=1';
       }
     }
     }
