@@ -22,7 +22,7 @@ import BillingPage from './pages/BillingPage';
 import Onboarding from './pages/Onboarding';
 import AutomationsPage from './pages/AutomationsPage';
 import AnalyticsPage  from './pages/AnalyticsPage';
-import TrialBanner    from './components/TrialBanner';
+const TrialBanner = React.lazy(() => import('./components/TrialBanner').catch(() => ({ default: () => null })));
 import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield, BarChart2, Sun, Moon } from 'lucide-react';
 import { IdleWarningBanner, SessionExpiredModal } from './components/SessionModals';
 
@@ -160,17 +160,14 @@ function Nav() {
   );
 }
 
-// Crash-proof wrapper — if TrialBanner errors, app keeps running
+// Crash-proof wrapper using React.lazy + Suspense
+// If the component fails to load, silently returns null
 function SafeTrialBanner() {
-  const [failed, setFailed] = React.useState(false);
-  if (failed) return null;
-  try {
-    return <TrialBanner />;
-  } catch(e) {
-    console.warn('TrialBanner failed:', e.message);
-    setFailed(true);
-    return null;
-  }
+  return (
+    <React.Suspense fallback={null}>
+      <TrialBanner />
+    </React.Suspense>
+  );
 }
 
 
