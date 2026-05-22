@@ -473,6 +473,23 @@ app.use('/api/invoices', requireAuth, invoicesRouter);
 
 // ── Static files ──────────────────────────────────────────────────
 const distDir = path.join(__dirname, 'dist');
+
+// Service Worker — must be served with correct MIME type and no-cache headers
+// so the browser always gets the latest version
+app.get('/sw.js', (req, res) => {
+  res.set({
+    'Content-Type': 'application/javascript; charset=utf-8',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Service-Worker-Allowed': '/',
+  });
+  res.sendFile(path.join(distDir, 'sw.js'));
+});
+
+// Manifest — no cache so icon/name changes propagate
+app.get('/manifest.json', (req, res) => {
+  res.set('Cache-Control', 'no-cache');
+  res.sendFile(path.join(distDir, 'manifest.json'));
+});
 // Serve PWA verification files — dotfiles must be explicitly allowed
 app.use(express.static(path.join(__dirname, 'public'), { dotfiles: 'allow' }));
 app.use(express.static(distDir, { dotfiles: 'allow' }));
