@@ -2,8 +2,8 @@
   "name": "Revanew \u2014 Quotes. Invoices. Get Paid.",
   "short_name": "Revanew",
   "description": "Send quotes, collect payments, and grow your service business with AI-powered automation.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "https://revanew.io/",
+  "scope": "https://revanew.io/",
   "display": "standalone",
   "display_override": [
     "standalone",
@@ -125,5 +125,6 @@
     }
   ],
   "related_applications": [],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "id": "https://revanew.io/"
 }

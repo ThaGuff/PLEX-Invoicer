@@ -293,7 +293,7 @@ app.post('/api/billing/create-checkout', requireAuth, async (req, res) => {
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   if (!stripeKey) return res.status(503).json({ error: 'Stripe not configured. Set STRIPE_SECRET_KEY.' });
   const { plan = 'pro', winback = false } = req.body;
-  const origin = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
+  const origin = process.env.APP_URL || 'https://revanew.io';
 
   // Plan config — uses STRIPE_PRICE_* env vars if set (real Stripe price IDs),
   // otherwise creates a one-time price dynamically for trial/checkout
@@ -410,7 +410,7 @@ app.post('/api/billing/portal', requireAuth, async (req, res) => {
     }
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(stripeKey);
-    const origin = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
+    const origin = process.env.APP_URL || 'https://revanew.io';
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${origin}/dashboard`,

@@ -7,7 +7,7 @@ Generated: May 22, 2026 | Powered by PLEX Automation
 ## ✅ What's Already Live (test TODAY)
 
 Your app is already a **full Progressive Web App (PWA)**.
-Open https://plex-invoicer.up.railway.app on your phone and:
+Open https://revanew.io on your phone and:
 
 ### Android (Chrome):
 1. Open the URL in Chrome
@@ -32,7 +32,7 @@ Google accepts PWAs as real Play Store apps via **Trusted Web Activity (TWA)**.
 ### Requirements:
 - Google Play Developer account: **$25 one-time fee**
   → https://play.google.com/console/signup
-- A domain you control (plex-invoicer.up.railway.app or custom domain)
+- A domain you control (revanew.io or custom domain)
 - Custom domain strongly recommended: e.g. **app.revanew.io**
 
 ### Steps:
