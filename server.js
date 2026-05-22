@@ -472,7 +472,10 @@ app.use('/api/invoices', requireAuth, invoicesRouter);
 
 // ── Static files ──────────────────────────────────────────────────
 const distDir = path.join(__dirname, 'dist');
-app.use(express.static(distDir));
+// Serve PWA verification files — dotfiles must be explicitly allowed
+app.use(express.static(path.join(__dirname, 'public'), { dotfiles: 'allow' }));
+app.use(express.static(distDir, { dotfiles: 'allow' }));
+// SPA catch-all — must come AFTER static
 app.get('*', (req, res) => res.sendFile(path.join(distDir, 'index.html')));
 
 // ── Start ─────────────────────────────────────────────────────────

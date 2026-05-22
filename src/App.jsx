@@ -305,6 +305,7 @@ function AppShell({ children }) {
         <div className="h-0.5" style={{ background: 'linear-gradient(90deg, #00C9B1, #3B6FE8, #6B3FD8)' }} />
       </header>
       <SafeTrialBanner />
+      <InstallPWA />
 
       {/* Mobile FAB - new quote */}
       <NavLink to="/quotes/new" className="fab md:hidden" title="New quote">

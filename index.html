@@ -2,10 +2,46 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- ── Primary meta ───────────────────────────────────────── -->
     <title>Revanew — Quotes. Invoices. Get Paid.</title>
-    <meta name="description" content="Revanew — Quotes. Invoices. Get Paid. Powered by PLEX Automation." />
+    <meta name="description" content="Send quotes, collect payments, and grow your service business with AI-powered automation. Powered by PLEX Automation." />
+    <meta name="application-name" content="Revanew" />
+    <meta name="author" content="PLEX Automation" />
+
+    <!-- ── PWA ────────────────────────────────────────────────── -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#2563EB" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- ── Apple PWA ──────────────────────────────────────────── -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Revanew" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <!-- ── Microsoft / Windows ────────────────────────────────── -->
+    <meta name="msapplication-TileColor" content="#0B1220" />
+    <meta name="msapplication-TileImage" content="/icons/icon-144.png" />
+    <meta name="msapplication-config" content="none" />
+
+    <!-- ── Open Graph ─────────────────────────────────────────── -->
+    <meta property="og:type"        content="website" />
+    <meta property="og:title"       content="Revanew — Quotes. Invoices. Get Paid." />
+    <meta property="og:description" content="The complete billing platform for service businesses." />
+    <meta property="og:image"       content="/icons/icon-512.png" />
+    <meta property="og:url"         content="https://plex-invoicer.up.railway.app" />
+
+    <!-- ── Icons ──────────────────────────────────────────────── -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-96.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-72.png" />
+
+    <!-- ── Fonts ──────────────────────────────────────────────── -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -13,5 +49,38 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+
+    <!-- ── Service Worker registration ───────────────────────── -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(reg => {
+              console.log('[PWA] Service worker registered:', reg.scope);
+
+              // Check for updates every 60 seconds when app is open
+              setInterval(() => reg.update(), 60 * 1000);
+            })
+            .catch(err => console.warn('[PWA] SW registration failed:', err));
+        });
+      }
+
+      // ── Install prompt ──────────────────────────────────────
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault();
+        deferredPrompt = e;
+        window.__pwaInstallPrompt = deferredPrompt;
+        // Dispatch custom event so React can show install button
+        window.dispatchEvent(new CustomEvent('pwa-installable'));
+      });
+
+      window.addEventListener('appinstalled', () => {
+        deferredPrompt = null;
+        window.__pwaInstallPrompt = null;
+        window.dispatchEvent(new CustomEvent('pwa-installed'));
+        console.log('[PWA] App installed successfully');
+      });
+    </script>
   </body>
 </html>

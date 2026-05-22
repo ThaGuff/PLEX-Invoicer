@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [{
+      "appID": "TEAMID.io.plexautomation.revanew",
+      "paths": ["*"]
+    }]
+  },
+  "webcredentials": {
+    "apps": ["TEAMID.io.plexautomation.revanew"]
+  }
+}
