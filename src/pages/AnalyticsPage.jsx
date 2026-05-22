@@ -26,7 +26,7 @@ function MetricCard({ label, value, sub, icon: Icon, color, trend, delay=0 }) {
       </div>
       <p style={{ fontSize:28, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.03em', lineHeight:1 }}>{value}</p>
       <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:6 }}>
-        {trend > 0 && <ArrowUp size={11} style={{ color:'#00E5C8' }} />}
+        {trend > 0 && <ArrowUp size={11} style={{ color:'#0D9488' }} />}
         {trend < 0 && <ArrowDown size={11} style={{ color:'#ef4444' }} />}
         {trend === 0 && <Minus size={11} style={{ color:'#94A3B8' }} />}
         <p style={{ fontSize:11, color:'var(--text-muted)' }}>{sub}</p>
@@ -36,7 +36,7 @@ function MetricCard({ label, value, sub, icon: Icon, color, trend, delay=0 }) {
 }
 
 function QuoteRow({ q }) {
-  const statusColor = { draft:'#94A3B8', sent:'#4B7BFF', viewed:'#f59e0b', accepted:'#00E5C8', expired:'#ef4444' };
+  const statusColor = { draft:'#94A3B8', sent:'#2563EB', viewed:'#D97706', accepted:'#0D9488', expired:'#ef4444' };
   const s = q.status || 'draft';
   return (
     <div style={{ display:'flex', alignItems:'center', padding:'12px 16px', borderBottom:'0.5px solid var(--border-subtle)', gap:12 }}
@@ -95,12 +95,12 @@ export default function AnalyticsPage() {
   const avgValue     = accepted > 0 ? totalRevenue/accepted : 0;
 
   const metrics = [
-    { label:'Total quotes',     value: total,           sub:'all time',           icon: FileText,   color:'#7B4FE8',    trend:0, delay:0   },
-    { label:'View rate',        value: pct(viewRate),   sub:'of quotes viewed',   icon: Eye,        color:'#4B7BFF',    trend:1, delay:50  },
-    { label:'Acceptance rate',  value: pct(acceptRate), sub:'of views accepted',  icon: CheckCircle,color:'#00E5C8',    trend:1, delay:100 },
-    { label:'Revenue closed',   value: fmt(totalRevenue),sub:'from accepted quotes',icon:DollarSign, color:'#00E5C8',   trend:1, delay:150 },
-    { label:'Avg deal value',   value: fmt(avgValue),   sub:'per accepted quote', icon: TrendingUp, color:'#4B7BFF',    trend:0, delay:200 },
-    { label:'Open pipeline',    value: fmt(quotes.filter(q=>q.status==='sent'||q.status==='viewed').reduce((s,q)=>s+(q.setup_total||0),0)), sub:'in pending quotes', icon: Zap, color:'#f59e0b', trend:0, delay:250 },
+    { label:'Total quotes',     value: total,           sub:'all time',           icon: FileText,   color:'#7C3AED',    trend:0, delay:0   },
+    { label:'View rate',        value: pct(viewRate),   sub:'of quotes viewed',   icon: Eye,        color:'#2563EB',    trend:1, delay:50  },
+    { label:'Acceptance rate',  value: pct(acceptRate), sub:'of views accepted',  icon: CheckCircle,color:'#0D9488',    trend:1, delay:100 },
+    { label:'Revenue closed',   value: fmt(totalRevenue),sub:'from accepted quotes',icon:DollarSign, color:'#0D9488',   trend:1, delay:150 },
+    { label:'Avg deal value',   value: fmt(avgValue),   sub:'per accepted quote', icon: TrendingUp, color:'#2563EB',    trend:0, delay:200 },
+    { label:'Open pipeline',    value: fmt(quotes.filter(q=>q.status==='sent'||q.status==='viewed').reduce((s,q)=>s+(q.setup_total||0),0)), sub:'in pending quotes', icon: Zap, color:'#D97706', trend:0, delay:250 },
   ];
 
   const topServices = {};
@@ -163,9 +163,9 @@ export default function AnalyticsPage() {
           <div className="glow-card p-5">
             <p style={{ fontSize:11, fontWeight:700, color:'var(--text-primary)', textTransform:'uppercase', letterSpacing:'0.9px', marginBottom:14 }}>Conversion funnel</p>
             {[
-              { label:'Quotes sent',  value:total,    color:'#7B4FE8' },
-              { label:'Viewed',       value:viewed,   color:'#4B7BFF' },
-              { label:'Accepted',     value:accepted, color:'#00E5C8' },
+              { label:'Quotes sent',  value:total,    color:'#7C3AED' },
+              { label:'Viewed',       value:viewed,   color:'#2563EB' },
+              { label:'Accepted',     value:accepted, color:'#0D9488' },
             ].map((row, i) => (
               <div key={row.label} style={{ marginBottom:10 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
@@ -192,7 +192,7 @@ export default function AnalyticsPage() {
                     <p style={{ fontSize:12, fontWeight:600, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</p>
                     <p style={{ fontSize:10, color:'var(--text-muted)' }}>{data.count} deals</p>
                   </div>
-                  <p style={{ fontSize:12, fontWeight:700, color:'#00E5C8', flexShrink:0 }}>{fmt(data.revenue)}</p>
+                  <p style={{ fontSize:12, fontWeight:700, color:'#0D9488', flexShrink:0 }}>{fmt(data.revenue)}</p>
                 </div>
               ))}
             </div>

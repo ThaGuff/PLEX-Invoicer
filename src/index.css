@@ -9,47 +9,64 @@
 
 @layer base {
   :root {
-    /* Brand */
-    --mint:    #00C9B1;   /* toned down from #00E5C8 — easier on eyes */
-    --blue:    #3B6FE8;   /* slightly deeper for better contrast */
-    --purple:  #6B3FD8;   /* slightly deeper */
-    --navy:    #0B1220;
-    --gradient:   linear-gradient(135deg, #00C9B1, #3B6FE8, #6B3FD8);
-    --gradient-h: linear-gradient(90deg,  #00C9B1, #3B6FE8, #6B3FD8);
+    /* ── Revanew Color System — Hand-crafted, not AI-generated ─────
+       Inspired by premium service businesses: clean, professional,
+       warm enough to feel human, sharp enough to feel polished.
+       Core idea: slate-blue authority + warm amber for CTAs +
+       clean teal for success. NOT purple gradient soup. ──────── */
 
-    /* Light mode — calm, high contrast */
-    --bg-page:        #EEF2F8;
+    /* Core brand */
+    --blue:    #2563EB;   /* Honest, deep blue — authority, trust */
+    --teal:    #0D9488;   /* Warm teal — success, money, growth */
+    --amber:   #D97706;   /* Warm amber — attention, urgency, CTAs */
+    --slate:   #1E293B;   /* Deep slate — headings, primary text */
+    --mint:    #0D9488;   /* alias for teal (backward compat) */
+    --purple:  #7C3AED;   /* Accent only — sparingly */
+    --navy:    #0F172A;
+
+    /* Primary gradient — deep blue to teal (not purple soup) */
+    --gradient:   linear-gradient(135deg, #2563EB, #0D9488);
+    --gradient-h: linear-gradient(90deg,  #2563EB, #0D9488);
+    --gradient-warm: linear-gradient(135deg, #D97706, #EA580C);
+
+    /* Light mode — warm white, not cold grey */
+    --bg-page:        #F8FAFC;   /* Very slightly warm white */
     --bg-surface:     #FFFFFF;
-    --bg-raised:      #F7F9FC;
-    --border:         #D1DBE8;
-    --border-subtle:  #E8EFF7;
-    --text-primary:   #0B1220;   /* near black — maximum contrast */
-    --text-secondary: #3A4A5C;   /* dark slate — clear, readable */
-    --text-muted:     #6B7A8D;   /* medium slate */
+    --bg-raised:      #F1F5F9;
+    --border:         #CBD5E1;   /* Clear slate border */
+    --border-subtle:  #E2E8F0;
+    --text-primary:   #0F172A;   /* Near-black slate */
+    --text-secondary: #334155;   /* Dark readable slate */
+    --text-muted:     #64748B;   /* Medium slate */
+
+    /* Semantic colors */
+    --success:  #059669;
+    --warning:  #D97706;
+    --danger:   #DC2626;
+    --info:     #2563EB;
 
     /* Aliases */
-    --ink:       #0B1220;
-    --ink-muted: #3A4A5C;
-    --surface:   #EEF2F8;
+    --ink:       #0F172A;
+    --ink-muted: #334155;
+    --surface:   #F8FAFC;
     --card-bg:   #FFFFFF;
   }
 
   .dark {
-    /* Revanew dark mode — warm slate, NOT pitch black */
-    /* Think: premium SaaS at night — readable, polished, alive */
-    --bg-page:        #141820;   /* warm dark slate — not pure navy */
-    --bg-surface:     #1C2130;   /* card backgrounds — clearly lighter than page */
-    --bg-raised:      #242B3D;   /* elevated elements, inputs */
-    --border:         #2E3A50;   /* clearly visible borders */
-    --border-subtle:  #1F2838;   /* subtle dividers */
-    --text-primary:   #EDF2FF;   /* near-white with slight blue tint */
-    --text-secondary: #9AACCC;   /* readable secondary — not too dim */
-    --text-muted:     #5E7494;   /* muted but still legible */
+    /* Dark mode — warm dark slate, readable */
+    --bg-page:        #0F172A;   /* Deep slate — NOT navy/blue-black */
+    --bg-surface:     #1E293B;   /* Card surface — clear elevation */
+    --bg-raised:      #293548;   /* Input fields, raised elements */
+    --border:         #334155;   /* Visible borders */
+    --border-subtle:  #1E293B;   /* Subtle dividers */
+    --text-primary:   #F1F5F9;   /* Warm white */
+    --text-secondary: #94A3B8;   /* Readable secondary */
+    --text-muted:     #475569;   /* Muted */
 
-    --ink:       #EDF2FF;
-    --ink-muted: #9AACCC;
-    --surface:   #141820;
-    --card-bg:   #1C2130;
+    --ink:       #F1F5F9;
+    --ink-muted: #94A3B8;
+    --surface:   #0F172A;
+    --card-bg:   #1E293B;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -87,7 +104,7 @@
     transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
   }
   .glow-card:hover {
-    box-shadow: 0 4px 20px rgba(59,111,232,0.1);
+    box-shadow: 0 4px 20px rgba(37,99,235,0.1);
   }
 
   /* ── INTERACTIVE TAB CARDS ──────────────────────────────────────── */
@@ -104,7 +121,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(59,111,232,0.04), rgba(107,63,216,0.04));
+    background: linear-gradient(135deg, rgba(37,99,235,0.04), rgba(107,63,216,0.04));
     opacity: 0;
     transition: opacity 0.2s ease;
     border-radius: inherit;
@@ -112,14 +129,14 @@
   .tab-card:hover {
     transform: translateY(-4px) scale(1.02);
     border-color: var(--blue);
-    box-shadow: 0 12px 32px rgba(59,111,232,0.18), 0 0 0 1px rgba(59,111,232,0.1);
+    box-shadow: 0 12px 32px rgba(37,99,235,0.18), 0 0 0 1px rgba(37,99,235,0.1);
   }
   .tab-card:hover::before { opacity: 1; }
   .tab-card:active { transform: translateY(-1px) scale(1.01); }
   .tab-card.active {
     border-color: var(--blue);
-    box-shadow: 0 0 0 2px rgba(59,111,232,0.2);
-    background: rgba(59,111,232,0.04);
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+    background: rgba(37,99,235,0.04);
   }
 
   /* ── FIELDS ─────────────────────────────────────────────────────── */
@@ -140,7 +157,7 @@
   .field::placeholder { color: var(--text-muted); }
   .field:focus {
     border-color: var(--blue);
-    box-shadow: 0 0 0 3px rgba(59,111,232,0.15);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
   }
 
   /* ── BUTTONS ────────────────────────────────────────────────────── */
@@ -157,9 +174,9 @@
     min-height: 44px;
     cursor: pointer;
     transition: all 0.18s ease;
-    box-shadow: 0 4px 14px rgba(59,111,232,0.3);
+    box-shadow: 0 4px 14px rgba(37,99,235,0.3);
   }
-  .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,111,232,0.4); }
+  .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,0.4); }
   .btn-primary:active { transform: translateY(0); }
   .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
@@ -201,7 +218,7 @@
   .badge-draft   { background: #E8EFF7; color: #3A4A5C; }
   .badge-info    { background: #E0E8FF; color: #2244BB; }
   .badge-warn    { background: #FFF0D6; color: #8B4A00; }
-  .dark .badge-success { background: #062820; color: #00C9B1; }
+  .dark .badge-success { background: #062820; color: #0D9488; }
   .dark .badge-draft   { background: #1A2640; color: #8BA4C0; }
   .dark .badge-info    { background: #0D1A40; color: #7B9FFF; }
   .dark .badge-warn    { background: #1C1007; color: #FCD34D; }
@@ -316,14 +333,14 @@
   }
   .custom-checkbox:hover {
     border-color: var(--blue);
-    background: rgba(59,111,232,0.06);
+    background: rgba(37,99,235,0.06);
     transform: scale(1.08);
   }
   .custom-checkbox:checked {
     background: linear-gradient(135deg, var(--blue), var(--purple));
     border-color: transparent;
     transform: scale(1.05);
-    box-shadow: 0 3px 10px rgba(59,111,232,0.35);
+    box-shadow: 0 3px 10px rgba(37,99,235,0.35);
   }
   .custom-checkbox:checked::after {
     content: '';
@@ -334,7 +351,7 @@
     border-top: none; border-left: none;
     transform: rotate(45deg);
   }
-  .custom-checkbox:focus { outline: none; box-shadow: 0 0 0 3px rgba(59,111,232,0.2); }
+  .custom-checkbox:focus { outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.2); }
 
   /* ── Service row ─────────────────────────────────────────────────── */
   .svc-row {
@@ -343,8 +360,8 @@
     transition: background 0.12s ease;
   }
   .svc-row:last-child { border-bottom: none; }
-  .svc-row:hover { background: rgba(59,111,232,0.03); }
-  .svc-row.active { background: rgba(59,111,232,0.05); }
+  .svc-row:hover { background: rgba(37,99,235,0.03); }
+  .svc-row.active { background: rgba(37,99,235,0.05); }
 
   /* ── Section header ──────────────────────────────────────────────── */
   .section-trigger {
@@ -370,7 +387,7 @@
     min-height: 60px;
     cursor: pointer;
     transition: background 0.12s;
-    -webkit-tap-highlight-color: rgba(59,111,232,0.08);
+    -webkit-tap-highlight-color: rgba(37,99,235,0.08);
   }
   .mobile-list-row:active { background: var(--bg-raised); }
 
@@ -408,7 +425,7 @@
     color: #fff;
     display: none;
     align-items: center; justify-content: center;
-    box-shadow: 0 8px 24px rgba(59,111,232,0.45);
+    box-shadow: 0 8px 24px rgba(37,99,235,0.45);
     cursor: pointer;
     font-size: 24px; font-weight: 300;
     transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
@@ -460,7 +477,7 @@
 html { overscroll-behavior-y: contain; }
 
 /* Touch action optimizations */
-button, a, [role="button"] { -webkit-tap-highlight-color: rgba(59,111,232,0.12); touch-action: manipulation; }
+button, a, [role="button"] { -webkit-tap-highlight-color: rgba(37,99,235,0.12); touch-action: manipulation; }
 
 /* Mobile swipe card */
 .swipe-card {
@@ -485,7 +502,7 @@ button, a, [role="button"] { -webkit-tap-highlight-color: rgba(59,111,232,0.12);
   min-height: 62px;
   cursor: pointer;
   transition: background 0.12s;
-  -webkit-tap-highlight-color: rgba(59,111,232,0.08);
+  -webkit-tap-highlight-color: rgba(37,99,235,0.08);
   text-decoration: none;
 }
 .list-item:active { background: var(--bg-raised); }
@@ -587,7 +604,7 @@ button, a, [role="button"] { -webkit-tap-highlight-color: rgba(59,111,232,0.12);
   .chip-row .chip.active {
     background: var(--gradient);
     color: #fff; border-color: transparent;
-    box-shadow: 0 4px 12px rgba(59,111,232,0.35);
+    box-shadow: 0 4px 12px rgba(37,99,235,0.35);
   }
 }
 

@@ -24,17 +24,17 @@ const LOGO_SVG = (
 
 const PLANS = [
   {
-    key: 'starter', name: 'Starter', price: 19, icon: Zap, color: '#00E5C8',
+    key: 'starter', name: 'Starter', price: 19, icon: Zap, color: '#0D9488',
     desc: 'For solo freelancers getting started.',
     features: ['10 quotes/month', '10 invoices/month', '1 account', 'Cash, Check, Zelle, Venmo', 'PDF export', '7-day free trial'],
   },
   {
-    key: 'pro', name: 'Pro', price: 49, icon: Star, color: '#4B7BFF', badge: 'Most popular',
+    key: 'pro', name: 'Pro', price: 49, icon: Star, color: '#2563EB', badge: 'Most popular',
     desc: 'For growing service businesses.',
     features: ['100 quotes & invoices/month', '5 client accounts', 'All payment methods', 'Stripe card & ACH processing', 'Tax reporting + CSV export', 'AI quote parsing', 'Cash flow dashboard', '7-day free trial'],
   },
   {
-    key: 'agency', name: 'Agency', price: 99, icon: Building2, color: '#7B4FE8',
+    key: 'agency', name: 'Agency', price: 99, icon: Building2, color: '#7C3AED',
     desc: 'For established agencies at scale.',
     features: ['Unlimited everything', 'Unlimited accounts', 'White-label portal', 'Priority support', 'API access', '7-day free trial'],
   },
@@ -140,7 +140,7 @@ export default function Onboarding() {
               background: step >= s ? 'linear-gradient(135deg, #00E5C8, #4B7BFF)' : '#1A2640',
               color: step >= s ? '#fff' : '#3A5070',
             }}>{s}</div>
-            {s < 2 && <div style={{ width: '32px', height: '1px', background: step > s ? '#4B7BFF' : '#1A2640' }} />}
+            {s < 2 && <div style={{ width: '32px', height: '1px', background: step > s ? '#2563EB' : '#1A2640' }} />}
           </React.Fragment>
         ))}
       </div>
@@ -153,7 +153,7 @@ export default function Onboarding() {
               Choose your plan
             </h1>
             <p style={{ fontSize: '14px', color: '#3A5070' }}>
-              All plans include a <strong style={{ color: '#00E5C8' }}>7-day free trial</strong> — no charge until your trial ends.
+              All plans include a <strong style={{ color: '#0D9488' }}>7-day free trial</strong> — no charge until your trial ends.
             </p>
           </div>
 
@@ -241,7 +241,7 @@ export default function Onboarding() {
                   background: '#0D1526', cursor: 'pointer', textAlign: 'left', color: '#fff',
                   fontFamily: "'Plus Jakarta Sans', sans-serif", transition: 'all 0.15s',
                 }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = '#4B7BFF'}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#2563EB'}
                 onMouseLeave={e => e.currentTarget.style.borderColor = pm.key === 'skip' ? '#1A2640' : '#1A2640'}>
                 <span style={{ fontSize: '22px', flexShrink: 0 }}>{pm.icon}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>

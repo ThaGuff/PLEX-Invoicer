@@ -11,7 +11,7 @@ import { X, Zap, Clock, AlertTriangle, Gift, ArrowRight, RefreshCw } from 'lucid
 import { useSubscription } from '../hooks/useSubscription';
 import { useAccount } from '../context/AccountContext';
 
-const GRAD = 'linear-gradient(135deg, #00C9B1, #3B6FE8, #6B3FD8)';
+const GRAD = 'linear-gradient(135deg, #0D9488, #2563EB, #7C3AED)';
 
 function WinbackOffer({ onDismiss }) {
   const navigate   = useNavigate();
@@ -37,7 +37,7 @@ function WinbackOffer({ onDismiss }) {
   return (
     <div style={{ background: 'linear-gradient(135deg, #1a0a30, #0a1a35)', borderBottom: '1px solid rgba(107,63,216,0.4)', padding: '0' }}>
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #6B3FD8, #3B6FE8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #7C3AED, #2563EB)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Gift size={17} color="#fff" />
         </div>
         <div style={{ flex: 1, minWidth: 200 }}>
@@ -45,7 +45,7 @@ function WinbackOffer({ onDismiss }) {
             We'd love to keep you — here's a special offer
           </p>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', lineHeight: 1.4 }}>
-            Your subscription was cancelled. Get <strong style={{ color: '#00C9B1' }}>30 extra days + 50% off your first month</strong> if you come back today.
+            Your subscription was cancelled. Get <strong style={{ color: '#0D9488' }}>30 extra days + 50% off your first month</strong> if you come back today.
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
@@ -72,7 +72,7 @@ function TrialCountdown({ daysLeft, onDismiss }) {
     ? 'linear-gradient(135deg, #2a0a0a, #1a0a20)'
     : 'linear-gradient(135deg, #0a1525, #0f1a35)';
   const borderColor = isUrgent ? 'rgba(239,68,68,0.4)' : 'rgba(59,111,232,0.3)';
-  const accentColor = isUrgent ? '#ef4444' : '#3B6FE8';
+  const accentColor = isUrgent ? '#ef4444' : '#2563EB';
 
   return (
     <div style={{ background: bgColor, borderBottom: `1px solid ${borderColor}` }}>

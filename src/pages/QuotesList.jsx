@@ -6,9 +6,9 @@ import { api } from '../utils/api';
 
 const STATUS = {
   draft:     { bg:'#F1F5F9', color:'#64748B',  dot:'#94A3B8' },
-  sent:      { bg:'#EAF0FF', color:'#2B56CC',  dot:'#4B7BFF' },
-  viewed:    { bg:'#FEF3C7', color:'#92400E',  dot:'#f59e0b' },
-  accepted:  { bg:'#E0FBF7', color:'#0A7A6A',  dot:'#00E5C8' },
+  sent:      { bg:'#EAF0FF', color:'#2B56CC',  dot:'#2563EB' },
+  viewed:    { bg:'#FEF3C7', color:'#92400E',  dot:'#D97706' },
+  accepted:  { bg:'#E0FBF7', color:'#0A7A6A',  dot:'#0D9488' },
   cancelled: { bg:'#FEF2F2', color:'#991B1B',  dot:'#ef4444' },
 };
 
@@ -84,10 +84,10 @@ export default function QuotesList() {
       {/* Stats row */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:8, marginBottom:16 }} className="animate-fade-up-delay-1">
         {[
-          { label:'Total', value:total, color:'#7B4FE8', bg:'linear-gradient(90deg,#7B4FE8,#4B7BFF)' },
-          { label:'Pending', value:pending, color:'#f59e0b', bg:'#f59e0b' },
-          { label:'Accepted', value:accepted, color:'#00E5C8', bg:'linear-gradient(90deg,#00E5C8,#4B7BFF)' },
-          { label:'Revenue', value:fmt(revenue), color:'#00E5C8', bg:'#00E5C8' },
+          { label:'Total', value:total, color:'#7C3AED', bg:'linear-gradient(90deg,#7B4FE8,#4B7BFF)' },
+          { label:'Pending', value:pending, color:'#D97706', bg:'#D97706' },
+          { label:'Accepted', value:accepted, color:'#0D9488', bg:'linear-gradient(90deg,#00E5C8,#4B7BFF)' },
+          { label:'Revenue', value:fmt(revenue), color:'#0D9488', bg:'#0D9488' },
         ].map(s => (
           <div key={s.label} className="glow-card p-4">
             <div style={{ height:2, borderRadius:1, background:s.bg, marginBottom:10 }} />
@@ -118,7 +118,7 @@ export default function QuotesList() {
                   fontSize:11, fontWeight:active ? 700 : 500, textTransform:'capitalize',
                   background: active ? (st?.bg || 'var(--navy)') : 'var(--bg-page)',
                   color: active ? (st?.color || '#fff') : 'var(--text-muted)',
-                  boxShadow: active ? `0 2px 8px ${st?.dot || '#4B7BFF'}33` : 'none',
+                  boxShadow: active ? `0 2px 8px ${st?.dot || '#2563EB'}33` : 'none',
                   transition:'all 0.15s', fontFamily:"'Plus Jakarta Sans',sans-serif",
                 }}>
                 {Icon && <Icon size={11} />}

@@ -23,7 +23,7 @@ import Onboarding from './pages/Onboarding';
 import AutomationsPage from './pages/AutomationsPage';
 import AnalyticsPage  from './pages/AnalyticsPage';
 const TrialBanner = React.lazy(() => import('./components/TrialBanner').catch(() => ({ default: () => null })));
-import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield, BarChart2, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield, BarChart2, Sun, Moon, Grid } from 'lucide-react';
 import { IdleWarningBanner, SessionExpiredModal } from './components/SessionModals';
 
 
@@ -89,17 +89,19 @@ function Nav() {
 
   // Mobile nav shows top 5; desktop shows all
   const links = [
-    { to: '/',              label: 'Dashboard',   icon: LayoutDashboard, short: 'Home',    color: '#00E5C8' },
-    { to: '/quotes',        label: 'Quotes',      icon: FileText,        short: 'Quotes',  color: '#4B7BFF' },
-    { to: '/invoices',      label: 'Invoices',    icon: Receipt,         short: 'Invoice', color: '#7B4FE8' },
-    { to: '/contacts',      label: 'Clients',     icon: Users,           short: 'Clients', color: '#00E5C8' },
-    { to: '/automations',   label: 'Automate',    icon: Zap,             short: 'Auto',    color: '#f59e0b' },
-    { to: '/analytics',     label: 'Analytics',   icon: BarChart2,       short: 'Stats',   color: '#4B7BFF' },
-    { to: '/billing',       label: 'Billing',     icon: CreditCard,      short: 'Billing', color: '#7B4FE8' },
+    { to: '/',              label: 'Dashboard',   icon: LayoutDashboard, short: 'Home',    color: '#0D9488' },
+    { to: '/quotes',        label: 'Quotes',      icon: FileText,        short: 'Quotes',  color: '#2563EB' },
+    { to: '/invoices',      label: 'Invoices',    icon: Receipt,         short: 'Invoice', color: '#7C3AED' },
+    { to: '/contacts',      label: 'Clients',     icon: Users,           short: 'Clients', color: '#0D9488' },
+    { to: '/automations',   label: 'Automate',    icon: Zap,             short: 'Auto',    color: '#D97706' },
+    { to: '/analytics',     label: 'Analytics',   icon: BarChart2,       short: 'Stats',   color: '#2563EB' },
+    { to: '/billing',       label: 'Billing',     icon: CreditCard,      short: 'Billing', color: '#7C3AED' },
     ...(isOwner ? [{ to: '/admin', label: 'Admin', icon: Shield, short: 'Admin', color: '#ef4444' }] : []),
   ];
   // Mobile bottom nav: Home, Quotes, Invoices, Clients, More (Automate)
-  const mobileLinks = links.slice(0, 5);
+  // Mobile bottom nav: 4 core tabs + "More" drawer for the rest
+  const mobilePrimaryLinks = links.slice(0, 4); // Dashboard, Quotes, Invoices, Clients
+  const mobileMoreLinks = links.slice(4);       // Automate, Analytics, Billing, Admin
 
   const isActive = (to) => to === '/' ? loc.pathname === '/' : loc.pathname.startsWith(to);
 
@@ -128,34 +130,60 @@ function Nav() {
         })}
       </nav>
 
-      {/* Mobile bottom nav — larger, gradient active pill */}
+      {/* Mobile bottom nav */}
       <div className="mobile-nav">
-        {mobileLinks.map(l => {
+        {mobilePrimaryLinks.map(l => {
           const active = isActive(l.to);
           return (
             <NavLink key={l.to} to={l.to}
-              style={{
-                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                justifyContent: 'center', gap: '3px', padding: '6px 4px',
-                borderRadius: '12px', transition: 'all 0.2s ease',
-                color: active ? l.color || '#4B7BFF' : 'var(--text-muted)',
-                background: active ? `${l.color || '#4B7BFF'}12` : 'transparent',
-                textDecoration: 'none',
-              }}>
-              <div style={{
-                width: active ? 36 : 28, height: active ? 36 : 28,
-                borderRadius: active ? 10 : 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: active ? `linear-gradient(135deg, ${l.color || '#4B7BFF'}, #7B4FE8)` : 'transparent',
-                transition: 'all 0.2s ease',
-                boxShadow: active ? `0 4px 12px ${l.color || '#4B7BFF'}44` : 'none',
-              }}>
-                <l.icon size={active ? 18 : 20} color={active ? '#fff' : 'currentColor'} strokeWidth={active ? 2.5 : 1.8} />
+              onClick={() => setShowMobileMore(false)}
+              style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:3, padding:'6px 2px', borderRadius:12, transition:'all 0.2s ease', color: active ? l.color : 'var(--text-muted)', background: active ? `${l.color}14` : 'transparent', textDecoration:'none' }}>
+              <div style={{ width: active?36:28, height: active?36:28, borderRadius: active?10:8, display:'flex', alignItems:'center', justifyContent:'center', background: active ? `linear-gradient(135deg,${l.color},#6B3FD8)` : 'transparent', transition:'all 0.2s ease', boxShadow: active ? `0 4px 12px ${l.color}44` : 'none' }}>
+                <l.icon size={active?18:20} color={active?'#fff':'currentColor'} strokeWidth={active?2.5:1.8} />
               </div>
-              <span style={{ fontSize: '10px', fontWeight: active ? 700 : 500, letterSpacing: '0.3px' }}>{l.short}</span>
+              <span style={{ fontSize:10, fontWeight: active?700:500 }}>{l.short}</span>
             </NavLink>
           );
         })}
+        {/* More button */}
+        <button
+          onClick={() => setShowMobileMore(v => !v)}
+          style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:3, padding:'6px 2px', borderRadius:12, border:'none', background: showMobileMore ? 'rgba(107,63,216,0.12)' : 'transparent', cursor:'pointer', color: showMobileMore ? '#7C3AED' : 'var(--text-muted)', transition:'all 0.2s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+          <div style={{ width: showMobileMore?36:28, height: showMobileMore?36:28, borderRadius: showMobileMore?10:8, display:'flex', alignItems:'center', justifyContent:'center', background: showMobileMore ? 'linear-gradient(135deg,#6B3FD8,#3B6FE8)' : 'transparent', transition:'all 0.2s', boxShadow: showMobileMore ? '0 4px 12px rgba(107,63,216,0.4)' : 'none' }}>
+            <Grid size={showMobileMore?18:20} color={showMobileMore?'#fff':'currentColor'} strokeWidth={showMobileMore?2.5:1.8} />
+          </div>
+          <span style={{ fontSize:10, fontWeight: showMobileMore?700:500 }}>More</span>
+        </button>
       </div>
+
+      {/* Mobile More drawer */}
+      {showMobileMore && (
+        <>
+          <div style={{ position:'fixed', inset:0, zIndex:95, background:'rgba(11,18,32,0.4)', backdropFilter:'blur(2px)' }} onClick={() => setShowMobileMore(false)} />
+          <div style={{ position:'fixed', bottom:'calc(72px + env(safe-area-inset-bottom))', left:12, right:12, zIndex:96, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden', boxShadow:'0 -8px 40px rgba(11,18,32,0.25)' }}>
+            <div style={{ padding:'10px 16px 6px', borderBottom:'1px solid var(--border-subtle)' }}>
+              <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'1px' }}>More features</p>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:0 }}>
+              {mobileMoreLinks.map(l => {
+                const active = isActive(l.to);
+                return (
+                  <NavLink key={l.to} to={l.to}
+                    onClick={() => setShowMobileMore(false)}
+                    style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:6, padding:'16px 8px', textDecoration:'none', transition:'background 0.15s', background: active ? `${l.color}10` : 'transparent' }}
+                    onMouseEnter={e => e.currentTarget.style.background='var(--bg-raised)'}
+                    onMouseLeave={e => e.currentTarget.style.background = active ? `${l.color}10` : 'transparent'}>
+                    <div style={{ width:44, height:44, borderRadius:13, display:'flex', alignItems:'center', justifyContent:'center', background: active ? `linear-gradient(135deg,${l.color},#6B3FD8)` : 'var(--bg-raised)', border:`1px solid ${active ? l.color+'44' : 'var(--border)'}`, boxShadow: active ? `0 4px 14px ${l.color}33` : 'none', transition:'all 0.2s' }}>
+                      <l.icon size={20} color={active ? '#fff' : l.color} strokeWidth={1.8} />
+                    </div>
+                    <span style={{ fontSize:11, fontWeight: active?700:500, color: active ? l.color : 'var(--text-secondary)', textAlign:'center', lineHeight:1.2 }}>{l.short}</span>
+                  </NavLink>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }
@@ -177,6 +205,7 @@ function AppShell({ children }) {
   const [showSettings, setShowSettings] = useState(false);
   const [showNewAccount, setShowNewAccount] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showMobileMore, setShowMobileMore] = useState(false);
   const [dark, setDark] = useDarkMode();
   const accent = account?.primary_color || '#13B5EA';
 

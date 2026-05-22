@@ -6,9 +6,9 @@ import { api } from '../utils/api';
 
 const STATUS = {
   draft:     { bg:'#F1F5F9', color:'#64748B', dot:'#94A3B8' },
-  sent:      { bg:'#EAF0FF', color:'#2B56CC', dot:'#4B7BFF' },
-  viewed:    { bg:'#FEF3C7', color:'#92400E', dot:'#f59e0b' },
-  paid:      { bg:'#E0FBF7', color:'#0A7A6A', dot:'#00E5C8' },
+  sent:      { bg:'#EAF0FF', color:'#2B56CC', dot:'#2563EB' },
+  viewed:    { bg:'#FEF3C7', color:'#92400E', dot:'#D97706' },
+  paid:      { bg:'#E0FBF7', color:'#0A7A6A', dot:'#0D9488' },
   overdue:   { bg:'rgba(239,68,68,0.1)', color:'#991B1B', dot:'#ef4444' },
   cancelled: { bg:'#F1F5F9', color:'#94A3B8', dot:'#CBD5E1' },
 };
@@ -86,7 +86,7 @@ export default function InvoicesList() {
       {/* Stats */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:8, marginBottom:16 }} className="animate-fade-up-delay-1">
         {[
-          { label:'Collected',    value:fmt(stats.collected),    bg:'#00E5C8' },
+          { label:'Collected',    value:fmt(stats.collected),    bg:'#0D9488' },
           { label:'Outstanding',  value:fmt(stats.outstanding),  bg:'linear-gradient(90deg,#00E5C8,#4B7BFF)' },
           { label:'Paid count',   value:stats.paid,              bg:'linear-gradient(90deg,#4B7BFF,#7B4FE8)' },
           { label:'Overdue',      value:stats.overdue,           bg:'#ef4444' },
@@ -112,7 +112,7 @@ export default function InvoicesList() {
             const active = filter === f.k;
             return (
               <button key={f.k} onClick={() => setFilter(f.k)}
-                style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 12px', borderRadius:9, border:'none', cursor:'pointer', fontSize:11, fontWeight:active?700:500, background:active ? (st.bg||'var(--navy)') : 'var(--bg-page)', color:active ? (st.color||'#fff') : 'var(--text-muted)', boxShadow:active ? `0 2px 8px ${st.dot||'#4B7BFF'}33` : 'none', transition:'all 0.15s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+                style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 12px', borderRadius:9, border:'none', cursor:'pointer', fontSize:11, fontWeight:active?700:500, background:active ? (st.bg||'var(--navy)') : 'var(--bg-page)', color:active ? (st.color||'#fff') : 'var(--text-muted)', boxShadow:active ? `0 2px 8px ${st.dot||'#2563EB'}33` : 'none', transition:'all 0.15s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
                 <f.icon size={11} /> {f.label}
               </button>
             );
@@ -163,7 +163,7 @@ export default function InvoicesList() {
                     {inv.status !== 'paid' && inv.status !== 'cancelled' && (
                       <button onClick={e => handleReminder(inv.id, e)}
                         style={{ display:'flex', alignItems:'center', gap:5, fontSize:10, fontWeight:600, padding:'5px 10px', borderRadius:7, border:'0.5px solid var(--border)', background:'var(--bg-page)', cursor:'pointer', color:'var(--text-muted)', transition:'all 0.15s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
-                        onMouseEnter={e => { e.currentTarget.style.borderColor='#4B7BFF'; e.currentTarget.style.color='#4B7BFF'; }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor='#2563EB'; e.currentTarget.style.color='#2563EB'; }}
                         onMouseLeave={e => { e.currentTarget.style.borderColor='var(--border)'; e.currentTarget.style.color='var(--text-muted)'; }}>
                         <Bell size={10} /> Remind
                       </button>

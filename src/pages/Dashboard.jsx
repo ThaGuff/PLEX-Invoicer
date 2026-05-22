@@ -15,7 +15,7 @@ import { api } from '../utils/api';
 function fmt(n)    { return '$' + Math.abs(Math.round((n||0)*100)/100).toLocaleString('en-US',{minimumFractionDigits:0}); }
 function fmtDate(s){ if(!s) return '—'; try { return new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric'}); } catch{return s;} }
 
-const STATUS_COLORS = { draft:'#64748B', sent:'#4B7BFF', viewed:'#f59e0b', paid:'#00E5C8', overdue:'#ef4444', cancelled:'#94A3B8', accepted:'#00E5C8' };
+const STATUS_COLORS = { draft:'#64748B', sent:'#2563EB', viewed:'#D97706', paid:'#0D9488', overdue:'#ef4444', cancelled:'#94A3B8', accepted:'#0D9488' };
 const STATUS_BG     = { draft:'#F1F5F9', sent:'#EAF0FF', viewed:'#FEF3C7', paid:'#E0FBF7', overdue:'rgba(239,68,68,0.1)', cancelled:'#F1F5F9', accepted:'#E0FBF7' };
 
 function StatusBadge({ status }) {
@@ -59,7 +59,7 @@ function QuickAction({ icon: Icon, label, desc, color, to, onClick }) {
 export default function Dashboard() {
   const { account }   = useAccount();
   const navigate      = useNavigate();
-  const accent        = '#4B7BFF';
+  const accent        = '#2563EB';
 
   const [stats,   setStats]   = useState(null);
   const [quotes,  setQuotes]  = useState([]);
@@ -82,17 +82,17 @@ export default function Dashboard() {
   }, [account?.id]);
 
   const statCards = [
-    { label: 'Collected',    value: fmt(stats?.collected_all_time  || 0), sub: 'all time',         icon: DollarSign, gradient: '#00E5C8', delay: 0 },
+    { label: 'Collected',    value: fmt(stats?.collected_all_time  || 0), sub: 'all time',         icon: DollarSign, gradient: '#0D9488', delay: 0 },
     { label: 'Outstanding',  value: fmt(stats?.total_outstanding   || 0), sub: 'across all invoices', icon: AlertCircle, gradient: 'linear-gradient(90deg,#00E5C8,#4B7BFF)', delay: 50 },
     { label: 'This month',   value: fmt(stats?.invoiced_this_month || 0), sub: 'invoiced',          icon: TrendingUp, gradient: 'linear-gradient(90deg,#4B7BFF,#7B4FE8)', delay: 100 },
-    { label: 'Total quotes', value: stats?.total_quotes || 0,             sub: `${stats?.total_invoices||0} invoices`, icon: FileText, gradient: '#7B4FE8', delay: 150 },
+    { label: 'Total quotes', value: stats?.total_quotes || 0,             sub: `${stats?.total_invoices||0} invoices`, icon: FileText, gradient: '#7C3AED', delay: 150 },
   ];
 
   const quickActions = [
-    { icon: Plus,       label: 'New quote',     desc: 'Build & send in minutes',    color: '#4B7BFF', to: '/quotes/new' },
-    { icon: Receipt,    label: 'Record payment', desc: 'Mark an invoice as paid',   color: '#00E5C8', to: '/invoices' },
-    { icon: Users,      label: 'Add client',     desc: 'Create a contact record',   color: '#7B4FE8', to: '/contacts' },
-    { icon: Zap,        label: 'Automate',       desc: 'Set up a follow-up sequence', color: '#f59e0b', to: '/automations' },
+    { icon: Plus,       label: 'New quote',     desc: 'Build & send in minutes',    color: '#2563EB', to: '/quotes/new' },
+    { icon: Receipt,    label: 'Record payment', desc: 'Mark an invoice as paid',   color: '#0D9488', to: '/invoices' },
+    { icon: Users,      label: 'Add client',     desc: 'Create a contact record',   color: '#7C3AED', to: '/contacts' },
+    { icon: Zap,        label: 'Automate',       desc: 'Set up a follow-up sequence', color: '#D97706', to: '/automations' },
   ];
 
   return (
@@ -152,7 +152,7 @@ export default function Dashboard() {
           <div style={{ padding: '14px 16px', borderBottom: '0.5px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.9px' }}>Recent quotes</p>
             <button onClick={() => navigate('/quotes')}
-              style={{ fontSize: 11, fontWeight: 600, color: '#4B7BFF', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
+              style={{ fontSize: 11, fontWeight: 600, color: '#2563EB', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
               View all <ChevronRight size={11} />
             </button>
           </div>
@@ -174,7 +174,7 @@ export default function Dashboard() {
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#4B7BFF', fontFamily: 'monospace' }}>{q.number}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#2563EB', fontFamily: 'monospace' }}>{q.number}</span>
                   <StatusBadge status={q.status} />
                 </div>
                 <p style={{ fontSize: 12, color: 'var(--text-secondary)', truncate: true }}>{q.client_name || q.client_biz || '—'}</p>
@@ -192,13 +192,13 @@ export default function Dashboard() {
           <div style={{ padding: '14px 16px', borderBottom: '0.5px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.9px' }}>Outstanding invoices</p>
             <button onClick={() => navigate('/invoices')}
-              style={{ fontSize: 11, fontWeight: 600, color: '#4B7BFF', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
+              style={{ fontSize: 11, fontWeight: 600, color: '#2563EB', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
               View all <ChevronRight size={11} />
             </button>
           </div>
           {invoices.length === 0 ? (
             <div style={{ padding: '32px 16px', textAlign: 'center' }}>
-              <CheckCircle size={28} style={{ color: '#00E5C8', margin: '0 auto 10px' }} />
+              <CheckCircle size={28} style={{ color: '#0D9488', margin: '0 auto 10px' }} />
               <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>All clear!</p>
               <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>No outstanding invoices right now.</p>
             </div>
@@ -212,7 +212,7 @@ export default function Dashboard() {
                 onMouseLeave={e => e.currentTarget.style.background = isOverdue ? 'rgba(239,68,68,0.03)' : 'transparent'}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: isOverdue ? '#ef4444' : '#7B4FE8', fontFamily: 'monospace' }}>{inv.number}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: isOverdue ? '#ef4444' : '#7C3AED', fontFamily: 'monospace' }}>{inv.number}</span>
                     <StatusBadge status={isOverdue ? 'overdue' : inv.status} />
                   </div>
                   <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{inv.client_name || '—'}</p>
