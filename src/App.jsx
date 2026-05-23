@@ -22,7 +22,8 @@ import BillingPage from './pages/BillingPage';
 import Onboarding from './pages/Onboarding';
 import AutomationsPage from './pages/AutomationsPage';
 import AnalyticsPage  from './pages/AnalyticsPage';
-const TrialBanner = React.lazy(() => import('./components/TrialBanner').catch(() => ({ default: () => null })));
+const TrialBanner  = React.lazy(() => import('./components/TrialBanner').catch(() => ({ default: () => null })));
+const InstallPWA   = React.lazy(() => import('./components/InstallPWA').catch(() => ({ default: () => null })));
 import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield, BarChart2, Sun, Moon, Grid } from 'lucide-react';
 import { IdleWarningBanner, SessionExpiredModal } from './components/SessionModals';
 
