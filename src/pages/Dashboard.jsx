@@ -27,18 +27,29 @@ function StatusBadge({ status }) {
   );
 }
 
-function StatCard({ label, value, sub, icon: Icon, gradient, delay = 0 }) {
+function StatCard({ label, value, sub, icon: Icon, gradient, delay = 0, to }) {
+  const navigate = useNavigate();
   return (
-    <div className="glow-card p-5 animate-fade-up" style={{ animationDelay: `${delay}ms` }}>
-      <div style={{ height: 3, borderRadius: 2, background: gradient, marginBottom: 14 }} />
-      <div className="flex items-start justify-between mb-2">
-        <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.9px' }}>{label}</p>
-        <div style={{ width: 30, height: 30, borderRadius: 9, background: gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.85 }}>
-          <Icon size={14} color="#fff" />
+    <div
+      onClick={() => to && navigate(to)}
+      className="glow-card p-4 animate-fade-up"
+      style={{ animationDelay:`${delay}ms`, cursor: to ? 'pointer' : 'default', transition:'all 0.18s cubic-bezier(0.34,1.56,0.64,1)', userSelect:'none' }}
+      onMouseEnter={e => { if (to) { e.currentTarget.style.transform='translateY(-3px)'; e.currentTarget.style.boxShadow='0 8px 24px rgba(37,99,235,0.15)'; }}}
+      onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='none'; }}
+      onTouchStart={e => { if (to) e.currentTarget.style.transform='scale(0.97)'; }}
+      onTouchEnd={e => { e.currentTarget.style.transform='scale(1)'; }}>
+      <div style={{ height:3, borderRadius:2, background:gradient, marginBottom:12 }} />
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:8 }}>
+        <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.9px' }}>{label}</p>
+        <div style={{ width:28, height:28, borderRadius:8, background:gradient, display:'flex', alignItems:'center', justifyContent:'center', opacity:0.9, flexShrink:0 }}>
+          <Icon size={13} color="#fff" />
         </div>
       </div>
-      <p className="stat-value" style={{ color: 'var(--text-primary)' }}>{value}</p>
-      {sub && <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{sub}</p>}
+      <p style={{ fontSize:'clamp(20px,4vw,26px)', fontWeight:800, letterSpacing:'-0.04em', lineHeight:1, color:'var(--text-primary)' }}>{value}</p>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:6 }}>
+        {sub && <p style={{ fontSize:11, color:'var(--text-muted)' }}>{sub}</p>}
+        {to && <p style={{ fontSize:10, color:'var(--blue)', fontWeight:600, opacity:0.7 }}>View →</p>}
+      </div>
     </div>
   );
 }
@@ -92,10 +103,10 @@ export default function Dashboard() {
   }, [account?.id]);
 
   const statCards = [
-    { label: 'Collected',    value: fmt(stats?.total_collected  || 0), sub: 'all time',         icon: DollarSign, gradient: '#0D9488', delay: 0 },
-    { label: 'Outstanding',  value: fmt(stats?.total_outstanding   || 0), sub: 'across all invoices', icon: AlertCircle, gradient: 'linear-gradient(90deg,#2563EB,#0D9488)', delay: 50 },
-    { label: 'This month',   value: fmt(stats?.this_month_invoiced || 0), sub: 'invoiced',          icon: TrendingUp, gradient: 'linear-gradient(90deg,#7C3AED,#2563EB)', delay: 100 },
-    { label: 'Total quotes', value: stats?.total_quotes || 0,             sub: `${stats?.total_invoices||0} invoices`, icon: FileText, gradient: '#7C3AED', delay: 150 },
+    { label: 'Collected',    value: fmt(stats?.total_collected  || 0), sub: 'all time',              icon: DollarSign, gradient: '#0D9488', delay: 0,   to: '/invoices?filter=paid' },
+    { label: 'Outstanding',  value: fmt(stats?.total_outstanding|| 0), sub: 'across all invoices',   icon: AlertCircle, gradient: 'linear-gradient(90deg,#2563EB,#0D9488)', delay: 50,  to: '/invoices' },
+    { label: 'This month',   value: fmt(stats?.this_month_invoiced||0), sub: 'invoiced this month',  icon: TrendingUp, gradient: 'linear-gradient(90deg,#7C3AED,#2563EB)', delay: 100, to: '/analytics' },
+    { label: 'Quotes',       value: stats?.total_quotes || 0,           sub: `${stats?.total_invoices||0} invoices`, icon: FileText, gradient: '#7C3AED', delay: 150, to: '/quotes' },
   ];
 
   const quickActions = [

@@ -23,8 +23,12 @@ import Onboarding from './pages/Onboarding';
 import AutomationsPage from './pages/AutomationsPage';
 import AnalyticsPage  from './pages/AnalyticsPage';
 const TrialBanner  = React.lazy(() => import('./components/TrialBanner').catch(() => ({ default: () => null })));
-const InstallPWA   = React.lazy(() => import('./components/InstallPWA').catch(() => ({ default: () => null })));
-import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield, BarChart2, Sun, Moon, Grid } from 'lucide-react';
+const InstallPWA    = React.lazy(() => import('./components/InstallPWA').catch(() => ({ default: () => null })));
+const DocumentsPage = React.lazy(() => import('./pages/DocumentsPage').catch(() => ({ default: () => null })));
+const CalendarPage  = React.lazy(() => import('./pages/CalendarPage').catch(() => ({ default: () => null })));
+const PhotosPage    = React.lazy(() => import('./pages/PhotosPage').catch(() => ({ default: () => null })));
+const WorkspacePage = React.lazy(() => import('./pages/WorkspacePage').catch(() => ({ default: () => null })));
+import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield, BarChart2, Sun, Moon, Grid, Calendar, FolderOpen, Image as ImageIcon, MessageSquare } from 'lucide-react';
 import { IdleWarningBanner, SessionExpiredModal } from './components/SessionModals';
 
 
@@ -249,7 +253,7 @@ function AppShell({ children }) {
             {/* Dark mode toggle */}
             <button onClick={() => setDark(d => !d)}
               title={dark ? 'Light mode' : 'Dark mode'}
-              style={{ width:36, height:36, borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center', border:'0.5px solid var(--border)', background:'var(--bg-page)', cursor:'pointer', color:'var(--text-secondary)', flexShrink:0 }}>
+              className='hidden md:flex' style={{ width:36, height:36, borderRadius:9, alignItems:'center', justifyContent:'center', border:'0.5px solid var(--border)', background:'var(--bg-page)', cursor:'pointer', color:'var(--text-secondary)', flexShrink:0 }}>
               {dark ? <Sun size={15}/> : <Moon size={15}/>}
             </button>
             {/* New quote — hidden on mobile (FAB handles it) */}
@@ -379,6 +383,10 @@ export default function App() {
                     <Route path="/billing"         element={<BillingPage />} />
                     <Route path="/onboarding"      element={<Onboarding />} />
                     <Route path="/automations"     element={<AutomationsPage />} />
+                    <Route path="/documents"       element={<React.Suspense fallback={null}><DocumentsPage /></React.Suspense>} />
+                    <Route path="/calendar"        element={<React.Suspense fallback={null}><CalendarPage /></React.Suspense>} />
+                    <Route path="/photos"          element={<React.Suspense fallback={null}><PhotosPage /></React.Suspense>} />
+                    <Route path="/workspace"       element={<React.Suspense fallback={null}><WorkspacePage /></React.Suspense>} />
                     <Route path="/analytics"       element={<AnalyticsPage />} />
                   </Routes>
                 </AppShell>
