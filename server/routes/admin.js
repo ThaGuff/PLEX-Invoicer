@@ -26,25 +26,13 @@ function getSupabaseAdmin() {
   const key = process.env.SUPABASE_SERVICE_KEY;
   if (!url || !key) return null;
 
-  // Monkey-patch WebSocket BEFORE createClient to prevent Node 20 crash.
-  // The Supabase SDK checks for globalThis.WebSocket in its constructor.
-  // Providing a stub prevents the throw so we can call realtime.disconnect() after.
-  const hadWS = !!globalThis.WebSocket;
-  if (!hadWS) {
-    globalThis.WebSocket = class StubWS {
-      constructor() { this.readyState = 3; }
-      close() {} addEventListener() {} removeEventListener() {}
-      static get CONNECTING() { return 0; }
-      static get OPEN()       { return 1; }
-      static get CLOSING()    { return 2; }
-      static get CLOSED()     { return 3; }
-    };
-  }
-
+  // WebSocket polyfill is applied globally at server.js startup (ws package)
+  // No stub needed here — globalThis.WebSocket is already set
   try {
+    const { default: ws } = await import('ws');
     _supabaseAdmin = createClient(url, key, {
       auth:     { persistSession: false, autoRefreshToken: false },
-      realtime: { params: { eventsPerSecond: 0 } },
+      realtime: { params: { eventsPerSecond: 0 }, transport: ws },
       global:   { headers: {} },
     });
     // Disconnect Realtime immediately — server only needs auth.admin API
@@ -54,7 +42,6 @@ function getSupabaseAdmin() {
     _supabaseAdmin = null;
   } finally {
     // Clean up our stub so it doesn't affect other code
-    if (!hadWS) delete globalThis.WebSocket;
   }
   return _supabaseAdmin;
 }
