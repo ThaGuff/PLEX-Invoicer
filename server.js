@@ -1,3 +1,6 @@
+import { WebSocket as WsWebSocket } from 'ws';
+if (!globalThis.WebSocket) globalThis.WebSocket = WsWebSocket; // Node 20 polyfill
+
 import express       from 'express';
 import path           from 'path';
 import { fileURLToPath } from 'url';
