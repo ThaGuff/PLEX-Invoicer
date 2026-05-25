@@ -5,6 +5,7 @@
 import { Router } from 'express';
 import { db } from '../db/schema.js';
 import { createClient } from '@supabase/supabase-js';
+import ws from 'ws';
 
 const router = Router();
 
@@ -29,7 +30,6 @@ function getSupabaseAdmin() {
   // WebSocket polyfill is applied globally at server.js startup (ws package)
   // No stub needed here — globalThis.WebSocket is already set
   try {
-    const { default: ws } = await import('ws');
     _supabaseAdmin = createClient(url, key, {
       auth:     { persistSession: false, autoRefreshToken: false },
       realtime: { params: { eventsPerSecond: 0 }, transport: ws },
