@@ -494,10 +494,39 @@ app.get('/manifest.json', (req, res) => {
   res.sendFile(path.join(distDir, 'manifest.json'));
 });
 // Serve PWA verification files — dotfiles must be explicitly allowed
-app.use(express.static(path.join(__dirname, 'public'), { dotfiles: 'allow' }));
-app.use(express.static(distDir, { dotfiles: 'allow' }));
+// Static assets: long cache (they have content hashes in filenames)
+app.use(express.static(path.join(__dirname, 'public'), {
+  dotfiles: 'allow',
+  maxAge: '1d',
+  setHeaders: (res, filePath) => {
+    // Don't cache the manifest or sw — they need to be fresh
+    if (filePath.endsWith('manifest.json') || filePath.endsWith('sw.js')) {
+      res.set('Cache-Control', 'no-cache');
+    }
+  }
+}));
+app.use(express.static(distDir, {
+  dotfiles: 'allow',
+  maxAge: '1y',  // hashed assets can be cached forever
+  immutable: true,
+  setHeaders: (res, filePath) => {
+    // index.html must never be cached
+    if (filePath.endsWith('index.html')) {
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+  }
+}));
 // SPA catch-all — must come AFTER static
-app.get('*', (req, res) => res.sendFile(path.join(distDir, 'index.html')));
+app.get('*', (req, res) => {
+  // Never cache index.html — it contains the hashed JS bundle reference
+  // If cached, users see old bundle even after deploy
+  res.set({
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+  });
+  res.sendFile(path.join(distDir, 'index.html'));
+});
 
 // ── Start ─────────────────────────────────────────────────────────
 // Start HTTP server FIRST so Railway healthcheck passes immediately.
