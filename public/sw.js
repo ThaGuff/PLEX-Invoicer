@@ -147,3 +147,4 @@ async function syncPendingActions() {
   // TODO: Sync any offline-queued quote/invoice actions
   console.log('[SW] Background sync fired');
 }
+/* force-rebuild-1779722267 */
