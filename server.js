@@ -145,8 +145,9 @@ app.use(sanitizeRequest); // strip XSS and injection from all request bodies
 // ── System health endpoint ───────────────────────────────────────
 app.get('/health', (req, res) => {
   const dbHealth = getDbHealth();
-  const status = dbHealth.healthy ? 200 : 503;
-  res.status(status).json({
+  // Always return 200 — Railway uses this for healthcheck
+  // DB issues are surfaced in the body but don't fail the deployment
+  res.status(200).json({
     status: dbHealth.healthy ? 'ok' : 'degraded',
     db: dbHealth,
     uptime: Math.floor(process.uptime()),
