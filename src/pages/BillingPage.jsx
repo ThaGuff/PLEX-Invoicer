@@ -82,6 +82,8 @@ export default function BillingPage() {
   const navigate       = useNavigate();
   const [params]       = useSearchParams();
   const isWelcome      = params.get('welcome') === '1';
+  const isTrialEnding  = params.get('trial_ending') === '1';
+  const trialDaysParam = parseInt(params.get('days') || '0');
   const accent = account?.primary_color || '#13B5EA';
 
   const [loading, setLoading]   = useState(false);

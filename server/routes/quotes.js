@@ -199,11 +199,11 @@ router.post('/:id/convert', async (req, res) => {
     await db.execute(
       `INSERT INTO invoices (id, account_id, quote_id, number, contact_id, client_name, client_biz,
         client_email, client_phone, billing_mode, setup_total, monthly_total, amount_due, due_date,
-        notes, public_token, tax_rate, tax_amount)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        notes, public_token, tax_rate, tax_amount, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [invId, q.account_id, q.id, number, q.contact_id, q.client_name, q.client_biz,
        q.client_email, q.client_phone, q.billing_mode, q.setup_total, q.monthly_total,
-       amount_due, due_date, q.notes, public_token, q.tax_rate || 0, q.tax_amount || 0]
+       amount_due, due_date, q.notes, public_token, q.tax_rate || 0, q.tax_amount || 0, 'generated']
     );
 
     // Batch insert invoice items
@@ -216,7 +216,7 @@ router.post('/:id/convert', async (req, res) => {
     )));
 
     await db.execute(
-      `UPDATE quotes SET status = 'accepted', accepted_at = NOW() WHERE id = ?`, [q.id]
+      `UPDATE quotes SET status = 'invoiced', invoiced_at = CURRENT_TIMESTAMP WHERE id = ?`, [q.id]
     );
 
     const inv = await db.execute(`SELECT * FROM invoices WHERE id = ?`, [invId]);

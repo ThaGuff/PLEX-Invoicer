@@ -96,13 +96,18 @@ export function AuthProvider({ children }) {
       setSession(session);
       setUser(session?.user ?? null);
 
-      // Track new signups for onboarding redirect
+      // Track new signups for billing redirect
       if (event === 'SIGNED_IN') {
-        const isNew = !session?.user?.last_sign_in_at || 
-          (new Date() - new Date(session.user.created_at)) < 60000; // within 1 min of creation
+        const createdAt = new Date(session?.user?.created_at);
+        const ageMs = Date.now() - createdAt.getTime();
+        // New if account is less than 5 minutes old (covers slow OAuth flows)
+        const isNew = ageMs < 5 * 60 * 1000;
         if (isNew) {
           localStorage.setItem('revanew_new_user', '1');
         }
+        // Also mark trialing users for upsell check on each login
+        // The AccountContext will check their subscription and redirect if needed
+        localStorage.setItem('revanew_login_event', Date.now().toString());
       }
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         const wasExpired = sessionExpired;

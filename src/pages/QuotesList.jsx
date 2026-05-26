@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, FileText, Trash2, ArrowRight, RefreshCw, Eye, CheckCircle, Clock, Send, BarChart2 } from 'lucide-react';
+import { Plus, Search, FileText, Trash2, ArrowRight, RefreshCw, Eye, CheckCircle, Clock, Send, BarChart2, Receipt } from 'lucide-react';
 import { useAccount } from '../context/AccountContext';
 import { api } from '../utils/api';
 
@@ -12,7 +12,7 @@ const STATUS = {
   cancelled: { bg:'#FEF2F2', color:'#991B1B',  dot:'#ef4444' },
 };
 
-const FILTER_ICONS = { all: FileText, draft: Clock, sent: Send, viewed: Eye, accepted: CheckCircle };
+const FILTER_ICONS = { all: FileText, draft: Clock, sent: Send, viewed: Eye, invoiced: Receipt, accepted: CheckCircle };
 
 function fmt(n) { return '$' + Math.round(n || 0).toLocaleString(); }
 function fmtDate(s) { if (!s) return '—'; try { return new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); } catch { return s; } }
@@ -106,7 +106,7 @@ export default function QuotesList() {
             style={{ paddingLeft:36, fontSize:13 }} />
         </div>
         <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
-          {['all','draft','sent','viewed','accepted'].map(s => {
+          {['all','draft','sent','viewed','invoiced','accepted'].map(s => {
             const Icon = FILTER_ICONS[s];
             const st = STATUS[s];
             const active = filter === s;

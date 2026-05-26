@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Receipt, Trash2, Bell, RefreshCw, CheckCircle, Clock, AlertCircle, Eye, DollarSign, Send } from 'lucide-react';
+import { Search, Receipt, Trash2, Bell, RefreshCw, CheckCircle, Clock, AlertCircle, Eye, DollarSign, Send, FileText } from 'lucide-react';
 import { useAccount } from '../context/AccountContext';
 import { api } from '../utils/api';
 
@@ -61,17 +61,18 @@ export default function InvoicesList() {
   const stats = {
     total:      invoices.length,
     paid:       invoices.filter(i => i.status === 'paid').length,
-    outstanding: invoices.filter(i => !['paid','cancelled'].includes(i.status)).reduce((s,i) => s+(i.amount_due||0), 0),
+    outstanding: invoices.filter(i => ['sent','viewed','overdue'].includes(i.status)).reduce((s,i) => s+(i.amount_due||0), 0),
     overdue:    enriched.filter(i => i._overdue).length,
     collected:  invoices.filter(i => i.status === 'paid').reduce((s,i) => s+(i.amount_paid||0), 0),
   };
 
   const FILTERS = [
-    { k:'all',     label:'All',     icon: Receipt },
-    { k:'sent',    label:'Sent',    icon: Send },
-    { k:'viewed',  label:'Viewed',  icon: Eye },
-    { k:'overdue', label:'Overdue', icon: AlertCircle },
-    { k:'paid',    label:'Paid',    icon: CheckCircle },
+    { k:'all',       label:'All',       icon: Receipt },
+    { k:'generated', label:'Generated', icon: FileText },
+    { k:'sent',      label:'Sent',      icon: Send },
+    { k:'viewed',    label:'Viewed',    icon: Eye },
+    { k:'overdue',   label:'Overdue',   icon: AlertCircle },
+    { k:'paid',      label:'Paid',      icon: CheckCircle },
   ];
 
   return (
