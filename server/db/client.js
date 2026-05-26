@@ -33,6 +33,9 @@ class PgAdapter {
     pgSql = pgSql
       .replace(/datetime\('now'\)/gi,                    "NOW()")
       .replace(/CURRENT_TIMESTAMP/gi,                    "NOW()")
+      .replace(/GROUP_CONCAT\(([^,)]+),\s*'([^']+)'\)/gi, "STRING_AGG($1::text, '$2')")
+      .replace(/GROUP_CONCAT\(([^)]+)\)/gi,               "STRING_AGG($1::text, ',')")
+
       .replace(/INTEGER PRIMARY KEY AUTOINCREMENT/gi,    "SERIAL PRIMARY KEY")
       .replace(/julianday\(([^)]+)\)/gi,                (_, v) => `EXTRACT(EPOCH FROM (${v})::timestamp)/86400`)
       .replace(/CAST\(([^)]+) AS REAL\)/gi,             "CAST($1 AS FLOAT)")

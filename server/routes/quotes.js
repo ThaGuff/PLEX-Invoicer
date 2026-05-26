@@ -186,11 +186,7 @@ router.post('/:id/convert', async (req, res) => {
 
     // ── Idempotency: return existing invoice if already converted ──
     const alreadyConverted = await db.execute(
-      `SELECT i.*, GROUP_CONCAT(ii.id) as item_ids FROM invoices i
-       LEFT JOIN invoice_items ii ON ii.invoice_id = i.id
-       WHERE i.quote_id = ?
-       GROUP BY i.id
-       ORDER BY i.created_at DESC LIMIT 1`,
+      `SELECT * FROM invoices WHERE quote_id = ? ORDER BY created_at DESC LIMIT 1`,
       [q.id]
     );
     if (alreadyConverted.rows.length) {
