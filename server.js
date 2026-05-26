@@ -116,7 +116,7 @@ app.use((req, res, next) => {
 // ── CORS ─────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
   process.env.APP_URL,
-  'https://plex-invoicer.up.railway.app',
+  'https://revanew.io',
   'http://localhost:4173',
   'http://localhost:5173',
 ].filter(Boolean);

@@ -374,4 +374,35 @@ router.delete('/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── POST /api/invoices/public/:token/accept — E-sign invoice ──────
+router.post('/public/:token/accept', async (req, res) => {
+  try {
+    const { signature_data, signer_name, typed_signature, signed_at } = req.body;
+    if (!signer_name) return res.status(400).json({ error: 'signer_name required' });
+
+    const result = await db.execute(
+      `SELECT id, status FROM invoices WHERE public_token = ?`, [req.params.token]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: 'Invoice not found' });
+    const inv = result.rows[0];
+    if (inv.status === 'paid') return res.json({ already: true });
+
+    const signerIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '';
+
+    await db.execute(
+      `UPDATE invoices SET
+         status          = 'accepted',
+         accepted_at     = ?,
+         signature_data  = ?,
+         signer_name     = ?,
+         typed_signature = ?,
+         signer_ip       = ?
+       WHERE id = ?`,
+      [signed_at || new Date().toISOString(), signature_data || null, signer_name, typed_signature || null, signerIp, inv.id]
+    );
+
+    res.json({ ok: true, signed_at, signer_name });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 export default router;
