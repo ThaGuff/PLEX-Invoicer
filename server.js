@@ -23,6 +23,18 @@ import integrationsRouter from './server/routes/integrations.js';
 import stripeConnectRouter from './server/routes/stripe-connect.js';
 import taxRouter          from './server/routes/tax.js';
 import automationsRouter  from './server/routes/automations.js';
+import calendarRouter    from './server/routes/calendar.js';
+import documentsRouter   from './server/routes/documents.js';
+import photosRouter      from './server/routes/photos.js';
+import workspaceRouter   from './server/routes/workspace.js';
+import calendarRouter    from './server/routes/calendar.js';
+import documentsRouter   from './server/routes/documents.js';
+import photosRouter      from './server/routes/photos.js';
+import workspaceRouter   from './server/routes/workspace.js';
+import calendarRouter    from './server/routes/calendar.js';
+import documentsRouter   from './server/routes/documents.js';
+import photosRouter      from './server/routes/photos.js';
+import workspaceRouter   from './server/routes/workspace.js';
 import { scrapeWithOpenAI } from './server/scrape.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -95,6 +107,8 @@ app.use('/api/auth/', strictLimiter);
 app.use('/api/invoices/*/remind', emailLimiter);
 app.use('/api/invoices/*/send',   emailLimiter);
 app.use('/api/analytics/run-reminders', emailLimiter);
+app.use('/api/documents',  uploadLimiter);
+app.use('/api/photos',     uploadLimiter);
 
 // ── Request security ─────────────────────────────────────────────
 // Block requests with suspicious content types
@@ -470,6 +484,10 @@ app.use('/api/analytics',    requireAuth, analyticsRouter);
 app.use('/api/v1/integrations', requireAuth, integrationsRouter);
 app.use('/api/tax',            requireAuth, taxRouter);
 app.use('/api/automations',    requireAuth, automationsRouter);
+app.use('/api/calendar',       requireAuth, calendarRouter);
+app.use('/api/documents',      requireAuth, documentsRouter);
+app.use('/api/photos',         requireAuth, photosRouter);
+app.use('/api/workspace',      requireAuth, workspaceRouter);
 app.use('/api/accounts',     requireAuth, accountsRouter);
 app.use('/api/contacts', requireAuth, contactsRouter);
 app.use('/api/quotes',   requireAuth, quotesRouter);

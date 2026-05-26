@@ -221,6 +221,71 @@ export async function initDB() {
     `);
   }
 
+  // ── New feature tables ──────────────────────────────────────────
+  const newTables = [
+    `CREATE TABLE IF NOT EXISTS calendar_events (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      date TEXT NOT NULL,
+      time TEXT,
+      duration INTEGER DEFAULT 60,
+      location TEXT,
+      notes TEXT,
+      status TEXT DEFAULT 'scheduled',
+      client_name TEXT,
+      client_email TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    )`,
+    `CREATE TABLE IF NOT EXISTS documents (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      doc_type TEXT DEFAULT 'other',
+      size INTEGER,
+      mime_type TEXT,
+      storage_key TEXT,
+      url TEXT,
+      linked_to TEXT,
+      linked_type TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    )`,
+    `CREATE TABLE IF NOT EXISTS photos (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      name TEXT,
+      job_site TEXT,
+      size INTEGER,
+      mime_type TEXT,
+      storage_key TEXT,
+      url TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    )`,
+    `CREATE TABLE IF NOT EXISTS workspace_channels (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      private INTEGER DEFAULT 0,
+      desc TEXT,
+      created_by TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    )`,
+    `CREATE TABLE IF NOT EXISTS workspace_messages (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      channel_id TEXT NOT NULL,
+      content TEXT NOT NULL,
+      sender_name TEXT,
+      sender_id TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_calendar_account ON calendar_events(account_id, date)`,
+    `CREATE INDEX IF NOT EXISTS idx_documents_account ON documents(account_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_photos_account ON photos(account_id, job_site)`,
+    `CREATE INDEX IF NOT EXISTS idx_workspace_msgs ON workspace_messages(account_id, channel_id, created_at)`,
+  ];
+  for (const sql of newTables) { try { await db.execute(sql); } catch(e) { if (!e.message?.includes('already exists')) console.warn('Schema:', e.message?.slice(0,80)); } }
+
   console.log('✓ Database initialized');
 }
 
