@@ -183,6 +183,24 @@ router.post('/:id/convert', async (req, res) => {
     const quote = await db.execute(`SELECT * FROM quotes WHERE id = ?`, [req.params.id]);
     if (!quote.rows.length) return res.status(404).json({ error: 'Quote not found' });
     const q = quote.rows[0];
+
+    // ── Idempotency: return existing invoice if already converted ──
+    const alreadyConverted = await db.execute(
+      `SELECT i.*, GROUP_CONCAT(ii.id) as item_ids FROM invoices i
+       LEFT JOIN invoice_items ii ON ii.invoice_id = i.id
+       WHERE i.quote_id = ?
+       GROUP BY i.id
+       ORDER BY i.created_at DESC LIMIT 1`,
+      [q.id]
+    );
+    if (alreadyConverted.rows.length) {
+      const existing = alreadyConverted.rows[0];
+      const existingItems = await db.execute(
+        `SELECT * FROM invoice_items WHERE invoice_id = ? ORDER BY sort_order`, [existing.id]
+      );
+      return res.json({ ...existing, items: existingItems.rows });
+    }
+
     const items = await db.execute(
       `SELECT * FROM quote_items WHERE quote_id = ? ORDER BY sort_order`, [q.id]
     );

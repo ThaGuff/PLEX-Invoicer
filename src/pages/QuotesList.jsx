@@ -22,9 +22,10 @@ export default function QuotesList() {
   const { account } = useAccount();
   const navigate    = useNavigate();
   const [quotes,  setQuotes]  = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search,  setSearch]  = useState('');
-  const [filter,  setFilter]  = useState('all');
+  const [loading,    setLoading]    = useState(true);
+  const [search,     setSearch]     = useState('');
+  const [filter,     setFilter]     = useState('all');
+  const [converting, setConverting] = useState(null); // quote id being converted
 
   const load = useCallback(async () => {
     if (!account?.id) return;
@@ -47,11 +48,21 @@ export default function QuotesList() {
 
   const handleConvert = async (id, e) => {
     e.stopPropagation();
+    if (converting) return; // prevent double-click
     if (!confirm('Convert this quote to an invoice?')) return;
+    setConverting(id);
     try {
       const inv = await api.quotes.convert(id);
+      if (!inv?.id) throw new Error('No invoice ID returned');
+      // Update local state to show 'invoiced' status immediately
+      setQuotes(qs => qs.map(q => q.id === id ? { ...q, status: 'invoiced' } : q));
       navigate(`/invoices/${inv.id}`);
-    } catch (err) { console.error('Convert failed:', err.message); }
+    } catch (err) {
+      console.error('Convert failed:', err.message);
+      alert('Failed to create invoice. Please try again.');
+    } finally {
+      setConverting(null);
+    }
   };
 
   const filtered = quotes.filter(q => {
@@ -223,10 +234,11 @@ export default function QuotesList() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-                    {!isAccepted && q.status !== 'cancelled' && (
+                    {!isAccepted && q.status !== 'cancelled' && q.status !== 'invoiced' && (
                       <button onClick={e => handleConvert(q.id, e)}
-                        style={{ display:'flex', alignItems:'center', gap:5, fontSize:10, fontWeight:700, padding:'5px 10px', borderRadius:7, background:'linear-gradient(135deg,#4B7BFF,#7B4FE8)', color:'#fff', border:'none', cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-                        <ArrowRight size={10} /> Invoice
+                        disabled={!!converting}
+                        style={{ display:'flex', alignItems:'center', gap:5, fontSize:10, fontWeight:700, padding:'5px 10px', borderRadius:7, background: converting===q.id ? '#94A3B8' : 'linear-gradient(135deg,#2563EB,#7C3AED)', color:'#fff', border:'none', cursor: converting ? 'not-allowed' : 'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif", opacity: converting && converting!==q.id ? 0.5 : 1, transition:'all 0.15s' }}>
+                        {converting === q.id ? 'Creating…' : <><ArrowRight size={10} /> Invoice</>}
                       </button>
                     )}
                     <button onClick={e => handleDelete(q.id, e)}

@@ -405,4 +405,40 @@ router.post('/public/:token/accept', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── POST /api/invoices/deduplicate — remove duplicate quote invoices ──
+// Called once to clean up existing duplicates
+router.post('/deduplicate', async (req, res) => {
+  try {
+    const { account_id } = req.body;
+    if (!account_id) return res.status(400).json({ error: 'account_id required' });
+
+    // Find all quotes that have more than 1 invoice
+    const dupes = await db.execute(
+      `SELECT quote_id, COUNT(*) as cnt, MIN(created_at) as first_created
+       FROM invoices
+       WHERE account_id = ? AND quote_id IS NOT NULL
+       GROUP BY quote_id
+       HAVING COUNT(*) > 1`,
+      [account_id]
+    );
+
+    let deleted = 0;
+    for (const row of dupes.rows) {
+      // Keep the earliest invoice, delete the rest
+      const all = await db.execute(
+        `SELECT id FROM invoices WHERE quote_id = ? ORDER BY created_at ASC`,
+        [row.quote_id]
+      );
+      const toDelete = all.rows.slice(1).map(r => r.id);
+      for (const id of toDelete) {
+        await db.execute(`DELETE FROM invoice_items WHERE invoice_id = ?`, [id]);
+        await db.execute(`DELETE FROM invoices WHERE id = ?`, [id]);
+        deleted++;
+      }
+    }
+
+    res.json({ ok: true, deleted, dupes_found: dupes.rows.length });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 export default router;
