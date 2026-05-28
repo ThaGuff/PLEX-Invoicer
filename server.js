@@ -630,35 +630,6 @@ app.get('*', (req, res) => {
 // Start HTTP server FIRST so Railway healthcheck passes immediately.
 // DB schema init runs after server is accepting requests.
 
-// ── ONE-TIME Stripe product setup (admin only — delete after use) ──
-app.post('/api/admin/stripe-setup', requireAuth, async (req, res) => {
-  const stripeKey = process.env.STRIPE_SECRET_KEY;
-  if (!stripeKey) return res.status(503).json({ error: 'STRIPE_SECRET_KEY not set' });
-  const ownerEmail = process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com';
-  if (req.user.email !== ownerEmail) return res.status(403).json({ error: 'Owner only' });
-  try {
-    const { default: StripeLib } = await import('stripe');
-    const stripe = new StripeLib(stripeKey);
-    const PLANS = [
-      { key:'starter', name:'Revanew Starter', desc:'Solo operators. 25 quotes/invoices/month, email delivery.', monthly:1900, annual:18240 },
-      { key:'pro',     name:'Revanew Pro',     desc:'Unlimited + AI tools, Stripe Connect, Automations, Calendar, Photos, Team.', monthly:4900, annual:47040 },
-      { key:'agency',  name:'Revanew Agency',  desc:'Everything in Pro + white-label, unlimited team, API access.', monthly:9900, annual:95040 },
-    ];
-    const results = {};
-    for (const plan of PLANS) {
-      const search = await stripe.products.search({ query: `name:\'${plan.name}\'`, limit:1 }).catch(()=>({data:[]}));
-      const product = search.data[0] || await stripe.products.create({ name:plan.name, description:plan.desc, metadata:{plan:plan.key,app:'revanew'} });
-      const monthly = await stripe.prices.create({ product:product.id, unit_amount:plan.monthly, currency:'usd', recurring:{interval:'month'}, nickname:plan.name+' Monthly', metadata:{plan:plan.key} });
-      const annual  = await stripe.prices.create({ product:product.id, unit_amount:plan.annual,  currency:'usd', recurring:{interval:'year'},  nickname:plan.name+' Annual',  metadata:{plan:plan.key} });
-      results[plan.key] = { product_id:product.id, monthly_price_id:monthly.id, annual_price_id:annual.id };
-      console.log('[Stripe Setup]', plan.name, '→', product.id, monthly.id, annual.id);
-    }
-    const vars = Object.entries(results).map(([k,v]) =>
-      `STRIPE_${k.toUpperCase()}_MONTHLY_PRICE=${v.monthly_price_id}\nSTRIPE_${k.toUpperCase()}_ANNUAL_PRICE=${v.annual_price_id}`
-    ).join('\n');
-    res.json({ ok:true, results, railwayVars: vars });
-  } catch(e) { res.status(500).json({ error:e.message }); }
-});
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🚀 PLEX Invoicer running on :${PORT}`);
