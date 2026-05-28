@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, NavLink, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AccountProvider } from './context/AccountContext';
 import { useAccount } from './context/AccountContext';
@@ -212,6 +212,15 @@ function SafeTrialBanner() {
 function AppShell({ children }) {
   const { account, loading } = useAccount();
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  // Listen for navigation events from AccountContext (which can't use useNavigate directly)
+  React.useEffect(() => {
+    const handler = (e) => {
+      try { navigate(e.detail); } catch {}
+    };
+    window.addEventListener('revanew:navigate', handler);
+    return () => window.removeEventListener('revanew:navigate', handler);
+  }, [navigate]);
   const [showSettings, setShowSettings] = useState(false);
   const [showNewAccount, setShowNewAccount] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -375,13 +384,6 @@ function useDarkMode() {
 }
 
 export default function App() {
-  const navigate = useNavigate();
-  // Listen for navigation events from AccountContext (which can't use useNavigate directly)
-  React.useEffect(() => {
-    const handler = (e) => navigate(e.detail);
-    window.addEventListener('revanew:navigate', handler);
-    return () => window.removeEventListener('revanew:navigate', handler);
-  }, [navigate]);
   return (
     <ErrorBoundary>
     <BrowserRouter>
