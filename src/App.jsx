@@ -215,10 +215,25 @@ function AppShell({ children }) {
   const [showSettings, setShowSettings] = useState(false);
   const [showNewAccount, setShowNewAccount] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showTour, setShowTour] = useState(() =>
-    localStorage.getItem('revanew_show_tour') === '1' &&
-    !localStorage.getItem('revanew_tour_done')
-  );
+  const [showTour, setShowTour] = useState(false);
+  // Tour fires after billing is done — check on mount and after billing success
+  React.useEffect(() => {
+    const checkTour = () => {
+      const shouldShow = localStorage.getItem('revanew_show_tour') === '1' &&
+                         !localStorage.getItem('revanew_tour_done') &&
+                         !window.location.pathname.includes('/billing') &&
+                         !window.location.pathname.includes('/login');
+      setShowTour(shouldShow);
+    };
+    checkTour();
+    // Re-check when URL changes (user navigates away from billing)
+    window.addEventListener('popstate', checkTour);
+    window.addEventListener('revanew:navigate', checkTour);
+    return () => {
+      window.removeEventListener('popstate', checkTour);
+      window.removeEventListener('revanew:navigate', checkTour);
+    };
+  }, []);
   const [dark, setDark] = useDarkMode();
   const accent = account?.primary_color || '#13B5EA';
 
@@ -239,17 +254,7 @@ function AppShell({ children }) {
         <div style={{ maxWidth:'1280px', margin:'0 auto', padding:'0 max(16px, calc(12px + env(safe-area-inset-right))) 0 max(14px, calc(12px + env(safe-area-inset-left)))', height:60, display:'flex', alignItems:'center', gap:10, width:'100%', boxSizing:'border-box', overflow:'visible', position:'relative' }}>
           {/* Logo */}
           <div style={{ display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
-            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" width="34" height="34">
-              <rect width="100" height="100" rx="18" fill="#080D1A"/>
-              <defs>
-                <linearGradient id="rgrad-nav" x1="20" y1="15" x2="80" y2="85" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stopColor="#00E5C8"/>
-                  <stop offset="50%" stopColor="#4B7BFF"/>
-                  <stop offset="100%" stopColor="#7B4FE8"/>
-                </linearGradient>
-              </defs>
-              <text x="14" y="80" fontFamily="Arial Black, sans-serif" fontWeight="900" fontSize="80" fill="url(#rgrad-nav)">R</text>
-            </svg>
+            <img src="/logo-revanew.png" alt="Revanew" style={{ width:34, height:34, objectFit:"contain", borderRadius:8 }} />
             <span className="hidden md:block" style={{ fontSize:'17px', fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.5px' }}>Revanew</span>
           </div>
 
@@ -370,6 +375,13 @@ function useDarkMode() {
 }
 
 export default function App() {
+  const navigate = useNavigate();
+  // Listen for navigation events from AccountContext (which can't use useNavigate directly)
+  React.useEffect(() => {
+    const handler = (e) => navigate(e.detail);
+    window.addEventListener('revanew:navigate', handler);
+    return () => window.removeEventListener('revanew:navigate', handler);
+  }, [navigate]);
   return (
     <ErrorBoundary>
     <BrowserRouter>

@@ -1,3 +1,71 @@
+
+function GoogleCalendarSync({ accountId, onSynced }) {
+  const [status, setStatus] = React.useState(null); // null | 'connected' | 'disconnected'
+  const [syncing, setSyncing] = React.useState(false);
+  const [result, setResult] = React.useState(null);
+  const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
+
+  React.useEffect(() => {
+    if (!accountId) return;
+    fetch(`/api/google-calendar/status?account_id=${accountId}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json()).then(d => setStatus(d.connected ? 'connected' : 'disconnected')).catch(() => setStatus('disconnected'));
+    // Handle OAuth callback params
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('google') === 'connected') { setStatus('connected'); window.history.replaceState({}, '', window.location.pathname); }
+  }, [accountId]);
+
+  const connect = async () => {
+    const r = await fetch(`/api/google-calendar/auth-url?account_id=${accountId}`, { headers: { Authorization: `Bearer ${token}` } });
+    const d = await r.json();
+    if (d.url) window.location.href = d.url;
+    else alert(d.error || 'Google Calendar not configured on server.');
+  };
+
+  const sync = async () => {
+    setSyncing(true); setResult(null);
+    try {
+      const r = await fetch('/api/google-calendar/sync', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}` }, body: JSON.stringify({ account_id: accountId }) });
+      const d = await r.json();
+      setResult(d);
+      if (d.ok && d.imported > 0) onSynced?.();
+    } catch(e) { setResult({ error: e.message }); }
+    setSyncing(false);
+  };
+
+  return (
+    <div className="glow-card" style={{ padding:'14px 16px', marginTop:16 }}>
+      <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+        <div style={{ width:36, height:36, borderRadius:10, background:'rgba(37,99,235,0.1)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+          <Calendar size={16} style={{ color:'#2563EB' }} />
+        </div>
+        <div style={{ flex:1 }}>
+          <p style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>Google Calendar Sync</p>
+          <p style={{ fontSize:11, color: status === 'connected' ? '#0D9488' : 'var(--text-muted)' }}>
+            {status === 'connected' ? '✓ Connected — tap Sync to import events' : 'Import events from your Google Calendar'}
+          </p>
+          {result && !result.error && (
+            <p style={{ fontSize:11, color:'#0D9488', marginTop:3 }}>
+              Imported {result.imported} new events ({result.skipped} already synced)
+            </p>
+          )}
+          {result?.error && <p style={{ fontSize:11, color:'#DC2626', marginTop:3 }}>{result.error}</p>}
+        </div>
+        {status === 'connected' ? (
+          <button onClick={sync} disabled={syncing}
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', border:'none', borderRadius:9, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif", opacity:syncing?0.6:1 }}>
+            <RefreshCw size={13} style={{ animation: syncing?'spin 1s linear infinite':undefined }} /> {syncing ? 'Syncing…' : 'Sync Now'}
+          </button>
+        ) : (
+          <button onClick={connect}
+            style={{ padding:'8px 14px', background:'var(--bg-page)', border:'1px solid var(--border)', borderRadius:9, fontSize:12, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+            Connect
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /**
  * Calendar & Scheduling — job appointments, Google Calendar sync
  * Mobile-first: month view with day drill-down, large tap targets
@@ -5,7 +73,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAccount } from '../context/AccountContext';
 import { api } from '../utils/api';
-import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, MapPin, User, ExternalLink, X } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, MapPin, User, ExternalLink, X, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -161,20 +229,8 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* Google Calendar link */}
-      <div className="glow-card" style={{ padding:'14px 16px', marginTop:16, display:'flex', alignItems:'center', gap:12 }}>
-        <div style={{ width:36, height:36, borderRadius:10, background:'rgba(37,99,235,0.1)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <ExternalLink size={16} style={{ color:'#2563EB' }} />
-        </div>
-        <div style={{ flex:1 }}>
-          <p style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>Connect Google Calendar</p>
-          <p style={{ fontSize:11, color:'var(--text-muted)' }}>Sync jobs and appointments with your Google Calendar</p>
-        </div>
-        <a href="https://calendar.google.com" target="_blank" rel="noreferrer"
-          style={{ padding:'8px 14px', background:'var(--bg-page)', border:'1px solid var(--border)', borderRadius:9, fontSize:12, fontWeight:600, color:'var(--text-secondary)', textDecoration:'none' }}>
-          Connect
-        </a>
-      </div>
+      {/* Google Calendar OAuth + Sync */}
+      <GoogleCalendarSync accountId={account?.id} onSynced={load} />
 
       {/* New event modal */}
       {showForm && (

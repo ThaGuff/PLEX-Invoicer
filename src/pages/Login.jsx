@@ -6,17 +6,7 @@ import { Eye, EyeOff, ArrowRight, CheckCircle, Shield, Zap, BarChart2 } from 'lu
 /* ── Brand Logo ─────────────────────────────────────────────────── */
 function RevanewLogo({ size = 40 }) {
   return (
-    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" width={size} height={size}>
-      <rect width="100" height="100" rx="22" fill="#0B1220"/>
-      <defs>
-        <linearGradient id="lg-r" x1="18" y1="12" x2="82" y2="88" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#0D9488"/>
-          <stop offset="50%" stopColor="#2563EB"/>
-          <stop offset="100%" stopColor="#7C3AED"/>
-        </linearGradient>
-      </defs>
-      <text x="12" y="80" fontFamily="Arial Black,sans-serif" fontWeight="900" fontSize="80" fill="url(#lg-r)">R</text>
-    </svg>
+    <img src="/logo-revanew.png" alt="Revanew" style={{ width:36, height:36, objectFit:"contain", borderRadius:9 }} />
   );
 }
 

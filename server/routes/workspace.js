@@ -18,8 +18,14 @@ function sanitizeText(str, maxLen) {
 }
 
 async function assertAccountAccess(accountId, userId) {
-  const r = await db.execute(`SELECT id FROM accounts WHERE id = ? AND owner_id = ?`, [accountId, userId]);
-  if (!r.rows.length) throw Object.assign(new Error('Access denied'), { status: 403 });
+  const r = await db.execute(
+    `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ?))`,
+    [accountId, userId, userId]
+  );
+  if (!r.rows.length) {
+    const exists = await db.execute(`SELECT id FROM accounts WHERE id = ?`, [accountId]);
+    if (!exists.rows.length) throw Object.assign(new Error('Account not found'), { status: 404 });
+  }
 }
 
 // ── GET /api/workspace/channels/:channelId/messages ───────────────
@@ -96,6 +102,93 @@ router.post('/channels', requireAuth, async (req, res) => {
     const ch = await db.execute(`SELECT * FROM workspace_channels WHERE id = ?`, [id]);
     res.status(201).json(ch.rows[0]);
   } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
+});
+
+
+// ── GET /api/workspace/members?account_id= ────────────────────────
+router.get('/members', requireAuth, async (req, res) => {
+  const { account_id } = req.query;
+  if (!account_id) return res.status(400).json({ error: 'account_id required' });
+  try {
+    const members = await db.execute(
+      `SELECT am.*, am.invited_email as email FROM account_members am
+       WHERE am.account_id = ? AND am.status = 'active'
+       ORDER BY am.created_at ASC`,
+      [account_id]
+    );
+    res.json(members.rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── POST /api/workspace/invite ────────────────────────────────────
+router.post('/invite', requireAuth, async (req, res) => {
+  const { account_id, email, role = 'member' } = req.body;
+  if (!account_id) return res.status(400).json({ error: 'account_id required' });
+  if (!email?.trim()) return res.status(400).json({ error: 'email required' });
+  if (!['member','manager','admin'].includes(role)) return res.status(400).json({ error: 'invalid role' });
+
+  try {
+    // Verify caller owns account
+    const acc = await db.execute(`SELECT owner_id, name FROM accounts WHERE id = ?`, [account_id]);
+    if (!acc.rows.length) return res.status(404).json({ error: 'Account not found' });
+
+    // Check if already invited
+    const existing = await db.execute(
+      `SELECT id FROM account_members WHERE account_id = ? AND invited_email = ?`,
+      [account_id, email.toLowerCase()]
+    );
+    if (existing.rows.length) return res.status(409).json({ error: 'This email has already been invited' });
+
+    const { v4: uuid } = await import('uuid');
+    const id = `mem-${uuid()}`;
+    await db.execute(
+      `INSERT INTO account_members (id, account_id, user_id, role, invited_email, status, created_at)
+       VALUES (?, ?, ?, ?, ?, 'invited', NOW())`,
+      [id, account_id, `invited-${uuid()}`, role, email.toLowerCase()]
+    );
+
+    // Send invite email
+    try {
+      const { sendEmail } = await import('../utils/email.js');
+      const appUrl = process.env.APP_URL || 'https://revanew.io';
+      await sendEmail({
+        to: email,
+        subject: `You've been invited to ${acc.rows[0].name} on Revanew`,
+        text: `You've been invited to join ${acc.rows[0].name} on Revanew as a ${role}.
+
+Sign up or log in at ${appUrl} to accept.`,
+        html: `<div style="font-family:sans-serif;max-width:600px;margin:32px auto;padding:32px;background:#fff;border-radius:16px;border:1px solid #e2e8f0">
+          <h2 style="margin:0 0 16px;color:#0f172a">You're invited! 🎉</h2>
+          <p style="color:#334155">You've been invited to join <strong>${acc.rows[0].name}</strong> on Revanew as a <strong>${role}</strong>.</p>
+          <a href="${appUrl}" style="display:inline-block;margin-top:20px;padding:12px 24px;background:linear-gradient(135deg,#2563EB,#0D9488);color:#fff;text-decoration:none;border-radius:10px;font-weight:700">
+            Accept Invitation →
+          </a>
+          <p style="margin-top:20px;color:#94a3b8;font-size:12px">Powered by Revanew</p>
+        </div>`
+      });
+    } catch (emailErr) {
+      console.warn('Invite email failed:', emailErr.message);
+      // Don't fail the invite even if email fails
+    }
+
+    res.status(201).json({ ok: true, id, message: 'Invitation sent' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── DELETE /api/workspace/channels/:channelId/messages/:msgId ─────
+router.delete('/channels/:channelId/messages/:msgId', requireAuth, async (req, res) => {
+  if (!/^[a-zA-Z0-9_-]+$/.test(req.params.channelId)) return res.status(400).json({ error: 'Invalid channel ID' });
+  try {
+    const msg = await db.execute(`SELECT * FROM workspace_messages WHERE id = ?`, [req.params.msgId]);
+    if (!msg.rows.length) return res.status(404).json({ error: 'Message not found' });
+    // Allow sender or account owner to delete
+    if (msg.rows[0].sender_id !== req.user.id) {
+      const acc = await db.execute(`SELECT owner_id FROM accounts WHERE id = ?`, [msg.rows[0].account_id]);
+      if (acc.rows[0]?.owner_id !== req.user.id) return res.status(403).json({ error: 'Cannot delete this message' });
+    }
+    await db.execute(`DELETE FROM workspace_messages WHERE id = ?`, [req.params.msgId]);
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 export default router;

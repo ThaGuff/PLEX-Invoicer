@@ -58,12 +58,8 @@ export function AccountProvider({ children }) {
         localStorage.removeItem('revanew_new_user');
         // Use React router push so SPA state is preserved (no full reload)
         // Small delay ensures AccountContext state is set before navigation
-        setTimeout(() => {
-          if (window.location.pathname !== '/billing') {
-            window.history.pushState({}, '', '/billing?welcome=1');
-            window.dispatchEvent(new PopStateEvent('popstate'));
-          }
-        }, 100);
+        // Fire navigation event that App.jsx listens for
+        window.dispatchEvent(new CustomEvent('revanew:navigate', { detail: '/billing?welcome=1' }));
         return;
       }
 
@@ -77,12 +73,7 @@ export function AccountProvider({ children }) {
       if (justLoggedIn && status === 'trialing' && daysLeft !== null && daysLeft <= 3 && !upsellShownThisSession) {
         localStorage.setItem('revanew_upsell_shown', Date.now().toString());
         localStorage.removeItem('revanew_login_event');
-        setTimeout(() => {
-          if (window.location.pathname !== '/billing') {
-            window.history.pushState({}, '', `/billing?trial_ending=1&days=${daysLeft}`);
-            window.dispatchEvent(new PopStateEvent('popstate'));
-          }
-        }, 200);
+        window.dispatchEvent(new CustomEvent('revanew:navigate', { detail: `/billing?trial_ending=1&days=${daysLeft}` }));
         return;
       }
 

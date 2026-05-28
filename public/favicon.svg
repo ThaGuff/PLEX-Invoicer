@@ -1,11 +1,3 @@
-<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="100" height="100" rx="18" fill="#080D1A"/>
-  <defs>
-    <linearGradient id="rgrad" x1="20" y1="15" x2="80" y2="85" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#00E5C8"/>
-      <stop offset="50%" stop-color="#4B7BFF"/>
-      <stop offset="100%" stop-color="#7B4FE8"/>
-    </linearGradient>
-  </defs>
-  <text x="18" y="78" font-family="Arial Black, sans-serif" font-weight="900" font-size="78" fill="url(#rgrad)">R</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <image href="/favicon.png" width="32" height="32"/>
 </svg>

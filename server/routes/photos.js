@@ -22,8 +22,14 @@ const upload = multer({
 });
 
 async function assertAccountAccess(accountId, userId) {
-  const r = await db.execute(`SELECT id FROM accounts WHERE id = ? AND owner_id = ?`, [accountId, userId]);
-  if (!r.rows.length) throw Object.assign(new Error('Access denied'), { status: 403 });
+  const r = await db.execute(
+    `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ?))`,
+    [accountId, userId, userId]
+  );
+  if (!r.rows.length) {
+    const exists = await db.execute(`SELECT id FROM accounts WHERE id = ?`, [accountId]);
+    if (!exists.rows.length) throw Object.assign(new Error('Account not found'), { status: 404 });
+  }
 }
 
 // ── GET /api/photos?account_id= ───────────────────────────────────

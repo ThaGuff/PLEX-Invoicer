@@ -295,6 +295,28 @@ export async function initDB() {
     )`,
     `CREATE INDEX IF NOT EXISTS idx_push_user ON push_subscriptions(user_id)`,
     `CREATE INDEX IF NOT EXISTS idx_push_account ON push_subscriptions(account_id)`,
+    `CREATE TABLE IF NOT EXISTS google_calendar_tokens (
+      user_id TEXT PRIMARY KEY,
+      account_id TEXT,
+      access_token TEXT NOT NULL,
+      refresh_token TEXT,
+      expires_at TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    )`,
+    `CREATE TABLE IF NOT EXISTS account_members (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      role TEXT DEFAULT 'member',
+      invited_email TEXT,
+      status TEXT DEFAULT 'active',
+      created_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(account_id, user_id)
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_members_account ON account_members(account_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_members_user ON account_members(user_id)`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS google_event_id TEXT`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS assigned_to TEXT`,
   ];
   for (const sql of newTables) { try { await db.execute(sql); } catch(e) { if (!e.message?.includes('already exists')) console.warn('Schema:', e.message?.slice(0,80)); } }
 

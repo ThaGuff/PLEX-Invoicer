@@ -10,17 +10,7 @@ import { CheckCircle, Zap, Star, Building2, CreditCard, ArrowRight, X, Lock } fr
 import { useAccount } from '../context/AccountContext';
 import { PLAN_PRICES, PLAN_COLORS } from '../utils/planFeatures';
 
-const LOGO_SVG = (
-  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
-    <rect width="100" height="100" rx="18" fill="#080D1A"/>
-    <defs>
-      <linearGradient id="rg-ob" x1="20" y1="15" x2="80" y2="85" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#00E5C8"/><stop offset="50%" stopColor="#4B7BFF"/><stop offset="100%" stopColor="#7B4FE8"/>
-      </linearGradient>
-    </defs>
-    <text x="14" y="80" fontFamily="Arial Black, sans-serif" fontWeight="900" fontSize="80" fill="url(#rg-ob)">R</text>
-  </svg>
-);
+const LOGO_SVG = <img src="/logo-revanew.png" alt="Revanew" style={{ width:32, height:32, objectFit:"contain", borderRadius:8 }} />;
 
 const PLANS = [
   {
