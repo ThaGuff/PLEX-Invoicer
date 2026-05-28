@@ -18,14 +18,26 @@ export async function sendEmail({ to, subject, html, text, from }) {
   if (process.env.RESEND_API_KEY) {
     const { Resend } = await import('resend');
     const resend = new Resend(process.env.RESEND_API_KEY);
+    const toList = Array.isArray(to) ? to : [to];
     const result = await resend.emails.send({
       from: fromAddr,
-      to: Array.isArray(to) ? to : [to],
+      to: toList,
       subject,
       html: html || `<p>${(text||'').replace(/\n/g,'<br>')}</p>`,
       text: text || '',
     });
-    if (result.error) throw new Error(result.error.message);
+    if (result.error) {
+      // Resend test mode: can only send to verified email
+      // Handle gracefully — log it but don't crash the app
+      const msg = result.error.message || '';
+      if (msg.includes('testing emails') || msg.includes('verify a domain') || msg.includes('only send')) {
+        console.warn(`[Resend test mode] Cannot send to ${toList.join(',')} — verify domain at resend.com/domains`);
+        console.warn('[Resend] To send to any address: add and verify revanew.io at resend.com/domains');
+        // Return success-like to not break the flow, but log the warning
+        return { provider: 'resend', id: 'test-mode-blocked', warning: msg };
+      }
+      throw new Error(result.error.message);
+    }
     return { provider: 'resend', id: result.data?.id };
   }
 

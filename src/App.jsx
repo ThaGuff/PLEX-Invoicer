@@ -25,6 +25,7 @@ import AnalyticsPage  from './pages/AnalyticsPage';
 const TrialBanner  = React.lazy(() => import('./components/TrialBanner').catch(() => ({ default: () => null })));
 const InstallPWA    = React.lazy(() => import('./components/InstallPWA').catch(() => ({ default: () => null })));
 const OnboardingTour = React.lazy(() => import('./components/OnboardingTour').catch(() => ({ default: () => null })));
+const PlanGate       = React.lazy(() => import('./components/PlanGate').catch(() => ({ default: ({children}) => children })));
 const DocumentsPage = React.lazy(() => import('./pages/DocumentsPage').catch(() => ({ default: () => null })));
 const CalendarPage  = React.lazy(() => import('./pages/CalendarPage').catch(() => ({ default: () => null })));
 const PhotosPage    = React.lazy(() => import('./pages/PhotosPage').catch(() => ({ default: () => null })));
@@ -213,7 +214,9 @@ function AppShell({ children }) {
   const { account, loading } = useAccount();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  // Listen for navigation events from AccountContext (which can't use useNavigate directly)
+  const location = useLocation();
+
+  // Listen for navigation events from AccountContext
   React.useEffect(() => {
     const handler = (e) => {
       try { navigate(e.detail); } catch {}
@@ -221,6 +224,44 @@ function AppShell({ children }) {
     window.addEventListener('revanew:navigate', handler);
     return () => window.removeEventListener('revanew:navigate', handler);
   }, [navigate]);
+
+  // Onboarding & billing redirect — runs when account data is available
+  React.useEffect(() => {
+    if (!account || loading) return; // wait for account to load
+    const path = location.pathname;
+    if (path.includes('/billing') || path.includes('/login') || path.includes('/portal')) return;
+
+    // New user → billing welcome
+    const isNew = localStorage.getItem('revanew_new_user') === '1';
+    if (isNew) {
+      localStorage.removeItem('revanew_new_user');
+      navigate('/billing?welcome=1');
+      return;
+    }
+
+    // Trial ending (≤3 days) on login → billing upsell (once per hour)
+    const loginEvent = localStorage.getItem('revanew_login_event');
+    const justLoggedIn = loginEvent && (Date.now() - parseInt(loginEvent)) < 60000;
+    if (justLoggedIn) {
+      localStorage.removeItem('revanew_login_event');
+      const status = account.subscription_status || 'trialing';
+      const trialEnd = account.trial_ends_at ? new Date(account.trial_ends_at) : null;
+      const daysLeft = trialEnd ? Math.max(0, Math.ceil((trialEnd - new Date()) / 86400000)) : null;
+      const lastUpsell = localStorage.getItem('revanew_upsell_shown');
+      const shownRecently = lastUpsell && (Date.now() - parseInt(lastUpsell)) < 3600000;
+      if (status === 'trialing' && daysLeft !== null && daysLeft <= 3 && !shownRecently) {
+        localStorage.setItem('revanew_upsell_shown', Date.now().toString());
+        navigate(`/billing?trial_ending=1&days=${daysLeft}`);
+        return;
+      }
+    }
+
+    // Tour: show after billing, only once
+    const shouldShowTour = localStorage.getItem('revanew_show_tour') === '1' &&
+                           !localStorage.getItem('revanew_tour_done') &&
+                           !path.includes('/billing');
+    setShowTour(shouldShowTour);
+  }, [account, loading, location.pathname]);
   const [showSettings, setShowSettings] = useState(false);
   const [showNewAccount, setShowNewAccount] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -416,10 +457,10 @@ export default function App() {
                     <Route path="/billing"         element={<BillingPage />} />
                     <Route path="/onboarding"      element={<Onboarding />} />
                     <Route path="/automations"     element={<AutomationsPage />} />
-                    <Route path="/documents"       element={<React.Suspense fallback={null}><DocumentsPage /></React.Suspense>} />
-                    <Route path="/calendar"        element={<React.Suspense fallback={null}><CalendarPage /></React.Suspense>} />
-                    <Route path="/photos"          element={<React.Suspense fallback={null}><PhotosPage /></React.Suspense>} />
-                    <Route path="/workspace"       element={<React.Suspense fallback={null}><WorkspacePage /></React.Suspense>} />
+                    <Route path="/documents"       element={<React.Suspense fallback={null}><PlanGate feature="documents" plan={account?.plan} isTrialing={account?.subscription_status==='trialing'}><DocumentsPage /></PlanGate></React.Suspense>} />
+                    <Route path="/calendar"        element={<React.Suspense fallback={null}><PlanGate feature="calendar" plan={account?.plan} isTrialing={account?.subscription_status==='trialing'}><CalendarPage /></PlanGate></React.Suspense>} />
+                    <Route path="/photos"          element={<React.Suspense fallback={null}><PlanGate feature="photos" plan={account?.plan} isTrialing={account?.subscription_status==='trialing'}><PhotosPage /></PlanGate></React.Suspense>} />
+                    <Route path="/workspace"       element={<React.Suspense fallback={null}><PlanGate feature="workspace" plan={account?.plan} isTrialing={account?.subscription_status==='trialing'}><WorkspacePage /></PlanGate></React.Suspense>} />
                     <Route path="/analytics"       element={<AnalyticsPage />} />
                   </Routes>
                 </AppShell>

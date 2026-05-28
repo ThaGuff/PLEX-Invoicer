@@ -319,11 +319,21 @@ app.post('/api/billing/create-checkout', requireAuth, async (req, res) => {
   // otherwise creates a one-time price dynamically for trial/checkout
   const PLAN_AMOUNTS = { starter: 1900, pro: 4900, agency: 9900 }; // cents/month
   const PLAN_NAMES   = { starter: 'Revanew Starter', pro: 'Revanew Pro', agency: 'Revanew Agency' };
-  const PLAN_ENV     = {
-    starter: process.env.STRIPE_PRICE_STARTER,
-    pro:     process.env.STRIPE_PRICE_PRO,
-    agency:  process.env.STRIPE_PRICE_AGENCY,
+  const { annual = false } = req.body;
+  const PLAN_ENV_MONTHLY = {
+    starter: process.env.STRIPE_STARTER_MONTHLY_PRICE || process.env.STRIPE_PRICE_STARTER,
+    pro:     process.env.STRIPE_PRO_MONTHLY_PRICE     || process.env.STRIPE_PRICE_PRO,
+    agency:  process.env.STRIPE_AGENCY_MONTHLY_PRICE  || process.env.STRIPE_PRICE_AGENCY,
   };
+  const PLAN_ENV_ANNUAL = {
+    starter: process.env.STRIPE_STARTER_ANNUAL_PRICE,
+    pro:     process.env.STRIPE_PRO_ANNUAL_PRICE,
+    agency:  process.env.STRIPE_AGENCY_ANNUAL_PRICE,
+  };
+  const PLAN_ANNUAL_AMOUNTS = { starter: 18240, pro: 47040, agency: 95040 }; // cents/year
+  const PLAN_ENV = annual ? PLAN_ENV_ANNUAL : PLAN_ENV_MONTHLY;
+  const effectiveAmount = annual ? PLAN_ANNUAL_AMOUNTS[plan] : PLAN_AMOUNTS[plan];
+  const effectiveInterval = annual ? 'year' : 'month';
 
   if (!PLAN_AMOUNTS[plan]) return res.status(400).json({ error: `Unknown plan: ${plan}` });
 
@@ -339,9 +349,9 @@ app.post('/api/billing/create-checkout', requireAuth, async (req, res) => {
       // Create a recurring price dynamically
       const price = await stripe.prices.create({
         currency:   'usd',
-        unit_amount: PLAN_AMOUNTS[plan],
-        recurring:  { interval: 'month' },
-        product_data: { name: PLAN_NAMES[plan] },
+        unit_amount: effectiveAmount,
+        recurring:  { interval: effectiveInterval },
+        product_data: { name: `${PLAN_NAMES[plan]}${annual ? ' (Annual)' : ''}` },
       });
       priceId = price.id;
     }
@@ -488,10 +498,10 @@ app.use('/api/tax',            requireAuth, taxRouter);
 app.use('/api/automations',    requireAuth, automationsRouter);
 app.use('/api/notifications',       notificationsRouter);
 app.use('/api/google-calendar',     googleCalendarRouter);
-app.use('/api/calendar',       requireAuth, calendarRouter);
-app.use('/api/documents',      requireAuth, documentsRouter);
-app.use('/api/photos',         requireAuth, photosRouter);
-app.use('/api/workspace',      requireAuth, workspaceRouter);
+app.use('/api/calendar',       requireAuth, requirePlanFeature('calendar'),   calendarRouter);
+app.use('/api/documents',      requireAuth, requirePlanFeature('documents'),  documentsRouter);
+app.use('/api/photos',         requireAuth, requirePlanFeature('photos'),     photosRouter);
+app.use('/api/workspace',      requireAuth, requirePlanFeature('workspace'),  workspaceRouter);
 app.use('/api/accounts',     requireAuth, accountsRouter);
 app.use('/api/contacts', requireAuth, contactsRouter);
 app.use('/api/quotes',   requireAuth, quotesRouter);

@@ -41,45 +41,8 @@ export function AccountProvider({ children }) {
     } finally {
       setLoading(false);
 
-    // ── Subscription redirect logic ──────────────────────────────
-    const path = window.location.pathname;
-    const skipPaths = ['/billing', '/onboarding', '/login', '/quotes/public', '/invoices/public'];
-    const isBlockedPath = skipPaths.some(p => path.includes(p));
-
-    if (!isBlockedPath && list.length > 0) {
-      const primary = list[0];
-      const status = primary?.subscription_status || 'trialing';
-      const trialEnd = primary?.trial_ends_at ? new Date(primary.trial_ends_at) : null;
-      const daysLeft = trialEnd ? Math.max(0, Math.ceil((trialEnd - new Date()) / 86400000)) : null;
-
-      // Case 1: Brand new user — go to billing to pick a plan
-      const isNewUser = localStorage.getItem('revanew_new_user') === '1';
-      if (isNewUser) {
-        localStorage.removeItem('revanew_new_user');
-        // Use React router push so SPA state is preserved (no full reload)
-        // Small delay ensures AccountContext state is set before navigation
-        // Fire navigation event that App.jsx listens for
-        window.dispatchEvent(new CustomEvent('revanew:navigate', { detail: '/billing?welcome=1' }));
-        return;
-      }
-
-      // Case 2: Trialing user with ≤ 3 days left on EVERY login — show billing upsell
-      // Only redirect once per session (not on every page navigation)
-      const lastUpsell = localStorage.getItem('revanew_upsell_shown');
-      const upsellShownThisSession = lastUpsell && (Date.now() - parseInt(lastUpsell)) < 3600000; // 1 hour
-      const loginEvent = localStorage.getItem('revanew_login_event');
-      const justLoggedIn = loginEvent && (Date.now() - parseInt(loginEvent)) < 30000; // within 30s of login
-
-      if (justLoggedIn && status === 'trialing' && daysLeft !== null && daysLeft <= 3 && !upsellShownThisSession) {
-        localStorage.setItem('revanew_upsell_shown', Date.now().toString());
-        localStorage.removeItem('revanew_login_event');
-        window.dispatchEvent(new CustomEvent('revanew:navigate', { detail: `/billing?trial_ending=1&days=${daysLeft}` }));
-        return;
-      }
-
-      // Clear login event after checking
-      if (justLoggedIn) localStorage.removeItem('revanew_login_event');
-    }
+    // Redirect/onboarding logic handled in AppShell (App.jsx) where
+    // useNavigate and account state are both available simultaneously
     }
   }, []);
 

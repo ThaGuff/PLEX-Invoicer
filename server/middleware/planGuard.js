@@ -1,42 +1,81 @@
 /**
- * Server-side plan feature enforcement
- * Mirrors src/utils/planFeatures.js for backend validation
+ * Plan feature enforcement — mirrors subscription tiers
+ *
+ * Starter ($19/mo): Basic quotes/invoices, email delivery, PDF export
+ * Pro ($49/mo):     + Unlimited, AI tools, Stripe Connect, Automations, Analytics, Calendar, Documents, Photos, Team (3 members)
+ * Agency ($99/mo):  + Everything, Workspace, unlimited Team members, White-label, API
  */
 
-const PLAN_LIMITS = {
+export const PLAN_LIMITS = {
   starter: {
-    quotes_per_month: 10,
-    invoices_per_month: 10,
-    ai_parse: false,
-    stripe_connect: false,
-    csv_export: false,
-    cashflow_dashboard: false,
+    quotes_per_month:    25,
+    invoices_per_month:  25,
+    team_members:        0,    // no team members
+    ai_parse:            false,
+    stripe_connect:      false,
+    csv_export:          false,
+    cashflow_dashboard:  false,
+    automations:         false,
+    analytics:           false, // basic only
+    calendar:            false,
+    documents:           false,
+    photos:              false,
+    workspace:           false,
+    white_label:         false,
+    api_access:          false,
+    push_notifications:  false,
   },
   pro: {
-    quotes_per_month: 100,
-    invoices_per_month: 100,
-    ai_parse: true,
-    stripe_connect: true,
-    csv_export: true,
-    cashflow_dashboard: true,
+    quotes_per_month:    -1,   // unlimited
+    invoices_per_month:  -1,
+    team_members:        3,
+    ai_parse:            true,
+    stripe_connect:      true,
+    csv_export:          true,
+    cashflow_dashboard:  true,
+    automations:         true,
+    analytics:           true,
+    calendar:            true,
+    documents:           true,
+    photos:              true,
+    workspace:           true,
+    white_label:         false,
+    api_access:          false,
+    push_notifications:  true,
   },
   agency: {
-    quotes_per_month: -1,
-    invoices_per_month: -1,
-    ai_parse: true,
-    stripe_connect: true,
-    csv_export: true,
-    cashflow_dashboard: true,
+    quotes_per_month:    -1,
+    invoices_per_month:  -1,
+    team_members:        -1,   // unlimited
+    ai_parse:            true,
+    stripe_connect:      true,
+    csv_export:          true,
+    cashflow_dashboard:  true,
+    automations:         true,
+    analytics:           true,
+    calendar:            true,
+    documents:           true,
+    photos:              true,
+    workspace:           true,
+    white_label:         true,
+    api_access:          true,
+    push_notifications:  true,
   },
 };
 
 export function canUsePlanFeature(plan = 'starter', feature) {
   const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.starter;
   const val = limits[feature];
+  if (val === undefined) return true;  // unknown feature = allow
   if (val === false) return false;
   if (val === true || val === -1) return true;
   if (typeof val === 'number') return val > 0;
   return true;
+}
+
+export function getPlanLimit(plan = 'starter', feature) {
+  const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.starter;
+  return limits[feature];
 }
 
 /** Middleware: require plan feature or return 403 */
@@ -51,21 +90,21 @@ export function requirePlanFeature(feature) {
         `SELECT plan, subscription_status, trial_ends_at FROM accounts WHERE owner_id = ? LIMIT 1`,
         [userId]
       );
-      if (!accResult.rows.length) return next(); // no account yet = allow
+      if (!accResult.rows.length) return next(); // no account = allow
 
       const { plan, subscription_status, trial_ends_at } = accResult.rows[0];
-
-      // Allow during trial
       const isTrialing = subscription_status === 'trialing';
-      const trialEnd = trial_ends_at ? new Date(trial_ends_at) : null;
+      const trialEnd   = trial_ends_at ? new Date(trial_ends_at) : null;
       const trialActive = isTrialing && trialEnd && trialEnd > new Date();
 
-      // Active subscription or active trial = enforce plan limits
-      if (trialActive) return next(); // trial has full access
+      // Active trial = full Pro access for 7 days
+      if (trialActive) return next();
 
+      // Expired/cancelled = enforce plan
       if (!canUsePlanFeature(plan, feature)) {
+        const upgradeTo = plan === 'starter' ? 'Pro' : 'Agency';
         return res.status(403).json({
-          error: `Your ${plan} plan does not include this feature. Upgrade to access it.`,
+          error: `This feature requires ${upgradeTo} or higher. Upgrade to access ${feature.replace(/_/g,' ')}.`,
           feature,
           plan,
           upgrade_url: '/billing',
@@ -74,7 +113,7 @@ export function requirePlanFeature(feature) {
       next();
     } catch (e) {
       console.error('planGuard error:', e.message);
-      next(); // fail open — don't block on guard errors
+      next(); // fail open
     }
   };
 }

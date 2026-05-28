@@ -328,6 +328,7 @@ export async function initSchemaV2() {
 
   // F1: Granular read tracking — extend invoices + add engagement log
   const invoiceCols = [
+    `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS reminded_at TEXT`,
     `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS delivered_at TEXT`,
     `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS opened_at TEXT`,
     `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS first_viewed_at TEXT`,
