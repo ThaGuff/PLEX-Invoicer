@@ -215,6 +215,10 @@ function AppShell({ children }) {
   const [showSettings, setShowSettings] = useState(false);
   const [showNewAccount, setShowNewAccount] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showTour, setShowTour] = useState(() =>
+    localStorage.getItem('revanew_show_tour') === '1' &&
+    !localStorage.getItem('revanew_tour_done')
+  );
   const [dark, setDark] = useDarkMode();
   const accent = account?.primary_color || '#13B5EA';
 
