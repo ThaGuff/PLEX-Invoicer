@@ -457,10 +457,10 @@ export default function App() {
                     <Route path="/billing"         element={<BillingPage />} />
                     <Route path="/onboarding"      element={<Onboarding />} />
                     <Route path="/automations"     element={<AutomationsPage />} />
-                    <Route path="/documents"       element={<React.Suspense fallback={null}><PlanGate feature="documents" plan={account?.plan} isTrialing={account?.subscription_status==='trialing'}><DocumentsPage /></PlanGate></React.Suspense>} />
-                    <Route path="/calendar"        element={<React.Suspense fallback={null}><PlanGate feature="calendar" plan={account?.plan} isTrialing={account?.subscription_status==='trialing'}><CalendarPage /></PlanGate></React.Suspense>} />
-                    <Route path="/photos"          element={<React.Suspense fallback={null}><PlanGate feature="photos" plan={account?.plan} isTrialing={account?.subscription_status==='trialing'}><PhotosPage /></PlanGate></React.Suspense>} />
-                    <Route path="/workspace"       element={<React.Suspense fallback={null}><PlanGate feature="workspace" plan={account?.plan} isTrialing={account?.subscription_status==='trialing'}><WorkspacePage /></PlanGate></React.Suspense>} />
+                    <Route path="/documents"       element={<React.Suspense fallback={null}><PlanGate feature="documents"><DocumentsPage /></PlanGate></React.Suspense>} />
+                    <Route path="/calendar"        element={<React.Suspense fallback={null}><PlanGate feature="calendar"><CalendarPage /></PlanGate></React.Suspense>} />
+                    <Route path="/photos"          element={<React.Suspense fallback={null}><PlanGate feature="photos"><PhotosPage /></PlanGate></React.Suspense>} />
+                    <Route path="/workspace"       element={<React.Suspense fallback={null}><PlanGate feature="workspace"><WorkspacePage /></PlanGate></React.Suspense>} />
                     <Route path="/analytics"       element={<AnalyticsPage />} />
                   </Routes>
                 </AppShell>

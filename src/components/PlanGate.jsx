@@ -7,6 +7,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Zap, Star, Building2 } from 'lucide-react';
+import { useAccount } from '../context/AccountContext';
 
 const FEATURE_PLANS = {
   calendar:   'pro',
@@ -25,7 +26,10 @@ const PLAN_NAMES = { starter: 'Starter', pro: 'Pro', agency: 'Agency' };
 const PLAN_ICONS = { pro: Star, agency: Building2 };
 const PLAN_COLORS = { pro: '#7C3AED', agency: '#D97706' };
 
-export default function PlanGate({ feature, plan = 'starter', isTrialing = false, children }) {
+export default function PlanGate({ feature, children }) {
+  const { account } = useAccount();
+  const plan = account?.plan || 'starter';
+  const isTrialing = account?.subscription_status === 'trialing';
   const navigate = useNavigate();
   const requiredPlan = FEATURE_PLANS[feature] || 'pro';
 
