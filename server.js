@@ -99,6 +99,14 @@ app.use('/api/auth/', strictLimiter);
 app.use('/api/invoices/*/remind', emailLimiter);
 app.use('/api/invoices/*/send',   emailLimiter);
 app.use('/api/analytics/run-reminders', emailLimiter);
+// File upload rate limit — defined here, just before first use
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 50,
+  message: { error: 'Too many file uploads, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 app.use('/api/documents',  uploadLimiter);
 app.use('/api/photos',     uploadLimiter);
 
