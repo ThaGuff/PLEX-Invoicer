@@ -24,6 +24,7 @@ import AutomationsPage from './pages/AutomationsPage';
 import AnalyticsPage  from './pages/AnalyticsPage';
 const TrialBanner  = React.lazy(() => import('./components/TrialBanner').catch(() => ({ default: () => null })));
 const InstallPWA    = React.lazy(() => import('./components/InstallPWA').catch(() => ({ default: () => null })));
+const OnboardingTour = React.lazy(() => import('./components/OnboardingTour').catch(() => ({ default: () => null })));
 const DocumentsPage = React.lazy(() => import('./pages/DocumentsPage').catch(() => ({ default: () => null })));
 const CalendarPage  = React.lazy(() => import('./pages/CalendarPage').catch(() => ({ default: () => null })));
 const PhotosPage    = React.lazy(() => import('./pages/PhotosPage').catch(() => ({ default: () => null })));
@@ -95,13 +96,17 @@ function Nav() {
 
   // Mobile nav shows top 5; desktop shows all
   const links = [
-    { to: '/',              label: 'Dashboard',   icon: LayoutDashboard, short: 'Home',    color: '#0D9488' },
-    { to: '/quotes',        label: 'Quotes',      icon: FileText,        short: 'Quotes',  color: '#2563EB' },
-    { to: '/invoices',      label: 'Invoices',    icon: Receipt,         short: 'Invoice', color: '#7C3AED' },
-    { to: '/contacts',      label: 'Clients',     icon: Users,           short: 'Clients', color: '#0D9488' },
-    { to: '/automations',   label: 'Automate',    icon: Zap,             short: 'Auto',    color: '#D97706' },
-    { to: '/analytics',     label: 'Analytics',   icon: BarChart2,       short: 'Stats',   color: '#2563EB' },
-    { to: '/billing',       label: 'Billing',     icon: CreditCard,      short: 'Billing', color: '#7C3AED' },
+    { to: '/',            label: 'Dashboard', icon: LayoutDashboard, short: 'Home',     color: '#0D9488' },
+    { to: '/quotes',      label: 'Quotes',    icon: FileText,        short: 'Quotes',   color: '#2563EB' },
+    { to: '/invoices',    label: 'Invoices',  icon: Receipt,         short: 'Invoices', color: '#7C3AED' },
+    { to: '/contacts',    label: 'Clients',   icon: Users,           short: 'Clients',  color: '#0D9488' },
+    { to: '/calendar',    label: 'Schedule',  icon: Calendar,        short: 'Schedule', color: '#0D9488' },
+    { to: '/documents',   label: 'Documents', icon: FolderOpen,      short: 'Docs',     color: '#2563EB' },
+    { to: '/photos',      label: 'Photos',    icon: ImageIcon,       short: 'Photos',   color: '#D97706' },
+    { to: '/workspace',   label: 'Team',      icon: MessageSquare,   short: 'Team',     color: '#7C3AED' },
+    { to: '/automations', label: 'Automate',  icon: Zap,             short: 'Automate', color: '#D97706' },
+    { to: '/analytics',   label: 'Analytics', icon: BarChart2,       short: 'Stats',    color: '#2563EB' },
+    { to: '/billing',     label: 'Billing',   icon: CreditCard,      short: 'Billing',  color: '#7C3AED' },
     ...(isOwner ? [{ to: '/admin', label: 'Admin', icon: Shield, short: 'Admin', color: '#ef4444' }] : []),
   ];
   // Mobile bottom nav: Home, Quotes, Invoices, Clients, More (Automate)
@@ -165,8 +170,8 @@ function Nav() {
       {/* Mobile More drawer — renders inside Nav() so it has state access */}
       {showMobileMore && (
         <>
-          <div style={{ position:'fixed', inset:0, zIndex:95, background:'rgba(11,18,32,0.45)', backdropFilter:'blur(3px)', WebkitBackdropFilter:'blur(3px)' }} onClick={() => setShowMobileMore(false)} />
-          <div style={{ position:'fixed', bottom:'calc(74px + env(safe-area-inset-bottom))', left:12, right:12, zIndex:96, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden', boxShadow:'0 -8px 40px rgba(11,18,32,0.25)', animation:'fadeUp 0.2s ease both' }}>
+          <div style={{ position:'fixed', inset:0, zIndex:109, background:'rgba(11,18,32,0.45)', backdropFilter:'blur(3px)', WebkitBackdropFilter:'blur(3px)' }} onClick={() => setShowMobileMore(false)} />
+          <div style={{ position:'fixed', bottom:'calc(74px + env(safe-area-inset-bottom))', left:12, right:12, zIndex:110, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden', boxShadow:'0 -8px 40px rgba(11,18,32,0.25)', animation:'fadeUp 0.2s ease both' }}>
             <div style={{ padding:'12px 16px 8px', borderBottom:'1px solid var(--border-subtle)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
               <p style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'1px' }}>More</p>
               <button onClick={() => setShowMobileMore(false)} style={{ background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', padding:4 }}>✕</button>
@@ -227,7 +232,7 @@ function AppShell({ children }) {
     <div className="min-h-screen" style={{ background: 'var(--bg-page)', overflowX: 'hidden', maxWidth: '100vw' }}>
       {/* Desktop / Mobile header */}
       <header className="border-b sticky top-0 z-40" style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)' }}>
-        <div style={{ maxWidth:'1280px', margin:'0 auto', padding:'0 16px', height:64, display:'flex', alignItems:'center', gap:12, width:'100%', boxSizing:'border-box', overflow:'visible', position:'relative' }}>
+        <div style={{ maxWidth:'1280px', margin:'0 auto', padding:'0 max(16px, calc(12px + env(safe-area-inset-right))) 0 max(14px, calc(12px + env(safe-area-inset-left)))', height:60, display:'flex', alignItems:'center', gap:10, width:'100%', boxSizing:'border-box', overflow:'visible', position:'relative' }}>
           {/* Logo */}
           <div style={{ display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
             <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" width="34" height="34">
@@ -268,7 +273,7 @@ function AppShell({ children }) {
             {/* Avatar */}
             <div className="relative" style={{ flexShrink:0, isolation:"isolate" }}>
               <button onClick={() => setShowUserMenu(v => !v)}
-                style={{ width:36, height:36, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:'14px', fontWeight:800, background:accent, border:'none', cursor:'pointer', flexShrink:0 }}>
+                style={{ width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:'15px', fontWeight:800, background:accent, border:'2px solid rgba(255,255,255,0.2)', cursor:'pointer', flexShrink:0, minWidth:42, minHeight:42, marginRight:'max(0px, env(safe-area-inset-right))' }}>
                 {(user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
               </button>
               {showUserMenu && (
@@ -310,12 +315,24 @@ function AppShell({ children }) {
         <div className="h-0.5" style={{ background: 'linear-gradient(90deg, #00C9B1, #3B6FE8, #6B3FD8)' }} />
       </header>
       <SafeTrialBanner />
-      <InstallPWA />
+      <React.Suspense fallback={null}>
+        <InstallPWA />
+      </React.Suspense>
+      {showTour && (
+        <React.Suspense fallback={null}>
+          <OnboardingTour onDone={() => {
+            setShowTour(false);
+            localStorage.removeItem('revanew_show_tour');
+          }} />
+        </React.Suspense>
+      )}
 
-      {/* Mobile FAB - new quote */}
-      <NavLink to="/quotes/new" className="fab md:hidden" title="New quote">
-        <Plus size={26} />
-      </NavLink>
+      {/* Mobile FAB - new quote — hidden when More drawer is open to prevent z-index conflicts */}
+      {!showMobileMore && (
+        <NavLink to="/quotes/new" className="fab md:hidden" title="New quote">
+          <Plus size={26} />
+        </NavLink>
+      )}
 
       {showSettings   && <AccountSettings onClose={() => setShowSettings(false)} />}
       {showNewAccount && <NewAccountModal onClose={() => setShowNewAccount(false)} onCreated={() => {}} />}

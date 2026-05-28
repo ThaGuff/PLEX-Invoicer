@@ -56,7 +56,14 @@ export function AccountProvider({ children }) {
       const isNewUser = localStorage.getItem('revanew_new_user') === '1';
       if (isNewUser) {
         localStorage.removeItem('revanew_new_user');
-        window.location.href = '/billing?welcome=1';
+        // Use React router push so SPA state is preserved (no full reload)
+        // Small delay ensures AccountContext state is set before navigation
+        setTimeout(() => {
+          if (window.location.pathname !== '/billing') {
+            window.history.pushState({}, '', '/billing?welcome=1');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
+        }, 100);
         return;
       }
 
@@ -70,7 +77,12 @@ export function AccountProvider({ children }) {
       if (justLoggedIn && status === 'trialing' && daysLeft !== null && daysLeft <= 3 && !upsellShownThisSession) {
         localStorage.setItem('revanew_upsell_shown', Date.now().toString());
         localStorage.removeItem('revanew_login_event');
-        window.location.href = '/billing?trial_ending=1&days=' + daysLeft;
+        setTimeout(() => {
+          if (window.location.pathname !== '/billing') {
+            window.history.pushState({}, '', `/billing?trial_ending=1&days=${daysLeft}`);
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
+        }, 200);
         return;
       }
 

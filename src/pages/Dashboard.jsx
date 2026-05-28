@@ -33,11 +33,11 @@ function StatCard({ label, value, sub, icon: Icon, gradient, delay = 0, to }) {
     <div
       onClick={() => to && navigate(to)}
       className="glow-card p-4 animate-fade-up"
-      style={{ animationDelay:`${delay}ms`, cursor: to ? 'pointer' : 'default', transition:'all 0.18s cubic-bezier(0.34,1.56,0.64,1)', userSelect:'none' }}
+      style={{ animationDelay:`${delay}ms`, cursor: to ? 'pointer' : 'default', transition:'opacity 0.15s, box-shadow 0.15s', userSelect:'none' }}
       onMouseEnter={e => { if (to) { e.currentTarget.style.transform='translateY(-3px)'; e.currentTarget.style.boxShadow='0 8px 24px rgba(37,99,235,0.15)'; }}}
       onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='none'; }}
-      onTouchStart={e => { if (to) e.currentTarget.style.transform='scale(0.97)'; }}
-      onTouchEnd={e => { e.currentTarget.style.transform='scale(1)'; }}>
+      onTouchStart={e => { if (to) e.currentTarget.style.opacity='0.85'; }}
+      onTouchEnd={e => { e.currentTarget.style.opacity='1'; }}>
       <div style={{ height:3, borderRadius:2, background:gradient, marginBottom:12 }} />
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:8 }}>
         <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.9px' }}>{label}</p>

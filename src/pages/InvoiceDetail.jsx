@@ -39,12 +39,29 @@ export default function InvoiceDetail() {
   const [working, setWorking]       = useState('');
   const [showMarkPaid, setShowMarkPaid] = useState(false);
   const [saving, setSaving]         = useState(false);
+  const [showPreview, setShowPreview]     = useState(false);
+  const [showSendModal, setShowSendModal] = useState(false);
+  const [sendMode, setSendMode]           = useState('smtp');
+  const [emailTo, setEmailTo]             = useState('');
+  const [emailSubject, setEmailSubject]   = useState('');
+  const [emailBody, setEmailBody]         = useState('');
 
   useEffect(() => {
     api.invoices.get(id)
       .then(data => {
         setInvoice(data);
         setItems(data.items || []);
+        setEmailTo(data.client_email || '');
+        setEmailSubject(`Invoice ${data.number} — ${data.agency_name || 'Revanew'}`);
+        const link = `${window.location.origin}/portal/invoice/${data.public_token}`;
+        setEmailBody(`Hi ${data.client_name || 'there'},
+
+Please review and sign your invoice here:
+${link}
+
+Total due: $${Math.round(data.amount_due||0).toLocaleString()}
+
+Thank you!`);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -79,8 +96,9 @@ export default function InvoiceDetail() {
     setSaving(false);
   };
 
-  const handleSend = () => handle('send', async () => {
-    const r = await api.invoices.send(id);
+  const handleSend = () => setShowSendModal(true);
+  const handleSendConfirm = () => handle('send', async () => {
+    const r = await api.invoices.send(id, { email_to: emailTo, email_subject: emailSubject, email_body: emailBody, mode: sendMode });
     if (r.email_sent) setToast({ type: 'success', msg: `✅ Invoice emailed to ${r.client_email || invoice?.client_email}` });
     else if (r.email_error) setToast({ type: 'warn', msg: `⚠️ Marked sent but email failed: ${r.email_error}` });
     else if (!r.has_client_email) setToast({ type: 'info', msg: 'ℹ️ Marked as sent. Add a client email to send automatically.' });
@@ -119,9 +137,105 @@ export default function InvoiceDetail() {
   const amountPaid = parseFloat(invoice.amount_paid || 0);
   const outstanding = amountDue - amountPaid;
 
+  const publicUrl2 = invoice?.public_token
+    ? `${window.location.origin}/portal/invoice/${invoice.public_token}`
+    : '';
+
   return (
     <>
-      {/* Toast */}
+      {/* Issue 2: In-app preview modal */}
+      {showPreview && (
+        <div style={{position:'fixed',inset:0,zIndex:500,background:'rgba(11,18,32,0.7)',backdropFilter:'blur(4px)',display:'flex',flexDirection:'column',fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+          <div style={{background:'var(--bg-surface)',borderBottom:'1px solid var(--border)',padding:'12px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0,gap:12}}>
+            <div>
+              <p style={{fontSize:14,fontWeight:700,color:'var(--text-primary)'}}>Invoice Preview</p>
+              <p style={{fontSize:11,color:'var(--text-muted)'}}>← Back button returns to app</p>
+            </div>
+            <div style={{display:'flex',gap:8,alignItems:'center'}}>
+              <a href={publicUrl2} target="_blank" rel="noreferrer"
+                style={{fontSize:12,fontWeight:600,color:'var(--blue)',textDecoration:'none',padding:'6px 10px',border:'1px solid var(--border)',borderRadius:8,background:'var(--bg-page)'}}>
+                Open tab ↗
+              </a>
+              <button onClick={() => setShowPreview(false)}
+                style={{padding:'8px 14px',background:'linear-gradient(135deg,var(--blue),var(--teal))',color:'#fff',border:'none',borderRadius:9,cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+                ← Back
+              </button>
+            </div>
+          </div>
+          <iframe src={publicUrl2} style={{flex:1,border:'none',width:'100%'}} title="Invoice Preview" />
+        </div>
+      )}
+
+      {/* Issue 3: Send email modal with 3 modes */}
+      {showSendModal && (
+        <div style={{position:'fixed',inset:0,zIndex:500,background:'rgba(11,18,32,0.5)',backdropFilter:'blur(4px)',display:'flex',alignItems:'flex-end',fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+          <div style={{background:'var(--bg-surface)',borderRadius:'20px 20px 0 0',padding:'20px 20px calc(20px + env(safe-area-inset-bottom))',width:'100%',maxHeight:'92dvh',overflowY:'auto',boxSizing:'border-box'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+              <h3 style={{fontSize:18,fontWeight:800,color:'var(--text-primary)'}}>Send Invoice</h3>
+              <button onClick={() => setShowSendModal(false)} style={{background:'none',border:'none',fontSize:22,cursor:'pointer',color:'var(--text-muted)',lineHeight:1}}>✕</button>
+            </div>
+            {/* Mode tabs */}
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:6,marginBottom:18}}>
+              {[['smtp','📧 Built-in'],['external','🔗 Copy Link'],['gmail','📨 Gmail']].map(([mode,label]) => (
+                <button key={mode} onClick={() => setSendMode(mode)}
+                  style={{padding:'10px 6px',borderRadius:10,border:`2px solid ${sendMode===mode?'var(--blue)':'var(--border)'}`,background:sendMode===mode?'rgba(37,99,235,0.08)':'transparent',color:sendMode===mode?'var(--blue)':'var(--text-secondary)',fontSize:12,fontWeight:sendMode===mode?700:500,cursor:'pointer',transition:'all 0.15s',fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {sendMode === 'external' && (
+              <div>
+                <p style={{fontSize:13,fontWeight:600,color:'var(--text-primary)',marginBottom:10}}>Share this link with your client</p>
+                <div style={{display:'flex',gap:8}}>
+                  <input readOnly value={publicUrl2} style={{flex:1,padding:'11px 12px',borderRadius:9,border:'1px solid var(--border)',background:'var(--bg-raised)',color:'var(--text-muted)',fontSize:12,fontFamily:'monospace',minWidth:0}} />
+                  <button onClick={() => { navigator.clipboard.writeText(publicUrl2); }}
+                    style={{padding:'11px 14px',background:'linear-gradient(135deg,var(--blue),var(--teal))',color:'#fff',border:'none',borderRadius:9,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Plus Jakarta Sans',sans-serif",flexShrink:0}}>
+                    Copy
+                  </button>
+                </div>
+                <p style={{fontSize:11,color:'var(--text-muted)',marginTop:8}}>Paste in any email, iMessage, or messaging app. Client can view, sign, and pay from any device.</p>
+              </div>
+            )}
+
+            {sendMode === 'gmail' && (
+              <div>
+                <p style={{fontSize:13,fontWeight:600,color:'var(--text-primary)',marginBottom:10}}>Open Gmail with invoice pre-filled</p>
+                <a href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(emailTo)}&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`}
+                  target="_blank" rel="noreferrer"
+                  onClick={() => setShowSendModal(false)}
+                  style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10,padding:'14px',background:'#EA4335',color:'#fff',borderRadius:12,textDecoration:'none',fontSize:15,fontWeight:700,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+                  ✉ Open in Gmail ↗
+                </a>
+                <p style={{fontSize:11,color:'var(--text-muted)',marginTop:8}}>Opens Gmail in your browser with recipient, subject, and message pre-filled. Review and send from your Gmail.</p>
+              </div>
+            )}
+
+            {sendMode === 'smtp' && (
+              <div style={{display:'flex',flexDirection:'column',gap:12}}>
+                <div>
+                  <label style={{fontSize:11,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.8px',display:'block',marginBottom:6}}>To</label>
+                  <input value={emailTo} onChange={e=>setEmailTo(e.target.value)} placeholder="client@email.com" className="field" style={{fontSize:14}} />
+                </div>
+                <div>
+                  <label style={{fontSize:11,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.8px',display:'block',marginBottom:6}}>Subject</label>
+                  <input value={emailSubject} onChange={e=>setEmailSubject(e.target.value)} className="field" style={{fontSize:14}} />
+                </div>
+                <div>
+                  <label style={{fontSize:11,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.8px',display:'block',marginBottom:6}}>Message</label>
+                  <textarea value={emailBody} onChange={e=>setEmailBody(e.target.value)} rows={5} className="field" style={{fontSize:13,resize:'vertical'}} />
+                </div>
+                <button onClick={() => { handleSendConfirm(); setShowSendModal(false); }} disabled={!emailTo.trim() || !!working}
+                  style={{width:'100%',padding:'14px',background:'linear-gradient(135deg,var(--blue),var(--teal))',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontWeight:800,cursor:'pointer',opacity:!emailTo.trim()||!!working?0.5:1,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+                  {working==='send' ? 'Sending…' : 'Send Invoice'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Main content / Toast */}
       {toast && (
         <div className="fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white max-w-sm"
           style={{ background: toast.type === 'success' ? '#16a34a' : toast.type === 'warn' ? '#dc2626' : '#13B5EA' }}>
@@ -263,9 +377,9 @@ export default function InvoiceDetail() {
                     className="btn-ghost px-3 py-2 text-xs flex items-center gap-1">
                     <Copy size={12} /> Copy
                   </button>
-                  <a href={publicUrl} target="_blank" rel="noreferrer" className="btn-ghost px-3 py-2 text-xs flex items-center gap-1">
+                  <button onClick={() => setShowPreview(true)} className="btn-ghost px-3 py-2 text-xs flex items-center gap-1" style={{border:"none",background:"none",cursor:"pointer"}}>
                     <ExternalLink size={12} /> Preview
-                  </a>
+                  </button>
                 </div>
               </div>
             )}

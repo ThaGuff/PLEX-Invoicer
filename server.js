@@ -27,14 +27,6 @@ import calendarRouter    from './server/routes/calendar.js';
 import documentsRouter   from './server/routes/documents.js';
 import photosRouter      from './server/routes/photos.js';
 import workspaceRouter   from './server/routes/workspace.js';
-import calendarRouter    from './server/routes/calendar.js';
-import documentsRouter   from './server/routes/documents.js';
-import photosRouter      from './server/routes/photos.js';
-import workspaceRouter   from './server/routes/workspace.js';
-import calendarRouter    from './server/routes/calendar.js';
-import documentsRouter   from './server/routes/documents.js';
-import photosRouter      from './server/routes/photos.js';
-import workspaceRouter   from './server/routes/workspace.js';
 import { scrapeWithOpenAI } from './server/scrape.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

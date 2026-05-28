@@ -538,18 +538,27 @@ export default function QuoteBuilder() {
   const handleTaxLookup = async () => {
     if (taxZip.length !== 5) return;
     setTaxLooking(true);
+    setTaxLookupResult(null);
+    // Timeout after 5 seconds — never block the user from saving
+    const timeoutId = setTimeout(() => setTaxLooking(false), 5000);
     try {
       const result = await api.tax.lookup(taxZip);
-      setTaxLookupResult(result);
-      setTaxRate(result.tax_rate);
+      if (result?.tax_rate != null) {
+        setTaxLookupResult(result);
+        setTaxRate(result.tax_rate);
+      }
     } catch (e) {
-      // silently fail - user can enter manually
+      // Fail silently — user can enter rate manually
+    } finally {
+      clearTimeout(timeoutId);
+      setTaxLooking(false);
     }
-    setTaxLooking(false);
   };
 
   const handleSave = async () => {
     if (!account?.id) return;
+    // If ZIP lookup is in progress, cancel it and save with current rate
+    setTaxLooking(false);
     setSaving(true);
     setSaveState('saving');
     try {

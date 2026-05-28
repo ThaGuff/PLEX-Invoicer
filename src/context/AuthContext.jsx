@@ -105,9 +105,12 @@ export function AuthProvider({ children }) {
         if (isNew) {
           localStorage.setItem('revanew_new_user', '1');
         }
-        // Also mark trialing users for upsell check on each login
-        // The AccountContext will check their subscription and redirect if needed
+        // Mark for trial upsell check on each login
         localStorage.setItem('revanew_login_event', Date.now().toString());
+        // For brand new accounts, set tour flag (tour shows after first load)
+        if (isNew) {
+          localStorage.setItem('revanew_show_tour', '1');
+        }
       }
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         const wasExpired = sessionExpired;
