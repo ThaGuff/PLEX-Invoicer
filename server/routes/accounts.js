@@ -65,11 +65,12 @@ router.get('/', async (req, res) => {
         || req.user.email?.split('@')[0]?.replace(/[^a-zA-Z0-9 ]/g, ' ')
         || 'My Business';
       const id = `acc-${uuid()}`;
+      const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
       await db.execute(
-        `INSERT INTO accounts (id, owner_id, name, email, logo_initial, primary_color, plan, subscription_status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO accounts (id, owner_id, name, email, logo_initial, primary_color, plan, subscription_status, trial_ends_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [id, userId, name, req.user.email || '',
-         name[0]?.toUpperCase() || 'A', '#13B5EA', 'starter', 'trialing']
+         name[0]?.toUpperCase() || 'A', '#13B5EA', 'starter', 'trialing', trialEnd]
       );
       const created = await db.execute(`SELECT * FROM accounts WHERE id = ?`, [id]);
       return res.json(await enrichAccounts(created.rows));

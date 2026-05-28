@@ -222,6 +222,18 @@ ${invoice.agency_name||'Revanew'}`,
       }
     }
 
+    res.json({
+      ok: true,
+      email_sent,
+      email_error: email_error || null,
+      email_configured: isEmailConfigured(),
+      message: email_sent
+        ? 'Invoice marked as sent and email delivered'
+        : isEmailConfigured()
+          ? 'Invoice marked as sent (email failed: ' + (email_error || 'unknown') + ')'
+          : 'Invoice marked as sent (configure RESEND_API_KEY to enable email delivery)',
+    });
+
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

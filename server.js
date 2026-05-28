@@ -251,29 +251,87 @@ app.post('/api/webhooks/stripe', async (req, res) => {
       event = JSON.parse(req.body);
     }
     const { db } = await import('./server/db/schema.js');
-    if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.created') {
-      const sub = event.data.object;
-      await db.execute(
-        `UPDATE accounts SET stripe_subscription_id = ?, subscription_status = ? WHERE stripe_customer_id = ?`,
-        [sub.id, sub.status, sub.customer]
-      );
+    // ── checkout.session.completed ───────────────────────────────
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      const userId    = session.metadata?.user_id;
+      const plan      = session.metadata?.plan || 'starter';
+      const accountId = session.metadata?.account_id;
+
+      // Determine if this is a trialing session
+      let subStatus = 'active';
+      let trialEnd  = null;
+      if (session.subscription) {
+        try {
+          const sub = await stripe.subscriptions.retrieve(session.subscription);
+          subStatus = sub.status; // 'trialing' if trial_period_days was used
+          trialEnd  = sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null;
+        } catch {}
+      }
+
+      const updates = [session.customer, session.subscription, plan, subStatus, trialEnd];
+      if (accountId) {
+        await db.execute(
+          `UPDATE accounts SET stripe_customer_id=?, stripe_subscription_id=?, plan=?, subscription_status=?, trial_ends_at=? WHERE id=?`,
+          [...updates, accountId]
+        );
+      } else if (userId) {
+        await db.execute(
+          `UPDATE accounts SET stripe_customer_id=?, stripe_subscription_id=?, plan=?, subscription_status=?, trial_ends_at=? WHERE owner_id=?`,
+          [...updates, userId]
+        );
+      }
+      console.log('[Webhook] checkout.session.completed — plan:', plan, 'status:', subStatus);
     }
+
+    // ── subscription created/updated ─────────────────────────────
+    if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.created') {
+      const sub   = event.data.object;
+      const plan  = sub.metadata?.plan || null;
+      const trialEnd = sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null;
+
+      if (plan) {
+        await db.execute(
+          `UPDATE accounts SET stripe_subscription_id=?, subscription_status=?, plan=?, trial_ends_at=? WHERE stripe_customer_id=?`,
+          [sub.id, sub.status, plan, trialEnd, sub.customer]
+        );
+      } else {
+        await db.execute(
+          `UPDATE accounts SET stripe_subscription_id=?, subscription_status=?, trial_ends_at=? WHERE stripe_customer_id=?`,
+          [sub.id, sub.status, trialEnd, sub.customer]
+        );
+      }
+      console.log('[Webhook] subscription', event.type, '— status:', sub.status, 'plan:', plan || 'unchanged');
+    }
+
+    // ── subscription deleted (cancelled) ─────────────────────────
     if (event.type === 'customer.subscription.deleted') {
       const sub = event.data.object;
       await db.execute(
-        `UPDATE accounts SET subscription_status = 'cancelled' WHERE stripe_customer_id = ?`,
+        `UPDATE accounts SET subscription_status='cancelled', stripe_subscription_id=NULL WHERE stripe_customer_id=?`,
         [sub.customer]
       );
+      console.log('[Webhook] subscription cancelled for customer:', sub.customer);
     }
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object;
-      const userId = session.metadata?.user_id;
-      if (userId) {
+
+    // ── invoice.payment_succeeded (keeps status current) ─────────
+    if (event.type === 'invoice.payment_succeeded') {
+      const inv = event.data.object;
+      if (inv.subscription) {
         await db.execute(
-          `UPDATE accounts SET stripe_customer_id = ?, stripe_subscription_id = ?, subscription_status = 'active' WHERE owner_id = ?`,
-          [session.customer, session.subscription, userId]
+          `UPDATE accounts SET subscription_status='active' WHERE stripe_customer_id=?`,
+          [inv.customer]
         );
       }
+    }
+
+    // ── invoice.payment_failed ────────────────────────────────────
+    if (event.type === 'invoice.payment_failed') {
+      const inv = event.data.object;
+      await db.execute(
+        `UPDATE accounts SET subscription_status='past_due' WHERE stripe_customer_id=?`,
+        [inv.customer]
+      );
     }
     res.json({ received: true });
   } catch (e) {
@@ -380,10 +438,17 @@ app.post('/api/billing/create-checkout', requireAuth, async (req, res) => {
       }
     }
 
+    const { trial_only = false } = req.body;
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
       payment_method_types: ['card'],
+      // trial_only: collect payment info later (after trial ends)
+      // Stripe will still create the subscription but won't charge until trial ends
+      ...(trial_only && !winback ? {
+        payment_method_collection: 'if_required',
+      } : {}),
       line_items: [{ price: priceId, quantity: 1 }],
       subscription_data: {
         trial_period_days: winback ? 0 : 7,
@@ -663,4 +728,40 @@ initDBWithRetry().then(() => {
   // Run immediately then every 5 minutes
   setTimeout(runAutomationQueue, 10000); // 10s after startup
   setInterval(runAutomationQueue, 5 * 60 * 1000); // every 5min
+
+  // ── Trial ending email reminders — every 6 hours ─────────────
+  const runTrialReminders = async () => {
+    try {
+      const { sendEmail, isEmailConfigured } = await import('./server/utils/email.js');
+      if (!isEmailConfigured()) return;
+      const APP_URL = process.env.APP_URL || 'https://revanew.io';
+      const expiring = await db.execute(
+        `SELECT id, name, email, trial_ends_at FROM accounts
+         WHERE subscription_status = 'trialing'
+           AND trial_ends_at IS NOT NULL
+           AND trial_ends_at > NOW()
+           AND trial_ends_at <= NOW() + INTERVAL '3 days'
+           AND (trial_reminder_sent_at IS NULL OR trial_reminder_sent_at < NOW() - INTERVAL '23 hours')
+         LIMIT 50`
+      );
+      for (const acct of expiring.rows) {
+        const daysLeft = Math.max(0, Math.ceil((new Date(acct.trial_ends_at) - new Date()) / 86400000));
+        await sendEmail({
+          to: acct.email,
+          subject: `⏰ ${daysLeft === 0 ? 'Your Revanew trial ends today' : daysLeft + ' days left in your Revanew trial'}`,
+          text: `Your Revanew trial ends in ${daysLeft} day(s). Subscribe at ${APP_URL}/billing`,
+          html: `<div style="font-family:sans-serif;max-width:600px;margin:32px auto;padding:32px;background:#fff;border-radius:16px;border:1px solid #e2e8f0">
+            <h2 style="margin:0 0 16px;color:#0f172a">⏰ Your trial ${daysLeft === 0 ? 'ends today' : 'is ending soon'}</h2>
+            <p style="color:#334155">You have <strong>${daysLeft} day${daysLeft===1?'':'s'}</strong> left. Subscribe now to keep all your data and access.</p>
+            <a href="${APP_URL}/billing" style="display:inline-block;margin-top:16px;padding:12px 24px;background:linear-gradient(135deg,#2563EB,#0D9488);color:#fff;text-decoration:none;border-radius:10px;font-weight:700">
+              Choose a plan →
+            </a></div>`
+        }).catch(e => console.warn('[Trial reminder] Email failed:', e.message));
+        await db.execute(`UPDATE accounts SET trial_reminder_sent_at = NOW() WHERE id = ?`, [acct.id]);
+        console.log('[Trial reminder] Sent to', acct.email, daysLeft + 'd left');
+      }
+    } catch (e) { console.error('[Trial reminder cron]', e.message); }
+  };
+  setInterval(runTrialReminders, 6 * 60 * 60 * 1000);
+  runTrialReminders(); // run once on startup too
 });

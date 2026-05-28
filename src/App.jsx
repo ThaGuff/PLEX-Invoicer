@@ -24,13 +24,14 @@ import AutomationsPage from './pages/AutomationsPage';
 import AnalyticsPage  from './pages/AnalyticsPage';
 const TrialBanner  = React.lazy(() => import('./components/TrialBanner').catch(() => ({ default: () => null })));
 const InstallPWA    = React.lazy(() => import('./components/InstallPWA').catch(() => ({ default: () => null })));
-const OnboardingTour = React.lazy(() => import('./components/OnboardingTour').catch(() => ({ default: () => null })));
+const OnboardingTour  = React.lazy(() => import('./components/OnboardingTour').catch(() => ({ default: () => null })));
+const AIAssistant     = React.lazy(() => import('./components/AIAssistant').catch(() => ({ default: () => null })));
 const PlanGate       = React.lazy(() => import('./components/PlanGate').catch(() => ({ default: ({children}) => children })));
 const DocumentsPage = React.lazy(() => import('./pages/DocumentsPage').catch(() => ({ default: () => null })));
 const CalendarPage  = React.lazy(() => import('./pages/CalendarPage').catch(() => ({ default: () => null })));
 const PhotosPage    = React.lazy(() => import('./pages/PhotosPage').catch(() => ({ default: () => null })));
 const WorkspacePage = React.lazy(() => import('./pages/WorkspacePage').catch(() => ({ default: () => null })));
-import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield, BarChart2, Sun, Moon, Grid, Calendar, FolderOpen, Image as ImageIcon, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield, BarChart2, Sun, Moon, Grid, Calendar, FolderOpen, Image as ImageIcon, MessageSquare, Lock } from 'lucide-react';
 import { IdleWarningBanner, SessionExpiredModal } from './components/SessionModals';
 
 
@@ -91,121 +92,196 @@ function Nav() {
   const { account } = useAccount();
   const { user } = useAuth();
   const accent = account?.primary_color || '#13B5EA';
-  const loc = useLocation();
+  const loc    = useLocation();
+  const navigate = useNavigate();
   const [showMobileMore, setShowMobileMore] = useState(false);
   const isOwner = user?.email === 'guffey.ryan@gmail.com' || user?.id === 'dev-user';
 
-  // Mobile nav shows top 5; desktop shows all
-  const links = [
-    { to: '/',            label: 'Dashboard', icon: LayoutDashboard, short: 'Home',     color: '#0D9488' },
-    { to: '/quotes',      label: 'Quotes',    icon: FileText,        short: 'Quotes',   color: '#2563EB' },
-    { to: '/invoices',    label: 'Invoices',  icon: Receipt,         short: 'Invoices', color: '#7C3AED' },
-    { to: '/contacts',    label: 'Clients',   icon: Users,           short: 'Clients',  color: '#0D9488' },
-    { to: '/calendar',    label: 'Schedule',  icon: Calendar,        short: 'Schedule', color: '#0D9488' },
-    { to: '/documents',   label: 'Documents', icon: FolderOpen,      short: 'Docs',     color: '#2563EB' },
-    { to: '/photos',      label: 'Photos',    icon: ImageIcon,       short: 'Photos',   color: '#D97706' },
-    { to: '/workspace',   label: 'Team',      icon: MessageSquare,   short: 'Team',     color: '#7C3AED' },
-    { to: '/automations', label: 'Automate',  icon: Zap,             short: 'Automate', color: '#D97706' },
-    { to: '/analytics',   label: 'Analytics', icon: BarChart2,       short: 'Stats',    color: '#2563EB' },
-    { to: '/billing',     label: 'Billing',   icon: CreditCard,      short: 'Billing',  color: '#7C3AED' },
-    ...(isOwner ? [{ to: '/admin', label: 'Admin', icon: Shield, short: 'Admin', color: '#ef4444' }] : []),
-  ];
-  // Mobile bottom nav: Home, Quotes, Invoices, Clients, More (Automate)
-  // Mobile bottom nav: 4 core tabs + "More" drawer for the rest
-  const mobilePrimaryLinks = links.slice(0, 4); // Dashboard, Quotes, Invoices, Clients
-  const mobileMoreLinks = links.slice(4);       // Automate, Analytics, Billing, Admin
+  const plan       = account?.plan || 'starter';
+  const isTrialing = account?.subscription_status === 'trialing';
+  const trialEnd   = account?.trial_ends_at ? new Date(account.trial_ends_at) : null;
+  const trialActive = isTrialing && trialEnd && trialEnd > new Date();
 
+  // Feature availability by plan
+  const PLAN_RANK   = { starter: 0, pro: 1, agency: 2 };
+  const FEAT_PLAN   = {
+    '/calendar':    'pro',
+    '/documents':   'pro',
+    '/photos':      'pro',
+    '/workspace':   'pro',
+    '/automations': 'pro',
+    '/analytics':   'pro',
+    '/billing':     null,
+    '/admin':       null,
+  };
+  const isLocked = (to) => {
+    if (trialActive) return false; // trial = full access
+    const req = FEAT_PLAN[to];
+    if (!req) return false;
+    return (PLAN_RANK[plan] || 0) < (PLAN_RANK[req] || 1);
+  };
+
+  const links = [
+    { to: '/',            label: 'Dashboard', icon: LayoutDashboard, color: '#0D9488' },
+    { to: '/quotes',      label: 'Quotes',    icon: FileText,        color: '#2563EB' },
+    { to: '/invoices',    label: 'Invoices',  icon: Receipt,         color: '#7C3AED' },
+    { to: '/contacts',    label: 'Clients',   icon: Users,           color: '#0D9488' },
+    { to: '/calendar',    label: 'Schedule',  icon: Calendar,        color: '#0D9488' },
+    { to: '/documents',   label: 'Documents', icon: FolderOpen,      color: '#2563EB' },
+    { to: '/photos',      label: 'Photos',    icon: ImageIcon,       color: '#D97706' },
+    { to: '/workspace',   label: 'Team',      icon: MessageSquare,   color: '#7C3AED' },
+    { to: '/automations', label: 'Automate',  icon: Zap,             color: '#D97706' },
+    { to: '/analytics',   label: 'Analytics', icon: BarChart2,       color: '#2563EB' },
+    { to: '/billing',     label: 'Billing',   icon: CreditCard,      color: '#7C3AED' },
+    ...(isOwner ? [{ to: '/admin', label: 'Admin', icon: Shield, color: '#ef4444' }] : []),
+  ];
+
+  const mobilePrimaryLinks = links.slice(0, 4);
+  const mobileMoreLinks    = links.slice(4);
   const isActive = (to) => to === '/' ? loc.pathname === '/' : loc.pathname.startsWith(to);
+
+  const handleLockedClick = (link) => {
+    // Show upgrade prompt for locked features
+    navigate('/billing?upgrade=1&feature=' + link.to.replace('/', ''));
+  };
 
   return (
     <>
-      {/* Desktop nav — hidden on mobile via CSS */}
-      <nav className="desktop-nav">
-        {links.map(l => {
-          const active = isActive(l.to);
-          return (
-            <NavLink key={l.to} to={l.to}
-              className="nav-pill"
-              style={{
-                color: active ? '#fff' : 'var(--text-secondary)',
-                background: active ? `linear-gradient(135deg, ${l.color}cc, ${l.color}88)` : 'transparent',
-                borderColor: active ? `${l.color}33` : 'transparent',
-                boxShadow: active ? `0 2px 12px ${l.color}33` : 'none',
-                transform: active ? 'translateY(-1px)' : 'translateY(0)',
-              }}
-              onMouseEnter={e => { if (!active) { e.currentTarget.style.background=`${l.color}12`; e.currentTarget.style.color=l.color; e.currentTarget.style.borderColor=`${l.color}25`; e.currentTarget.style.transform='translateY(-1px)'; }}}
-              onMouseLeave={e => { if (!active) { e.currentTarget.style.background='transparent'; e.currentTarget.style.color='var(--text-secondary)'; e.currentTarget.style.borderColor='transparent'; e.currentTarget.style.transform='translateY(0)'; }}}>
-              <l.icon size={14} style={{ flexShrink:0 }} />
-              <span>{l.label}</span>
-            </NavLink>
-          );
-        })}
-      </nav>
+      {/* ── DESKTOP LEFT SIDEBAR (md and up) ───────────────────── */}
+      <aside className="desktop-sidebar" style={{
+        display:'none', // shown via CSS below
+        width: 220,
+        minWidth: 220,
+        height: '100vh',
+        position: 'sticky',
+        top: 0,
+        background: 'var(--bg-surface)',
+        borderRight: '1px solid var(--border)',
+        flexDirection: 'column',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        zIndex: 40,
+        flexShrink: 0,
+      }}>
+        {/* Logo */}
+        <div style={{ padding: '18px 16px 12px', borderBottom: '1px solid var(--border)', flexShrink:0 }}>
+          <NavLink to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none' }}>
+            <img src="/logo-revanew.png" alt="Revanew" style={{ width:32, height:32, objectFit:'contain', borderRadius:8 }} />
+            <span style={{ fontSize:16, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.04em' }}>Revanew</span>
+          </NavLink>
+          {/* Trial badge */}
+          {isTrialing && trialEnd && (
+            <div style={{ marginTop:8, padding:'4px 10px', background:'rgba(37,99,235,0.08)', border:'1px solid rgba(37,99,235,0.15)', borderRadius:8, display:'inline-flex', alignItems:'center', gap:5 }}>
+              <div style={{ width:6, height:6, borderRadius:'50%', background:'#2563EB', animation:'pulse 2s ease infinite' }}/>
+              <span style={{ fontSize:11, fontWeight:700, color:'#2563EB' }}>
+                {Math.max(0, Math.ceil((trialEnd - new Date()) / 86400000))}d trial left
+              </span>
+            </div>
+          )}
+        </div>
 
-      {/* Mobile bottom nav */}
-      <div className="mobile-nav">
+        {/* Nav links */}
+        <nav style={{ flex:1, padding:'10px 8px', display:'flex', flexDirection:'column', gap:2 }}>
+          {links.map(l => {
+            const active  = isActive(l.to);
+            const locked  = isLocked(l.to);
+            const Icon    = l.icon;
+            return (
+              <button key={l.to}
+                onClick={() => locked ? handleLockedClick(l) : navigate(l.to)}
+                title={locked ? `Upgrade to unlock ${l.label}` : l.label}
+                style={{
+                  display:'flex', alignItems:'center', gap:10,
+                  padding:'9px 12px', borderRadius:10, border:'none',
+                  background: active ? `${l.color}15` : 'transparent',
+                  cursor:'pointer', width:'100%', textAlign:'left',
+                  transition:'all 0.12s', fontFamily:"'Plus Jakarta Sans',sans-serif",
+                  opacity: locked ? 0.55 : 1,
+                  position:'relative',
+                }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--bg-raised)'; }}
+                onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}>
+                <Icon size={16} style={{ color: active ? l.color : locked ? 'var(--text-muted)' : 'var(--text-secondary)', flexShrink:0 }} />
+                <span style={{ fontSize:13, fontWeight: active ? 700 : 500, color: active ? l.color : 'var(--text-secondary)', flex:1 }}>
+                  {l.label}
+                </span>
+                {active && <div style={{ width:3, height:16, borderRadius:2, background:l.color, flexShrink:0 }}/>}
+                {locked && !active && (
+                  <Lock size={11} style={{ color:'var(--text-muted)', flexShrink:0 }}/>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Bottom: New quote CTA */}
+        <div style={{ padding:'12px', borderTop:'1px solid var(--border)', flexShrink:0 }}>
+          <NavLink to="/quotes/new" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'10px', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', borderRadius:11, textDecoration:'none', fontSize:13, fontWeight:700, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+            <Plus size={15}/> New Quote
+          </NavLink>
+        </div>
+      </aside>
+
+      {/* ── MOBILE BOTTOM NAV (below md) ───────────────────────── */}
+      <nav className="mobile-bottom-nav" style={{
+        position:'fixed', bottom:0, left:0, right:0,
+        height:'calc(60px + env(safe-area-inset-bottom))',
+        paddingBottom:'env(safe-area-inset-bottom)',
+        background:'var(--bg-surface)',
+        borderTop:'1px solid var(--border)',
+        display:'flex', alignItems:'center',
+        zIndex:90, backdropFilter:'blur(12px)',
+      }}>
         {mobilePrimaryLinks.map(l => {
           const active = isActive(l.to);
+          const Icon   = l.icon;
           return (
             <NavLink key={l.to} to={l.to}
-              onClick={() => setShowMobileMore(false)}
-              style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:3, padding:'6px 2px', borderRadius:12, transition:'all 0.2s ease', color: active ? l.color : 'var(--text-muted)', background: active ? `${l.color}14` : 'transparent', textDecoration:'none' }}>
-              <div style={{ width: active?36:28, height: active?36:28, borderRadius: active?10:8, display:'flex', alignItems:'center', justifyContent:'center', background: active ? `linear-gradient(135deg,${l.color},#6B3FD8)` : 'transparent', transition:'all 0.2s ease', boxShadow: active ? `0 4px 12px ${l.color}44` : 'none' }}>
-                <l.icon size={active?18:20} color={active?'#fff':'currentColor'} strokeWidth={active?2.5:1.8} />
-              </div>
-              <span style={{ fontSize:10, fontWeight: active?700:500 }}>{l.short}</span>
+              style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:3, padding:'8px 0', textDecoration:'none' }}>
+              <Icon size={20} style={{ color: active ? l.color : 'var(--text-muted)' }}/>
+              <span style={{ fontSize:10, fontWeight: active ? 700 : 500, color: active ? l.color : 'var(--text-muted)' }}>{l.short || l.label.slice(0,7)}</span>
             </NavLink>
           );
         })}
         {/* More button */}
-        <button
-          onClick={() => setShowMobileMore(v => !v)}
-          style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:3, padding:'6px 2px', borderRadius:12, border:'none', background: showMobileMore ? 'rgba(107,63,216,0.12)' : 'transparent', cursor:'pointer', color: showMobileMore ? '#7C3AED' : 'var(--text-muted)', transition:'all 0.2s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-          <div style={{ width: showMobileMore?36:28, height: showMobileMore?36:28, borderRadius: showMobileMore?10:8, display:'flex', alignItems:'center', justifyContent:'center', background: showMobileMore ? 'linear-gradient(135deg,#6B3FD8,#3B6FE8)' : 'transparent', transition:'all 0.2s', boxShadow: showMobileMore ? '0 4px 12px rgba(107,63,216,0.4)' : 'none' }}>
-            <Grid size={showMobileMore?18:20} color={showMobileMore?'#fff':'currentColor'} strokeWidth={showMobileMore?2.5:1.8} />
-          </div>
-          <span style={{ fontSize:10, fontWeight: showMobileMore?700:500 }}>More</span>
+        <button onClick={() => setShowMobileMore(v => !v)}
+          style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:3, padding:'8px 0', background:'none', border:'none', cursor:'pointer' }}>
+          <Grid size={20} style={{ color: showMobileMore ? accent : 'var(--text-muted)' }}/>
+          <span style={{ fontSize:10, fontWeight: showMobileMore ? 700 : 500, color: showMobileMore ? accent : 'var(--text-muted)' }}>More</span>
         </button>
-      </div>
+      </nav>
 
-      {/* Mobile More drawer — renders inside Nav() so it has state access */}
+      {/* Mobile More drawer */}
       {showMobileMore && (
         <>
-          <div style={{ position:'fixed', inset:0, zIndex:109, background:'rgba(11,18,32,0.45)', backdropFilter:'blur(3px)', WebkitBackdropFilter:'blur(3px)' }} onClick={() => setShowMobileMore(false)} />
-          <div style={{ position:'fixed', bottom:'calc(74px + env(safe-area-inset-bottom))', left:12, right:12, zIndex:110, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden', boxShadow:'0 -8px 40px rgba(11,18,32,0.25)', animation:'fadeUp 0.2s ease both' }}>
-            <div style={{ padding:'12px 16px 8px', borderBottom:'1px solid var(--border-subtle)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              <p style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'1px' }}>More</p>
-              <button onClick={() => setShowMobileMore(false)} style={{ background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', padding:4 }}>✕</button>
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', padding:'8px 4px 12px' }}>
-              {mobileMoreLinks.map(l => {
-                const active = isActive(l.to);
-                return (
-                  <NavLink key={l.to} to={l.to}
-                    onClick={() => setShowMobileMore(false)}
-                    style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, padding:'12px 6px', textDecoration:'none', borderRadius:12, background: active ? `${l.color}12` : 'transparent', transition:'background 0.15s' }}>
-                    <div style={{ width:46, height:46, borderRadius:14, display:'flex', alignItems:'center', justifyContent:'center', background: active ? `linear-gradient(135deg,${l.color},#7C3AED)` : 'var(--bg-raised)', border:`1px solid ${active ? l.color+'55' : 'var(--border)'}`, boxShadow: active ? `0 4px 14px ${l.color}44` : 'none', transition:'all 0.2s' }}>
-                      <l.icon size={22} color={active ? '#fff' : l.color} strokeWidth={1.8} />
-                    </div>
-                    <span style={{ fontSize:11, fontWeight: active?700:600, color: active ? l.color : 'var(--text-secondary)', textAlign:'center', lineHeight:1.2 }}>{l.short}</span>
-                  </NavLink>
-                );
-              })}
-            </div>
+          <div style={{ position:'fixed', inset:0, zIndex:109, background:'rgba(11,18,32,0.5)', backdropFilter:'blur(4px)' }}
+            onClick={() => setShowMobileMore(false)} />
+          <div style={{ position:'fixed', bottom:'calc(74px + env(safe-area-inset-bottom))', left:12, right:12, zIndex:110,
+            background:'var(--bg-surface)', borderRadius:18, border:'1px solid var(--border)',
+            boxShadow:'0 -8px 40px rgba(11,18,32,0.18)', padding:'10px 6px', display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:4 }}>
+            {mobileMoreLinks.map(l => {
+              const active = isActive(l.to);
+              const locked = isLocked(l.to);
+              const Icon   = l.icon;
+              return (
+                <button key={l.to}
+                  onClick={() => { setShowMobileMore(false); locked ? handleLockedClick(l) : navigate(l.to); }}
+                  style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5, padding:'12px 4px', borderRadius:12, border:'none',
+                    background: active ? `${l.color}12` : 'transparent', cursor:'pointer',
+                    fontFamily:"'Plus Jakarta Sans',sans-serif", opacity: locked ? 0.6 : 1 }}>
+                  <div style={{ width:36, height:36, borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center',
+                    background:`${l.color}18` }}>
+                    <Icon size={17} style={{ color: l.color }}/>
+                  </div>
+                  <span style={{ fontSize:11, fontWeight: active ? 700 : 500, color: active ? l.color : 'var(--text-secondary)' }}>{l.label}</span>
+                  {locked && <Lock size={9} style={{ color:'var(--text-muted)', marginTop:-2 }}/>}
+                </button>
+              );
+            })}
           </div>
         </>
       )}
     </>
-  );
-}
-
-// Crash-proof wrapper using React.lazy + Suspense
-// If the component fails to load, silently returns null
-function SafeTrialBanner() {
-  return (
-    <React.Suspense fallback={null}>
-      <TrialBanner />
-    </React.Suspense>
   );
 }
 
@@ -215,6 +291,12 @@ function AppShell({ children }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // ── State declarations (must come before useEffects) ──────────
+  const [showSettings,   setShowSettings]   = useState(false);
+  const [showNewAccount, setShowNewAccount] = useState(false);
+  const [showUserMenu,   setShowUserMenu]   = useState(false);
+  const [showTour,       setShowTour]       = useState(false);
 
   // Listen for navigation events from AccountContext
   React.useEffect(() => {
@@ -262,28 +344,6 @@ function AppShell({ children }) {
                            !path.includes('/billing');
     setShowTour(shouldShowTour);
   }, [account, loading, location.pathname]);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showNewAccount, setShowNewAccount] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showTour, setShowTour] = useState(false);
-  // Tour fires after billing is done — check on mount and after billing success
-  React.useEffect(() => {
-    const checkTour = () => {
-      const shouldShow = localStorage.getItem('revanew_show_tour') === '1' &&
-                         !localStorage.getItem('revanew_tour_done') &&
-                         !window.location.pathname.includes('/billing') &&
-                         !window.location.pathname.includes('/login');
-      setShowTour(shouldShow);
-    };
-    checkTour();
-    // Re-check when URL changes (user navigates away from billing)
-    window.addEventListener('popstate', checkTour);
-    window.addEventListener('revanew:navigate', checkTour);
-    return () => {
-      window.removeEventListener('popstate', checkTour);
-      window.removeEventListener('revanew:navigate', checkTour);
-    };
-  }, []);
   const [dark, setDark] = useDarkMode();
   const accent = account?.primary_color || '#13B5EA';
 
@@ -300,79 +360,6 @@ function AppShell({ children }) {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-page)', overflowX: 'hidden', maxWidth: '100vw' }}>
       {/* Desktop / Mobile header */}
-      <header className="border-b sticky top-0 z-40" style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)' }}>
-        <div style={{ maxWidth:'1280px', margin:'0 auto', padding:'0 max(16px, calc(12px + env(safe-area-inset-right))) 0 max(14px, calc(12px + env(safe-area-inset-left)))', height:60, display:'flex', alignItems:'center', gap:10, width:'100%', boxSizing:'border-box', overflow:'visible', position:'relative' }}>
-          {/* Logo */}
-          <div style={{ display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
-            <img src="/logo-revanew.png" alt="Revanew" style={{ width:34, height:34, objectFit:"contain", borderRadius:8 }} />
-            <span className="hidden md:block" style={{ fontSize:'17px', fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.5px' }}>Revanew</span>
-          </div>
-
-          {/* Desktop nav — hidden on mobile */}
-          <div className="hidden md:block w-px h-5 shrink-0" style={{ background:'var(--border)' }} />
-          <Nav />
-
-          {/* Right actions */}
-          <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
-            {/* Dark mode toggle */}
-            <button onClick={() => setDark(d => !d)}
-              title={dark ? 'Light mode' : 'Dark mode'}
-              className='hidden md:flex' style={{ width:36, height:36, borderRadius:9, alignItems:'center', justifyContent:'center', border:'0.5px solid var(--border)', background:'var(--bg-page)', cursor:'pointer', color:'var(--text-secondary)', flexShrink:0 }}>
-              {dark ? <Sun size={15}/> : <Moon size={15}/>}
-            </button>
-            {/* New quote — hidden on mobile (FAB handles it) */}
-            <NavLink to="/quotes/new"
-              className="hidden md:flex items-center gap-2 text-white rounded-xl"
-              style={{ background:'linear-gradient(135deg,#00E5C8,#4B7BFF,#7B4FE8)', fontSize:'13px', fontWeight:700, padding:'9px 16px', boxShadow:'0 4px 14px rgba(75,123,255,0.35)', letterSpacing:'-0.01em', textDecoration:'none', flexShrink:0 }}>
-              <Plus size={14}/> New quote
-            </NavLink>
-            <div className="hidden md:block">
-              <AccountSwitcher onOpenSettings={() => setShowSettings(true)} onNewAccount={() => setShowNewAccount(true)} />
-            </div>
-            {/* Avatar */}
-            <div className="relative" style={{ flexShrink:0, isolation:"isolate" }}>
-              <button onClick={() => setShowUserMenu(v => !v)}
-                style={{ width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:'15px', fontWeight:800, background:accent, border:'2px solid rgba(255,255,255,0.2)', cursor:'pointer', flexShrink:0, minWidth:42, minHeight:42, marginRight:'max(0px, env(safe-area-inset-right))' }}>
-                {(user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
-              </button>
-              {showUserMenu && (
-                <>
-                  <div style={{ position:'fixed', inset:0, zIndex:199 }} onClick={() => setShowUserMenu(false)} />
-                  <div style={{ position:'absolute', right:0, top:'calc(100% + 8px)', width:224, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:16, boxShadow:'0 20px 60px rgba(11,18,32,0.2), 0 4px 16px rgba(11,18,32,0.1)', zIndex:200, overflow:'hidden', minWidth:200 }}>
-                    <div style={{ padding:'12px 16px', borderBottom:'1px solid var(--border-subtle)', background:'var(--bg-raised)' }}>
-                      <p style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{user?.user_metadata?.full_name || 'My account'}</p>
-                      <p style={{ fontSize:11, color:'var(--text-muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginTop:2 }}>{user?.email}</p>
-                    </div>
-                    <div style={{ padding:'4px 0' }}>
-                      <NavLink to="/billing" onClick={() => setShowUserMenu(false)}
-                        style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 16px', fontSize:13, fontWeight:500, color:'var(--text-secondary)', textDecoration:'none', transition:'background 0.12s' }}
-                        onMouseEnter={e => e.currentTarget.style.background='var(--bg-page)'}
-                        onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                        <CreditCard size={14} style={{ color:'var(--text-muted)' }} /> Billing & plans
-                      </NavLink>
-                      <button onClick={() => { setShowUserMenu(false); setShowSettings(true); }}
-                        style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 16px', fontSize:13, fontWeight:500, color:'var(--text-secondary)', background:'transparent', border:'none', cursor:'pointer', width:'100%', textAlign:'left', transition:'background 0.12s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
-                        onMouseEnter={e => e.currentTarget.style.background='var(--bg-page)'}
-                        onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                        <Shield size={14} style={{ color:'var(--text-muted)' }} /> Account settings
-                      </button>
-                      <div style={{ height:'1px', background:'var(--border-subtle)', margin:'4px 0' }} />
-                      <button onClick={() => { setShowUserMenu(false); signOut(); }}
-                        style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 16px', fontSize:13, fontWeight:500, color:'#ef4444', background:'transparent', border:'none', cursor:'pointer', width:'100%', textAlign:'left', transition:'background 0.12s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
-                        onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.06)'}
-                        onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                        <LogOut size={14} /> Sign out
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-        {/* Accent stripe */}
-        <div className="h-0.5" style={{ background: 'linear-gradient(90deg, #00C9B1, #3B6FE8, #6B3FD8)' }} />
-      </header>
       <SafeTrialBanner />
       <React.Suspense fallback={null}>
         <InstallPWA />
@@ -395,7 +382,12 @@ function AppShell({ children }) {
       {showNewAccount && <NewAccountModal onClose={() => setShowNewAccount(false)} onCreated={() => {}} />}
 
       {/* Main content */}
-      <main className="page-content" style={{ flex:1, minWidth:0, overflowX:"hidden" }}>{children}</main>
+      <main style={{ flex:1, minWidth:0, overflowX:"hidden", overflowY:"auto", display:"flex", flexDirection:"column" }}>{children}</main>
+
+      {/* AI Assistant — floating on all pages */}
+      <React.Suspense fallback={null}>
+        <AIAssistant />
+      </React.Suspense>
     </div>
   );
 }

@@ -101,7 +101,7 @@ export default function BillingPage() {
 
   const statusInfo = STATUS_LABELS[currentStatus] || STATUS_LABELS.trialing;
 
-  const handleSelectPlan = async (planKey) => {
+  const handleSelectPlan = async (planKey, trialOnly = false) => {
     if (planKey === currentPlan && currentStatus === 'active') return;
     setLoading(planKey);
     setError('');
@@ -112,7 +112,7 @@ export default function BillingPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token}`,
         },
-        body: JSON.stringify({ plan: planKey }),
+        body: JSON.stringify({ plan: planKey, trial_only: trialOnly, annual }),
       });
       const data = await res.json();
       if (data.url) {
@@ -147,6 +147,61 @@ export default function BillingPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-8">
+
+      {/* ── Welcome modal for new users ─────────────────────────── */}
+      {isWelcome && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(11,18,32,0.6)', backdropFilter:'blur(6px)', zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:20, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+          <div style={{ background:'var(--bg-surface)', borderRadius:20, padding:'32px 28px', maxWidth:480, width:'100%', textAlign:'center', boxShadow:'0 32px 80px rgba(11,18,32,0.3)' }}>
+            <div style={{ fontSize:48, marginBottom:12 }}>🚀</div>
+            <h2 style={{ fontSize:24, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.03em', marginBottom:10 }}>
+              Welcome to Revanew!
+            </h2>
+            <p style={{ fontSize:14, color:'var(--text-secondary)', lineHeight:1.7, marginBottom:24 }}>
+              Start with a <strong>7-day free trial</strong> — no credit card required.
+              You can enter your payment details now or any time before your trial ends.
+            </p>
+            {/* Trial countdown display */}
+            <div style={{ background:'rgba(37,99,235,0.06)', border:'1px solid rgba(37,99,235,0.15)', borderRadius:12, padding:'12px 16px', marginBottom:24, display:'flex', alignItems:'center', justifyContent:'center', gap:10 }}>
+              <span style={{ fontSize:22 }}>⏰</span>
+              <div>
+                <p style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>7 days free, then $49/mo</p>
+                <p style={{ fontSize:11, color:'var(--text-muted)' }}>Cancel anytime. No commitment.</p>
+              </div>
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {/* Primary CTA: Start trial without card */}
+              <button onClick={() => { handleSelectPlan('pro', true); }}
+                style={{ width:'100%', padding:'15px', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', border:'none', borderRadius:13, fontSize:15, fontWeight:800, cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif", display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                🎉 Start 7-day free trial — no card needed
+              </button>
+              {/* Secondary CTA: Enter card now */}
+              <button onClick={() => { handleSelectPlan('pro', false); }}
+                style={{ width:'100%', padding:'13px', background:'var(--bg-raised)', border:'1px solid var(--border)', borderRadius:13, fontSize:14, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+                Enter payment info now → avoid reminders later
+              </button>
+              {/* Skip: just see plans */}
+              <button onClick={() => { const url = new URL(window.location.href); url.searchParams.delete('welcome'); window.history.replaceState({}, '', url.toString()); window.location.reload(); }}
+                style={{ background:'none', border:'none', color:'var(--text-muted)', fontSize:12, cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif", padding:'6px' }}>
+                View all plans →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Trial ending banner ──────────────────────────────────── */}
+      {isTrialEnding && !isWelcome && (
+        <div className="animate-fade-up mb-6" style={{ background:'linear-gradient(135deg,rgba(220,38,38,0.06),rgba(217,119,6,0.06))', border:'1px solid rgba(220,38,38,0.2)', borderRadius:14, padding:'18px 20px', textAlign:'center' }}>
+          <p style={{ fontSize:22, marginBottom:6 }}>⏰</p>
+          <h3 style={{ fontSize:17, fontWeight:800, color:'var(--text-primary)', marginBottom:6 }}>
+            {trialDaysParam === 0 ? 'Your trial ends today!' : `${trialDaysParam} day${trialDaysParam === 1 ? '' : 's'} left in your trial`}
+          </h3>
+          <p style={{ fontSize:13, color:'var(--text-secondary)' }}>
+            Subscribe now to keep access to all your quotes, invoices, clients, and data.
+          </p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 mb-3 px-3 py-1.5 rounded-full text-xs font-semibold"
@@ -275,7 +330,7 @@ export default function BillingPage() {
 
                 {/* CTA */}
                 <button
-                  onClick={() => handleSelectPlan(plan.key)}
+                  onClick={() => handleSelectPlan(plan.key, currentStatus === 'trialing')}
                   disabled={isLoading || (isCurrent && currentStatus === 'active')}
                   className="w-full py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   style={{
