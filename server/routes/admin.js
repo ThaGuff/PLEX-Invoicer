@@ -227,7 +227,7 @@ router.post('/onboard', async (req, res) => {
   const displayName    = name || email.split('@')[0];
   const businessName   = business_name || 'your business';
   const loginUrl       = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
-  const supportEmail   = process.env.PLEX_OWNER_EMAIL || 'hello@plexautomation.io';
+  const supportEmail   = process.env.PLEX_OWNER_EMAIL || process.env.PLEX_OWNER_EMAIL || 'admin@revanew.io';
   const supportPhone   = '256-609-4618';
 
   // Generate welcome PDF
@@ -334,7 +334,7 @@ router.post('/broadcast', async (req, res) => {
     );
 
     const loginUrl    = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
-    const supportEmail = process.env.PLEX_OWNER_EMAIL || 'hello@plexautomation.io';
+    const supportEmail = process.env.PLEX_OWNER_EMAIL || process.env.PLEX_OWNER_EMAIL || 'admin@revanew.io';
 
     const html = `
 <!DOCTYPE html><html><head><meta charset="utf-8"><style>

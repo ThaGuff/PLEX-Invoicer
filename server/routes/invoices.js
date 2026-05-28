@@ -118,7 +118,7 @@ router.post('/:id/payment-link', async (req, res) => {
     const amountCents = Math.round((invoice.amount_due || 0) * 100);
     if (amountCents < 50) return res.status(400).json({ error: 'Amount too low (min $0.50)' });
 
-    const origin = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
+    const origin = process.env.APP_URL || 'https://revanew.io';
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(stripeKey);
 
@@ -171,7 +171,6 @@ router.post('/:id/payment-link', async (req, res) => {
 
 // ── POST mark as sent ─────────────────────────────────────────────
 router.post('/:id/send', async (req, res) => {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
   try {
     const inv = await db.execute(
       `SELECT i.*, a.name as agency_name, a.email as agency_email,
@@ -189,66 +188,40 @@ router.post('/:id/send', async (req, res) => {
       [req.params.id]
     );
 
-    // Send email to client if email is set
+      // Send email via unified utility (Resend or SMTP)
     let email_sent = false;
     let email_error = null;
 
-    if (invoice.client_email && SMTP_HOST && SMTP_USER) {
+    if (invoice.client_email && isEmailConfigured()) {
       try {
-        const port = parseInt(SMTP_PORT) || 587;
-        const secure = port === 465;
-        const nodemailer = (await import('nodemailer')).default;
-        const transporter = nodemailer.createTransport({
-          host: SMTP_HOST, port, secure,
-          auth: { user: SMTP_USER, pass: SMTP_PASS },
-        });
-        const origin = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
+        const origin = process.env.APP_URL || 'https://revanew.io';
         const portalUrl = `${origin}/portal/invoice/${invoice.public_token}`;
-        const trackingPixel = `${origin}/api/track/${invoice.public_token}/open.gif`;
-
-        await transporter.sendMail({
-          from: SMTP_FROM || SMTP_USER,
+        await sendEmail({
           to: invoice.client_email,
-          subject: `Invoice ${invoice.number} from ${invoice.agency_name}`,
-          html: `<!DOCTYPE html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a1a;margin:0;padding:0;background:#f5f7f8">
-            <div style="max-width:560px;margin:32px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
-              <div style="background:#1a1a1a;padding:24px 36px">
-                <p style="color:#fff;font-size:16px;font-weight:700;margin:0">${invoice.agency_name}</p>
-              </div>
-              <div style="padding:32px 36px">
-                <h2 style="font-size:22px;font-weight:700;margin:0 0 8px">Invoice ${invoice.number}</h2>
-                <p style="color:#6b7280;margin:0 0 20px">Hi ${invoice.client_name || 'there'},</p>
-                <p style="color:#374151;margin:0 0 8px">
-                  You have a new invoice for <strong>$${Math.round(invoice.amount_due || 0).toLocaleString()}</strong>
-                  ${invoice.due_date ? ` due <strong>${new Date(invoice.due_date).toLocaleDateString()}</strong>` : ''}.
-                </p>
-                <p style="color:#374151;margin:0 0 24px">Click the button below to view your invoice and pay securely online.</p>
-                <a href="${portalUrl}" style="display:inline-block;background:#13B5EA;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 28px;border-radius:8px;margin-bottom:24px">
-                  View &amp; Pay Invoice →
-                </a>
-                ${invoice.stripe_payment_link ? `<p style="margin:0 0 8px;font-size:13px;color:#6b7280">Pay directly: <a href="${invoice.stripe_payment_link}" style="color:#13B5EA">${invoice.stripe_payment_link}</a></p>` : ''}
-              </div>
-              <div style="padding:16px 36px;background:#f9fafb;border-top:1px solid #f0f0f0">
-                <p style="font-size:12px;color:#9ca3af;margin:0">${invoice.agency_name}${invoice.agency_email ? ' · ' + invoice.agency_email : ''}${invoice.agency_website ? ' · ' + invoice.agency_website : ''}</p>
-              </div>
-            </div>
-            <img src="${trackingPixel}" width="1" height="1" style="display:none" alt="" />
-          </body></html>`,
+          subject: `Invoice ${invoice.number} from ${invoice.agency_name || 'Revanew'}`,
+          html: buildInvoiceHtml({
+            clientName: invoice.client_name,
+            agencyName: invoice.agency_name || 'Revanew',
+            invoiceNum: invoice.number,
+            amount: `$${Math.round(invoice.amount_due||0).toLocaleString()}`,
+            dueDate: invoice.due_date,
+            portalUrl,
+          }),
+          text: `Hi ${invoice.client_name||'there'},
+
+Your invoice ${invoice.number} for $${Math.round(invoice.amount_due||0).toLocaleString()} is ready.
+
+View and pay: ${portalUrl}
+
+${invoice.agency_name||'Revanew'}`,
         });
         email_sent = true;
-      } catch (smtpErr) {
-        email_error = smtpErr.message;
-        console.error('Send invoice email failed:', smtpErr.message);
+      } catch (emailErr) {
+        email_error = emailErr.message;
+        console.error('Invoice send email error:', emailErr.message);
       }
     }
 
-    res.json({
-      ok: true,
-      email_sent,
-      email_error: email_error || null,
-      smtp_configured: !!(SMTP_HOST && SMTP_USER),
-      has_client_email: !!invoice.client_email,
-    });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

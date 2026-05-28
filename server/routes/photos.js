@@ -10,7 +10,7 @@ import multer from 'multer';
 const router = Router();
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
-const MAX_PHOTO_SIZE = 15 * 1024 * 1024; // 15 MB
+const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5 MB (stored as base64 in DB)
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -67,10 +67,13 @@ router.post('/', requireAuth, (req, res, next) => {
     const safeSite = job_site ? String(job_site).trim().slice(0, 200) : null;
     const safeName = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 200);
     // In production: upload buffer to Supabase Storage, get public URL
+    // Store photo as base64 data URL for immediate preview
+    const dataUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    
     await db.execute(
-      `INSERT INTO photos (id, account_id, name, job_site, size, mime_type, storage_key, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-      [id, account_id, safeName, safeSite, req.file.size, req.file.mimetype, `photos/${account_id}/${id}`]
+      `INSERT INTO photos (id, account_id, name, job_site, size, mime_type, storage_key, url, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+      [id, account_id, safeName, safeSite, req.file.size, req.file.mimetype, `photos/${account_id}/${id}`, dataUrl]
     );
     const photo = await db.execute(`SELECT id, name, job_site, url, size, created_at FROM photos WHERE id = ?`, [id]);
     res.status(201).json(photo.rows[0]);

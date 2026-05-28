@@ -24,7 +24,7 @@ const ALLOWED_TYPES = {
   'application/vnd.ms-excel': 'xls',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
 };
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB (stored in DB as base64 for images)
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -94,10 +94,17 @@ router.post('/', requireAuth, (req, res, next) => {
     const safeName = path.basename(req.file.originalname).replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 200);
     // In production: upload to Supabase Storage bucket and get URL
     // For now: return metadata without file content
+    // Store file as base64 data URL for immediate preview
+    // In production with Supabase Storage configured, this would be a CDN URL instead
+    const isImage = req.file.mimetype?.startsWith('image/');
+    const dataUrl = isImage
+      ? `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
+      : null; // non-images: no preview, just download metadata
+    
     await db.execute(
-      `INSERT INTO documents (id, account_id, name, doc_type, size, mime_type, storage_key, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-      [id, account_id, safeName, doc_type || 'other', req.file.size, req.file.mimetype || 'application/octet-stream', `docs/${account_id}/${id}.${fileExt}`]
+      `INSERT INTO documents (id, account_id, name, doc_type, size, mime_type, storage_key, url, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+      [id, account_id, safeName, doc_type || 'other', req.file.size, req.file.mimetype || 'application/octet-stream', `docs/${account_id}/${id}.${fileExt}`, dataUrl]
     );
     const doc = await db.execute(`SELECT * FROM documents WHERE id = ?`, [id]);
     const d = doc.rows[0];

@@ -7,7 +7,12 @@
  *   SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_FROM, SMTP_PORT
  */
 export async function sendEmail({ to, subject, html, text, from }) {
-  const fromAddr = from || process.env.SMTP_FROM || process.env.RESEND_FROM || 'invoices@revanew.io';
+  // Resend requires a verified domain. Set RESEND_FROM in Railway to your verified address.
+  // Until revanew.io is verified on Resend, use their free sandbox: onboarding@resend.dev
+  // To verify revanew.io: go to resend.com/domains and add revanew.io
+  const resendFrom = process.env.RESEND_FROM || 'onboarding@resend.dev';
+  const smtpFrom   = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const fromAddr   = from || (process.env.RESEND_API_KEY ? resendFrom : smtpFrom) || 'onboarding@resend.dev';
   if (!to || !subject) throw new Error('to and subject are required');
 
   if (process.env.RESEND_API_KEY) {
