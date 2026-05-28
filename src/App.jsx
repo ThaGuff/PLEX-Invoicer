@@ -331,12 +331,10 @@ function AppShell({ children }) {
         </React.Suspense>
       )}
 
-      {/* Mobile FAB - new quote — hidden when More drawer is open to prevent z-index conflicts */}
-      {!showMobileMore && (
-        <NavLink to="/quotes/new" className="fab md:hidden" title="New quote">
-          <Plus size={26} />
-        </NavLink>
-      )}
+      {/* Mobile FAB - new quote (z-99, sits under More drawer which is z-110) */}
+      <NavLink to="/quotes/new" className="fab md:hidden" title="New quote">
+        <Plus size={26} />
+      </NavLink>
 
       {showSettings   && <AccountSettings onClose={() => setShowSettings(false)} />}
       {showNewAccount && <NewAccountModal onClose={() => setShowNewAccount(false)} onCreated={() => {}} />}
