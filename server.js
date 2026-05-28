@@ -237,7 +237,6 @@ app.post('/api/webhooks/stripe', async (req, res) => {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!stripeKey) return res.status(503).send('Stripe not configured');
   try {
-    const Stripe = (await import('stripe')).default;
     const { default: Stripe } = await import('stripe');
     const stripe = new Stripe(stripeKey);
     let event = req.body;
@@ -638,7 +637,8 @@ app.post('/api/admin/stripe-setup', requireAuth, async (req, res) => {
   const ownerEmail = process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com';
   if (req.user.email !== ownerEmail) return res.status(403).json({ error: 'Owner only' });
   try {
-    const stripe = new Stripe(stripeKey);
+    const { default: StripeLib } = await import('stripe');
+    const stripe = new StripeLib(stripeKey);
     const PLANS = [
       { key:'starter', name:'Revanew Starter', desc:'Solo operators. 25 quotes/invoices/month, email delivery.', monthly:1900, annual:18240 },
       { key:'pro',     name:'Revanew Pro',     desc:'Unlimited + AI tools, Stripe Connect, Automations, Calendar, Photos, Team.', monthly:4900, annual:47040 },
