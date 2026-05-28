@@ -292,35 +292,45 @@ router.post('/:id/mark-paid', async (req, res) => {
 
 // ── POST send payment reminder ────────────────────────────────────
 router.post('/:id/remind', async (req, res) => {
-  if (!isEmailConfigured()) return res.status(503).json({ error: 'Email not configured. Set RESEND_API_KEY or SMTP_HOST in Railway Variables.' });
-
   try {
+    if (!isEmailConfigured()) {
+      return res.status(503).json({ error: 'Email not configured. Set RESEND_API_KEY or SMTP_HOST in Railway Variables.' });
+    }
+
+    const invResult = await db.execute('SELECT * FROM invoices WHERE id = ?', [req.params.id]);
+    if (!invResult.rows.length) return res.status(404).json({ error: 'Invoice not found' });
+    const invoice = invResult.rows[0];
+
+    if (!invoice.client_email) return res.status(400).json({ error: 'Invoice has no client email' });
+
+    const accResult = await db.execute('SELECT name FROM accounts WHERE id = ?', [invoice.account_id]);
+    const agencyName = accResult.rows[0]?.name || 'Revanew';
     const origin = process.env.APP_URL || 'https://revanew.io';
     const portalUrl = `${origin}/portal/invoice/${invoice.public_token}`;
-    const agencyName = account.rows[0]?.name || 'Revanew';
+
     await sendEmail({
       to: invoice.client_email,
       subject: `Reminder: Invoice ${invoice.number} from ${agencyName}`,
-      html: buildInvoiceHtml({ clientName:invoice.client_name, agencyName, invoiceNum:invoice.number, amount:`$${Math.round(invoice.amount_due||0).toLocaleString()}`, dueDate:invoice.due_date, portalUrl }),
+      html: buildInvoiceHtml({
+        clientName: invoice.client_name,
+        agencyName,
+        invoiceNum: invoice.number,
+        amount: `$${Math.round(invoice.amount_due||0).toLocaleString()}`,
+        dueDate: invoice.due_date,
+        portalUrl,
+      }),
       text: `Hi ${invoice.client_name},\n\nThis is a reminder about invoice ${invoice.number} for $${Math.round(invoice.amount_due||0).toLocaleString()}.\n\nView and pay: ${portalUrl}\n\n${agencyName}`,
     });
+
     await db.execute('UPDATE invoices SET reminded_at = NOW() WHERE id = ?', [invoice.id]);
-    res.json({ ok: true });
-  } catch (smtpErr) {
-        email_error = smtpErr.message;
-        console.error('SMTP send failed:', smtpErr.message);
-      }
-    }
+    try {
+      await db.execute(
+        `INSERT INTO reminders (id, invoice_id, type) VALUES (?, ?, 'manual')`,
+        [`rem-${uuid()}`, req.params.id]
+      );
+    } catch {} // reminders table may not exist yet
 
-    await db.execute(`INSERT INTO reminders (id, invoice_id, type) VALUES (?, ?, 'manual')`,
-      [`rem-${uuid()}`, req.params.id]);
-
-    res.json({
-      ok: true,
-      email_sent,
-      email_error: email_error || null,
-      smtp_configured: !!(SMTP_HOST && SMTP_USER),
-    });
+    res.json({ ok: true, email_sent: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
