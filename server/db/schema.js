@@ -283,6 +283,18 @@ export async function initDB() {
     `CREATE INDEX IF NOT EXISTS idx_documents_account ON documents(account_id)`,
     `CREATE INDEX IF NOT EXISTS idx_photos_account ON photos(account_id, job_site)`,
     `CREATE INDEX IF NOT EXISTS idx_workspace_msgs ON workspace_messages(account_id, channel_id, created_at)`,
+    `CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      account_id TEXT,
+      endpoint TEXT NOT NULL UNIQUE,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_push_user ON push_subscriptions(user_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_push_account ON push_subscriptions(account_id)`,
   ];
   for (const sql of newTables) { try { await db.execute(sql); } catch(e) { if (!e.message?.includes('already exists')) console.warn('Schema:', e.message?.slice(0,80)); } }
 

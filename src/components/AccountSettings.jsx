@@ -4,6 +4,7 @@ import {
   Plus, Trash2, Edit2, ChevronDown, ChevronUp, Upload, Image as ImageIcon,
 } from 'lucide-react';
 import { useAccount } from '../context/AccountContext';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 import { api } from '../utils/api';
 import { scrapeWebsite } from '../utils/scraper';
 import FeeRulesSettings from './FeeRulesSettings';

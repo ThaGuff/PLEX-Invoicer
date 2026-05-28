@@ -23,6 +23,7 @@ import integrationsRouter from './server/routes/integrations.js';
 import stripeConnectRouter from './server/routes/stripe-connect.js';
 import taxRouter          from './server/routes/tax.js';
 import automationsRouter  from './server/routes/automations.js';
+import notificationsRouter from './server/routes/notifications.js';
 import calendarRouter    from './server/routes/calendar.js';
 import documentsRouter   from './server/routes/documents.js';
 import photosRouter      from './server/routes/photos.js';
@@ -484,6 +485,7 @@ app.use('/api/analytics',    requireAuth, analyticsRouter);
 app.use('/api/v1/integrations', requireAuth, integrationsRouter);
 app.use('/api/tax',            requireAuth, taxRouter);
 app.use('/api/automations',    requireAuth, automationsRouter);
+app.use('/api/notifications',  notificationsRouter);
 app.use('/api/calendar',       requireAuth, calendarRouter);
 app.use('/api/documents',      requireAuth, documentsRouter);
 app.use('/api/photos',         requireAuth, photosRouter);
@@ -555,7 +557,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`   OpenAI:    ${process.env.OPENAI_API_KEY         ? '✓ set' : '✗ not set — website scraping disabled'}`);
   console.log(`   Supabase:  ${process.env.SUPABASE_URL           ? '✓ set' : '✗ not set — running in dev mode (no auth)'}`);
   console.log(`   Stripe:    ${process.env.STRIPE_SECRET_KEY      ? '✓ set' : '✗ not set — payments disabled'}`);
-  console.log(`   SMTP:      ${process.env.SMTP_HOST              ? '✓ set' : '✗ not set — email reminders disabled'}`);
+  console.log(`   Email:     ${process.env.RESEND_API_KEY ? '✓ Resend configured' : process.env.SMTP_HOST ? '✓ SMTP configured' : '✗ not set — set RESEND_API_KEY or SMTP_HOST'}`);
   console.log(`   App URL:   ${process.env.APP_URL                || 'not set (using relative URLs)'}\n`);
 });
 
@@ -622,30 +624,23 @@ initDBWithRetry().then(() => {
           .replace('{doc_number}', run.doc_number || '')
           .replace('{discount_pct}', run.discount_pct || '10');
 
-        // Send email
-        const { SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_FROM, SMTP_PORT } = process.env;
-        if (SMTP_HOST && SMTP_USER) {
-          try {
-            const nodemailer = (await import('nodemailer')).default;
-            const port = parseInt(SMTP_PORT) || 587;
-            const transporter = nodemailer.createTransport({
-              host: SMTP_HOST, port, secure: port === 465,
-              auth: { user: SMTP_USER, pass: SMTP_PASS },
-            });
-            await transporter.sendMail({
-              from:    SMTP_FROM || SMTP_USER,
-              to:      run.client_email,
-              subject: (run.subject || 'Following up').replace('{client_name}', run.client_name || 'there'),
-              text:    body,
-              html:    '<div style="font-family:sans-serif;max-width:600px;margin:0 auto"><p>' + body.split('\n').join('<br>') + '</p><hr><p style="color:#999;font-size:11px">Powered by Revanew · Unsubscribe</p></div>',
-            });
-            await db.execute(`UPDATE automation_runs SET status = 'sent', sent_at = ? WHERE id = ?`, [new Date().toISOString(), run.id]);
-            console.log(`✅ Automation run ${run.id} sent to ${run.client_email}`);
-          } catch (emailErr) {
-            await db.execute(`UPDATE automation_runs SET status = 'error', error = ? WHERE id = ?`, [emailErr.message.slice(0,200), run.id]);
+        // Send email via unified utility (Resend or SMTP)
+        try {
+          const { sendEmail, isEmailConfigured } = await import('./server/utils/email.js');
+          if (!isEmailConfigured()) {
+            await db.execute(`UPDATE automation_runs SET status = 'skipped', error = 'email_not_configured' WHERE id = ?`, [run.id]);
+            continue;
           }
-        } else {
-          await db.execute(`UPDATE automation_runs SET status = 'skipped', error = 'smtp_not_configured' WHERE id = ?`, [run.id]);
+          const subject = (run.subject || 'Following up').replace('{client_name}', run.client_name || 'there');
+          const htmlBody = '<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px">' +
+            '<p>' + body.split('\n').join('<br>') + '</p>' +
+            '<hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0">' +
+            '<p style="color:#94a3b8;font-size:11px">Powered by Revanew · <a href="#" style="color:#94a3b8">Unsubscribe</a></p></div>';
+          await sendEmail({ to: run.client_email, subject, text: body, html: htmlBody });
+          await db.execute(`UPDATE automation_runs SET status = 'sent', sent_at = ? WHERE id = ?`, [new Date().toISOString(), run.id]);
+          console.log(`✅ Automation run ${run.id} sent to ${run.client_email}`);
+        } catch (emailErr) {
+          await db.execute(`UPDATE automation_runs SET status = 'error', error = ? WHERE id = ?`, [emailErr.message.slice(0,200), run.id]);
         }
       }
     } catch (e) {
