@@ -238,6 +238,7 @@ app.post('/api/webhooks/stripe', async (req, res) => {
   if (!stripeKey) return res.status(503).send('Stripe not configured');
   try {
     const Stripe = (await import('stripe')).default;
+    const { default: Stripe } = await import('stripe');
     const stripe = new Stripe(stripeKey);
     let event = req.body;
     if (webhookSecret) {
