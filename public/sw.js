@@ -4,13 +4,14 @@
  * Strategy: Cache-first for assets, Network-first for API calls
  */
 
-const CACHE_NAME   = 'revanew-v1';
-const STATIC_CACHE = 'revanew-static-v1';
-const API_CACHE    = 'revanew-api-v1';
+const CACHE_NAME   = 'revanew-v3';
+const STATIC_CACHE = 'revanew-static-v3';
+const API_CACHE    = 'revanew-api-v3';
 
 // Assets to pre-cache on install
 const PRECACHE_URLS = [
-  '/',
+  // '/' removed — never pre-cache HTML (breaks OAuth)
+  // '/'
   '/manifest.json',
   '/apple-touch-icon.png',
   '/icons/icon-192.png',
@@ -83,19 +84,10 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // HTML navigation: Network-first, cache fallback (SPA shell)
-  if (request.headers.get('accept')?.includes('text/html')) {
-    event.respondWith(
-      fetch(request)
-        .then(res => {
-          const clone = res.clone();
-          caches.open(STATIC_CACHE).then(c => c.put(request, clone));
-          return res;
-        })
-        .catch(() =>
-          caches.match('/') // Return app shell for offline navigation
-        )
-    );
+  // HTML navigation: ALWAYS network — never cache HTML pages
+  // Caching HTML breaks Supabase OAuth (tokens in URL hash get lost)
+  if (request.headers.get('accept')?.includes('text/html') || request.mode === 'navigate') {
+    event.respondWith(fetch(request));
     return;
   }
 });
@@ -147,4 +139,4 @@ async function syncPendingActions() {
   // TODO: Sync any offline-queued quote/invoice actions
   console.log('[SW] Background sync fired');
 }
-/* force-rebuild-1779722267 */
+/* force-rebuild-sw-v3-no-html-cache */
