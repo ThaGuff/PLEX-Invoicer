@@ -74,7 +74,7 @@ class PgAdapter {
     this.pool = pool;
   }
 
-  async execute(sql, params = []) {
+  async execute(sql, params = [], _retries = 2) {
     let pgSql = sql;
     let i = 0;
     pgSql = pgSql.replace(/\?/g, () => `$${++i}`);
@@ -97,6 +97,13 @@ class PgAdapter {
         rowsAffected: result.rowCount || 0,
       };
     } catch (e) {
+      // Retry once on connection errors (ECONNREFUSED, ETIMEDOUT etc)
+      if (_retries > 0 && (e.code === 'ECONNREFUSED' || e.code === 'ETIMEDOUT' || 
+          e.message?.includes('Connection terminated') || e.message?.includes('connection refused'))) {
+        console.warn('[DB] Connection error, retrying in 2s...', e.code || e.message?.slice(0,50));
+        await new Promise(r => setTimeout(r, 2000));
+        return this.execute(sql, params, _retries - 1);
+      }
       e.sql = pgSql.slice(0, 200);
       throw e;
     }
