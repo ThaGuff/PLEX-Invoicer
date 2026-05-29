@@ -12,7 +12,7 @@ const supabase = SUPABASE_URL && SUPABASE_ANON_KEY
         autoRefreshToken:    true,
         persistSession:      true,
         detectSessionInUrl:  true,
-        flowType:            'pkce',
+        flowType:            'implicit',
         storageKey:          'plex_auth_session',
       },
     })
@@ -194,7 +194,7 @@ export function AuthProvider({ children }) {
     if (!supabase) return { error: 'Supabase not configured' };
     return supabase.auth.signInWithOAuth({
       provider: 'google',
-      options:  { redirectTo: `${window.location.origin}/auth/callback` },
+      options:  { redirectTo: `${window.location.origin}/dashboard` },
     });
   };
 
@@ -202,7 +202,7 @@ export function AuthProvider({ children }) {
     if (!supabase) return { error: 'Supabase not configured' };
     return supabase.auth.signInWithOAuth({
       provider: 'apple',
-      options:  { redirectTo: `${window.location.origin}/auth/callback` },
+      options:  { redirectTo: `${window.location.origin}/dashboard` },
     });
   };
 
