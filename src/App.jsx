@@ -21,6 +21,7 @@ import TaxesPage from './pages/TaxesPage';
 import BillingPage from './pages/BillingPage';
 import Onboarding from './pages/Onboarding';
 import AutomationsPage from './pages/AutomationsPage';
+import AuthCallback from './pages/AuthCallback';
 import AnalyticsPage  from './pages/AnalyticsPage';
 const TrialBanner  = React.lazy(() => import('./components/TrialBanner').catch(() => ({ default: () => null })));
 const InstallPWA    = React.lazy(() => import('./components/InstallPWA').catch(() => ({ default: () => null })));
@@ -426,7 +427,7 @@ export default function App() {
         <Routes>
           {/* Public — no auth required */}
           <Route path="/login"                    element={<Login />} />
-          <Route path="/auth/callback"              element={<React.Suspense fallback={null}><AuthCallback /></React.Suspense>} />
+          <Route path="/auth/callback"              element={<AuthCallback />} />
           <Route path="/portal/quote/:token"      element={<PublicQuote />} />
           <Route path="/portal/invoice/:token"    element={<PublicInvoice />} />
 
