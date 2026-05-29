@@ -156,6 +156,7 @@ export default function WorkspacePage() {
   const [inviteRole, setInviteRole] = useState('member');
   const [inviting, setInviting] = useState(false);
   const [inviteStatus, setInviteStatus] = useState('');
+  const [memberAction, setMemberAction] = useState(null); // { id, type: 'remove'|'resend' }
   const bottomRef = useRef();
   const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
   const myName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'You';
@@ -233,6 +234,28 @@ export default function WorkspacePage() {
     setNewCh({ name:'', private:false, desc:'' });
     setShowSidebar(false);
     fetch('/api/workspace/channels', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}` }, body:JSON.stringify({ account_id:account.id, name:safeName, private:newCh.private, desc:newCh.desc }) }).catch(()=>{});
+  };
+
+  const removeMember = async (memberId, isInvite) => {
+    if (!confirm(isInvite ? 'Cancel this invitation?' : 'Remove this team member?')) return;
+    const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
+    try {
+      const r = await fetch(`/api/workspace/members/${memberId}`, { method:'DELETE', headers:{ Authorization:`Bearer ${token}` } });
+      const d = await r.json();
+      if (r.ok) {
+        setMembers(prev => prev.filter(m => m.id !== memberId));
+        setInviteStatus(d.message || 'Done');
+      } else setInviteStatus(d.error || 'Failed');
+    } catch(e) { setInviteStatus('Error: ' + e.message); }
+  };
+
+  const resendInvite = async (memberId) => {
+    const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
+    try {
+      const r = await fetch(`/api/workspace/members/${memberId}/resend`, { method:'POST', headers:{ Authorization:`Bearer ${token}` } });
+      const d = await r.json();
+      setInviteStatus(d.ok ? '✓ Invite resent' : d.error || 'Failed');
+    } catch(e) { setInviteStatus('Error: ' + e.message); }
   };
 
   const inviteMember = async () => {
@@ -348,20 +371,27 @@ export default function WorkspacePage() {
                 </div>
               </div>
               {members.map(m => (
-                <div key={m.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8 }}>
-                  <div style={{ width:32, height:32, borderRadius:'50%', background:'linear-gradient(135deg,#7C3AED,#2563EB)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:13, fontWeight:800 }}>
-                    {getInitial(m.name || m.email)}
+                <div key={m.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8, background: m.status==='invited' ? 'rgba(217,119,6,0.05)' : 'transparent' }}>
+                  <div style={{ width:32, height:32, borderRadius:'50%', background: m.status==='invited' ? 'linear-gradient(135deg,#D97706,#EA580C)' : 'linear-gradient(135deg,#7C3AED,#2563EB)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:13, fontWeight:800 }}>
+                    {getInitial(m.name || m.email || m.invited_email)}
                   </div>
                   <div style={{ flex:1 }}>
                     <p style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{m.name || m.email}</p>
-                    <p style={{ fontSize:10, color:'var(--text-muted)', textTransform:'capitalize', display:'flex', alignItems:'center', gap:3 }}>
-                      {m.role === 'admin' ? <><Shield size={9}/> Admin</> : m.role === 'manager' ? <><Briefcase size={9}/> Manager</> : <><Users size={9}/> Member</>}
+                    <p style={{ fontSize:10, color: m.status==='invited' ? '#D97706' : 'var(--text-muted)', textTransform:'capitalize', display:'flex', alignItems:'center', gap:3 }}>
+                      {m.status === 'invited' ? '⏳ Pending invite' : m.role === 'admin' ? <><Shield size={9}/> Admin</> : m.role === 'manager' ? <><Briefcase size={9}/> Manager</> : <><Users size={9}/> Member</>}
                     </p>
                   </div>
                   {isOwner && (
-                    <button title="Remove member" style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:4 }}>
-                      <UserX size={13}/>
-                    </button>
+                    <div style={{ display:'flex', gap:4 }}>
+                      {m.status === 'invited' && (
+                        <button onClick={() => resendInvite(m.id)} title="Resend invite" style={{ background:'rgba(37,99,235,0.1)', border:'none', borderRadius:6, padding:'4px 8px', fontSize:10, fontWeight:700, color:'#2563EB', cursor:'pointer' }}>
+                          Resend
+                        </button>
+                      )}
+                      <button onClick={() => removeMember(m.id, m.status==='invited')} title={m.status==='invited' ? 'Cancel invite' : 'Remove member'} style={{ background:'rgba(239,68,68,0.1)', border:'none', borderRadius:6, padding:'4px 6px', cursor:'pointer' }}>
+                        <X size={11} color="#EF4444"/>
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}

@@ -45,27 +45,55 @@ app.set('trust proxy', 1); // 1 = trust exactly Railway's single nginx proxy hop
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
-      defaultSrc:  ["'self'"],
-      scriptSrc:   ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com", "https://cdn.jsdelivr.net"],
-      styleSrc:    ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc:     ["'self'", "https://fonts.gstatic.com"],
-      imgSrc:      ["'self'", "data:", "blob:", "https:", "http:"],
-      connectSrc:  ["'self'", "https://*.supabase.co", "https://api.openai.com", "https://api.stripe.com", "https://js.stripe.com"],
-      frameSrc:    ["'self'", "https://js.stripe.com"],
-      objectSrc:   ["'none'"],
+      defaultSrc:     ["'self'"],
+      scriptSrc:      ["'self'", "'unsafe-inline'", "https://js.stripe.com", "https://cdn.jsdelivr.net"],
+      // Note: 'unsafe-eval' removed — Vite production bundles don't need it
+      styleSrc:       ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc:        ["'self'", "data:", "https://fonts.gstatic.com"],
+      imgSrc:         ["'self'", "data:", "blob:", "https:"],
+      connectSrc:     ["'self'", "https://*.supabase.co", "https://api.anthropic.com", "https://api.stripe.com", "https://js.stripe.com", "wss://*.supabase.co"],
+      frameSrc:       ["'self'", "https://js.stripe.com"],
+      frameAncestors: ["'none'"],  // prevent clickjacking
+      objectSrc:      ["'none'"],
+      baseUri:        ["'self'"],
+      formAction:     ["'self'"],
       upgradeInsecureRequests: [],
     },
   },
   crossOriginEmbedderPolicy: false, // needed for Stripe embedded
+  crossOriginResourcePolicy: { policy: 'same-site' },
   hsts: {
-    maxAge: 31536000,           // 1 year
+    maxAge: 31536000,
     includeSubDomains: true,
     preload: true,
   },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  permissionsPolicy: {
+    features: {
+      camera: ["'none'"],
+      microphone: ["'none'"],
+      geolocation: ["'none'"],
+      payment: ["'self'"],
+    },
+  },
 }));
+
+// Prevent caching of API responses with sensitive data
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  next();
+});
 
 // Remove fingerprinting header
 app.disable('x-powered-by');
+// Prevent MIME sniffing
+app.use((req, res, next) => {
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('X-DNS-Prefetch-Control', 'off');
+  next();
+});
 
 // ── Rate limiting ────────────────────────────────────────────────
 // General API rate limit
@@ -518,7 +546,7 @@ app.post('/api/billing/portal', requireAuth, async (req, res) => {
 
 // ── Protected API routes ──────────────────────────────────────────
 app.use('/api/track',        trackingRouter);
-app.use('/api/admin',        requireAuth, adminRouter);
+app.use('/api/admin',        requireAuth, strictLimiter, adminRouter);
 app.use('/api/stripe-connect', stripeConnectRouter); // callback is public
 app.use('/api/ai',           requireAuth, aiRouter);
 

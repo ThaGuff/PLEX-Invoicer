@@ -192,3 +192,56 @@ router.delete('/channels/:channelId/messages/:msgId', requireAuth, async (req, r
 });
 
 export default router;
+
+// ── DELETE /api/workspace/members/:memberId — remove/cancel invite ──
+router.delete('/members/:memberId', requireAuth, async (req, res) => {
+  try {
+    const member = await db.execute(
+      `SELECT am.*, a.owner_id FROM account_members am
+       JOIN accounts a ON am.account_id = a.id WHERE am.id = ?`,
+      [req.params.memberId]
+    );
+    if (!member.rows.length) return res.status(404).json({ error: 'Member not found' });
+    const m = member.rows[0];
+    // Only account owner or admin can remove members
+    if (m.owner_id !== req.user.id && m.role !== 'admin') {
+      // Check if requester is admin of this account
+      const isAdmin = await db.execute(
+        `SELECT id FROM account_members WHERE account_id = ? AND user_id = ? AND role = 'admin'`,
+        [m.account_id, req.user.id]
+      );
+      if (!isAdmin.rows.length) return res.status(403).json({ error: 'Not authorized' });
+    }
+    await db.execute(`DELETE FROM account_members WHERE id = ?`, [req.params.memberId]);
+    res.json({ ok: true, message: m.status === 'invited' ? 'Invitation cancelled' : 'Member removed' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── POST /api/workspace/members/:memberId/resend — resend invite email ──
+router.post('/members/:memberId/resend', requireAuth, async (req, res) => {
+  try {
+    const member = await db.execute(
+      `SELECT am.*, a.name as account_name FROM account_members am
+       JOIN accounts a ON am.account_id = a.id WHERE am.id = ? AND am.status = 'invited'`,
+      [req.params.memberId]
+    );
+    if (!member.rows.length) return res.status(404).json({ error: 'Pending invite not found' });
+    const m = member.rows[0];
+    const appUrl = process.env.APP_URL || 'https://revanew.io';
+    const { sendEmail } = await import('../utils/email.js');
+    await sendEmail({
+      to: m.invited_email,
+      subject: `Reminder: You've been invited to ${m.account_name} on Revanew`,
+      html: `<div style="font-family:sans-serif;max-width:600px;margin:32px auto;padding:32px;background:#fff;border-radius:16px;border:1px solid #e2e8f0">
+        <h2 style="margin:0 0 16px;color:#0f172a">Invitation reminder 🔔</h2>
+        <p style="color:#334155">You were invited to join <strong>${m.account_name}</strong> on Revanew as a <strong>${m.role}</strong>.</p>
+        <a href="${appUrl}" style="display:inline-block;margin-top:20px;padding:12px 24px;background:linear-gradient(135deg,#2563EB,#0D9488);color:#fff;text-decoration:none;border-radius:10px;font-weight:700">Accept Invitation →</a>
+        <p style="margin-top:20px;color:#94a3b8;font-size:12px">Powered by Revanew</p>
+      </div>`,
+    });
+    res.json({ ok: true, message: `Invite resent to ${m.invited_email}` });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+
+;

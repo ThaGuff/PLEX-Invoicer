@@ -183,7 +183,7 @@ function Nav() {
         </div>
 
         {/* Nav links */}
-        <nav style={{ flex:1, padding:'10px 8px', display:'flex', flexDirection:'column', gap:3 }}>
+        <nav style={{ flex:1, padding:'10px 8px', display:'flex', flexDirection:'column', gap:3, overflowY:'auto', overflowX:'hidden' }}>
           {links.map(l => {
             const active  = isActive(l.to);
             const locked  = isLocked(l.to);
@@ -218,7 +218,7 @@ function Nav() {
         </nav>
 
         {/* Bottom: New quote CTA + User profile */}
-        <div style={{ padding:'10px 12px 12px', flexShrink:0, display:'flex', flexDirection:'column', gap:8, borderTop:'1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ padding:'10px 12px calc(12px + env(safe-area-inset-bottom))', flexShrink:0, display:'flex', flexDirection:'column', gap:8, borderTop:'1px solid rgba(255,255,255,0.08)', marginTop:'auto' }}>
 
           {/* New Quote button */}
           <NavLink to="/quotes/new" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'11px', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', borderRadius:11, textDecoration:'none', fontSize:14, fontWeight:700, fontFamily:"'Plus Jakarta Sans',sans-serif", boxShadow:'0 4px 14px rgba(37,99,235,0.4)', letterSpacing:'-0.01em' }}>
