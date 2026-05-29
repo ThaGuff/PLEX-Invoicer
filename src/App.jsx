@@ -91,7 +91,7 @@ function RequireAuth({ children }) {
 
 function Nav() {
   const { account } = useAccount();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const accent = account?.primary_color || '#13B5EA';
   const loc    = useLocation();
   const navigate = useNavigate();
@@ -217,11 +217,47 @@ function Nav() {
           })}
         </nav>
 
-        {/* Bottom: New quote CTA */}
-        <div style={{ padding:'12px', borderTop:'1px solid var(--border)', flexShrink:0 }}>
-          <NavLink to="/quotes/new" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'10px', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', borderRadius:11, textDecoration:'none', fontSize:13, fontWeight:700, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-            <Plus size={15}/> New Quote
+        {/* Bottom: New quote CTA + User profile */}
+        <div style={{ padding:'10px 12px 12px', flexShrink:0, display:'flex', flexDirection:'column', gap:8, borderTop:'1px solid rgba(255,255,255,0.08)' }}>
+
+          {/* New Quote button */}
+          <NavLink to="/quotes/new" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'11px', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', borderRadius:11, textDecoration:'none', fontSize:14, fontWeight:700, fontFamily:"'Plus Jakarta Sans',sans-serif", boxShadow:'0 4px 14px rgba(37,99,235,0.4)', letterSpacing:'-0.01em' }}>
+            <Plus size={16}/> New Quote
           </NavLink>
+
+          {/* User profile row */}
+          <div style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 10px', borderRadius:10, cursor:'pointer', transition:'all 0.15s', background:'rgba(255,255,255,0.06)' }}
+            onClick={() => window.dispatchEvent(new CustomEvent('revanew:settings'))}
+            onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.12)'}
+            onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.06)'}
+            title="Account Settings">
+            {/* Avatar */}
+            <div style={{ width:34, height:34, borderRadius:10, background:'linear-gradient(135deg,#2563EB,#7C3AED)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:14, fontWeight:800, color:'#fff', boxShadow:'0 2px 8px rgba(37,99,235,0.4)' }}>
+              {(user?.user_metadata?.full_name || user?.email || 'U').charAt(0).toUpperCase()}
+            </div>
+            {/* Name & email */}
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:'rgba(255,255,255,0.92)', lineHeight:1.2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                {user?.user_metadata?.full_name || account?.name || 'My Account'}
+              </div>
+              <div style={{ fontSize:11, color:'rgba(255,255,255,0.45)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginTop:1 }}>
+                {user?.email || 'Settings'}
+              </div>
+            </div>
+            {/* Settings icon */}
+            <div style={{ color:'rgba(255,255,255,0.4)', flexShrink:0 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </div>
+          </div>
+
+          {/* Sign out */}
+          <button onClick={signOut} style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8, border:'none', background:'transparent', color:'rgba(255,255,255,0.38)', cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:"'Plus Jakarta Sans',sans-serif", transition:'all 0.15s', width:'100%', letterSpacing:'-0.01em' }}
+            onMouseEnter={e => { e.currentTarget.style.color='rgba(239,68,68,0.9)'; e.currentTarget.style.background='rgba(239,68,68,0.1)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color='rgba(255,255,255,0.38)'; e.currentTarget.style.background='transparent'; }}>
+            <LogOut size={13}/> Sign out
+          </button>
         </div>
       </aside>
 
@@ -307,7 +343,12 @@ function AppShell({ children }) {
       try { navigate(e.detail); } catch {}
     };
     window.addEventListener('revanew:navigate', handler);
-    return () => window.removeEventListener('revanew:navigate', handler);
+    const settingsHandler = () => setShowSettings(true);
+    window.addEventListener('revanew:settings', settingsHandler);
+    return () => {
+      window.removeEventListener('revanew:navigate', handler);
+      window.removeEventListener('revanew:settings', settingsHandler);
+    };
   }, [navigate]);
 
   // Onboarding & billing redirect — runs when account data is available
@@ -377,6 +418,32 @@ function AppShell({ children }) {
       <NavLink to="/quotes/new" className="fab md:hidden" title="New quote">
         <Plus size={26} />
       </NavLink>
+
+      {/* Mobile top header */}
+      <header className="md:hidden" style={{
+        position:'sticky', top:0, zIndex:80,
+        background:'rgba(255,255,255,0.95)', backdropFilter:'blur(20px)',
+        WebkitBackdropFilter:'blur(20px)',
+        borderBottom:'1px solid rgba(0,0,0,0.07)',
+        padding:'12px 16px',
+        display:'flex', alignItems:'center', justifyContent:'space-between',
+        boxShadow:'0 2px 16px rgba(0,0,0,0.06)',
+      }}>
+        {/* Logo */}
+        <NavLink to="/" style={{ display:'flex', alignItems:'center', gap:8, textDecoration:'none' }}>
+          <img src="/logo-revanew.png" alt="Revanew" style={{ width:28, height:28, borderRadius:8 }}/>
+          <span style={{ fontSize:17, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.04em' }}>Revanew</span>
+        </NavLink>
+        {/* Right side: account avatar + new quote */}
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <NavLink to="/quotes/new" style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'7px 14px', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', borderRadius:20, textDecoration:'none', fontSize:13, fontWeight:700, boxShadow:'0 2px 10px rgba(37,99,235,0.35)' }}>
+            <Plus size={14}/> Quote
+          </NavLink>
+          <button onClick={() => window.dispatchEvent(new CustomEvent('revanew:settings'))} style={{ width:36, height:36, borderRadius:12, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#2563EB,#7C3AED)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:800, boxShadow:'0 2px 8px rgba(37,99,235,0.35)' }}>
+            {(user?.user_metadata?.full_name || user?.email || 'U').charAt(0).toUpperCase()}
+          </button>
+        </div>
+      </header>
 
       {showSettings   && <AccountSettings onClose={() => setShowSettings(false)} />}
       {showNewAccount && <NewAccountModal onClose={() => setShowNewAccount(false)} onCreated={() => {}} />}

@@ -779,3 +779,128 @@ main h3 { font-size: 17px !important; font-weight: 700 !important; }
   background: linear-gradient(180deg, #2563EB80, #0D948880);
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════
+   LAYOUT IMPROVEMENTS — Desktop fill + Mobile-first
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── DESKTOP: Fill content area better ──────────────────────────── */
+@media (min-width: 768px) {
+  /* Widen the content max-width on large desktop screens */
+  .page-max, [style*="maxWidth: 1280"], [style*="max-width: 1280"] {
+    max-width: 1440px !important;
+    padding-left: 32px !important;
+    padding-right: 32px !important;
+  }
+
+  /* Grid fills more columns on wide screens */
+  .grid-auto-stack {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 14px !important;
+  }
+
+  /* Cards breathe more on desktop */
+  .card, .glow-card {
+    padding: 20px !important;
+  }
+
+  /* Sidebar profile section */
+  .sidebar-profile {
+    display: flex !important;
+  }
+}
+
+/* ── MOBILE FIRST: Full-width cards, stacked layout ─────────────── */
+@media (max-width: 767px) {
+  /* Full width content, no wasted margins */
+  .page-max {
+    padding: 12px 14px !important;
+    max-width: 100vw !important;
+  }
+
+  /* Cards are full width */
+  .card, .glow-card, .section-group-card {
+    border-radius: 14px !important;
+  }
+
+  /* Stat grid: 2 columns on mobile */
+  .grid-auto-stack {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  /* Bigger touch targets */
+  button, a[href], [role="button"] {
+    min-height: 44px;
+  }
+
+  /* List rows bigger on mobile for thumb tap */
+  .list-item, .mobile-list-row, .svc-row {
+    min-height: 64px !important;
+    padding: 14px 16px !important;
+  }
+
+  /* Tables scroll horizontally on mobile */
+  .table-wrap {
+    border-radius: 12px !important;
+  }
+
+  /* Font slightly smaller on mobile */
+  body { font-size: 14px !important; }
+
+  /* Amount display smaller on mobile */
+  .amount-display { font-size: 18px !important; }
+}
+
+/* ── MOBILE BOTTOM NAV: Larger, more visible ─────────────────────── */
+.mobile-bottom-nav {
+  height: calc(68px + env(safe-area-inset-bottom)) !important;
+  background: rgba(255,255,255,0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-top: 1px solid rgba(0,0,0,0.08) !important;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.08) !important;
+}
+
+.mobile-bottom-nav a {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+/* ── MOBILE HEADER: Better spacing for content below topbar ─────── */
+@media (max-width: 767px) {
+  main { 
+    padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* ── SIDEBAR USER PROFILE HOVER STATE ───────────────────────────── */
+.sidebar-user-profile:hover {
+  background: rgba(255,255,255,0.12) !important;
+}
+
+/* ── DESKTOP CONTENT: Better visual hierarchy ────────────────────── */
+@media (min-width: 1200px) {
+  /* Content has a subtle inner container feel */
+  main > div {
+    animation: fadeUp 0.25s ease both;
+  }
+}
+
+/* ── MOBILE: FAB button bigger ───────────────────────────────────── */
+@media (max-width: 767px) {
+  .fab {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 20px !important;
+    box-shadow: 0 8px 28px rgba(37,99,235,0.5) !important;
+  }
+}
+
+/* ── DARK MODE: Sidebar profile section ──────────────────────────── */
+.dark .mobile-bottom-nav {
+  background: rgba(15,23,42,0.95) !important;
+  border-top-color: rgba(255,255,255,0.06) !important;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.3) !important;
+}
+
