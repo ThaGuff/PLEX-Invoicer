@@ -153,13 +153,31 @@ if (hasDirectPg) {
 
   const connStr = process.env.SUPABASE_POOLER_URL || process.env.SUPABASE_DB_URL;
 
+  // Patch DNS to always resolve to IPv4 — Railway's default resolves Supabase to IPv6
+  // which Supabase blocks on free tier. This is the definitive fix.
+  try {
+    const { setDefaultResultOrder } = await import('dns');
+    setDefaultResultOrder('ipv4first');
+    console.log('✓ DNS: IPv4 resolution prioritized');
+  } catch (e) {
+    // Node < 17 doesn't have this — fall back to family:4 in pool config
+  }
+
   const pool = new Pool({
     connectionString: connStr,
     ssl: { rejectUnauthorized: false },
-    max: 5,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 10000,
-    family: 4, // Force IPv4 — avoids Railway IPv6 issues with Supabase
+    max: 3,                     // Keep low — Supabase free tier allows 60 total
+    min: 0,                     // Allow pool to fully drain when idle
+    idleTimeoutMillis: 10000,   // Release idle connections quickly
+    connectionTimeoutMillis: 15000,
+    family: 4,                  // CRITICAL: Force IPv4 — Railway resolves Supabase to IPv6 otherwise
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 10000,
+  });
+
+  // Handle pool errors gracefully
+  pool.on('error', (err) => {
+    console.error('Pool client error:', err.message);
   });
 
   db = new PgAdapter(pool);
