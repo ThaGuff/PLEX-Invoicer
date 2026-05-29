@@ -158,7 +158,10 @@ if (hasDirectPg) {
   const { default: pg } = await import('pg');
   const { Pool } = pg;
 
-  const connStr = process.env.SUPABASE_POOLER_URL || process.env.SUPABASE_DB_URL;
+  // Use SUPABASE_DB_URL (direct) - pooler gives "Tenant or user not found" 
+  // when Supabase connection pooler addon is not enabled on the project.
+  // The DNS ipv4first fix handles the IPv6 issue for direct connections.
+  const connStr = process.env.SUPABASE_DB_URL || process.env.SUPABASE_POOLER_URL;
 
   // Patch DNS to always resolve to IPv4 — Railway's default resolves Supabase to IPv6
   // which Supabase blocks on free tier. This is the definitive fix.
