@@ -735,9 +735,10 @@ initDBWithRetry().then(() => {
   const runTrialReminders = async () => {
     try {
       const { sendEmail, isEmailConfigured } = await import('./server/utils/email.js');
+      const { db: trialDb } = await import('./server/db/schema.js');
       if (!isEmailConfigured()) return;
       const APP_URL = process.env.APP_URL || 'https://revanew.io';
-      const expiring = await db.execute(
+      const expiring = await trialDb.execute(
         `SELECT id, name, email, trial_ends_at FROM accounts
          WHERE subscription_status = 'trialing'
            AND trial_ends_at IS NOT NULL
@@ -759,7 +760,7 @@ initDBWithRetry().then(() => {
               Choose a plan →
             </a></div>`
         }).catch(e => console.warn('[Trial reminder] Email failed:', e.message));
-        await db.execute(`UPDATE accounts SET trial_reminder_sent_at = NOW() WHERE id = ?`, [acct.id]);
+        await trialDb.execute(`UPDATE accounts SET trial_reminder_sent_at = NOW() WHERE id = ?`, [acct.id]);
         console.log('[Trial reminder] Sent to', acct.email, daysLeft + 'd left');
       }
     } catch (e) { console.error('[Trial reminder cron]', e.message); }

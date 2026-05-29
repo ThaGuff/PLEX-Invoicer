@@ -115,12 +115,18 @@ if (process.env.SUPABASE_DB_URL) {
   const { default: pg } = await import('pg');
   const { Pool } = pg;
 
+  // Prefer pooler URL (IPv4 compatible) over direct connection
+  // SUPABASE_POOLER_URL = postgres.PROJECT_REF:PASSWORD@aws-0-us-east-1.pooler.supabase.com:6543/postgres
+  const connStr = process.env.SUPABASE_POOLER_URL || process.env.SUPABASE_DB_URL;
+  
   const pool = new Pool({
-    connectionString: process.env.SUPABASE_DB_URL,
+    connectionString: connStr,
     ssl: { rejectUnauthorized: false },
-    max: 10,
+    max: 5,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,
+    connectionTimeoutMillis: 10000,
+    // Force IPv4 to avoid Railway IPv6 issues
+    family: 4,
   });
 
   // Set db immediately so server can start — pool will establish connections lazily
