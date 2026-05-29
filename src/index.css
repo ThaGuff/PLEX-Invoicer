@@ -81,8 +81,8 @@
     background: var(--bg-page);
     color: var(--text-primary);
     -webkit-font-smoothing: antialiased;
-    font-size: 13px;
-    line-height: 1.6;
+    font-size: 15px;
+    line-height: 1.65;
     min-height: 100dvh;
   }
   input[type="number"]::-webkit-inner-spin-button,
@@ -213,7 +213,7 @@
   .btn-ghost:hover { color: var(--text-primary); border-color: var(--text-secondary); background: var(--bg-raised); }
 
   /* ── BADGES ─────────────────────────────────────────────────────── */
-  .badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; letter-spacing: 0.3px; }
+  .badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 20px; letter-spacing: 0.3px; }
   .badge-success { background: #D6F5EF; color: #0C6B5A; }
   .badge-draft   { background: #E8EFF7; color: #3A4A5C; }
   .badge-info    { background: #E0E8FF; color: #2244BB; }
@@ -225,6 +225,10 @@
 
   /* ── LEFT SIDEBAR NAV (desktop) ─────────────────────────────────── */
   .desktop-sidebar { display: none; }
+  .desktop-sidebar button, .desktop-sidebar a {
+    font-size: 14.5px !important;
+    font-weight: 600;
+  }
 
   @media (min-width: 768px) {
     .desktop-sidebar {
@@ -262,13 +266,13 @@
   }
   .table-wrap table { width: 100%; border-collapse: collapse; min-width: 360px; }
   .table-wrap th {
-    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px;
-    color: var(--text-muted); padding: 10px 14px; text-align: left;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px;
+    color: var(--text-muted); padding: 11px 16px; text-align: left;
     background: var(--bg-page); border-bottom: 1px solid var(--border);
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
   .table-wrap td {
-    padding: 12px 14px; font-size: 13px; color: var(--text-primary);
+    padding: 13px 16px; font-size: 14px; color: var(--text-primary);
     border-bottom: 1px solid var(--border-subtle);
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
@@ -377,7 +381,7 @@
 
   /* ── SECTION HEADER ─────────────────────────────────────────────── */
   .section-label {
-    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
     letter-spacing: 1px; color: var(--text-muted);
     padding: 12px 16px 6px;
   }
@@ -503,7 +507,7 @@ button, a, [role="button"] { -webkit-tap-highlight-color: rgba(37,99,235,0.12); 
 /* Status pill */
 .status-pill {
   display: inline-flex; align-items: center; gap: 5px;
-  font-size: 11px; font-weight: 700;
+  font-size: 12px; font-weight: 700;
   padding: 4px 10px; border-radius: 20px;
   letter-spacing: 0.2px;
   white-space: nowrap;
@@ -598,4 +602,180 @@ button, a, [role="button"] { -webkit-tap-highlight-color: rgba(37,99,235,0.12); 
   to   { transform: translateY(0); opacity: 1; }
 }
 .count-up { animation: countUp 0.4s ease both; }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   REVANEW VISUAL ENHANCEMENT — Rich Color & Typography Upgrade
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── SIDEBAR: Rich gradient background with vivid nav items ─────── */
+@media (min-width: 768px) {
+  /* Sidebar gets a deep, dark gradient for contrast and personality */
+  aside.desktop-sidebar {
+    background: linear-gradient(180deg, #0F172A 0%, #1a2744 60%, #0F172A 100%) !important;
+    border-right: none !important;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+  }
+
+  /* Logo area */
+  aside.desktop-sidebar > div:first-child {
+    border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+  }
+
+  /* Sidebar logo text */
+  aside.desktop-sidebar span {
+    color: #FFFFFF !important;
+  }
+
+  /* Nav links — bright and legible on dark bg */
+  aside.desktop-sidebar nav button {
+    color: rgba(255,255,255,0.72) !important;
+    font-size: 14.5px !important;
+    font-weight: 600 !important;
+    border-radius: 10px !important;
+    padding: 10px 12px !important;
+    letter-spacing: -0.01em;
+    transition: all 0.18s ease !important;
+  }
+
+  aside.desktop-sidebar nav button:hover {
+    color: #ffffff !important;
+    background: rgba(255,255,255,0.1) !important;
+    transform: translateX(2px);
+  }
+
+  /* Active nav item — vivid gradient pill */
+  aside.desktop-sidebar nav button[style*="fontWeight: 700"],
+  aside.desktop-sidebar nav button[style*="fontWeight:700"] {
+    background: linear-gradient(135deg, rgba(37,99,235,0.85), rgba(13,148,136,0.85)) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.35) !important;
+  }
+
+  /* Nav icon colors on dark bg */
+  aside.desktop-sidebar nav button svg {
+    opacity: 0.85;
+  }
+
+  /* User footer area on sidebar */
+  aside.desktop-sidebar > div:last-child {
+    border-top: 1px solid rgba(255,255,255,0.08) !important;
+  }
+
+  /* User name and email in sidebar footer */
+  aside.desktop-sidebar > div:last-child span {
+    color: rgba(255,255,255,0.8) !important;
+  }
+
+  /* New Quote button in sidebar */
+  aside.desktop-sidebar a[href="/quotes/new"],
+  aside.desktop-sidebar button[style*="gradient"] {
+    background: linear-gradient(135deg, #2563EB, #0D9488) !important;
+    color: #fff !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.4) !important;
+  }
+
+  /* Trial badge on dark sidebar */
+  aside.desktop-sidebar div[style*="rgba(37,99,235"] {
+    background: rgba(37,99,235,0.25) !important;
+    border-color: rgba(37,99,235,0.4) !important;
+  }
+}
+
+/* ── MAIN CONTENT: Larger, bolder text hierarchy ────────────────── */
+/* Page headings */
+main h1 { font-size: 26px !important; font-weight: 800 !important; letter-spacing: -0.03em; }
+main h2 { font-size: 20px !important; font-weight: 700 !important; }
+main h3 { font-size: 17px !important; font-weight: 700 !important; }
+
+/* Stat card values — bigger and bolder */
+.stat-value { font-size: clamp(24px, 4vw, 36px) !important; }
+
+/* Card labels */
+.section-label, .section-group-label { font-size: 11.5px !important; }
+
+/* ── CARDS: More depth, subtle glow effects ──────────────────────── */
+.card, .glow-card, .section-group-card, .swipe-card {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+  transition: all 0.2s ease !important;
+}
+
+.glow-card:hover, .card:hover {
+  box-shadow: 0 8px 28px rgba(37,99,235,0.12), 0 2px 8px rgba(0,0,0,0.06) !important;
+  transform: translateY(-2px);
+}
+
+/* ── STAT CARDS: Colorful left border accents ───────────────────── */
+/* Applied via the grid of stat cards on dashboard */
+.grid-auto-stack > div:nth-child(1) { border-left: 4px solid #0D9488 !important; }
+.grid-auto-stack > div:nth-child(2) { border-left: 4px solid #2563EB !important; }
+.grid-auto-stack > div:nth-child(3) { border-left: 4px solid #7C3AED !important; }
+.grid-auto-stack > div:nth-child(4) { border-left: 4px solid #D97706 !important; }
+
+/* ── BUTTONS: More vivid and punchy ──────────────────────────────── */
+.btn-primary {
+  font-size: 15px !important;
+  padding: 12px 22px !important;
+  box-shadow: 0 6px 20px rgba(37,99,235,0.35) !important;
+  letter-spacing: -0.01em;
+}
+.btn-primary:hover {
+  box-shadow: 0 10px 28px rgba(37,99,235,0.45) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ── BADGE: Slightly larger, more contrast ───────────────────────── */
+.badge-success { background: #CCFBF1; color: #0F766E; }
+.badge-info    { background: #DBEAFE; color: #1D4ED8; }
+.badge-warn    { background: #FEF3C7; color: #92400E; }
+.badge-draft   { background: #F1F5F9; color: #475569; }
+
+/* ── STATUS PILLS: More vivid ────────────────────────────────────── */
+.status-pill { font-size: 12px !important; padding: 5px 11px !important; font-weight: 700 !important; }
+
+/* ── TABLE: Better spacing and readable fonts ────────────────────── */
+.table-wrap th { font-size: 11.5px !important; padding: 12px 16px !important; }
+.table-wrap td { font-size: 14.5px !important; padding: 14px 16px !important; }
+
+/* ── FIELDS: Bigger font, more presence ──────────────────────────── */
+.field, input:not([type="checkbox"]):not([type="radio"]), textarea, select {
+  font-size: 15px !important;
+}
+
+/* ── COLOR ACCENT UTILITIES ──────────────────────────────────────── */
+/* Colorful section headers using the brand palette */
+[data-section="quotes"]    { border-left: 3px solid #2563EB; }
+[data-section="invoices"]  { border-left: 3px solid #7C3AED; }
+[data-section="clients"]   { border-left: 3px solid #0D9488; }
+[data-section="automations"] { border-left: 3px solid #D97706; }
+
+/* ── MOBILE BOTTOM NAV: Larger icons + labels ───────────────────── */
+.mobile-bottom-nav { font-size: 12px !important; }
+.mobile-bottom-nav button { font-size: 12px !important; }
+
+/* ── GRADIENT HEADER FOR PAGE TITLES ─────────────────────────────── */
+.page-title-gradient {
+  background: linear-gradient(135deg, #0F172A, #2563EB);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── ANIMATED SIDEBAR ACTIVE INDICATOR ──────────────────────────── */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── RICH SCROLLBAR ──────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #2563EB40, #0D948840);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #2563EB80, #0D948880);
+}
 

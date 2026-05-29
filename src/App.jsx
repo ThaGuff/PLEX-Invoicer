@@ -151,13 +151,14 @@ function Nav() {
       {/* ── DESKTOP LEFT SIDEBAR (md and up) ───────────────────── */}
       <aside className="desktop-sidebar" style={{
         display:'none', // shown via CSS below
-        width: 220,
-        minWidth: 220,
+        width: 232,
+        minWidth: 232,
         height: '100vh',
         position: 'sticky',
         top: 0,
-        background: 'var(--bg-surface)',
-        borderRight: '1px solid var(--border)',
+        background: 'linear-gradient(180deg, #0F172A 0%, #1a2744 60%, #0F172A 100%)',
+        borderRight: 'none',
+        boxShadow: '4px 0 24px rgba(0,0,0,0.18)',
         flexDirection: 'column',
         overflowY: 'auto',
         overflowX: 'hidden',
@@ -165,10 +166,10 @@ function Nav() {
         flexShrink: 0,
       }}>
         {/* Logo */}
-        <div style={{ padding: '18px 16px 12px', borderBottom: '1px solid var(--border)', flexShrink:0 }}>
+        <div style={{ padding: '18px 16px 12px', borderBottom: '1px solid rgba(255,255,255,0.08)', flexShrink:0 }}>
           <NavLink to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none' }}>
             <img src="/logo-revanew.png" alt="Revanew" style={{ width:32, height:32, objectFit:'contain', borderRadius:8 }} />
-            <span style={{ fontSize:16, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.04em' }}>Revanew</span>
+            <span style={{ fontSize:17, fontWeight:800, color:'#ffffff', letterSpacing:'-0.04em' }}>Revanew</span>
           </NavLink>
           {/* Trial badge */}
           {isTrialing && trialEnd && (
@@ -182,7 +183,7 @@ function Nav() {
         </div>
 
         {/* Nav links */}
-        <nav style={{ flex:1, padding:'10px 8px', display:'flex', flexDirection:'column', gap:2 }}>
+        <nav style={{ flex:1, padding:'10px 8px', display:'flex', flexDirection:'column', gap:3 }}>
           {links.map(l => {
             const active  = isActive(l.to);
             const locked  = isLocked(l.to);
@@ -192,18 +193,19 @@ function Nav() {
                 onClick={() => locked ? handleLockedClick(l) : navigate(l.to)}
                 title={locked ? `Upgrade to unlock ${l.label}` : l.label}
                 style={{
-                  display:'flex', alignItems:'center', gap:10,
-                  padding:'9px 12px', borderRadius:10, border:'none',
-                  background: active ? `${l.color}15` : 'transparent',
+                  display:'flex', alignItems:'center', gap:11,
+                  padding:'10px 12px', borderRadius:10, border:'none',
+                  background: active ? `linear-gradient(135deg, ${l.color}cc, ${l.color}99)` : 'transparent',
                   cursor:'pointer', width:'100%', textAlign:'left',
-                  transition:'all 0.12s', fontFamily:"'Plus Jakarta Sans',sans-serif",
+                  transition:'all 0.18s', fontFamily:"'Plus Jakarta Sans',sans-serif",
                   opacity: locked ? 0.55 : 1,
+                  boxShadow: active ? `0 4px 14px ${l.color}40` : 'none',
                   position:'relative',
                 }}
                 onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--bg-raised)'; }}
                 onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}>
-                <Icon size={16} style={{ color: active ? l.color : locked ? 'var(--text-muted)' : 'var(--text-secondary)', flexShrink:0 }} />
-                <span style={{ fontSize:13, fontWeight: active ? 700 : 500, color: active ? l.color : 'var(--text-secondary)', flex:1 }}>
+                <span style={{ width:30, height:30, borderRadius:8, background: active ? 'rgba(255,255,255,0.22)' : `${l.color}22`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><Icon size={15} style={{ color: active ? '#ffffff' : locked ? 'rgba(255,255,255,0.35)' : `${l.color}ee`, flexShrink:0 }} /></span>
+                <span style={{ fontSize:14.5, fontWeight: active ? 700 : 600, color: active ? '#ffffff' : 'rgba(255,255,255,0.78)', flex:1, letterSpacing:'-0.01em' }}>
                   {l.label}
                 </span>
                 {active && <div style={{ width:3, height:16, borderRadius:2, background:l.color, flexShrink:0 }}/>}
