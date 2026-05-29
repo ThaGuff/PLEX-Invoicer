@@ -311,7 +311,7 @@ function AppShell({ children }) {
   React.useEffect(() => {
     if (!account || loading) return; // wait for account to load
     const path = location.pathname;
-    if (path.includes('/billing') || path.includes('/login') || path.includes('/portal')) return;
+    if (path.includes('/billing') || path.includes('/login') || path.includes('/portal') || path.includes('/auth/callback')) return;
 
     // New user → billing welcome
     const isNew = localStorage.getItem('revanew_new_user') === '1';
@@ -426,6 +426,7 @@ export default function App() {
         <Routes>
           {/* Public — no auth required */}
           <Route path="/login"                    element={<Login />} />
+          <Route path="/auth/callback"              element={<React.Suspense fallback={null}><AuthCallback /></React.Suspense>} />
           <Route path="/portal/quote/:token"      element={<PublicQuote />} />
           <Route path="/portal/invoice/:token"    element={<PublicInvoice />} />
 

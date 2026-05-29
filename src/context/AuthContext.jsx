@@ -9,10 +9,11 @@ const IDLE_TIMEOUT_MS  = 15 * 60 * 1000; // 15 minutes
 const supabase = SUPABASE_URL && SUPABASE_ANON_KEY
   ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {
-        autoRefreshToken:  true,
-        persistSession:    true,
-        detectSessionInUrl: true,
-        storageKey: 'plex_auth_session',
+        autoRefreshToken:    true,
+        persistSession:      true,
+        detectSessionInUrl:  true,
+        flowType:            'pkce',
+        storageKey:          'plex_auth_session',
       },
     })
   : null;
@@ -193,7 +194,7 @@ export function AuthProvider({ children }) {
     if (!supabase) return { error: 'Supabase not configured' };
     return supabase.auth.signInWithOAuth({
       provider: 'google',
-      options:  { redirectTo: `${window.location.origin}/dashboard` },
+      options:  { redirectTo: `${window.location.origin}/auth/callback` },
     });
   };
 
@@ -201,7 +202,7 @@ export function AuthProvider({ children }) {
     if (!supabase) return { error: 'Supabase not configured' };
     return supabase.auth.signInWithOAuth({
       provider: 'apple',
-      options:  { redirectTo: `${window.location.origin}/dashboard` },
+      options:  { redirectTo: `${window.location.origin}/auth/callback` },
     });
   };
 
@@ -247,6 +248,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider value={{
       user, session, loading, supabase,
       isAuthenticated: !!user,
+      supabase,
       idleWarning,
       sessionExpired,
       signInWithGoogle,
