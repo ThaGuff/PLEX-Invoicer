@@ -93,7 +93,7 @@ export default function AIAssistant() {
       {/* Floating button */}
       <button onClick={() => setOpen(v => !v)}
         style={{
-          position:'fixed', bottom:'calc(80px + env(safe-area-inset-bottom))', right:16,
+          position:'fixed', bottom:'calc(104px + env(safe-area-inset-bottom))', right:16,
           width:52, height:52, borderRadius:'50%',
           background:'linear-gradient(135deg,#7C3AED,#2563EB)',
           border:'none', cursor:'pointer', zIndex:200,
@@ -111,7 +111,7 @@ export default function AIAssistant() {
       {open && (
         <div style={{
           position:'fixed',
-          bottom:'calc(144px + env(safe-area-inset-bottom))', right:16,
+          bottom:'calc(168px + env(safe-area-inset-bottom))', right:16,
           width: Math.min(380, window.innerWidth - 32),
           height: 480,
           background:'var(--bg-surface)',

@@ -32,7 +32,7 @@ const DocumentsPage = React.lazy(() => import('./pages/DocumentsPage').catch(() 
 const CalendarPage  = React.lazy(() => import('./pages/CalendarPage').catch(() => ({ default: () => null })));
 const PhotosPage    = React.lazy(() => import('./pages/PhotosPage').catch(() => ({ default: () => null })));
 const WorkspacePage = React.lazy(() => import('./pages/WorkspacePage').catch(() => ({ default: () => null })));
-import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield, BarChart2, Sun, Moon, Grid, Calendar, FolderOpen, Image as ImageIcon, MessageSquare, Lock } from 'lucide-react';
+import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield, BarChart2, Sun, Moon, Grid, Calendar, FolderOpen, Image as ImageIcon, MessageSquare, Lock, Settings, Camera, Users2, ShieldCheck } from 'lucide-react';
 import { IdleWarningBanner, SessionExpiredModal } from './components/SessionModals';
 
 
@@ -225,6 +225,15 @@ function Nav() {
             <Plus size={16}/> New Quote
           </NavLink>
 
+          {/* Dark mode toggle */}
+          <button onClick={() => setDark(v => !v)}
+            style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 10px', borderRadius:9, border:'none', background:'rgba(255,255,255,0.06)', color:'rgba(255,255,255,0.6)', cursor:'pointer', fontSize:13, fontWeight:600, fontFamily:"'Plus Jakarta Sans',sans-serif", width:'100%', transition:'all 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.12)'}
+            onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.06)'}>
+            {dark ? <Sun size={15} color="#F59E0B"/> : <Moon size={15} color="#94A3B8"/>}
+            <span>{dark ? 'Light mode' : 'Dark mode'}</span>
+          </button>
+
           {/* User profile row */}
           <div style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 10px', borderRadius:10, cursor:'pointer', transition:'all 0.15s', background:'rgba(255,255,255,0.06)' }}
             onClick={() => window.dispatchEvent(new CustomEvent('revanew:settings'))}
@@ -298,6 +307,37 @@ function Nav() {
           <div style={{ position:'fixed', bottom:'calc(74px + env(safe-area-inset-bottom))', left:12, right:12, zIndex:110,
             background:'var(--bg-surface)', borderRadius:18, border:'1px solid var(--border)',
             boxShadow:'0 -8px 40px rgba(11,18,32,0.18)', padding:'10px 6px', display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:4 }}>
+            {/* Dark mode toggle */}
+            <button onClick={() => { setDark(v => !v); }}
+              style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5, padding:'12px 4px', borderRadius:12, border:'none',
+                background: dark ? 'rgba(99,102,241,0.12)' : 'transparent', cursor:'pointer',
+                fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+              <span style={{ width:40, height:40, borderRadius:12, background: dark ? 'rgba(99,102,241,0.2)' : 'rgba(100,116,139,0.1)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                {dark ? <Sun size={20} color="#6366f1"/> : <Moon size={20} color="#64748B"/>}
+              </span>
+              <span style={{ fontSize:11, fontWeight:600, color: dark ? '#6366f1' : 'var(--text-muted)' }}>{dark ? 'Light' : 'Dark'}</span>
+            </button>
+
+            {/* Account Settings */}
+            <button onClick={() => { setShowMobileMore(false); window.dispatchEvent(new CustomEvent('revanew:settings')); }}
+              style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5, padding:'12px 4px', borderRadius:12, border:'none',
+                background:'transparent', cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+              <span style={{ width:40, height:40, borderRadius:12, background:'rgba(37,99,235,0.1)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <Settings size={20} color="#2563EB"/>
+              </span>
+              <span style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)' }}>Settings</span>
+            </button>
+
+            {/* Sign out */}
+            <button onClick={() => { setShowMobileMore(false); signOut(); }}
+              style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5, padding:'12px 4px', borderRadius:12, border:'none',
+                background:'transparent', cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+              <span style={{ width:40, height:40, borderRadius:12, background:'rgba(239,68,68,0.1)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <LogOut size={20} color="#EF4444"/>
+              </span>
+              <span style={{ fontSize:11, fontWeight:600, color:'#EF4444' }}>Sign out</span>
+            </button>
+
             {mobileMoreLinks.map(l => {
               const active = isActive(l.to);
               const locked = isLocked(l.to);

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db/schema.js';
+import { sendEmail, isEmailConfigured, buildQuoteHtml } from '../utils/email.js';
 import { v4 as uuid } from 'uuid';
 
 const router = Router();
@@ -178,6 +179,49 @@ router.patch('/:id', async (req, res) => {
 });
 
 // ── POST convert quote to invoice ─────────────────────────────────
+// ── POST /api/quotes/:id/send — email quote to client ──────────────
+router.post('/:id/send', requireAuth, async (req, res) => {
+  try {
+    const q = await db.execute(
+      `SELECT q.*, a.name as agency_name, a.email as agency_email
+       FROM quotes q JOIN accounts a ON q.account_id = a.id WHERE q.id = ?`,
+      [req.params.id]
+    );
+    if (!q.rows.length) return res.status(404).json({ error: 'Not found' });
+    const quote = q.rows[0];
+    if (!quote.client_email) return res.status(400).json({ error: 'No client email on this quote' });
+    if (!isEmailConfigured()) return res.status(503).json({ error: 'Email not configured' });
+
+    const origin = process.env.APP_URL || 'https://revanew.io';
+    const portalUrl = `${origin}/portal/quote/${quote.public_token}`;
+
+    await sendEmail({
+      to: quote.client_email,
+      subject: `Quote ${quote.number} from ${quote.agency_name || 'Revanew'}`,
+      html: buildQuoteHtml({
+        clientName: quote.client_name,
+        agencyName: quote.agency_name || 'Revanew',
+        quoteNum: quote.number,
+        amount: `$${Math.round(quote.amount_due || quote.setup_total || 0).toLocaleString()}`,
+        expiryDate: quote.expiry_date,
+        portalUrl,
+      }),
+      text: `Hi ${quote.client_name || 'there'},\n\nYour quote ${quote.number} is ready to review.\n\nView and sign: ${portalUrl}\n\n${quote.agency_name || 'Revanew'}`,
+    });
+
+    // Update status to sent
+    await db.execute(
+      `UPDATE quotes SET status = 'sent', sent_at = NOW(), updated_at = NOW() WHERE id = ?`,
+      [req.params.id]
+    );
+
+    res.json({ ok: true, email_sent: true, to: quote.client_email });
+  } catch (e) {
+    console.error('[Quote send]', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 router.post('/:id/convert', async (req, res) => {
   try {
     const quote = await db.execute(`SELECT * FROM quotes WHERE id = ?`, [req.params.id]);

@@ -71,6 +71,7 @@ export const api = {
     getPublic: (token)     => req('GET',    `/quotes/public/${token}`),
     create:    (body)      => req('POST',   '/quotes', body),
     update:    (id, body)  => req('PATCH',  `/quotes/${id}`, body),
+    send:      (id)        => req('POST',   `/quotes/${id}/send`),
     convert:   (id)        => req('POST',   `/quotes/${id}/convert`),
     accept:    (token, body={}) => req('POST', `/quotes/public/${token}/accept`, body),
     delete:    (id)        => req('DELETE', `/quotes/${id}`),
