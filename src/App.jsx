@@ -359,12 +359,9 @@ function AppShell({ children }) {
   );
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-page)', overflowX: 'hidden', maxWidth: '100vw' }}>
-      {/* Desktop / Mobile header */}
+    <div className="min-h-screen" style={{ background: 'var(--bg-page)', overflowX: 'hidden', maxWidth: '100vw', display:'flex', flexDirection:'column' }}>
       <React.Suspense fallback={null}><TrialBanner /></React.Suspense>
-      <React.Suspense fallback={null}>
-        <InstallPWA />
-      </React.Suspense>
+      <React.Suspense fallback={null}><InstallPWA /></React.Suspense>
       {showTour && (
         <React.Suspense fallback={null}>
           <OnboardingTour onDone={() => {
@@ -374,7 +371,7 @@ function AppShell({ children }) {
         </React.Suspense>
       )}
 
-      {/* Mobile FAB - new quote (z-99, sits under More drawer which is z-110) */}
+      {/* Mobile FAB */}
       <NavLink to="/quotes/new" className="fab md:hidden" title="New quote">
         <Plus size={26} />
       </NavLink>
@@ -382,8 +379,16 @@ function AppShell({ children }) {
       {showSettings   && <AccountSettings onClose={() => setShowSettings(false)} />}
       {showNewAccount && <NewAccountModal onClose={() => setShowNewAccount(false)} onCreated={() => {}} />}
 
-      {/* Main content */}
-      <main style={{ flex:1, minWidth:0, overflowX:"hidden", overflowY:"auto", display:"flex", flexDirection:"column" }}>{children}</main>
+      {/* ── Main layout: sidebar + content ─────────────────────── */}
+      <div style={{ display:'flex', flex:1, minHeight:0 }}>
+        {/* Left sidebar nav — desktop */}
+        <Nav />
+
+        {/* Page content */}
+        <main style={{ flex:1, minWidth:0, overflowX:'hidden', overflowY:'auto', display:'flex', flexDirection:'column' }}>
+          {children}
+        </main>
+      </div>
 
       {/* AI Assistant — floating on all pages */}
       <React.Suspense fallback={null}>
