@@ -82,12 +82,27 @@ export function AuthProvider({ children }) {
       return;
     }
 
+    // Check if URL contains OAuth callback tokens (hash fragment)
+    // If so, DON'T set loading:false yet — wait for SIGNED_IN event from onAuthStateChange
+    const hasOAuthCallback = window.location.hash.includes('access_token') ||
+                              window.location.hash.includes('error=') ||
+                              window.location.search.includes('code=');
+
     // Restore existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) resetIdleTimer();
-      setLoading(false);
+      // If there's an OAuth callback hash in URL but no session yet,
+      // keep loading=true until the SIGNED_IN event fires (prevents flash to /login)
+      // If session already exists (hash already parsed), load immediately
+      if (session?.user || !hasOAuthCallback) {
+        setLoading(false);
+      }
+      // Safety timeout: if SIGNED_IN never fires within 8s, unblock the UI
+      if (hasOAuthCallback && !session?.user) {
+        setTimeout(() => setLoading(false), 8000);
+      }
     });
 
     // Handle all auth state changes
@@ -95,6 +110,9 @@ export function AuthProvider({ children }) {
       console.log('[Auth]', event);
       setSession(session);
       setUser(session?.user ?? null);
+
+      // Always clear loading state on any auth event
+      setLoading(false);
 
       // Track new signups for billing redirect
       if (event === 'SIGNED_IN') {

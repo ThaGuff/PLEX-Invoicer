@@ -139,7 +139,7 @@ const FEATURES = [
 ];
 
 export default function Login() {
-  const { signInWithGoogle, signInWithApple, signInWithEmail, signUpWithEmail, resetPassword } = useAuth();
+  const { signInWithGoogle, signInWithApple, signInWithEmail, signUpWithEmail, resetPassword, isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode]       = useState('login');
   const [email, setEmail]     = useState('');
@@ -154,15 +154,36 @@ export default function Login() {
     setLoading(label); setError(''); setSuccess('');
     try {
       const res = await fn();
-      if (res?.error) { setError(res.error.message || String(res.error)); }
-      else if (mode === 'reset') { setSuccess('Reset link sent — check your email.'); }
-      else if (mode === 'signup') {
+      if (res?.error) {
+        setError(res.error.message || String(res.error));
+        setLoading('');
+        return;
+      }
+      // OAuth providers (Google, Apple) redirect the page externally —
+      // the fn() returns before the redirect completes, so we must NOT navigate.
+      // The SIGNED_IN event + RequireAuth handle the redirect after callback.
+      if (label === 'google' || label === 'apple') {
+        // Keep loading spinner — page will redirect momentarily
+        return;
+      }
+      if (mode === 'reset') {
+        setSuccess('Reset link sent — check your email.');
+      } else if (mode === 'signup') {
         localStorage.setItem('revanew_new_user', '1');
         navigate('/billing?welcome=1');
-      } else { navigate('/dashboard'); }
+      } else {
+        navigate('/dashboard');
+      }
     } catch (e) { setError(e.message || 'Something went wrong'); }
     setLoading('');
   };
+
+  // When user is already authenticated (e.g. returning to /login after OAuth callback)
+  // redirect them to dashboard immediately
+  if (!authLoading && isAuthenticated) {
+    navigate('/dashboard', { replace: true });
+    return null;
+  }
 
   const F = { fontFamily:"'Plus Jakarta Sans',sans-serif" };
   const inputStyle = (focused) => ({
