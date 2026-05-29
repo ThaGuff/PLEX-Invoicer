@@ -361,7 +361,7 @@ function AppShell({ children }) {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-page)', overflowX: 'hidden', maxWidth: '100vw' }}>
       {/* Desktop / Mobile header */}
-      <SafeTrialBanner />
+      <React.Suspense fallback={null}><TrialBanner /></React.Suspense>
       <React.Suspense fallback={null}>
         <InstallPWA />
       </React.Suspense>
