@@ -92,6 +92,7 @@ function RequireAuth({ children }) {
 function Nav() {
   const { account } = useAccount();
   const { user, signOut } = useAuth();
+  const [dark, setDark] = useDarkMode();
   const accent = account?.primary_color || '#13B5EA';
   const loc    = useLocation();
   const navigate = useNavigate();
