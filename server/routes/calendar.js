@@ -19,7 +19,9 @@ function sanitize(str, maxLen = 500) {
 }
 
 async function assertAccountAccess(accountId, userId) {
-  // Allow owner OR members
+  // dev-user has full access
+  if (userId === 'dev-user') return;
+  // Allow owner OR active members
   const r = await db.execute(
     `SELECT a.id FROM accounts a
      WHERE a.id = ? AND (

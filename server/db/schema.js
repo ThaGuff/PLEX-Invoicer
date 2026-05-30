@@ -592,7 +592,7 @@ export async function ensureWorkspaceTables() {
       id TEXT PRIMARY KEY,
       account_id TEXT NOT NULL,
       name TEXT NOT NULL,
-      "private" INTEGER DEFAULT 0,
+      is_private INTEGER DEFAULT 0,
       description TEXT,
       created_by TEXT,
       created_at TIMESTAMPTZ DEFAULT NOW()

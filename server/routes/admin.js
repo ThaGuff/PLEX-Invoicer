@@ -772,3 +772,51 @@ router.get('/subscriptions', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 // deploy-1779761762
+
+
+// ── Force DB migration — workspace tables ─────────────────────────
+router.post('/migrate/workspace', async (req, res) => {
+  const results = [];
+  const ddl = [
+    `DROP TABLE IF EXISTS workspace_messages`,
+    `DROP TABLE IF EXISTS workspace_channels`,
+    `CREATE TABLE workspace_channels (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      is_private INTEGER DEFAULT 0,
+      description TEXT,
+      created_by TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`,
+    `CREATE TABLE workspace_messages (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL,
+      channel_id TEXT NOT NULL,
+      content TEXT NOT NULL,
+      sender_name TEXT,
+      sender_id TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_ws_channels_account ON workspace_channels(account_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_ws_msgs_channel ON workspace_messages(account_id, channel_id, created_at)`,
+  ];
+  for (const sql of ddl) {
+    try {
+      await db.execute(sql);
+      results.push({ ok: true, sql: sql.slice(0, 60) });
+    } catch(e) {
+      results.push({ ok: false, sql: sql.slice(0, 60), error: e.message });
+    }
+  }
+  res.json({ results });
+});
+
+// ── Set plex-master owner_id ──────────────────────────────────────
+router.post('/migrate/set-master-owner', async (req, res) => {
+  try {
+    await db.execute(`UPDATE accounts SET owner_id = ? WHERE id = 'plex-master'`, [req.user.id]);
+    const acc = await db.execute(`SELECT id, owner_id FROM accounts WHERE id = 'plex-master'`);
+    res.json({ ok: true, account: acc.rows[0] });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
