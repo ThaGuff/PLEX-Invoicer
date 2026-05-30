@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db/schema.js';
+import { requireAuth } from '../middleware/auth.js';
 import { v4 as uuid } from 'uuid';
 
 const router = Router();
@@ -34,7 +35,7 @@ async function enrichAccounts(accountRows) {
 }
 
 // GET accounts for the authenticated user
-router.get('/', async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
   try {
     const userId = req.user?.id;
 
@@ -52,8 +53,13 @@ router.get('/', async (req, res) => {
     );
 
     if (isOwner(req)) {
-      // Ryan also sees plex-master
+      // Ryan also sees plex-master — ensure owner_id is set
       const master = await db.execute(`SELECT * FROM accounts WHERE id = 'plex-master'`);
+      if (master.rows[0] && !master.rows[0].owner_id) {
+        await db.execute(`UPDATE accounts SET owner_id = ? WHERE id = 'plex-master'`, [req.user.id]);
+        await db.execute(`UPDATE accounts SET owner_id = ? WHERE id = 'plex-master'`, [req.user.id]);
+        master.rows[0].owner_id = req.user.id;
+      }
       const combined = [...master.rows, ...ownedAccounts.rows.filter(a => a.id !== 'plex-master')];
       return res.json(await enrichAccounts(combined));
     }
@@ -115,7 +121,7 @@ router.post('/', async (req, res) => {
 });
 
 // PATCH update account
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', requireAuth, async (req, res) => {
   try {
     // Whitelist of allowed fields — never allow owner_id, id, stripe_customer_id updates via PATCH
     const VALID_PLANS = ['starter', 'pro', 'agency'];
@@ -143,7 +149,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 // DELETE account — cascade delete all related data
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAuth, async (req, res) => {
   const id = req.params.id;
   if (id === 'plex-master') return res.status(403).json({ error: 'Cannot delete master account' });
   try {

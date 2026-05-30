@@ -49,11 +49,16 @@ router.patch('/:id', requireAuth, async (req, res) => {
 
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
-    const { account_id: del_account_id } = req.query;
-    if (!del_account_id) return res.status(400).json({ error: 'account_id required' });
-    const ownedDel = await db.execute(`SELECT id FROM contacts WHERE id = ? AND account_id = ?`, [req.params.id, del_account_id]);
-    if (!ownedDel.rows.length) return res.status(404).json({ error: 'Not found' });
-    await db.execute(`DELETE FROM contacts WHERE id = ? AND account_id = ?`, [req.params.id, del_account_id]);
+    // Verify the contact belongs to an account the user owns or is a member of
+    const contact = await db.execute(`SELECT * FROM contacts WHERE id = ?`, [req.params.id]);
+    if (!contact.rows.length) return res.status(404).json({ error: 'Not found' });
+    const c = contact.rows[0];
+    const access = await db.execute(
+      `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ?))`,
+      [c.account_id, req.user.id, req.user.id]
+    );
+    if (!access.rows.length) return res.status(403).json({ error: 'Access denied' });
+    await db.execute(`DELETE FROM contacts WHERE id = ?`, [req.params.id]);
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

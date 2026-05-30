@@ -310,14 +310,22 @@ router.post('/:id/convert', requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── DELETE quote — scoped to account ─────────────────────────────
+// ── DELETE quote — auth-based ownership check ────────────────────
 router.delete('/:id', requireAuth, async (req, res) => {
-  const { account_id } = req.query;
-  if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
-    const owned = await getQuoteForAccount(req.params.id, account_id);
-    if (!owned) return res.status(404).json({ error: 'Not found' });
-    await db.execute(`DELETE FROM quotes WHERE id = ? AND account_id = ?`, [req.params.id, account_id]);
+    const quote = await db.execute(`SELECT * FROM quotes WHERE id = ?`, [req.params.id]);
+    if (!quote.rows.length) return res.status(404).json({ error: 'Not found' });
+    const q = quote.rows[0];
+    if (q.account_id === 'plex-master' && req.user.email !== process.env.PLEX_OWNER_EMAIL) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    const access = await db.execute(
+      `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ?))`,
+      [q.account_id, req.user.id, req.user.id]
+    );
+    if (!access.rows.length) return res.status(403).json({ error: 'Access denied' });
+    await db.execute(`DELETE FROM quote_items WHERE quote_id = ?`, [req.params.id]);
+    await db.execute(`DELETE FROM quotes WHERE id = ?`, [req.params.id]);
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

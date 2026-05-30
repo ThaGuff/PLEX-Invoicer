@@ -110,7 +110,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
 });
 
 // ── POST generate Stripe payment link (Connect-aware) ────────────
-router.post('/:id/payment-link', async (req, res) => {
+router.post('/:id/payment-link', requireAuth, async (req, res) => {
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   if (!stripeKey) return res.status(503).json({ error: 'Stripe not configured.' });
   try {
@@ -179,7 +179,7 @@ router.post('/:id/payment-link', async (req, res) => {
 });
 
 // ── POST mark as sent ─────────────────────────────────────────────
-router.post('/:id/send', async (req, res) => {
+router.post('/:id/send', requireAuth, async (req, res) => {
   try {
     const inv = await db.execute(
       `SELECT i.*, a.name as agency_name, a.email as agency_email,
@@ -247,7 +247,7 @@ ${invoice.agency_name||'Revanew'}`,
 });
 
 // ── POST mark as paid ─────────────────────────────────────────────
-router.post('/:id/mark-paid', async (req, res) => {
+router.post('/:id/mark-paid', requireAuth, async (req, res) => {
   try {
     const inv = await db.execute(
       `SELECT i.*, a.id as acc_id, a.default_tax_rate FROM invoices i JOIN accounts a ON i.account_id = a.id WHERE i.id = ?`,
@@ -285,7 +285,7 @@ router.post('/:id/mark-paid', async (req, res) => {
 });
 
 // ── POST send payment reminder ────────────────────────────────────
-router.post('/:id/remind', async (req, res) => {
+router.post('/:id/remind', requireAuth, async (req, res) => {
   try {
     if (!isEmailConfigured()) {
       return res.status(503).json({ error: 'Email not configured. Set RESEND_API_KEY or SMTP_HOST in Railway Variables.' });
@@ -329,8 +329,18 @@ router.post('/:id/remind', async (req, res) => {
 });
 
 // ── DELETE invoice ────────────────────────────────────────────────
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAuth, async (req, res) => {
   try {
+    const inv = await db.execute(`SELECT * FROM invoices WHERE id = ?`, [req.params.id]);
+    if (!inv.rows.length) return res.status(404).json({ error: 'Not found' });
+    const invoice = inv.rows[0];
+    // Verify ownership
+    const access = await db.execute(
+      `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ?))`,
+      [invoice.account_id, req.user.id, req.user.id]
+    );
+    if (!access.rows.length) return res.status(403).json({ error: 'Access denied' });
+    await db.execute(`DELETE FROM invoice_items WHERE invoice_id = ?`, [req.params.id]);
     await db.execute(`DELETE FROM invoices WHERE id = ?`, [req.params.id]);
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }

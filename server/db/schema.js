@@ -220,6 +220,10 @@ export async function initDB() {
               '256-609-4618', 'plexautomation.io', 'P', '#13B5EA', 'agency', 'active')
     `);
   }
+  // Ensure plex-master always has owner email set (owner_id set dynamically on first login)
+  await db.execute(`
+    UPDATE accounts SET email = 'guffey.ryan@gmail.com' WHERE id = 'plex-master' AND (email IS NULL OR email = 'hello@plexautomation.io')
+  `).catch(() => {});
 
   // ── New feature tables ──────────────────────────────────────────
   const newTables = [

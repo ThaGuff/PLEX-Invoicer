@@ -90,10 +90,17 @@ router.post('/channels', requireAuth, async (req, res) => {
     const { v4: uuid } = await import('uuid');
     const id = `ch-${uuid()}`;
     await db.execute(
-      `INSERT INTO workspace_channels (id, account_id, name, private, desc, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-      [id, account_id, safeName, isPrivate ? 1 : 0, sanitizeText(desc, 500), req.user.id]
-    );
+      `INSERT INTO workspace_channels (id, account_id, name, created_by, created_at)
+       VALUES (?, ?, ?, ?, NOW())`,
+      [id, account_id, safeName, req.user.id]
+    ).catch(async () => {
+      // Try with description column if above fails
+      await db.execute(
+        `INSERT INTO workspace_channels (id, account_id, name, description, created_by, created_at)
+         VALUES (?, ?, ?, ?, ?, NOW())`,
+        [id, account_id, safeName, sanitizeText(desc, 500), req.user.id]
+      );
+    });
     const ch = await db.execute(`SELECT * FROM workspace_channels WHERE id = ?`, [id]);
     res.status(201).json(ch.rows[0]);
   } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
