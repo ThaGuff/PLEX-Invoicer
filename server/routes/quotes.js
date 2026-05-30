@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db/schema.js';
 import { sendEmail, isEmailConfigured, buildQuoteHtml } from '../utils/email.js';
+import { requireAuth } from '../middleware/auth.js';
 import { v4 as uuid } from 'uuid';
 
 const router = Router();
@@ -9,6 +10,14 @@ function nextNumber(rows, prefix) {
   if (!rows.length) return `${prefix}-0001`;
   const nums = rows.map(r => parseInt((r.number || '0').split('-').pop()) || 0);
   return `${prefix}-${String(Math.max(...nums) + 1).padStart(4, '0')}`;
+}
+
+// Helper: verify quote belongs to account
+async function getQuoteForAccount(quoteId, accountId) {
+  const result = await db.execute(
+    `SELECT * FROM quotes WHERE id = ? AND account_id = ?`, [quoteId, accountId]
+  );
+  return result.rows[0] || null;
 }
 
 // ── GET all quotes for account ────────────────────────────────────
@@ -67,10 +76,14 @@ router.post('/public/:token/accept', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── GET single quote with items ───────────────────────────────────
-router.get('/:id', async (req, res) => {
+// ── GET single quote with items — scoped to account ───────────────
+router.get('/:id', requireAuth, async (req, res) => {
+  const { account_id } = req.query;
+  if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
-    const quote = await db.execute(`SELECT * FROM quotes WHERE id = ?`, [req.params.id]);
+    const quote = await db.execute(
+      `SELECT * FROM quotes WHERE id = ? AND account_id = ?`, [req.params.id, account_id]
+    );
     if (!quote.rows.length) return res.status(404).json({ error: 'Not found' });
     const items = await db.execute(
       `SELECT * FROM quote_items WHERE quote_id = ? ORDER BY sort_order`, [req.params.id]
@@ -80,13 +93,14 @@ router.get('/:id', async (req, res) => {
 });
 
 // ── POST create quote ─────────────────────────────────────────────
-router.post('/', async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   try {
     const {
       account_id, contact_id, client_name, client_biz, client_email, client_phone,
       billing_mode, yearly_discount, disc_type, disc_value, disc_setup, disc_monthly,
       notes, valid_days, setup_total, monthly_total, tax_rate = 0, tax_amount = 0, items = []
     } = req.body;
+    if (!account_id) return res.status(400).json({ error: 'account_id required' });
 
     const existingQuotes = await db.execute(`SELECT number FROM quotes WHERE account_id = ?`, [account_id]);
     const acc = await db.execute(`SELECT name FROM accounts WHERE id = ?`, [account_id]);
@@ -108,7 +122,6 @@ router.post('/', async (req, res) => {
        tax_rate || 0, tax_amount || 0, public_token]
     );
 
-    // Batch insert items in parallel
     await Promise.all(items.map((item, i) => db.execute(
       `INSERT INTO quote_items (id, quote_id, section_id, section_label, service_id, name,
         description, setup_price, monthly_price, is_included, sort_order)
@@ -118,38 +131,30 @@ router.post('/', async (req, res) => {
        item.setup_price || 0, item.monthly_price || 0, item.is_included ? 1 : 0, i]
     )));
 
-    // Auto-create or link contact if email provided and no contact_id
+    // Auto-create or link contact if email provided
     let finalContactId = contact_id || null;
     if (!finalContactId && (client_email || client_name) && account_id) {
       try {
-        // Check if contact already exists with this email
         if (client_email) {
           const existing = await db.execute(
             `SELECT id FROM contacts WHERE account_id = ? AND email = ? LIMIT 1`,
             [account_id, client_email]
           );
-          if (existing.rows.length > 0) {
-            finalContactId = existing.rows[0].id;
-          }
+          if (existing.rows.length > 0) finalContactId = existing.rows[0].id;
         }
-        // Create new contact if still none found
         if (!finalContactId && (client_name || client_email)) {
           const { v4: uuid2 } = await import('uuid');
           const conId = `con-${uuid2()}`;
           await db.execute(
-            `INSERT INTO contacts (id, account_id, name, business, email, phone)
-             VALUES (?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO contacts (id, account_id, name, business, email, phone) VALUES (?, ?, ?, ?, ?, ?)`,
             [conId, account_id, client_name || '', client_biz || '', client_email || '', client_phone || '']
           );
           finalContactId = conId;
         }
-        // Update the quote with the contact_id
         if (finalContactId) {
           await db.execute(`UPDATE quotes SET contact_id = ? WHERE id = ?`, [finalContactId, id]);
         }
-      } catch (e) {
-        console.warn('Auto-create contact failed:', e.message);
-      }
+      } catch (e) { console.warn('Auto-create contact failed:', e.message); }
     }
 
     const [created, createdItems] = await Promise.all([
@@ -160,9 +165,15 @@ router.post('/', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── PATCH update quote ────────────────────────────────────────────
-router.patch('/:id', async (req, res) => {
+// ── PATCH update quote — scoped to account ────────────────────────
+router.patch('/:id', requireAuth, async (req, res) => {
+  const { account_id } = req.body;
+  if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
+    // Verify ownership first
+    const owned = await getQuoteForAccount(req.params.id, account_id);
+    if (!owned) return res.status(404).json({ error: 'Not found' });
+
     const allowed = ['status','client_name','client_biz','client_email','client_phone',
       'billing_mode','yearly_discount','disc_type','disc_value','notes',
       'setup_total','monthly_total','tax_rate','tax_amount','sent_at','accepted_at'];
@@ -171,21 +182,23 @@ router.patch('/:id', async (req, res) => {
     allowed.forEach(f => {
       if (req.body[f] !== undefined) { updates.push(`${f} = ?`); vals.push(req.body[f]); }
     });
-    vals.push(req.params.id);
-    await db.execute(`UPDATE quotes SET ${updates.join(', ')} WHERE id = ?`, vals);
+    vals.push(req.params.id, account_id);
+    await db.execute(`UPDATE quotes SET ${updates.join(', ')} WHERE id = ? AND account_id = ?`, vals);
     const updated = await db.execute(`SELECT * FROM quotes WHERE id = ?`, [req.params.id]);
     res.json(updated.rows[0]);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── POST convert quote to invoice ─────────────────────────────────
-// ── POST /api/quotes/:id/send — email quote to client ──────────────
+// ── POST /api/quotes/:id/send — email quote to client ─────────────
 router.post('/:id/send', requireAuth, async (req, res) => {
+  const { account_id } = req.body;
+  if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
     const q = await db.execute(
       `SELECT q.*, a.name as agency_name, a.email as agency_email
-       FROM quotes q JOIN accounts a ON q.account_id = a.id WHERE q.id = ?`,
-      [req.params.id]
+       FROM quotes q JOIN accounts a ON q.account_id = a.id
+       WHERE q.id = ? AND q.account_id = ?`,
+      [req.params.id, account_id]
     );
     if (!q.rows.length) return res.status(404).json({ error: 'Not found' });
     const quote = q.rows[0];
@@ -209,12 +222,10 @@ router.post('/:id/send', requireAuth, async (req, res) => {
       text: `Hi ${quote.client_name || 'there'},\n\nYour quote ${quote.number} is ready to review.\n\nView and sign: ${portalUrl}\n\n${quote.agency_name || 'Revanew'}`,
     });
 
-    // Update status to sent
     await db.execute(
-      `UPDATE quotes SET status = 'sent', sent_at = NOW(), updated_at = NOW() WHERE id = ?`,
-      [req.params.id]
+      `UPDATE quotes SET status = 'sent', sent_at = NOW(), updated_at = NOW() WHERE id = ? AND account_id = ?`,
+      [req.params.id, account_id]
     );
-
     res.json({ ok: true, email_sent: true, to: quote.client_email });
   } catch (e) {
     console.error('[Quote send]', e.message);
@@ -222,16 +233,21 @@ router.post('/:id/send', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/:id/convert', async (req, res) => {
+// ── POST convert quote to invoice — scoped to account ─────────────
+router.post('/:id/convert', requireAuth, async (req, res) => {
+  const { account_id } = req.body;
+  if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
-    const quote = await db.execute(`SELECT * FROM quotes WHERE id = ?`, [req.params.id]);
+    const quote = await db.execute(
+      `SELECT * FROM quotes WHERE id = ? AND account_id = ?`, [req.params.id, account_id]
+    );
     if (!quote.rows.length) return res.status(404).json({ error: 'Quote not found' });
     const q = quote.rows[0];
 
-    // ── Idempotency: return existing invoice if already converted ──
+    // Idempotency: return existing invoice if already converted
     const alreadyConverted = await db.execute(
-      `SELECT * FROM invoices WHERE quote_id = ? ORDER BY created_at DESC LIMIT 1`,
-      [q.id]
+      `SELECT * FROM invoices WHERE quote_id = ? AND account_id = ? ORDER BY created_at DESC LIMIT 1`,
+      [q.id, account_id]
     );
     if (alreadyConverted.rows.length) {
       const existing = alreadyConverted.rows[0];
@@ -252,7 +268,7 @@ router.post('/:id/convert', async (req, res) => {
     const invId = `inv-${uuid()}`;
     const public_token = uuid().replace(/-/g, '');
     const due_date = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
-    const amount_due = q.setup_total || 0; // setup total only; monthly is recurring
+    const amount_due = q.setup_total || 0;
 
     await db.execute(
       `INSERT INTO invoices (id, account_id, quote_id, number, contact_id, client_name, client_biz,
@@ -264,7 +280,6 @@ router.post('/:id/convert', async (req, res) => {
        amount_due, due_date, q.notes, public_token, q.tax_rate || 0, q.tax_amount || 0, 'generated']
     );
 
-    // Batch insert invoice items
     await Promise.all(items.rows.map((item, i) => db.execute(
       `INSERT INTO invoice_items (id, invoice_id, section_label, name, description,
         setup_price, monthly_price, is_included, sort_order)
@@ -274,7 +289,8 @@ router.post('/:id/convert', async (req, res) => {
     )));
 
     await db.execute(
-      `UPDATE quotes SET status = 'invoiced', invoiced_at = CURRENT_TIMESTAMP WHERE id = ?`, [q.id]
+      `UPDATE quotes SET status = 'invoiced', invoiced_at = CURRENT_TIMESTAMP WHERE id = ? AND account_id = ?`,
+      [q.id, account_id]
     );
 
     const inv = await db.execute(`SELECT * FROM invoices WHERE id = ?`, [invId]);
@@ -285,10 +301,14 @@ router.post('/:id/convert', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── DELETE quote ──────────────────────────────────────────────────
-router.delete('/:id', async (req, res) => {
+// ── DELETE quote — scoped to account ─────────────────────────────
+router.delete('/:id', requireAuth, async (req, res) => {
+  const { account_id } = req.query;
+  if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
-    await db.execute(`DELETE FROM quotes WHERE id = ?`, [req.params.id]);
+    const owned = await getQuoteForAccount(req.params.id, account_id);
+    if (!owned) return res.status(404).json({ error: 'Not found' });
+    await db.execute(`DELETE FROM quotes WHERE id = ? AND account_id = ?`, [req.params.id, account_id]);
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db/schema.js';
+import { requireAuth } from '../middleware/auth.js';
 import { v4 as uuid } from 'uuid';
 
 const router = Router();
@@ -29,22 +30,30 @@ router.post('/', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', requireAuth, async (req, res) => {
+  const { account_id } = req.body;
+  if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
+    const owned = await db.execute(`SELECT id FROM contacts WHERE id = ? AND account_id = ?`, [req.params.id, account_id]);
+    if (!owned.rows.length) return res.status(404).json({ error: 'Not found' });
     const fields = ['name', 'business', 'email', 'phone', 'address', 'notes'];
     const updates = ['updated_at = datetime(\'now\')'];
     const vals = [];
     fields.forEach(f => { if (req.body[f] !== undefined) { updates.push(`${f} = ?`); vals.push(req.body[f]); } });
-    vals.push(req.params.id);
-    await db.execute(`UPDATE contacts SET ${updates.join(', ')} WHERE id = ?`, vals);
+    vals.push(req.params.id, account_id);
+    await db.execute(`UPDATE contacts SET ${updates.join(', ')} WHERE id = ? AND account_id = ?`, vals);
     const updated = await db.execute(`SELECT * FROM contacts WHERE id = ?`, [req.params.id]);
     res.json(updated.rows[0]);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAuth, async (req, res) => {
   try {
-    await db.execute(`DELETE FROM contacts WHERE id = ?`, [req.params.id]);
+    const { account_id: del_account_id } = req.query;
+    if (!del_account_id) return res.status(400).json({ error: 'account_id required' });
+    const ownedDel = await db.execute(`SELECT id FROM contacts WHERE id = ? AND account_id = ?`, [req.params.id, del_account_id]);
+    if (!ownedDel.rows.length) return res.status(404).json({ error: 'Not found' });
+    await db.execute(`DELETE FROM contacts WHERE id = ? AND account_id = ?`, [req.params.id, del_account_id]);
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

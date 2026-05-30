@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { sendEmail, isEmailConfigured, buildInvoiceHtml } from '../utils/email.js';
 import { db } from '../db/schema.js';
+import { requireAuth } from '../middleware/auth.js';
 import { requirePlanFeature } from '../middleware/planGuard.js';
 import { v4 as uuid } from 'uuid';
 
@@ -70,10 +71,12 @@ router.get('/public/:token', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── GET single invoice with items ─────────────────────────────────
-router.get('/:id', async (req, res) => {
+// ── GET single invoice with items — scoped to account ────────────
+router.get('/:id', requireAuth, async (req, res) => {
+  const { account_id } = req.query;
+  if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
-    const inv = await db.execute(`SELECT * FROM invoices WHERE id = ?`, [req.params.id]);
+    const inv = await db.execute(`SELECT * FROM invoices WHERE id = ? AND account_id = ?`, [req.params.id, account_id]);
     if (!inv.rows.length) return res.status(404).json({ error: 'Not found' });
     const items = await db.execute(
       `SELECT * FROM invoice_items WHERE invoice_id = ? ORDER BY sort_order`, [req.params.id]
@@ -82,9 +85,15 @@ router.get('/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── PATCH update invoice ──────────────────────────────────────────
-router.patch('/:id', async (req, res) => {
+// ── PATCH update invoice — scoped to account ─────────────────────
+router.patch('/:id', requireAuth, async (req, res) => {
+  const { account_id } = req.body;
+  if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
+    // Verify ownership
+    const owned = await db.execute(`SELECT id FROM invoices WHERE id = ? AND account_id = ?`, [req.params.id, account_id]);
+    if (!owned.rows.length) return res.status(404).json({ error: 'Not found' });
+
     const allowed = ['status','amount_paid','paid_at','due_date','sent_at',
       'stripe_payment_link','notes','client_email'];
     const updates = [`updated_at = NOW()`];
@@ -93,8 +102,8 @@ router.patch('/:id', async (req, res) => {
       if (req.body[f] !== undefined) { updates.push(`${f} = ?`); vals.push(req.body[f]); }
     });
     if (req.body.status === 'paid' && !req.body.paid_at) updates.push(`paid_at = NOW()`);
-    vals.push(req.params.id);
-    await db.execute(`UPDATE invoices SET ${updates.join(', ')} WHERE id = ?`, vals);
+    vals.push(req.params.id, account_id);
+    await db.execute(`UPDATE invoices SET ${updates.join(', ')} WHERE id = ? AND account_id = ?`, vals);
     const updated = await db.execute(`SELECT * FROM invoices WHERE id = ?`, [req.params.id]);
     res.json(updated.rows[0]);
   } catch (e) { res.status(500).json({ error: e.message }); }
