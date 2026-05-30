@@ -580,6 +580,39 @@ export async function initSchemaV2() {
   console.log('✓ Schema V2 initialized');
 }
 
+
+// ── Force-create workspace tables (safe to call multiple times) ───
+export async function ensureWorkspaceTables() {
+  const stmts = [
+    `CREATE TABLE IF NOT EXISTS workspace_channels (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      "private" INTEGER DEFAULT 0,
+      description TEXT,
+      created_by TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`,
+    `CREATE TABLE IF NOT EXISTS workspace_messages (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL,
+      channel_id TEXT NOT NULL,
+      content TEXT NOT NULL,
+      sender_name TEXT,
+      sender_id TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_ws_channels_account ON workspace_channels(account_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_ws_msgs_channel ON workspace_messages(account_id, channel_id, created_at)`,
+  ];
+  for (const sql of stmts) {
+    try { await db.execute(sql); } catch(e) {
+      if (!e.message?.includes('already exists')) console.warn('Workspace migration:', e.message?.slice(0,100));
+    }
+  }
+  console.log('✓ Workspace tables ready');
+}
+
 export async function initStripeConnect() {
   // Ensure all Stripe Connect columns exist
   const cols = [

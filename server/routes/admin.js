@@ -110,6 +110,7 @@ router.get('/users', async (req, res) => {
         provider:     supaUser?.app_metadata?.provider || 'email',
         confirmed:    supaUser ? !!supaUser.email_confirmed_at : true,
         account:      acc,
+        accountId:    acc.id,  // explicit for account-only operations
         plan:         acc.plan || 'starter',
         sub_status:   acc.subscription_status || 'trialing',
         quote_count:  qMap[acc.id] || 0,
@@ -601,20 +602,84 @@ router.post('/user/:id/set-plan', async (req, res) => {
 });
 
 // ── Delete user account ───────────────────────────────────────────
-router.delete('/user/:id', async (req, res) => {
-  const sb = getSupabaseAdmin();
-  if (!sb) return res.status(503).json({ error: 'Supabase not configured' });
+router.delete('/user/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { accountId } = req.body; // optional: delete specific account only
+
+  // Safety: never delete the master account or the owner
+  if (userId === 'plex-master' || userId === req.user?.id) {
+    return res.status(403).json({ error: 'Cannot delete this account' });
+  }
+
   try {
-    // Delete from DB first (cascade)
-    const acc = await db.execute(`SELECT id FROM accounts WHERE owner_id = ?`, [req.params.id]);
-    for (const a of acc.rows) {
+    if (accountId) {
+      // Delete a specific account (not the Supabase user)
+      if (accountId === 'plex-master') return res.status(403).json({ error: 'Cannot delete master account' });
+      // Delete all related data first
+      await db.execute(`DELETE FROM quote_items WHERE quote_id IN (SELECT id FROM quotes WHERE account_id = ?)`, [accountId]);
+      await db.execute(`DELETE FROM quotes WHERE account_id = ?`, [accountId]);
+      await db.execute(`DELETE FROM invoice_items WHERE invoice_id IN (SELECT id FROM invoices WHERE account_id = ?)`, [accountId]);
+      await db.execute(`DELETE FROM invoices WHERE account_id = ?`, [accountId]);
+      await db.execute(`DELETE FROM contacts WHERE account_id = ?`, [accountId]);
+      await db.execute(`DELETE FROM account_members WHERE account_id = ?`, [accountId]);
+      await db.execute(`DELETE FROM calendar_events WHERE account_id = ?`, [accountId]);
+      await db.execute(`DELETE FROM documents WHERE account_id = ?`, [accountId]);
+      await db.execute(`DELETE FROM photos WHERE account_id = ?`, [accountId]);
+      await db.execute(`DELETE FROM accounts WHERE id = ?`, [accountId]);
+      return res.json({ ok: true, deleted: 'account', accountId });
+    }
+
+    // Full user delete — delete all their accounts + Supabase user
+    const sb = getSupabaseAdmin();
+    const userAccounts = await db.execute(`SELECT id FROM accounts WHERE owner_id = ? AND id != 'plex-master'`, [userId]);
+    for (const a of userAccounts.rows) {
+      await db.execute(`DELETE FROM quote_items WHERE quote_id IN (SELECT id FROM quotes WHERE account_id = ?)`, [a.id]);
+      await db.execute(`DELETE FROM quotes WHERE account_id = ?`, [a.id]);
+      await db.execute(`DELETE FROM invoice_items WHERE invoice_id IN (SELECT id FROM invoices WHERE account_id = ?)`, [a.id]);
+      await db.execute(`DELETE FROM invoices WHERE account_id = ?`, [a.id]);
+      await db.execute(`DELETE FROM contacts WHERE account_id = ?`, [a.id]);
+      await db.execute(`DELETE FROM account_members WHERE account_id = ?`, [a.id]);
+      await db.execute(`DELETE FROM calendar_events WHERE account_id = ?`, [a.id]);
+      await db.execute(`DELETE FROM documents WHERE account_id = ?`, [a.id]);
+      await db.execute(`DELETE FROM photos WHERE account_id = ?`, [a.id]);
       await db.execute(`DELETE FROM accounts WHERE id = ?`, [a.id]);
     }
-    // Delete from Supabase auth
-    const { error } = await sb.auth.admin.deleteUser(req.params.id);
-    if (error) return res.status(500).json({ error: error.message });
-    res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+
+    // Delete from Supabase auth if admin client available
+    if (sb) {
+      const { error } = await sb.auth.admin.deleteUser(userId);
+      if (error) console.warn('Supabase delete error:', error.message);
+    }
+    res.json({ ok: true, deleted: 'user', userId, accountsDeleted: userAccounts.rows.length });
+  } catch (e) {
+    console.error('Delete user error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+
+// ── Delete specific account (not the Supabase user) ──────────────
+router.delete('/account/:accountId', async (req, res) => {
+  const { accountId } = req.params;
+  if (!accountId || accountId === 'plex-master') {
+    return res.status(403).json({ error: 'Cannot delete this account' });
+  }
+  try {
+    await db.execute(`DELETE FROM quote_items WHERE quote_id IN (SELECT id FROM quotes WHERE account_id = ?)`, [accountId]);
+    await db.execute(`DELETE FROM quotes WHERE account_id = ?`, [accountId]);
+    await db.execute(`DELETE FROM invoice_items WHERE invoice_id IN (SELECT id FROM invoices WHERE account_id = ?)`, [accountId]);
+    await db.execute(`DELETE FROM invoices WHERE account_id = ?`, [accountId]);
+    await db.execute(`DELETE FROM contacts WHERE account_id = ?`, [accountId]);
+    await db.execute(`DELETE FROM account_members WHERE account_id = ?`, [accountId]);
+    await db.execute(`DELETE FROM calendar_events WHERE account_id = ?`, [accountId]);
+    await db.execute(`DELETE FROM documents WHERE account_id = ?`, [accountId]);
+    await db.execute(`DELETE FROM photos WHERE account_id = ?`, [accountId]);
+    await db.execute(`DELETE FROM accounts WHERE id = ?`, [accountId]);
+    res.json({ ok: true, deleted: 'account', accountId });
+  } catch (e) {
+    console.error('Delete account error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // ── Generate magic login link for user ───────────────────────────

@@ -32,16 +32,11 @@ async function assertAccountAccess(accountId, userId) {
 router.get('/channels/:channelId/messages', requireAuth, async (req, res) => {
   const { account_id } = req.query;
   if (!account_id) return res.status(400).json({ error: 'account_id required' });
-  // Validate channelId format (alphanumeric + hyphens only)
   if (!/^[a-zA-Z0-9_-]+$/.test(req.params.channelId)) return res.status(400).json({ error: 'Invalid channel ID' });
   try {
     await assertAccountAccess(account_id, req.user.id);
     const msgs = await db.execute(
-      `SELECT id, channel_id, content, sender_name, sender_id, created_at
-       FROM workspace_messages
-       WHERE account_id = ? AND channel_id = ?
-       ORDER BY created_at ASC
-       LIMIT 200`,
+      `SELECT id, channel_id, content, sender_name, sender_id, created_at FROM workspace_messages WHERE account_id = ? AND channel_id = ? ORDER BY created_at ASC LIMIT 200`,
       [account_id, req.params.channelId]
     );
     res.json(msgs.rows);

@@ -19,8 +19,13 @@ function sanitize(str, maxLen = 500) {
 }
 
 async function assertAccountAccess(accountId, userId) {
+  // Allow owner OR members
   const r = await db.execute(
-    `SELECT id FROM accounts WHERE id = ? AND owner_id = ?`, [accountId, userId]
+    `SELECT a.id FROM accounts a
+     WHERE a.id = ? AND (
+       a.owner_id = ?
+       OR EXISTS (SELECT 1 FROM account_members m WHERE m.account_id = a.id AND m.user_id = ? AND m.status = 'active')
+     )`, [accountId, userId, userId]
   );
   if (!r.rows.length) throw Object.assign(new Error('Account not found or access denied'), { status: 403 });
 }

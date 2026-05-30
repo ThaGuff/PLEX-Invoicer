@@ -6,7 +6,7 @@ import path           from 'path';
 import { fileURLToPath } from 'url';
 import helmet         from 'helmet';
 import rateLimit      from 'express-rate-limit';
-import { initDB, initSchemaV2, initStripeConnect } from './server/db/schema.js';
+import { initDB, initSchemaV2, initStripeConnect, ensureWorkspaceTables } from './server/db/schema.js';
 import { startDbHealthMonitor, getDbHealth } from './server/db/healthcheck.js';
 import { requireAuth, sanitizeRequest } from './server/middleware/auth.js';
 import { requirePlanFeature } from './server/middleware/planGuard.js';
@@ -109,10 +109,20 @@ const apiLimiter = rateLimit({
 // Strict limit for auth-adjacent routes
 const strictLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max:      20,              // 20 attempts per hour per IP
+  max:      20,              // 20 attempts per hour per IP (auth routes only)
   message: { error: 'Too many attempts, please try again later.' },
   standardHeaders: true,
   legacyHeaders:  false,
+});
+
+// Admin limiter — generous since the panel makes many calls
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max:      200,             // 200 requests per 15 min
+  message: { error: 'Admin rate limit exceeded, please wait a moment.' },
+  standardHeaders: true,
+  legacyHeaders:  false,
+  skip: (req) => req.ip === '127.0.0.1',
 });
 
 // Email/reminder endpoints (prevent spam)
@@ -546,7 +556,7 @@ app.post('/api/billing/portal', requireAuth, async (req, res) => {
 
 // ── Protected API routes ──────────────────────────────────────────
 app.use('/api/track',        trackingRouter);
-app.use('/api/admin',        requireAuth, strictLimiter, adminRouter);
+app.use('/api/admin',        requireAuth, adminLimiter, adminRouter);
 app.use('/api/stripe-connect', stripeConnectRouter); // callback is public
 app.use('/api/ai',           requireAuth, aiRouter);
 

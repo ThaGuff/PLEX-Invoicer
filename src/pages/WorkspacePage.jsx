@@ -161,6 +161,15 @@ export default function WorkspacePage() {
   const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
   const myName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'You';
 
+  // Load channels from API
+  useEffect(() => {
+    if (!account?.id) return;
+    fetch(`/api/workspace/channels?account_id=${account.id}`, { headers:{ Authorization:`Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.length) setChannels(data); })
+      .catch(() => {}); // fall back to DEFAULT_CHANNELS on error
+  }, [account?.id]);
+
   // Load messages for active channel
   const loadMessages = useCallback(async (channelId) => {
     if (!account?.id) return;
@@ -191,7 +200,7 @@ export default function WorkspacePage() {
     const optimistic = { id:`opt-${Date.now()}`, content, sender_name:myName, created_at:new Date().toISOString(), reactions:{}, reply_count:0, pending:true };
     setMessages(m => ({ ...m, [activeChannel]: [...(m[activeChannel]||[]), optimistic] }));
     try {
-      const r = await fetch(`/api/workspace/channels/${activeChannel}/messages`, {
+      const r = await fetch(`/api/workspace/channels/${activeChannel}/messages?account_id=${account?.id}`, {
         method:'POST', headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}` },
         body: JSON.stringify({ content, account_id:account.id, sender_name:myName })
       });

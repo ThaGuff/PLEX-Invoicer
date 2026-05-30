@@ -239,8 +239,12 @@ function UserPanel({ user, onClose, onRefresh }) {
                   }
                   <ActionBtn icon={Trash2} label="Delete account" variant="danger" loading={loading==='delete'}
                     onClick={() => {
-                      if (confirm(`PERMANENTLY DELETE ${user.email} and all their data? This cannot be undone.`)) {
-                        act('delete', () => api.admin.deleteUser(user.id), 'User deleted').then(() => { onRefresh?.(); onClose(); });
+                      if (confirm(`PERMANENTLY DELETE ${user.email} and ALL their data?\n\nThis cannot be undone.`)) {
+                        // Delete the account (and all its data) via accountId, fallback to userId
+                        const deleteFn = user.accountId
+                          ? () => api.admin.deleteUser(user.id, user.accountId)
+                          : () => api.admin.deleteUser(user.id);
+                        act('delete', deleteFn, 'Account deleted').then(() => { onRefresh?.(); onClose(); });
                       }
                     }} />
                 </div>

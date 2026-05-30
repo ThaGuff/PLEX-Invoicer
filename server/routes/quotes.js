@@ -76,19 +76,28 @@ router.post('/public/:token/accept', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── GET single quote with items — scoped to account ───────────────
+// ── GET single quote with items — verify user owns the account ────
 router.get('/:id', requireAuth, async (req, res) => {
-  const { account_id } = req.query;
-  if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
-    const quote = await db.execute(
-      `SELECT * FROM quotes WHERE id = ? AND account_id = ?`, [req.params.id, account_id]
-    );
+    // Fetch quote, then verify requesting user owns or is member of the account
+    const quote = await db.execute(`SELECT * FROM quotes WHERE id = ?`, [req.params.id]);
     if (!quote.rows.length) return res.status(404).json({ error: 'Not found' });
+
+    const q = quote.rows[0];
+    // Verify access: user must own or be a member of the account
+    const access = await db.execute(
+      `SELECT a.id FROM accounts a
+       WHERE a.id = ? AND (
+         a.owner_id = ?
+         OR EXISTS (SELECT 1 FROM account_members m WHERE m.account_id = a.id AND m.user_id = ?)
+       )`, [q.account_id, req.user.id, req.user.id]
+    );
+    if (!access.rows.length) return res.status(403).json({ error: 'Access denied' });
+
     const items = await db.execute(
       `SELECT * FROM quote_items WHERE quote_id = ? ORDER BY sort_order`, [req.params.id]
     );
-    res.json({ ...quote.rows[0], items: items.rows });
+    res.json({ ...q, items: items.rows });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -191,14 +200,12 @@ router.patch('/:id', requireAuth, async (req, res) => {
 
 // ── POST /api/quotes/:id/send — email quote to client ─────────────
 router.post('/:id/send', requireAuth, async (req, res) => {
-  const { account_id } = req.body;
-  if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
     const q = await db.execute(
       `SELECT q.*, a.name as agency_name, a.email as agency_email
        FROM quotes q JOIN accounts a ON q.account_id = a.id
-       WHERE q.id = ? AND q.account_id = ?`,
-      [req.params.id, account_id]
+       WHERE q.id = ?`,
+      [req.params.id]
     );
     if (!q.rows.length) return res.status(404).json({ error: 'Not found' });
     const quote = q.rows[0];
@@ -233,16 +240,18 @@ router.post('/:id/send', requireAuth, async (req, res) => {
   }
 });
 
-// ── POST convert quote to invoice — scoped to account ─────────────
+// ── POST convert quote to invoice — verify via auth ───────────────
 router.post('/:id/convert', requireAuth, async (req, res) => {
-  const { account_id } = req.body;
-  if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
-    const quote = await db.execute(
-      `SELECT * FROM quotes WHERE id = ? AND account_id = ?`, [req.params.id, account_id]
-    );
+    const quote = await db.execute(`SELECT * FROM quotes WHERE id = ?`, [req.params.id]);
     if (!quote.rows.length) return res.status(404).json({ error: 'Quote not found' });
     const q = quote.rows[0];
+    // Verify ownership
+    const access = await db.execute(
+      `SELECT id FROM accounts WHERE id = ? AND owner_id = ?`, [q.account_id, req.user.id]
+    );
+    if (!access.rows.length) return res.status(403).json({ error: 'Access denied' });
+    const account_id = q.account_id;
 
     // Idempotency: return existing invoice if already converted
     const alreadyConverted = await db.execute(

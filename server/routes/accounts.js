@@ -142,13 +142,31 @@ router.patch('/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// DELETE account
+// DELETE account — cascade delete all related data
 router.delete('/:id', async (req, res) => {
-  if (req.params.id === 'plex-master') return res.status(403).json({ error: 'Cannot delete master account' });
+  const id = req.params.id;
+  if (id === 'plex-master') return res.status(403).json({ error: 'Cannot delete master account' });
   try {
-    await db.execute(`DELETE FROM accounts WHERE id = ?`, [req.params.id]);
+    // Delete all child data first to avoid FK constraint errors
+    await db.execute(`DELETE FROM quote_items WHERE quote_id IN (SELECT id FROM quotes WHERE account_id = ?)`, [id]);
+    await db.execute(`DELETE FROM quotes WHERE account_id = ?`, [id]);
+    await db.execute(`DELETE FROM invoice_items WHERE invoice_id IN (SELECT id FROM invoices WHERE account_id = ?)`, [id]);
+    await db.execute(`DELETE FROM invoices WHERE account_id = ?`, [id]);
+    await db.execute(`DELETE FROM contacts WHERE account_id = ?`, [id]);
+    await db.execute(`DELETE FROM account_members WHERE account_id = ?`, [id]);
+    await db.execute(`DELETE FROM custom_items WHERE account_id = ?`, [id]).catch(() => {});
+    await db.execute(`DELETE FROM custom_sections WHERE account_id = ?`, [id]).catch(() => {});
+    await db.execute(`DELETE FROM calendar_events WHERE account_id = ?`, [id]).catch(() => {});
+    await db.execute(`DELETE FROM documents WHERE account_id = ?`, [id]).catch(() => {});
+    await db.execute(`DELETE FROM photos WHERE account_id = ?`, [id]).catch(() => {});
+    await db.execute(`DELETE FROM workspace_channels WHERE account_id = ?`, [id]).catch(() => {});
+    await db.execute(`DELETE FROM workspace_messages WHERE account_id = ?`, [id]).catch(() => {});
+    await db.execute(`DELETE FROM accounts WHERE id = ?`, [id]);
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    console.error('Delete account error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // ── Custom catalog: sections ─────────────────────────────────────
