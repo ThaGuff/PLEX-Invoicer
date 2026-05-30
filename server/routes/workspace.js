@@ -251,3 +251,5 @@ router.post('/members/:memberId/resend', requireAuth, async (req, res) => {
 
 
 ;
+
+export default router;

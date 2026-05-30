@@ -820,3 +820,5 @@ router.post('/migrate/set-master-owner', async (req, res) => {
     res.json({ ok: true, account: acc.rows[0] });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
+
+export default router;
