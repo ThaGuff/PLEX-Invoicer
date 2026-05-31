@@ -82,15 +82,23 @@ router.get('/public/:token', async (req, res) => {
 
 // ── GET single invoice with items — scoped to account ────────────
 router.get('/:id', requireAuth, async (req, res) => {
-  const { account_id } = req.query;
-  if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
-    const inv = await db.execute(`SELECT * FROM invoices WHERE id = ? AND account_id = ?`, [req.params.id, account_id]);
+    // Fetch invoice first, then verify ownership via auth (no account_id query param needed)
+    const inv = await db.execute(`SELECT * FROM invoices WHERE id = ?`, [req.params.id]);
     if (!inv.rows.length) return res.status(404).json({ error: 'Not found' });
+    const invoice = inv.rows[0];
+    // Verify user owns or is member of the account
+    if (req.user.id !== 'dev-user') {
+      const access = await db.execute(
+        `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ?))`,
+        [invoice.account_id, req.user.id, req.user.id]
+      );
+      if (!access.rows.length) return res.status(403).json({ error: 'Access denied' });
+    }
     const items = await db.execute(
       `SELECT * FROM invoice_items WHERE invoice_id = ? ORDER BY sort_order`, [req.params.id]
     );
-    res.json({ ...inv.rows[0], items: items.rows });
+    res.json({ ...invoice, items: items.rows });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
