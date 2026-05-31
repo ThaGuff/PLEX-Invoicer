@@ -83,7 +83,6 @@ Rules:
   }
 });
 
-export default router;
 
 // ── AI Chat Assistant — proxy to Anthropic (keeps API key server-side) ─
 router.post('/chat', async (req, res) => {
@@ -117,3 +116,5 @@ router.post('/chat', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+
+export default router;
