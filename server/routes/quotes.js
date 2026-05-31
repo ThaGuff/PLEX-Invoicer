@@ -26,7 +26,8 @@ router.get('/', requireAuth, async (req, res) => {
   if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
     // Verify requesting user actually owns or is a member of this account
-    if (req.user.id !== 'dev-user') {
+    const _isOwner = req.user.email === (process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com');
+    if (req.user.id !== 'dev-user' && !_isOwner) {
       const access = await db.execute(
         `SELECT id FROM accounts WHERE id = ? AND (
           owner_id = ?
@@ -96,7 +97,8 @@ router.get('/:id', requireAuth, async (req, res) => {
     const q = quote.rows[0];
     // Verify access: user must own or be a member of the account
     // dev-user has full access in development
-    if (req.user.id !== 'dev-user') {
+    const _isOwner = req.user.email === (process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com');
+    if (req.user.id !== 'dev-user' && !_isOwner) {
       const access = await db.execute(
         `SELECT a.id FROM accounts a
          WHERE a.id = ? AND (
@@ -202,7 +204,8 @@ router.patch('/:id', requireAuth, async (req, res) => {
     }
 
     // Verify user owns the account
-    if (req.user.id !== 'dev-user') {
+    const _isOwner = req.user.email === (process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com');
+    if (req.user.id !== 'dev-user' && !_isOwner) {
       const access = await db.execute(
         `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ?))`,
         [q.account_id, req.user.id, req.user.id]
@@ -275,7 +278,8 @@ router.post('/:id/convert', requireAuth, async (req, res) => {
     if (!quote.rows.length) return res.status(404).json({ error: 'Quote not found' });
     const q = quote.rows[0];
     // Verify ownership (dev-user bypasses)
-    if (req.user.id !== 'dev-user') {
+    const _isOwner = req.user.email === (process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com');
+    if (req.user.id !== 'dev-user' && !_isOwner) {
       const access = await db.execute(
         `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ?))`,
         [q.account_id, req.user.id, req.user.id]
@@ -350,7 +354,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
     if (q.account_id === 'plex-master' && req.user.email !== process.env.PLEX_OWNER_EMAIL) {
       return res.status(403).json({ error: 'Access denied' });
     }
-    if (req.user.id !== 'dev-user') {
+    const _isOwner = req.user.email === (process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com');
+    if (req.user.id !== 'dev-user' && !_isOwner) {
       const access = await db.execute(
         `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ?))`,
         [q.account_id, req.user.id, req.user.id]

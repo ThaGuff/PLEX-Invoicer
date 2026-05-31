@@ -259,14 +259,26 @@ router.delete('/:id/items/:iid', async (req, res) => {
 });
 
 // ── Logo upload ──────────────────────────────────────────────────
-router.post('/:id/logo', async (req, res) => {
+router.post('/:id/logo', requireAuth, async (req, res) => {
   try {
     const { logo_data_url } = req.body;
-    if (!logo_data_url && logo_data_url !== '') return res.status(400).json({ error: 'logo_data_url required' });
-    if (logo_data_url && !logo_data_url.startsWith('data:image/')) return res.status(400).json({ error: 'Must be an image data URL' });
+    // Allow clearing (empty string) or setting a new logo (data URL or https URL)
+    if (logo_data_url === undefined) return res.status(400).json({ error: 'logo_data_url required' });
+    if (logo_data_url && !logo_data_url.startsWith('data:image/') && !logo_data_url.startsWith('https://')) {
+      return res.status(400).json({ error: 'Must be an image data URL or HTTPS URL' });
+    }
+    // Size check - base64 data URLs for images can be large
+    if (logo_data_url && logo_data_url.length > 4 * 1024 * 1024) {
+      return res.status(413).json({ error: 'Logo image too large — please use an image under 3MB' });
+    }
     await db.execute(`UPDATE accounts SET logo_url = ? WHERE id = ?`, [logo_data_url || null, req.params.id]);
-    res.json({ ok: true, logo_url: logo_data_url || null });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+    // Return the updated account so the frontend can refresh
+    const updated = await db.execute(`SELECT * FROM accounts WHERE id = ?`, [req.params.id]);
+    res.json({ ok: true, logo_url: logo_data_url || null, account: updated.rows[0] });
+  } catch (e) {
+    console.error('Logo upload error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 export default router;

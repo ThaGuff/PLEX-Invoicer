@@ -12,7 +12,8 @@ router.get('/', requireAuth, async (req, res) => {
   const { account_id } = req.query;
   if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
-    if (req.user.id !== 'dev-user') {
+    const _listIsOwner = req.user.email === (process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com');
+    if (req.user.id !== 'dev-user' && !_listIsOwner) {
       const access = await db.execute(
         `SELECT id FROM accounts WHERE id = ? AND (
           owner_id = ?
@@ -88,7 +89,9 @@ router.get('/:id', requireAuth, async (req, res) => {
     if (!inv.rows.length) return res.status(404).json({ error: 'Not found' });
     const invoice = inv.rows[0];
     // Verify user owns or is member of the account
-    if (req.user.id !== 'dev-user') {
+    // Also allow PLEX_OWNER_EMAIL to access all accounts (handles null owner_id on plex-master)
+    const isOwnerEmail = req.user.email === (process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com');
+    if (req.user.id !== 'dev-user' && !isOwnerEmail) {
       const access = await db.execute(
         `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ?))`,
         [invoice.account_id, req.user.id, req.user.id]

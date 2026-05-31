@@ -9,7 +9,8 @@ router.get('/', requireAuth, async (req, res) => {
   const { account_id } = req.query;
   if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
-    if (req.user.id !== 'dev-user') {
+    const _isOwner = req.user.email === (process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com');
+    if (req.user.id !== 'dev-user' && !_isOwner) {
       const access = await db.execute(
         `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ? AND status = 'active'))`,
         [account_id, req.user.id, req.user.id]
@@ -60,7 +61,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
     const contact = await db.execute(`SELECT * FROM contacts WHERE id = ?`, [req.params.id]);
     if (!contact.rows.length) return res.status(404).json({ error: 'Not found' });
     const c = contact.rows[0];
-    if (req.user.id !== 'dev-user') {
+    const _isOwner = req.user.email === (process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com');
+    if (req.user.id !== 'dev-user' && !_isOwner) {
       const access = await db.execute(
         `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ?))`,
         [c.account_id, req.user.id, req.user.id]

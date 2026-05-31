@@ -114,10 +114,11 @@ router.get('/members', requireAuth, async (req, res) => {
   const { account_id } = req.query;
   if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
+    // Return ALL members including pending invites so team management works
     const members = await db.execute(
       `SELECT am.*, am.invited_email as email FROM account_members am
-       WHERE am.account_id = ? AND am.status = 'active'
-       ORDER BY am.created_at ASC`,
+       WHERE am.account_id = ?
+       ORDER BY am.status DESC, am.created_at ASC`,
       [account_id]
     );
     res.json(members.rows);

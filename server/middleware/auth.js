@@ -38,9 +38,10 @@ export function sanitizeRequest(req, res, next) {
 
 // Verify Supabase JWT by calling REST API directly — no SDK, no WebSocket
 async function verifyToken(token) {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_KEY;
-  if (!url || !key) return null; // dev mode
+  // Try all possible env var names Railway might use
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null; // dev mode - no Supabase configured
 
   const res = await fetch(`${url}/auth/v1/user`, {
     headers: {
@@ -53,7 +54,7 @@ async function verifyToken(token) {
 }
 
 export async function requireAuth(req, res, next) {
-  const SUPABASE_CONFIGURED = !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY);
+  const SUPABASE_CONFIGURED = !!((process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL) && (process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY));
 
   if (!SUPABASE_CONFIGURED) {
     req.user = { id: 'dev-user', email: 'dev@localhost' };

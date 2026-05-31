@@ -13,8 +13,8 @@ import { db } from '../db/schema.js';
 const router = Router();
 
 function getSupabase() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_KEY;
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
   // Stub WebSocket to prevent Node 20 crash during createClient construction
   const hadWS = !!globalThis.WebSocket;

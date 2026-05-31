@@ -86,8 +86,8 @@ Rules:
 
 // ── AI Chat Assistant — proxy to Anthropic (keeps API key server-side) ─
 router.post('/chat', async (req, res) => {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return res.status(503).json({ error: 'AI not configured' });
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return res.status(503).json({ error: 'OPENAI_API_KEY not configured in Railway Variables' });
 
   const { messages, system } = req.body;
   if (!Array.isArray(messages) || !messages.length) {
@@ -95,23 +95,26 @@ router.post('/chat', async (req, res) => {
   }
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    // Build OpenAI messages format - include system as first message if provided
+    const openAiMessages = [];
+    if (system) openAiMessages.push({ role: 'system', content: system });
+    openAiMessages.push(...messages.slice(-10).map(m => ({ role: m.role, content: m.content })));
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'gpt-4o-mini',
         max_tokens: 800,
-        system: system || '',
-        messages: messages.slice(-10), // limit context to last 10 messages
+        messages: openAiMessages,
       }),
     });
     const data = await response.json();
     if (!response.ok) return res.status(502).json({ error: data.error?.message || 'AI error' });
-    res.json({ content: data.content?.[0]?.text || '' });
+    res.json({ content: data.choices?.[0]?.message?.content || '' });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

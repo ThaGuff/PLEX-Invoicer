@@ -33,10 +33,12 @@ function LogoUploader({ accountId, currentLogoUrl, currentInitial, accentColor, 
       const dataUrl = ev.target.result;
       setPreview(dataUrl);
       try {
-        await api.accounts.uploadLogo(accountId, dataUrl);
+        const result = await api.accounts.uploadLogo(accountId, dataUrl);
+        if (result?.error) throw new Error(result.error);
         onUploaded(dataUrl);
       } catch (err) {
-        alert('Upload failed: ' + err.message);
+        console.error('Logo upload failed:', err);
+        alert('Logo upload failed: ' + (err.message || 'Please try a smaller image'));
         setPreview(currentLogoUrl);
       }
       setUploading(false);

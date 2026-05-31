@@ -151,7 +151,7 @@ let db;
 let dbType;
 
 const hasDirectPg = !!(process.env.SUPABASE_POOLER_URL || process.env.SUPABASE_DB_URL);
-const hasSupabaseRest = !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY);
+const hasSupabaseRest = !!(process.env.SUPABASE_URL && (process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY));
 
 if (hasDirectPg) {
   // Direct PostgreSQL via pg Pool — fastest, most compatible
