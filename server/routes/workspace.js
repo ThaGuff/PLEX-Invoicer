@@ -28,8 +28,6 @@ async function assertAccountAccess(accountId, userId) {
     if (!exists.rows.length) throw Object.assign(new Error('Account not found'), { status: 404 });
     // Account exists but user doesn't have access - silent allow for compatibility
   }
-});
-  }
 }
 
 // ── GET /api/workspace/channels/:channelId/messages ───────────────
