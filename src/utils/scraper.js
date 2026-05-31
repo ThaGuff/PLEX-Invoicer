@@ -7,9 +7,13 @@ export async function scrapeWebsite(url) {
   if (!url) return { success: false, error: 'Please enter a URL.' };
   const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;
   try {
+    const token = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
     const res = await fetch('/api/scrape', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({ url: normalized }),
       signal: AbortSignal.timeout(45000),
     });
