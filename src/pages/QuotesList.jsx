@@ -42,8 +42,12 @@ export default function QuotesList() {
   const handleDelete = async (id, e) => {
     e.stopPropagation();
     if (!confirm('Delete this quote?')) return;
-    await api.quotes.delete(id);
-    setQuotes(q => q.filter(x => x.id !== id));
+    try {
+      await api.quotes.delete(id);
+      setQuotes(q => q.filter(x => x.id !== id));
+    } catch (err) {
+      alert('Failed to delete quote: ' + (err.message || 'Unknown error'));
+    }
   };
 
   const handleConvert = async (id, e) => {

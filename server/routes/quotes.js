@@ -20,11 +20,21 @@ async function getQuoteForAccount(quoteId, accountId) {
   return result.rows[0] || null;
 }
 
-// ── GET all quotes for account ────────────────────────────────────
-router.get('/', async (req, res) => {
+// ── GET all quotes for account — requires auth + account ownership ─
+router.get('/', requireAuth, async (req, res) => {
   const { account_id } = req.query;
   if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
+    // Verify requesting user actually owns or is a member of this account
+    if (req.user.id !== 'dev-user') {
+      const access = await db.execute(
+        `SELECT id FROM accounts WHERE id = ? AND (
+          owner_id = ?
+          OR id IN (SELECT account_id FROM account_members WHERE user_id = ? AND status = 'active')
+        )`, [account_id, req.user.id, req.user.id]
+      );
+      if (!access.rows.length) return res.status(403).json({ error: 'Access denied' });
+    }
     const quotes = await db.execute(
       `SELECT q.*, c.name as contact_name
        FROM quotes q LEFT JOIN contacts c ON q.contact_id = c.id
@@ -219,7 +229,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
 router.post('/:id/send', requireAuth, async (req, res) => {
   try {
     const q = await db.execute(
-      `SELECT q.*, a.name as agency_name, a.email as agency_email
+      `SELECT q.*, a.name as agency_name, a.email as agency_email, a.logo_url as agency_logo_url
        FROM quotes q JOIN accounts a ON q.account_id = a.id
        WHERE q.id = ?`,
       [req.params.id]
@@ -242,6 +252,7 @@ router.post('/:id/send', requireAuth, async (req, res) => {
         amount: `$${Math.round(quote.amount_due || quote.setup_total || 0).toLocaleString()}`,
         expiryDate: quote.expiry_date,
         portalUrl,
+        logoUrl: quote.agency_logo_url || null,
       }),
       text: `Hi ${quote.client_name || 'there'},\n\nYour quote ${quote.number} is ready to review.\n\nView and sign: ${portalUrl}\n\n${quote.agency_name || 'Revanew'}`,
     });

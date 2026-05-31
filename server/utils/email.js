@@ -78,11 +78,12 @@ async function sendViaSMTP({ to, from, subject, html, text }) {
 export const isEmailConfigured = () =>
   !!(process.env.RESEND_API_KEY || (process.env.SMTP_HOST && process.env.SMTP_USER));
 
-export function buildInvoiceHtml({ clientName, agencyName, invoiceNum, amount, dueDate, portalUrl }) {
+export function buildInvoiceHtml({ clientName, agencyName, invoiceNum, amount, dueDate, portalUrl, logoUrl }) {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#F8FAFC;font-family:'Helvetica Neue',Arial,sans-serif">
 <div style="max-width:600px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06)">
   <div style="background:linear-gradient(135deg,#2563EB,#0D9488);padding:32px 40px">
+    ${logoUrl ? `<img src="${logoUrl}" alt="${agencyName||'Logo'}" style="height:40px;margin-bottom:16px;object-fit:contain;border-radius:6px;background:#fff;padding:4px">` : ''}
     <h1 style="color:#fff;margin:0;font-size:24px;font-weight:800">Invoice from ${agencyName||'Revanew'}</h1>
     <p style="color:rgba(255,255,255,0.85);margin:8px 0 0;font-size:14px">Invoice #${invoiceNum}</p>
   </div>
@@ -108,11 +109,12 @@ export function buildInvoiceHtml({ clientName, agencyName, invoiceNum, amount, d
 </body></html>`;
 }
 
-export function buildQuoteHtml({ clientName, agencyName, quoteNum, amount, expiryDate, portalUrl }) {
+export function buildQuoteHtml({ clientName, agencyName, quoteNum, amount, expiryDate, portalUrl, logoUrl }) {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#F8FAFC;font-family:'Helvetica Neue',Arial,sans-serif">
 <div style="max-width:600px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06)">
   <div style="background:linear-gradient(135deg,#2563EB,#0D9488);padding:32px 40px">
+    ${logoUrl ? `<img src="${logoUrl}" alt="${agencyName||'Logo'}" style="height:40px;margin-bottom:16px;object-fit:contain;border-radius:6px;background:#fff;padding:4px">` : ''}
     <h1 style="color:#fff;margin:0;font-size:24px;font-weight:800">Quote from ${agencyName||'Revanew'}</h1>
     <p style="color:rgba(255,255,255,0.85);margin:8px 0 0;font-size:14px">Quote #${quoteNum}</p>
   </div>

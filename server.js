@@ -6,7 +6,7 @@ import path           from 'path';
 import { fileURLToPath } from 'url';
 import helmet         from 'helmet';
 import rateLimit      from 'express-rate-limit';
-import { initDB, initSchemaV2, initStripeConnect, ensureWorkspaceTables } from './server/db/schema.js';
+import { initDB, initSchemaV2, initStripeConnect, ensureWorkspaceTables, migrateCalendarEvents } from './server/db/schema.js';
 import { startDbHealthMonitor, getDbHealth } from './server/db/healthcheck.js';
 import { requireAuth, sanitizeRequest } from './server/middleware/auth.js';
 import { requirePlanFeature } from './server/middleware/planGuard.js';

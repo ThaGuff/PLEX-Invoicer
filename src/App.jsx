@@ -455,26 +455,7 @@ function AppShell({ children }) {
         </React.Suspense>
       )}
 
-      {/* Mobile top header - simplified, no extra New Quote button */}
-      <header className="md:hidden" style={{
-        position:'sticky', top:0, zIndex:80,
-        background:'rgba(255,255,255,0.95)', backdropFilter:'blur(20px)',
-        WebkitBackdropFilter:'blur(20px)',
-        borderBottom:'1px solid rgba(0,0,0,0.07)',
-        padding:'12px 16px',
-        display:'flex', alignItems:'center', justifyContent:'space-between',
-        boxShadow:'0 2px 16px rgba(0,0,0,0.06)',
-      }}>
-        {/* Logo */}
-        <NavLink to="/" style={{ display:'flex', alignItems:'center', gap:8, textDecoration:'none' }}>
-          <img src="/logo-revanew.png" alt="Revanew" style={{ width:28, height:28, borderRadius:8 }}/>
-          <span style={{ fontSize:17, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.04em' }}>Revanew</span>
-        </NavLink>
-        {/* Right side: avatar only - Quote is in bottom nav */}
-        <button onClick={() => window.dispatchEvent(new CustomEvent('revanew:settings'))} style={{ width:36, height:36, borderRadius:12, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#2563EB,#7C3AED)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:800, boxShadow:'0 2px 8px rgba(37,99,235,0.35)' }}>
-          {(user?.user_metadata?.full_name || user?.email || 'U').charAt(0).toUpperCase()}
-        </button>
-      </header>
+{/* Mobile header removed — sidebar nav is the primary navigation */}
 
       {showSettings   && <AccountSettings onClose={() => setShowSettings(false)} />}
       {showNewAccount && <NewAccountModal onClose={() => setShowNewAccount(false)} onCreated={() => {}} />}

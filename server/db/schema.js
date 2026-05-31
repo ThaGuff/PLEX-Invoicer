@@ -617,6 +617,24 @@ export async function ensureWorkspaceTables() {
   console.log('✓ Workspace tables ready');
 }
 
+// ── Migrate calendar_events table with new columns ─────────────────
+export async function migrateCalendarEvents() {
+  const cols = [
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS end_time TEXT`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'Job'`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS color TEXT DEFAULT '#2563EB'`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS assigned_to TEXT`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS tags TEXT`,
+  ];
+  for (const sql of cols) {
+    try { await db.execute(sql); } catch(e) {
+      if (!e.message?.includes('already exists') && !e.message?.includes('duplicate')) {
+        console.warn('Calendar migration:', e.message?.slice(0,80));
+      }
+    }
+  }
+}
+
 export async function initStripeConnect() {
   // Ensure all Stripe Connect columns exist
   const cols = [

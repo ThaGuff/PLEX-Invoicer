@@ -7,11 +7,20 @@ import { v4 as uuid } from 'uuid';
 
 const router = Router();
 
-// ── GET all invoices for account ──────────────────────────────────
-router.get('/', async (req, res) => {
+// ── GET all invoices for account — requires auth + ownership ────────
+router.get('/', requireAuth, async (req, res) => {
   const { account_id } = req.query;
   if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
+    if (req.user.id !== 'dev-user') {
+      const access = await db.execute(
+        `SELECT id FROM accounts WHERE id = ? AND (
+          owner_id = ?
+          OR id IN (SELECT account_id FROM account_members WHERE user_id = ? AND status = 'active')
+        )`, [account_id, req.user.id, req.user.id]
+      );
+      if (!access.rows.length) return res.status(403).json({ error: 'Access denied' });
+    }
     const result = await db.execute(
       `SELECT i.*, c.name as contact_name
        FROM invoices i LEFT JOIN contacts c ON i.contact_id = c.id

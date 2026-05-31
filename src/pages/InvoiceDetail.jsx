@@ -47,8 +47,10 @@ export default function InvoiceDetail() {
   const [emailBody, setEmailBody]         = useState('');
 
   useEffect(() => {
+    if (!id) { setLoading(false); return; }
     api.invoices.get(id)
       .then(data => {
+        if (data?.error) { console.error('Invoice fetch error:', data.error); setLoading(false); return; }
         setInvoice(data);
         setItems(data.items || []);
         setEmailTo(data.client_email || '');
@@ -63,7 +65,7 @@ Total due: $${Math.round(data.amount_due||0).toLocaleString()}
 
 Thank you!`);
       })
-      .catch(console.error)
+      .catch(e => { console.error('Invoice fetch error:', e); })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -126,7 +128,14 @@ Thank you!`);
     : null;
 
   if (loading) return <div className="flex items-center justify-center h-64 text-ink-muted text-sm">Loading...</div>;
-  if (!invoice) return <div className="p-8 text-center text-ink-muted">Invoice not found.</div>;
+  if (!invoice) return (
+    <div style={{ padding:48, textAlign:'center' }}>
+      <p style={{ color:'var(--text-muted)', marginBottom:16 }}>
+        {loading ? 'Loading invoice…' : 'Invoice not found or you do not have access to it.'}
+      </p>
+      {!loading && <button onClick={() => window.history.back()} style={{ padding:'8px 20px', borderRadius:8, border:'1px solid var(--border)', background:'var(--bg-raised)', cursor:'pointer', color:'var(--text-primary)' }}>← Go back</button>}
+    </div>
+  );
 
   const status = getStatus(invoice);
   const statusColor = STATUS_COLORS[status] || '#7A7E85';

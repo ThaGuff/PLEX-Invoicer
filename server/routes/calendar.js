@@ -11,7 +11,7 @@ const router = Router();
 
 // ── Helpers ───────────────────────────────────────────────────────
 const VALID_STATUSES = ['scheduled', 'in_progress', 'completed', 'cancelled'];
-const ALLOWED_FIELDS = ['title', 'date', 'time', 'duration', 'location', 'notes', 'status', 'client_name', 'client_email'];
+const ALLOWED_FIELDS = ['title', 'date', 'time', 'end_time', 'duration', 'location', 'notes', 'status', 'client_name', 'client_email', 'type', 'color', 'assigned_to', 'tags'];
 
 function sanitize(str, maxLen = 500) {
   if (str == null) return null;
@@ -53,7 +53,7 @@ router.get('/', requireAuth, async (req, res) => {
 
 // ── POST /api/calendar ────────────────────────────────────────────
 router.post('/', requireAuth, async (req, res) => {
-  const { account_id, title, date, time, duration, location, notes, status } = req.body;
+  const { account_id, title, date, time, end_time, duration, location, notes, status, type, color, assigned_to, tags } = req.body;
   if (!account_id) return res.status(400).json({ error: 'account_id required' });
   if (!title?.trim()) return res.status(400).json({ error: 'title required' });
   if (!date) return res.status(400).json({ error: 'date required' });
@@ -65,9 +65,9 @@ router.post('/', requireAuth, async (req, res) => {
     const { v4: uuid } = await import('uuid');
     const id = `ev-${uuid()}`;
     await db.execute(
-      `INSERT INTO calendar_events (id, account_id, title, date, time, duration, location, notes, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, account_id, sanitize(title, 200), date, sanitize(time, 10), duration || 60, sanitize(location, 300), sanitize(notes), status || 'scheduled']
+      `INSERT INTO calendar_events (id, account_id, title, date, time, end_time, duration, location, notes, status, type, color, assigned_to, tags)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, account_id, sanitize(title, 200), date, sanitize(time, 10), sanitize(end_time, 10), duration || 60, sanitize(location, 300), sanitize(notes), status || 'scheduled', sanitize(type, 50), sanitize(color, 20), sanitize(assigned_to, 200), sanitize(tags, 500)]
     );
     const ev = await db.execute(`SELECT * FROM calendar_events WHERE id = ?`, [id]);
     res.status(201).json(ev.rows[0]);

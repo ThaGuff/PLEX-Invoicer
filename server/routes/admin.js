@@ -740,9 +740,15 @@ router.get('/health', async (req, res) => {
     checks.db_persistent = !!process.env.SUPABASE_DB_URL;
   } catch {}
 
-  // Supabase
-  const sb = getSupabaseAdmin();
-  if (sb) { try { await sb.auth.admin.listUsers({ perPage: 1 }); checks.supabase = true; } catch {} }
+  // Supabase auth check - checks both URL/key config and actual connectivity
+  checks.supabase = !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY);
+  if (checks.supabase) {
+    const sb = getSupabaseAdmin();
+    if (sb) {
+      try { await sb.auth.admin.listUsers({ perPage: 1 }); checks.supabase = true; }
+      catch (e) { checks.supabase_error = e.message?.slice(0, 80); }
+    }
+  }
 
   // SMTP (just check env vars)
   checks.smtp   = !!(process.env.SMTP_HOST && process.env.SMTP_USER);

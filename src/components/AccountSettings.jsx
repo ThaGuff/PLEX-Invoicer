@@ -531,7 +531,7 @@ export default function AccountSettings({ onClose }) {
               currentLogoUrl={logoUrl}
               currentInitial={form.logo_initial || form.name?.[0]}
               accentColor={accent}
-              onUploaded={url => setLogoUrl(url)}
+              onUploaded={async url => { setLogoUrl(url); try { await refreshAccount(activeId); } catch {} }}
             />
           </section>
 
