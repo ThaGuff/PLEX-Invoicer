@@ -94,21 +94,19 @@ export default function AIAssistant() {
 
   return (
     <>
-      {/* Floating button - desktop only (bottom right), hidden on mobile */}
+      {/* Floating AI button — shows on both mobile and desktop */}
       <button onClick={() => setOpen(v => !v)}
         style={{
           position:'fixed',
-          bottom:24,
-          right:24,
-          width:52, height:52, borderRadius:'50%',
+          // On mobile: sit above the bottom nav (68px nav + 8px gap)
+          bottom: window.innerWidth < 768 ? 84 : 24,
+          right: 16,
+          width:48, height:48, borderRadius:'50%',
           background:'linear-gradient(135deg,#7C3AED,#2563EB)',
           border:'none', cursor:'pointer', zIndex:200,
           display:'flex', alignItems:'center', justifyContent:'center',
           boxShadow:'0 8px 24px rgba(124,58,237,0.4)',
           transition:'transform 0.2s, box-shadow 0.2s',
-          // Hide on mobile to avoid overlapping bottom nav
-          visibility: typeof window !== 'undefined' && window.innerWidth < 768 ? 'hidden' : 'visible',
-          pointerEvents: typeof window !== 'undefined' && window.innerWidth < 768 ? 'none' : 'auto',
         }}
         onMouseEnter={e => { e.currentTarget.style.transform='scale(1.1)'; e.currentTarget.style.boxShadow='0 12px 32px rgba(124,58,237,0.5)'; }}
         onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; e.currentTarget.style.boxShadow='0 8px 24px rgba(124,58,237,0.4)'; }}
@@ -120,8 +118,8 @@ export default function AIAssistant() {
       {open && (
         <div style={{
           position:'fixed',
-          bottom:88,
-          right:24,
+          bottom: window.innerWidth < 768 ? 144 : 88,
+          right: 8,
           width: Math.min(380, window.innerWidth - 32),
           height: 480,
           background:'var(--bg-surface)',

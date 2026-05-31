@@ -352,6 +352,8 @@ export default function AccountSettings({ onClose }) {
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
   const [logoUrl, setLogoUrl]     = useState(account?.logo_url || null);
+  // Sync logoUrl when account changes (e.g. after refreshAccount)
+  React.useEffect(() => { if (account?.logo_url !== undefined) setLogoUrl(account.logo_url || null); }, [account?.logo_url]);
   const [saving, setSaving]       = useState(false);
   const [savedOk, setSavedOk]     = useState(false);
 
@@ -533,7 +535,15 @@ export default function AccountSettings({ onClose }) {
               currentLogoUrl={logoUrl}
               currentInitial={form.logo_initial || form.name?.[0]}
               accentColor={accent}
-              onUploaded={async url => { setLogoUrl(url); try { await refreshAccount(activeId); } catch {} }}
+              onUploaded={async url => {
+                // Immediately update local preview
+                setLogoUrl(url);
+                // Refresh account context so it propagates everywhere
+                try {
+                  const updated = await refreshAccount(activeId);
+                  if (updated?.logo_url !== undefined) setLogoUrl(updated.logo_url || null);
+                } catch (e) { console.warn('Logo refresh failed:', e.message); }
+              }}
             />
           </section>
 

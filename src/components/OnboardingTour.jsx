@@ -1,19 +1,12 @@
 /**
- * InteractiveOnboardingTour — navigates WITH the user, highlights real UI
- * Shows a floating tooltip anchored to actual page elements
- * Each step navigates to the right page and points at the right thing
+ * OnboardingTour — clean step-by-step guide
+ * Uses a spotlight cutout technique: dark overlay with a visible "hole"
+ * around the target element, tooltip positioned nearby
  */
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, ArrowRight, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 
-/* ── Tour step definitions ───────────────────────────────────────────
-   selector: CSS selector of element to highlight (null = center screen)
-   route: navigate here before showing this step
-   position: where to show tooltip relative to highlight ('top'|'bottom'|'left'|'right'|'center')
-   action: text on primary button (null = just Next)
-   waitForNav: if true, wait for user to navigate away (they completed the action)
-*/
 const STEPS = [
   {
     id: 'welcome',
@@ -21,291 +14,143 @@ const STEPS = [
     selector: null,
     position: 'center',
     title: '👋 Welcome to Revanew!',
-    body: "Let's take 2 minutes to set up your account. We'll walk you through each step — you can follow along or skip any step.",
+    body: "Let's take 2 minutes to get you set up. We'll walk through the key features — follow along or skip anytime.",
     action: 'Start setup',
     skippable: true,
   },
   {
-    id: 'nav-admin',
-    route: '/admin',
-    selector: 'a[href="/admin"], button[title*="Admin"], [data-tour="admin-link"]',
-    position: 'bottom',
-    title: '🏢 Step 1: Business Info',
-    body: 'First, add your business name, logo color, and contact details. This appears on every quote and invoice your clients see.',
-    action: 'Open Admin',
-    highlight: true,
-  },
-  {
-    id: 'business-form',
-    route: '/admin',
-    selector: '[data-tour="account-settings"], .account-settings-form, input[placeholder*="name"], input[placeholder*="business"]',
+    id: 'business-settings',
+    route: '/',
+    selector: '[data-tour="settings-btn"], .desktop-sidebar [style*="Settings"], button[title*="settings"], button[onClick*="settings"]',
+    selectorFallback: '.desktop-sidebar button:last-of-type',
     position: 'right',
-    title: '✏️ Fill in your details',
-    body: 'Enter your business name, email, phone, and website. Hit Save when done — this info auto-fills on every document you create.',
-    action: 'Got it',
-    highlight: true,
-  },
-  {
-    id: 'services-intro',
-    route: '/admin',
-    selector: '[data-tour="services-section"], [class*="service"]',
-    position: 'top',
-    title: '⚡ Step 2: Add Your Services',
-    body: 'Add the services you offer — cleaning, roofing, landscaping, etc. Once added, you select them when building quotes instead of typing from scratch.',
-    action: 'Got it',
-    highlight: true,
-  },
-  {
-    id: 'scraper-tip',
-    route: '/admin',
-    selector: '[data-tour="scraper"], input[placeholder*="URL"], input[placeholder*="website"]',
-    position: 'bottom',
-    title: '🤖 AI Import (shortcut!)',
-    body: 'Have a website? Paste your URL here and our AI will automatically import your services and pricing. Saves 10+ minutes of manual entry.',
-    action: 'Got it',
-    highlight: true,
-  },
-  {
-    id: 'stripe-connect',
-    route: '/admin',
-    selector: '[data-tour="stripe-connect"], [class*="stripe"], button[class*="connect"]',
-    position: 'top',
-    title: '💳 Step 3: Connect Stripe',
-    body: 'Connect Stripe to accept credit card payments directly from invoices. Clients pay online — you get paid faster. Takes about 5 minutes.',
+    title: '🏢 Step 1: Your Business Info',
+    body: 'Click your profile in the bottom-left sidebar to open Account Settings. Add your business name, logo, colors, and contact details.',
     action: 'Got it',
     highlight: true,
   },
   {
     id: 'new-quote',
     route: '/quotes/new',
-    selector: '[data-tour="quote-builder"], .quote-builder, form, [class*="quote"]',
-    position: 'center',
-    title: '📄 Step 4: Create a Quote',
-    body: "This is the quote builder. Select a client, pick your services, set prices, and hit Send. Your client gets a professional link to review and e-sign on any device.",
-    action: 'Got it',
-    highlight: false,
-  },
-  {
-    id: 'client-field',
-    route: '/quotes/new',
-    selector: 'input[placeholder*="client"], input[placeholder*="name"], input[placeholder*="Client"]',
+    selector: '[data-tour="quote-client"], input[placeholder*="client"], input[placeholder*="Client"]',
     position: 'bottom',
-    title: '👤 Add client info',
-    body: "Type your client's name and email. They'll receive the quote link via email and can sign it from any phone, tablet, or computer.",
+    title: '📝 Step 2: Create a Quote',
+    body: "Start by entering your client's name and contact info. Then add services from your catalog — or type them manually. Set your pricing and hit Save.",
     action: 'Got it',
     highlight: true,
   },
   {
-    id: 'save-quote',
+    id: 'send-quote',
     route: '/quotes/new',
-    selector: 'button[class*="save"], button[type="submit"]',
+    selector: 'button[class*="send"], button[class*="save"], [data-tour="send-btn"]',
+    selectorFallback: 'button[type="submit"]',
     position: 'top',
-    title: '💾 Save & Send',
-    body: "When you're ready, hit Save to create the quote. Then use the Send button to email the client a link. They'll get a professional portal to review and e-sign.",
+    title: '✉️ Step 3: Send to Client',
+    body: 'Save the quote and use the Send button to email your client a professional link. They can review, ask questions, and e-sign directly from their phone.',
     action: 'Got it',
     highlight: true,
   },
   {
     id: 'quotes-list',
     route: '/quotes',
-    selector: '[class*="list-item"], [class*="quote-row"], table tr',
-    position: 'bottom',
-    title: '📋 Your Quotes',
-    body: "All your quotes appear here. Status updates automatically — Draft → Sent → Viewed → Invoiced. When a client e-signs, it becomes Accepted.",
+    selector: null,
+    position: 'center',
+    title: '📋 Track Your Quotes',
+    body: 'All quotes appear here with live status: Draft → Sent → Viewed → Accepted. When a client signs, you can convert it to an invoice with one click.',
     action: 'Got it',
-    highlight: false,
   },
   {
-    id: 'convert-invoice',
-    route: '/quotes',
-    selector: 'button[class*="invoice"], button:has(svg)',
-    position: 'left',
-    title: '🧾 Convert to Invoice',
-    body: "Tap the Invoice button on any quote to instantly create an invoice. Your client gets a payment link. Track paid vs overdue from the Invoices tab.",
-    action: 'Got it',
-    highlight: true,
-  },
-  {
-    id: 'invoices-page',
+    id: 'invoices',
     route: '/invoices',
-    selector: '[class*="filter"], [class*="chip-row"]',
-    position: 'bottom',
-    title: '💰 Track Payments',
-    body: "Filter invoices by status: Generated, Sent, Viewed, Overdue, or Paid. Tap any invoice to send reminders, mark as paid, or view the client portal.",
+    selector: null,
+    position: 'center',
+    title: '💰 Invoices & Payments',
+    body: 'Converted quotes become invoices here. Send Stripe payment links for online card payments, mark invoices as paid, and track overdue ones automatically.',
     action: 'Got it',
-    highlight: false,
   },
   {
-    id: 'clients-page',
+    id: 'clients',
     route: '/contacts',
-    selector: '[class*="list"], [class*="contact"], [class*="client"]',
+    selector: null,
     position: 'center',
-    title: '👥 Client Directory',
-    body: "Every client you quote is saved here automatically. Tap any client to see their full history — all quotes, invoices, and payment status in one place.",
+    title: '👥 Your Client Directory',
+    body: 'Every client you quote is saved here automatically. See their full quote and payment history, and send follow-ups right from their profile.',
     action: 'Got it',
-    highlight: false,
-  },
-  {
-    id: 'calendar-page',
-    route: '/calendar',
-    selector: '[class*="calendar"], [class*="month-grid"]',
-    position: 'center',
-    title: '📅 Job Scheduling',
-    body: "Schedule jobs and appointments here. Tap any day to see what's booked, add new jobs, and track job status from scheduled → completed.",
-    action: 'Got it',
-    highlight: false,
-  },
-  {
-    id: 'more-drawer',
-    route: '/',
-    selector: 'button[class*="more"], .mobile-nav button:last-child',
-    position: 'top',
-    title: '📱 More Features',
-    body: "Tap the More button to access Documents (secure file storage), Photos (job site photos tagged to jobs), and Team (Slack-style team chat for your crew).",
-    action: 'Got it',
-    highlight: true,
   },
   {
     id: 'automations',
     route: '/automations',
-    selector: '[class*="automation"], [class*="sequence"]',
+    selector: null,
     position: 'center',
-    title: '⚡ Automation — Set & Forget',
-    body: "Set up automated follow-up sequences. Revanew automatically emails clients when quotes go unread, invoices become overdue, or to upsell repeat customers.",
+    title: '⚡ Set Up Automations',
+    body: 'Automate follow-ups for unread quotes, overdue invoices, and repeat business outreach. Set it once and Revanew works for you in the background.',
     action: 'Got it',
-    highlight: false,
   },
   {
     id: 'done',
     route: '/',
     selector: null,
     position: 'center',
-    title: '🚀 You\'re ready!',
-    body: "Your account is set up and you know how everything works. Go create your first quote — it takes under 60 seconds. We're here if you need anything.",
+    title: "🚀 You're all set!",
+    body: "You know how Revanew works. Go create your first quote — it takes under 60 seconds. The team is here if you need anything.",
     action: 'Go to Dashboard',
-    skippable: false,
     isLast: true,
+    skippable: false,
   },
 ];
 
-/* ── Highlight overlay ───────────────────────────────────────────── */
-function HighlightBox({ rect, color }) {
-  if (!rect) return null;
-  const pad = 6;
-  return (
-    <div style={{
-      position: 'fixed',
-      top:    rect.top    - pad,
-      left:   rect.left   - pad,
-      width:  rect.width  + pad * 2,
-      height: rect.height + pad * 2,
-      border: `2px solid ${color}`,
-      borderRadius: 10,
-      boxShadow: `0 0 0 4000px rgba(11,18,32,0.65), 0 0 0 4px ${color}30`,
-      zIndex: 999,
-      pointerEvents: 'none',
-      transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
-      animation: 'tourPulse 2s ease infinite',
-    }} />
-  );
-}
+const COLORS = ['#2563EB','#2563EB','#2563EB','#0D9488','#0D9488','#7C3AED','#7C3AED','#D97706','#0D9488'];
 
-/* ── Tooltip position calculator ────────────────────────────────── */
-function getTooltipStyle(rect, position, tooltipW = 340, tooltipH = 260) {
-  const vw = window.innerWidth, vh = window.innerHeight;
-  const pad = 16;
-  let top, left;
-
-  if (!rect || position === 'center') {
-    return { top: '50%', left: '50%', transform: 'translate(-50%,-50%)' };
-  }
-
-  switch (position) {
-    case 'bottom':
-      top = Math.min(rect.bottom + 14, vh - tooltipH - pad);
-      left = Math.max(pad, Math.min(rect.left + rect.width/2 - tooltipW/2, vw - tooltipW - pad));
-      break;
-    case 'top':
-      top = Math.max(pad, rect.top - tooltipH - 14);
-      left = Math.max(pad, Math.min(rect.left + rect.width/2 - tooltipW/2, vw - tooltipW - pad));
-      break;
-    case 'right':
-      top = Math.max(pad, Math.min(rect.top + rect.height/2 - tooltipH/2, vh - tooltipH - pad));
-      left = Math.min(rect.right + 14, vw - tooltipW - pad);
-      break;
-    case 'left':
-      top = Math.max(pad, Math.min(rect.top + rect.height/2 - tooltipH/2, vh - tooltipH - pad));
-      left = Math.max(pad, rect.left - tooltipW - 14);
-      break;
-    default:
-      top = '50%'; left = '50%';
-      return { top, left, transform: 'translate(-50%,-50%)' };
-  }
-  return { position: 'fixed', top, left, width: tooltipW };
-}
-
-/* ── Main component ─────────────────────────────────────────────── */
 export default function OnboardingTour({ onDone }) {
   const [stepIdx, setStepIdx] = useState(0);
   const [targetRect, setTargetRect] = useState(null);
-  const [navigating, setNavigating] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const step = STEPS[stepIdx];
-  const progress = (stepIdx / (STEPS.length - 1)) * 100;
 
-  // Find and highlight target element
+  const step = STEPS[stepIdx];
+  const color = COLORS[stepIdx] || '#2563EB';
+
+  // Find target element
   const findTarget = useCallback(() => {
-    if (!step.selector) { setTargetRect(null); return; }
-    const selectors = step.selector.split(', ');
+    if (!step?.selector) { setTargetRect(null); return; }
+    const selectors = [step.selector, step.selectorFallback].filter(Boolean);
     for (const sel of selectors) {
       try {
-        const el = document.querySelector(sel);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            setTimeout(() => setTargetRect(el.getBoundingClientRect()), 400);
-            return;
+        for (const s of sel.split(',').map(s => s.trim())) {
+          const el = document.querySelector(s);
+          if (el) {
+            const rect = el.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              setTimeout(() => setTargetRect(el.getBoundingClientRect()), 300);
+              return;
+            }
           }
         }
       } catch {}
     }
     setTargetRect(null);
-  }, [step.selector]);
+  }, [step?.selector, step?.selectorFallback]);
 
-  // Navigate to step route then find target
+  // Navigate + find target when step changes
   useEffect(() => {
     if (!step) return;
-    const doNav = async () => {
-      if (step.route && location.pathname !== step.route) {
-        setNavigating(true);
+    const run = async () => {
+      if (step.route && location.pathname !== step.route && step.route !== location.pathname) {
         navigate(step.route);
-        await new Promise(r => setTimeout(r, 600));
-        setNavigating(false);
+        await new Promise(r => setTimeout(r, 800));
       }
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 400));
       findTarget();
     };
-    doNav();
+    run();
   }, [stepIdx]);
 
-  // Re-find target on resize
-  useEffect(() => {
-    const h = () => findTarget();
-    window.addEventListener('resize', h);
-    return () => window.removeEventListener('resize', h);
-  }, [findTarget]);
-
   const next = () => {
-    if (step.isLast || stepIdx === STEPS.length - 1) { finish(); return; }
+    if (step.isLast || stepIdx >= STEPS.length - 1) { finish(); return; }
     setStepIdx(i => i + 1);
   };
-
-  const prev = () => {
-    if (stepIdx > 0) setStepIdx(i => i - 1);
-  };
-
+  const prev = () => { if (stepIdx > 0) setStepIdx(i => i - 1); };
   const finish = () => {
     localStorage.setItem('revanew_tour_done', '1');
     localStorage.removeItem('revanew_show_tour');
@@ -315,97 +160,141 @@ export default function OnboardingTour({ onDone }) {
 
   if (!step) return null;
 
-  const tooltipStyle = getTooltipStyle(targetRect, step.position);
-  const stepColor = step.id === 'done' ? '#0D9488' :
-    stepIdx < 4 ? '#2563EB' : stepIdx < 8 ? '#0D9488' : stepIdx < 12 ? '#7C3AED' : '#D97706';
+  // Calculate tooltip position
+  const pad = 12;
+  const TW = Math.min(340, window.innerWidth - 32);
+  const TH = 270;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  let tooltipStyle = { position: 'fixed', zIndex: 10001, width: TW };
+  if (!targetRect || step.position === 'center') {
+    tooltipStyle = { ...tooltipStyle, top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: TW };
+  } else {
+    switch (step.position) {
+      case 'bottom':
+        tooltipStyle.top = Math.min(targetRect.bottom + 16, vh - TH - pad);
+        tooltipStyle.left = Math.max(pad, Math.min(targetRect.left + targetRect.width/2 - TW/2, vw - TW - pad));
+        break;
+      case 'top':
+        tooltipStyle.top = Math.max(pad, targetRect.top - TH - 16);
+        tooltipStyle.left = Math.max(pad, Math.min(targetRect.left + targetRect.width/2 - TW/2, vw - TW - pad));
+        break;
+      case 'right':
+        tooltipStyle.top = Math.max(pad, Math.min(targetRect.top + targetRect.height/2 - TH/2, vh - TH - pad));
+        tooltipStyle.left = Math.min(targetRect.right + 16, vw - TW - pad);
+        break;
+      case 'left':
+        tooltipStyle.top = Math.max(pad, Math.min(targetRect.top + targetRect.height/2 - TH/2, vh - TH - pad));
+        tooltipStyle.left = Math.max(pad, targetRect.left - TW - 16);
+        break;
+    }
+  }
+
+  // SVG cutout overlay - creates a transparent hole around the target
+  const renderOverlay = () => {
+    if (!targetRect || !step.highlight) {
+      // Full dark overlay, no cutout
+      return (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(11,18,32,0.72)',
+          backdropFilter: 'blur(1px)',
+        }} />
+      );
+    }
+
+    const r = targetRect;
+    const gapPad = 8;
+    const x = Math.max(0, r.left - gapPad);
+    const y = Math.max(0, r.top - gapPad);
+    const w = r.width + gapPad * 2;
+    const h = r.height + gapPad * 2;
+    const borderR = 10;
+
+    // Use SVG with a clip path that cuts out the element area
+    return (
+      <>
+        <svg
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, pointerEvents: 'none', width: '100%', height: '100%' }}
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <mask id="tour-mask">
+              <rect width="100%" height="100%" fill="white"/>
+              <rect x={x} y={y} width={w} height={h} rx={borderR} fill="black"/>
+            </mask>
+          </defs>
+          <rect width="100%" height="100%" fill="rgba(11,18,32,0.75)" mask="url(#tour-mask)"/>
+          {/* Highlight ring around the element */}
+          <rect x={x} y={y} width={w} height={h} rx={borderR}
+            fill="none" stroke={color} strokeWidth="2.5" opacity="0.9"/>
+          {/* Outer glow */}
+          <rect x={x-2} y={y-2} width={w+4} height={h+4} rx={borderR+2}
+            fill="none" stroke={color} strokeWidth="1" opacity="0.4"/>
+        </svg>
+        {/* Click interceptor behind tooltip */}
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000 }} />
+      </>
+    );
+  };
 
   return (
     <>
-      {/* Inject pulse animation */}
       <style>{`
-        @keyframes tourPulse {
-          0%,100% { box-shadow: 0 0 0 4000px rgba(11,18,32,0.65), 0 0 0 4px ${stepColor}30; }
-          50% { box-shadow: 0 0 0 4000px rgba(11,18,32,0.68), 0 0 0 8px ${stepColor}50; }
-        }
-        .tour-tooltip { animation: fadeUp 0.25s ease both; }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+        .tour-card { animation: tourFadeUp 0.22s ease both; }
+        @keyframes tourFadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+        @keyframes tourRing { 0%,100% { opacity:0.9; } 50% { opacity:0.5; } }
       `}</style>
 
-      {/* Dark overlay (only when no highlight or highlight not found) */}
-      {(!step.highlight || !targetRect) && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(11,18,32,0.65)', zIndex:998, backdropFilter:'blur(2px)' }}
-          onClick={() => {}} // block clicks behind
-        />
-      )}
-
-      {/* Element highlight box */}
-      {step.highlight && targetRect && (
-        <HighlightBox rect={targetRect} color={stepColor} />
-      )}
+      {renderOverlay()}
 
       {/* Tooltip card */}
-      <div className="tour-tooltip" key={stepIdx} style={{
+      <div className="tour-card" key={stepIdx} style={{
         ...tooltipStyle,
-        zIndex: 1000,
-        background: 'var(--bg-surface)',
+        background: 'var(--bg-surface, #fff)',
         borderRadius: 18,
-        padding: '20px 22px 22px',
-        boxShadow: '0 24px 80px rgba(11,18,32,0.4), 0 4px 16px rgba(11,18,32,0.2)',
-        border: '1px solid var(--border)',
+        padding: '22px 24px 24px',
+        boxShadow: `0 0 0 1px var(--border, rgba(0,0,0,0.1)), 0 24px 60px rgba(11,18,32,0.35)`,
         fontFamily: "'Plus Jakarta Sans', sans-serif",
-        maxWidth: 360,
-        width: 'calc(100vw - 32px)',
       }}>
-        {/* Header */}
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:14 }}>
-          {/* Progress dots */}
-          <div style={{ display:'flex', gap:4, alignItems:'center', flexWrap:'wrap', maxWidth:200 }}>
-            {STEPS.map((_, i) => (
-              <div key={i} style={{ width: i === stepIdx ? 20 : 6, height:6, borderRadius:3, background: i <= stepIdx ? stepColor : 'var(--border)', transition:'all 0.3s ease' }} />
-            ))}
+        {/* Progress bar */}
+        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
+          <div style={{ flex:1, height:4, borderRadius:2, background:'var(--border, #e5e7eb)', overflow:'hidden' }}>
+            <div style={{ height:'100%', width:`${((stepIdx)/(STEPS.length-1))*100}%`, background:`linear-gradient(90deg,${color},${color}bb)`, borderRadius:2, transition:'width 0.4s ease' }}/>
           </div>
+          <span style={{ fontSize:11, fontWeight:700, color:color, whiteSpace:'nowrap' }}>
+            {step.isLast ? 'Complete!' : `${stepIdx + 1} / ${STEPS.length}`}
+          </span>
           {step.skippable !== false && (
-            <button onClick={finish} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:'2px 6px', borderRadius:6, fontSize:12, display:'flex', alignItems:'center', gap:4 }}>
-              <X size={13} /> Skip
+            <button onClick={finish} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted,#9ca3af)', padding:'2px 4px', lineHeight:1, borderRadius:6, display:'flex', alignItems:'center' }}>
+              <X size={14}/>
             </button>
           )}
-        </div>
-
-        {/* Step counter */}
-        <div style={{ fontSize:10, fontWeight:700, color:stepColor, textTransform:'uppercase', letterSpacing:'0.8px', marginBottom:10 }}>
-          {step.isLast ? 'Complete!' : `Step ${stepIdx + 1} of ${STEPS.length}`}
         </div>
 
         {/* Content */}
-        <h3 style={{ fontSize:17, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.02em', marginBottom:8, lineHeight:1.3 }}>
+        <div style={{ fontSize:10, fontWeight:700, color:color, textTransform:'uppercase', letterSpacing:'0.8px', marginBottom:8 }}>
+          {step.isLast ? '✅ All done' : `Tour step ${stepIdx + 1}`}
+        </div>
+        <h3 style={{ fontSize:16, fontWeight:800, color:'var(--text-primary,#111)', margin:'0 0 8px', lineHeight:1.3 }}>
           {step.title}
         </h3>
-        <p style={{ fontSize:13, color:'var(--text-secondary)', lineHeight:1.65, marginBottom:18 }}>
+        <p style={{ fontSize:13, color:'var(--text-secondary,#6b7280)', lineHeight:1.65, margin:'0 0 20px' }}>
           {step.body}
         </p>
 
-        {/* Navigation */}
+        {/* Buttons */}
         <div style={{ display:'flex', gap:8 }}>
           {stepIdx > 0 && (
-            <button onClick={prev}
-              style={{ width:42, height:42, borderRadius:11, border:'1px solid var(--border)', background:'var(--bg-page)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', flexShrink:0 }}>
-              <ChevronLeft size={18} />
+            <button onClick={prev} style={{ width:40, height:40, borderRadius:10, border:'1px solid var(--border,#e5e7eb)', background:'var(--bg-page,#f9fafb)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted,#9ca3af)', flexShrink:0 }}>
+              <ChevronLeft size={16}/>
             </button>
           )}
-          <button onClick={next}
-            style={{ flex:1, padding:'12px 16px', background:`linear-gradient(135deg,${stepColor},${stepColor === '#2563EB' ? '#0D9488' : '#2563EB'})`, color:'#fff', border:'none', borderRadius:11, fontSize:14, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-            {step.isLast
-              ? <><CheckCircle size={16} /> {step.action}</>
-              : <>{step.action || 'Next'} <ChevronRight size={16} /></>}
+          <button onClick={next} style={{ flex:1, padding:'12px 16px', background:`linear-gradient(135deg,${color},${color === '#2563EB' ? '#0D9488' : '#2563EB'})`, color:'#fff', border:'none', borderRadius:10, fontSize:14, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, letterSpacing:'-0.01em' }}>
+            {step.isLast ? <><CheckCircle size={15}/> {step.action}</> : <>{step.action || 'Next'} <ChevronRight size={15}/></>}
           </button>
         </div>
-
-        {/* Navigating indicator */}
-        {navigating && (
-          <div style={{ textAlign:'center', fontSize:11, color:'var(--text-muted)', marginTop:10 }}>
-            Navigating…
-          </div>
-        )}
       </div>
     </>
   );

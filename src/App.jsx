@@ -398,10 +398,11 @@ function AppShell({ children }) {
     const path = location.pathname;
     if (path.includes('/billing') || path.includes('/login') || path.includes('/portal') || path.includes('/auth/callback')) return;
 
-    // New user → billing welcome
+    // New user → billing welcome (only once - set onboarded flag to prevent loop)
     const isNew = localStorage.getItem('revanew_new_user') === '1';
     if (isNew) {
       localStorage.removeItem('revanew_new_user');
+      localStorage.setItem('revanew_onboarded', '1'); // prevent redirect loop
       navigate('/billing?welcome=1');
       return;
     }

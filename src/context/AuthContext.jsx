@@ -115,21 +115,19 @@ export function AuthProvider({ children }) {
       // Always clear loading state on any auth event
       setLoading(false);
 
-      // Track new signups for billing redirect
+      // Track new signups for billing redirect — only set ONCE to avoid redirect loop
       if (event === 'SIGNED_IN') {
         const createdAt = new Date(session?.user?.created_at);
         const ageMs = Date.now() - createdAt.getTime();
-        // New if account is less than 5 minutes old (covers slow OAuth flows)
+        // New if account is less than 5 minutes old AND hasn't been to billing yet
         const isNew = ageMs < 5 * 60 * 1000;
-        if (isNew) {
+        const alreadyOnboarded = localStorage.getItem('revanew_onboarded') === '1';
+        if (isNew && !alreadyOnboarded) {
           localStorage.setItem('revanew_new_user', '1');
+          localStorage.setItem('revanew_show_tour', '1');
         }
         // Mark for trial upsell check on each login
         localStorage.setItem('revanew_login_event', Date.now().toString());
-        // For brand new accounts, set tour flag (tour shows after first load)
-        if (isNew) {
-          localStorage.setItem('revanew_show_tour', '1');
-        }
       }
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         const wasExpired = sessionExpired;

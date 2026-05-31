@@ -1113,3 +1113,108 @@ header.md\:hidden {
   .table-wrap .hide-mobile { display: none !important; }
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE-FIRST IMPROVEMENTS
+   All improvements at < 768px for true mobile-first app experience
+═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  /* ── Main content: account for bottom nav ── */
+  main, .page-content {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom)) !important;
+    min-height: calc(100dvh - 0px);
+  }
+
+  /* ── Page containers: comfortable mobile padding ── */
+  .p-6, .p-8 { padding: 14px !important; }
+  .px-6, .px-8 { padding-left: 14px !important; padding-right: 14px !important; }
+  .py-6 { padding-top: 14px !important; padding-bottom: 14px !important; }
+
+  /* ── Stat cards: 2-column grid on mobile ── */
+  .grid-cols-4, .grid-cols-3 {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* ── Tables: horizontal scroll on mobile ── */
+  .overflow-x-auto, table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── Cards: full width, generous padding ── */
+  .card, [class*="card"] { border-radius: 14px !important; }
+
+  /* ── Buttons: larger tap targets on mobile ── */
+  button { min-height: 40px; }
+
+  /* ── Hide secondary columns on mobile ── */
+  .hidden-mobile { display: none !important; }
+
+  /* ── Typography: slightly larger on mobile for readability ── */
+  body { font-size: 15px; }
+
+  /* ── Modal/dialogs: full-screen on mobile ── */
+  [role="dialog"], .modal, [class*="modal"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+  }
+
+  /* ── Bottom nav: always visible ── */
+  .mobile-bottom-nav {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: var(--bg-surface) !important;
+    border-top: 1px solid var(--border) !important;
+    z-index: 90 !important;
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+
+  /* ── Quote/Invoice list rows: card style on mobile ── */
+  .quote-row, .invoice-row, tr[class*="row"] {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 12px !important;
+    border-radius: 10px !important;
+    margin-bottom: 8px !important;
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border) !important;
+  }
+
+  /* ── Action buttons: side by side on mobile ── */
+  .action-bar { flex-wrap: wrap; gap: 8px !important; }
+
+  /* ── Heading sizes: appropriate for mobile ── */
+  h1 { font-size: 22px !important; }
+  h2 { font-size: 18px !important; }
+  h3 { font-size: 16px !important; }
+
+  /* ── Remove hover effects on touch ── */
+  @media (hover: none) {
+    button:hover, a:hover { background: initial; }
+  }
+
+  /* ── Workspace chat: full height mobile ── */
+  .workspace-container { height: calc(100dvh - 76px) !important; }
+}
+
+/* ── AI Assistant: responsive positioning ── */
+@media (max-width: 767px) {
+  .ai-fab {
+    bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+    right: 12px !important;
+  }
+  .ai-chat-panel {
+    bottom: calc(140px + env(safe-area-inset-bottom)) !important;
+    right: 4px !important;
+    left: 4px !important;
+    width: auto !important;
+  }
+}
