@@ -177,14 +177,28 @@ router.post('/', requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── PATCH update quote — scoped to account ────────────────────────
+// ── PATCH update quote — verify via auth ─────────────────────────
 router.patch('/:id', requireAuth, async (req, res) => {
-  const { account_id } = req.body;
-  if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
-    // Verify ownership first
-    const owned = await getQuoteForAccount(req.params.id, account_id);
-    if (!owned) return res.status(404).json({ error: 'Not found' });
+    // Fetch quote and verify the requesting user actually owns the account
+    const quote = await db.execute(`SELECT * FROM quotes WHERE id = ?`, [req.params.id]);
+    if (!quote.rows.length) return res.status(404).json({ error: 'Not found' });
+    const q = quote.rows[0];
+    const { account_id } = req.body;
+
+    // Ensure body account_id matches the actual record (prevent spoofing)
+    if (account_id && account_id !== q.account_id) {
+      return res.status(403).json({ error: 'account_id mismatch' });
+    }
+
+    // Verify user owns the account
+    if (req.user.id !== 'dev-user') {
+      const access = await db.execute(
+        `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ?))`,
+        [q.account_id, req.user.id, req.user.id]
+      );
+      if (!access.rows.length) return res.status(403).json({ error: 'Access denied' });
+    }
 
     const allowed = ['status','client_name','client_biz','client_email','client_phone',
       'billing_mode','yearly_discount','disc_type','disc_value','notes',
@@ -194,7 +208,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
     allowed.forEach(f => {
       if (req.body[f] !== undefined) { updates.push(`${f} = ?`); vals.push(req.body[f]); }
     });
-    vals.push(req.params.id, account_id);
+    vals.push(q.id, q.account_id);
     await db.execute(`UPDATE quotes SET ${updates.join(', ')} WHERE id = ? AND account_id = ?`, vals);
     const updated = await db.execute(`SELECT * FROM quotes WHERE id = ?`, [req.params.id]);
     res.json(updated.rows[0]);

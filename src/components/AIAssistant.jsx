@@ -69,37 +69,46 @@ export default function AIAssistant() {
     setLoading(true);
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      // Route through our server to keep API key secure
+      const token = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
+      const response = await fetch('/api/ai/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
           system: SYSTEM_PROMPT,
           messages: newMessages.map(m => ({ role: m.role, content: m.content })),
         }),
       });
       const data = await response.json();
-      const reply = data.content?.[0]?.text || 'Sorry, I couldn\'t get a response. Please try again.';
+      if (!response.ok) throw new Error(data.error || 'AI unavailable');
+      const reply = data.content || 'Sorry, I couldn\'t get a response. Please try again.';
       setMessages(m => [...m, { role:'assistant', content:reply }]);
     } catch (e) {
-      setMessages(m => [...m, { role:'assistant', content:'Sorry, I\'m having trouble connecting. Please try again in a moment.' }]);
+      setMessages(m => [...m, { role:'assistant', content:'Sorry, I\'m having trouble connecting. Please check your connection and try again.' }]);
     }
     setLoading(false);
   };
 
   return (
     <>
-      {/* Floating button */}
+      {/* Floating button - desktop only (bottom right), hidden on mobile */}
       <button onClick={() => setOpen(v => !v)}
         style={{
-          position:'fixed', bottom:'calc(104px + env(safe-area-inset-bottom))', right:16,
+          position:'fixed',
+          bottom:24,
+          right:24,
           width:52, height:52, borderRadius:'50%',
           background:'linear-gradient(135deg,#7C3AED,#2563EB)',
           border:'none', cursor:'pointer', zIndex:200,
           display:'flex', alignItems:'center', justifyContent:'center',
           boxShadow:'0 8px 24px rgba(124,58,237,0.4)',
           transition:'transform 0.2s, box-shadow 0.2s',
+          // Hide on mobile to avoid overlapping bottom nav
+          visibility: typeof window !== 'undefined' && window.innerWidth < 768 ? 'hidden' : 'visible',
+          pointerEvents: typeof window !== 'undefined' && window.innerWidth < 768 ? 'none' : 'auto',
         }}
         onMouseEnter={e => { e.currentTarget.style.transform='scale(1.1)'; e.currentTarget.style.boxShadow='0 12px 32px rgba(124,58,237,0.5)'; }}
         onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; e.currentTarget.style.boxShadow='0 8px 24px rgba(124,58,237,0.4)'; }}
@@ -111,7 +120,8 @@ export default function AIAssistant() {
       {open && (
         <div style={{
           position:'fixed',
-          bottom:'calc(168px + env(safe-area-inset-bottom))', right:16,
+          bottom:88,
+          right:24,
           width: Math.min(380, window.innerWidth - 32),
           height: 480,
           background:'var(--bg-surface)',

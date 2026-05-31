@@ -197,7 +197,6 @@ router.delete('/channels/:channelId/messages/:msgId', requireAuth, async (req, r
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-export default router;
 
 // ── DELETE /api/workspace/members/:memberId — remove/cancel invite ──
 router.delete('/members/:memberId', requireAuth, async (req, res) => {

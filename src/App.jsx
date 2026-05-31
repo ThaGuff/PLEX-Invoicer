@@ -455,12 +455,7 @@ function AppShell({ children }) {
         </React.Suspense>
       )}
 
-      {/* Mobile FAB */}
-      <NavLink to="/quotes/new" className="fab md:hidden" title="New quote">
-        <Plus size={26} />
-      </NavLink>
-
-      {/* Mobile top header */}
+      {/* Mobile top header - simplified, no extra New Quote button */}
       <header className="md:hidden" style={{
         position:'sticky', top:0, zIndex:80,
         background:'rgba(255,255,255,0.95)', backdropFilter:'blur(20px)',
@@ -475,15 +470,10 @@ function AppShell({ children }) {
           <img src="/logo-revanew.png" alt="Revanew" style={{ width:28, height:28, borderRadius:8 }}/>
           <span style={{ fontSize:17, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.04em' }}>Revanew</span>
         </NavLink>
-        {/* Right side: account avatar + new quote */}
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <NavLink to="/quotes/new" style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'7px 14px', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', borderRadius:20, textDecoration:'none', fontSize:13, fontWeight:700, boxShadow:'0 2px 10px rgba(37,99,235,0.35)' }}>
-            <Plus size={14}/> Quote
-          </NavLink>
-          <button onClick={() => window.dispatchEvent(new CustomEvent('revanew:settings'))} style={{ width:36, height:36, borderRadius:12, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#2563EB,#7C3AED)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:800, boxShadow:'0 2px 8px rgba(37,99,235,0.35)' }}>
-            {(user?.user_metadata?.full_name || user?.email || 'U').charAt(0).toUpperCase()}
-          </button>
-        </div>
+        {/* Right side: avatar only - Quote is in bottom nav */}
+        <button onClick={() => window.dispatchEvent(new CustomEvent('revanew:settings'))} style={{ width:36, height:36, borderRadius:12, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#2563EB,#7C3AED)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:800, boxShadow:'0 2px 8px rgba(37,99,235,0.35)' }}>
+          {(user?.user_metadata?.full_name || user?.email || 'U').charAt(0).toUpperCase()}
+        </button>
       </header>
 
       {showSettings   && <AccountSettings onClose={() => setShowSettings(false)} />}

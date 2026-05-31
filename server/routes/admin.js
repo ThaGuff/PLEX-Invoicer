@@ -536,7 +536,6 @@ router.get('/email-status', async (req, res) => {
   });
 });
 
-export default router;
 
 // ── Account suspension ────────────────────────────────────────────
 router.post('/user/:id/suspend', async (req, res) => {
