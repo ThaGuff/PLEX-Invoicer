@@ -45,6 +45,20 @@ export default function AuthCallback() {
         }
         if (data?.session) {
           console.log('[AuthCallback] Session established for:', data.session.user?.email);
+          // Check if this is a brand-new user (first OAuth sign-in)
+          // by checking if they have any existing accounts
+          try {
+            const token = data.session.access_token;
+            const accRes = await fetch('/api/accounts', { headers: { Authorization: `Bearer ${token}` } });
+            const accs = await accRes.json();
+            const isNewUser = !Array.isArray(accs) || accs.length === 0 ||
+              (accs.length === 1 && accs[0].subscription_status === 'trialing' &&
+               Math.abs(new Date() - new Date(accs[0].created_at)) < 60000); // created < 1 min ago
+            if (isNewUser) {
+              navigate('/billing?welcome=1', { replace: true });
+              return;
+            }
+          } catch (e) { /* if check fails, just go to dashboard */ }
           navigate('/dashboard', { replace: true });
         } else {
           navigate('/login', { replace: true });

@@ -86,11 +86,19 @@ router.get('/', requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// GET single account with custom catalog
-router.get('/:id', async (req, res) => {
+// GET single account with custom catalog — verify ownership
+router.get('/:id', requireAuth, async (req, res) => {
   try {
+    // Verify access: dev-user sees all, others must own or be a member
     const acc = await db.execute(`SELECT * FROM accounts WHERE id = ?`, [req.params.id]);
     if (!acc.rows.length) return res.status(404).json({ error: 'Not found' });
+    if (req.user.id !== 'dev-user' && !isOwner(req)) {
+      const access = await db.execute(
+        `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ?))`,
+        [req.params.id, req.user.id, req.user.id]
+      );
+      if (!access.rows.length) return res.status(403).json({ error: 'Access denied' });
+    }
     const sections = await db.execute(
       `SELECT * FROM custom_sections WHERE account_id = ? ORDER BY sort_order`, [req.params.id]
     );
