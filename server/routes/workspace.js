@@ -4,6 +4,7 @@
  */
 import { Router } from 'express';
 import { db } from '../db/schema.js';
+import { sendEmail, buildInviteHtml, buildMentionHtml, isEmailConfigured } from '../utils/email.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
@@ -47,7 +48,7 @@ router.get('/channels/:channelId/messages', requireAuth, async (req, res) => {
 
 // ── POST /api/workspace/channels/:channelId/messages ─────────────
 router.post('/channels/:channelId/messages', requireAuth, async (req, res) => {
-  const { account_id, content, sender_name } = req.body;
+  const { account_id, content, sender_name, reply_to } = req.body;
   if (!account_id) return res.status(400).json({ error: 'account_id required' });
   if (!content?.trim()) return res.status(400).json({ error: 'content required' });
   if (!/^[a-zA-Z0-9_-]+$/.test(req.params.channelId)) return res.status(400).json({ error: 'Invalid channel ID' });
@@ -58,12 +59,69 @@ router.post('/channels/:channelId/messages', requireAuth, async (req, res) => {
     const { v4: uuid } = await import('uuid');
     const id = `msg-${uuid()}`;
     await db.execute(
-      `INSERT INTO workspace_messages (id, account_id, channel_id, content, sender_name, sender_id, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-      [id, account_id, req.params.channelId, cleanContent, cleanSender, req.user.id]
+      `INSERT INTO workspace_messages (id, account_id, channel_id, content, sender_name, sender_id, reply_to, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+      [id, account_id, req.params.channelId, cleanContent, cleanSender, req.user.id, reply_to || null]
     );
     const msg = await db.execute(`SELECT * FROM workspace_messages WHERE id = ?`, [id]);
-    res.status(201).json(msg.rows[0]);
+    const savedMsg = msg.rows[0];
+
+    // ── Detect @mentions and send notifications ──────────────────
+    const mentionPattern = /@(\w[\w.]*)/g;
+    const mentions = [...cleanContent.matchAll(mentionPattern)].map(m => m[1].toLowerCase());
+
+    if (mentions.length > 0) {
+      try {
+        // Get all members of this account to match mentions against
+        const members = await db.execute(
+          `SELECT am.invited_email, am.user_id, am.role FROM account_members am
+           WHERE am.account_id = ? AND am.status = 'active'`,
+          [account_id]
+        );
+
+        // Get channel name for notification
+        const ch = await db.execute(`SELECT name FROM workspace_channels WHERE id = ?`, [req.params.channelId]);
+        const channelName = ch.rows[0]?.name || 'general';
+
+        // Get account info for email
+        const acct = await db.execute(`SELECT name, logo_url, primary_color FROM accounts WHERE id = ?`, [account_id]);
+        const accountName = acct.rows[0]?.name || 'Your Team';
+
+        const appUrl = process.env.APP_URL || 'https://revanew.io';
+        const workspaceUrl = `${appUrl}/workspace`;
+
+        for (const mention of mentions) {
+          // Find matching member by email prefix or username
+          const matched = members.rows.find(m =>
+            m.invited_email?.split('@')[0]?.toLowerCase() === mention ||
+            m.invited_email?.toLowerCase() === mention ||
+            mention === 'here' || mention === 'channel' || mention === 'everyone'
+          );
+
+          if (matched?.invited_email && matched.invited_email !== req.user.email) {
+            // Send mention email notification
+            if (isEmailConfigured()) {
+              sendEmail({
+                to: matched.invited_email,
+                subject: `${cleanSender} mentioned you in #${channelName} — ${accountName}`,
+                html: buildMentionHtml({
+                  mentionedName: matched.invited_email.split('@')[0],
+                  senderName: cleanSender,
+                  accountName,
+                  channelName,
+                  messageContent: cleanContent.slice(0, 200),
+                  workspaceUrl,
+                }),
+              }).catch(e => console.warn('[Workspace] Mention email failed:', e.message));
+            }
+          }
+        }
+      } catch (notifErr) {
+        console.warn('[Workspace] Mention notification error:', notifErr.message);
+      }
+    }
+
+    res.status(201).json(savedMsg);
   } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
 });
 
@@ -156,24 +214,20 @@ router.post('/invite', requireAuth, async (req, res) => {
     try {
       const { sendEmail } = await import('../utils/email.js');
       const appUrl = process.env.APP_URL || 'https://revanew.io';
+      const acctFull = await db.execute(`SELECT logo_url FROM accounts WHERE id = ?`, [account_id]);
       await sendEmail({
         to: email,
-        subject: `You've been invited to ${acc.rows[0].name} on Revanew`,
-        text: `You've been invited to join ${acc.rows[0].name} on Revanew as a ${role}.
-
-Sign up or log in at ${appUrl} to accept.`,
-        html: `<div style="font-family:sans-serif;max-width:600px;margin:32px auto;padding:32px;background:#fff;border-radius:16px;border:1px solid #e2e8f0">
-          <h2 style="margin:0 0 16px;color:#0f172a">You're invited! 🎉</h2>
-          <p style="color:#334155">You've been invited to join <strong>${acc.rows[0].name}</strong> on Revanew as a <strong>${role}</strong>.</p>
-          <a href="${appUrl}" style="display:inline-block;margin-top:20px;padding:12px 24px;background:linear-gradient(135deg,#2563EB,#0D9488);color:#fff;text-decoration:none;border-radius:10px;font-weight:700">
-            Accept Invitation →
-          </a>
-          <p style="margin-top:20px;color:#94a3b8;font-size:12px">Powered by Revanew</p>
-        </div>`
+        subject: `You're invited to join ${acc.rows[0].name} on Revanew`,
+        html: buildInviteHtml({
+          inviteeName: email.split('@')[0],
+          accountName: acc.rows[0].name,
+          role,
+          acceptUrl: appUrl,
+          logoUrl: acctFull.rows[0]?.logo_url || null,
+        }),
       });
     } catch (emailErr) {
-      console.warn('Invite email failed:', emailErr.message);
-      // Don't fail the invite even if email fails
+      console.warn('[Workspace] Invite email failed:', emailErr.message);
     }
 
     res.status(201).json({ ok: true, id, message: 'Invitation sent' });

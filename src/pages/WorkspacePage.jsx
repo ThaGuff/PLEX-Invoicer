@@ -171,6 +171,8 @@ export default function WorkspacePage() {
   const [replyTo, setReplyTo] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [mentionSuggestions, setMentionSuggestions] = useState([]);
+  const [mentionQuery, setMentionQuery] = useState('');
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
   const bottomRef = useRef(null);
@@ -225,6 +227,35 @@ export default function WorkspacePage() {
   useEffect(() => {
     if (activeChannel) loadMessages(activeChannel);
   }, [activeChannel]);
+
+  // Register for push notifications
+  useEffect(() => {
+    if (!account?.id || !token) return;
+    const registerPush = async () => {
+      try {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+        const vapidR = await fetch('/api/notifications/vapid-public-key').then(r => r.json());
+        if (!vapidR.configured) return;
+        
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') return;
+        
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: vapidR.publicKey,
+        });
+        
+        await fetch('/api/notifications/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ subscription: sub, account_id: account.id }),
+        });
+        console.log('[Workspace] Push notifications registered');
+      } catch (e) { console.warn('[Workspace] Push setup failed:', e.message); }
+    };
+    registerPush();
+  }, [account?.id, token]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -586,6 +617,30 @@ export default function WorkspacePage() {
           <div ref={bottomRef} style={{ height: 16 }} />
         </div>
 
+        {/* @mention suggestions */}
+        {mentionSuggestions.length > 0 && (
+          <div style={{ position:'absolute', bottom:'100%', left:16, right:16, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', boxShadow:'0 8px 32px rgba(11,18,32,0.15)', zIndex:50 }}>
+            {mentionSuggestions.map(p => (
+              <button key={p.name} onClick={() => {
+                const newVal = input.replace(/@\w*$/, `@${p.name} `);
+                setInput(newVal);
+                setMentionSuggestions([]);
+                inputRef.current?.focus();
+              }} style={{ display:'flex', alignItems:'center', gap:10, width:'100%', padding:'10px 14px', border:'none', background:'none', cursor:'pointer', textAlign:'left', color:'var(--text-primary)' }}
+              onMouseEnter={e => e.currentTarget.style.background='var(--bg-raised)'}
+              onMouseLeave={e => e.currentTarget.style.background='none'}>
+                <div style={{ width:28, height:28, borderRadius:7, background:'linear-gradient(135deg,#7C3AED,#2563EB)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:12, fontWeight:800, flexShrink:0 }}>
+                  {p.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:700 }}>@{p.name}</div>
+                  {p.email && <div style={{ fontSize:11, color:'var(--text-muted)' }}>{p.email}</div>}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Reply preview */}
         {replyTo && (
           <div style={{
@@ -608,6 +663,7 @@ export default function WorkspacePage() {
           borderTop: '1px solid var(--border)',
           background: 'var(--bg-surface)',
           flexShrink: 0,
+          position: 'relative',
         }}>
           <div style={{
             display: 'flex', alignItems: 'flex-end', gap: 8,
@@ -617,7 +673,28 @@ export default function WorkspacePage() {
             <textarea
               ref={inputRef}
               value={input}
-              onChange={e => { setInput(e.target.value); e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'; }}
+              onChange={e => {
+                const val = e.target.value;
+                setInput(val);
+                e.target.style.height = 'auto';
+                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                // Detect @mention
+                const cursor = e.target.selectionStart;
+                const textBefore = val.slice(0, cursor);
+                const mentionMatch = textBefore.match(/@(\w*)$/);
+                if (mentionMatch) {
+                  const q = mentionMatch[1].toLowerCase();
+                  setMentionQuery(q);
+                  const allPeople = [
+                    ...members.map(m => ({ name: m.email?.split('@')[0] || '', email: m.email || m.invited_email })),
+                    { name: 'here', email: null },
+                    { name: 'channel', email: null },
+                  ];
+                  setMentionSuggestions(allPeople.filter(p => p.name.toLowerCase().startsWith(q)).slice(0, 5));
+                } else {
+                  setMentionSuggestions([]);
+                }
+              }}
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
               }}

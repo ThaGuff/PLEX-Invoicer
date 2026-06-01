@@ -4,6 +4,7 @@
  */
 import { Router } from 'express';
 import { db } from '../db/schema.js';
+import { sendEmail as sharedSendEmail, isEmailConfigured } from '../utils/email.js';
 import { createClient } from '@supabase/supabase-js';
 import ws from 'ws';
 
@@ -46,20 +47,9 @@ function getSupabaseAdmin() {
   return _supabaseAdmin;
 }
 
-// ── SMTP sender ───────────────────────────────────────────────────
+// ── Email sender — uses shared utility (Resend + SMTP fallback) ──
 async function sendEmail({ to, subject, html, attachments = [] }) {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
-  if (!SMTP_HOST || !SMTP_USER) throw new Error('SMTP not configured');
-  const nodemailer = (await import('nodemailer')).default;
-  const port = parseInt(SMTP_PORT) || 587;
-  const transporter = nodemailer.createTransport({
-    host: SMTP_HOST, port, secure: port === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-  });
-  await transporter.sendMail({
-    from: SMTP_FROM || SMTP_USER,
-    to, subject, html, attachments,
-  });
+  return sharedSendEmail({ to, subject, html });
 }
 
 // ── GET /api/admin/users — all Supabase users + their accounts ───
@@ -838,6 +828,49 @@ router.post('/migrate/set-master-owner', async (req, res) => {
     const acc = await db.execute(`SELECT id, owner_id FROM accounts WHERE id = 'plex-master'`);
     res.json({ ok: true, account: acc.rows[0] });
   } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+
+// ── POST /api/admin/test-email — send a test email to verify config ──
+router.post('/test-email', async (req, res) => {
+  const { to } = req.body;
+  if (!to) return res.status(400).json({ error: 'to email required' });
+  
+  try {
+    const { sendEmail, isEmailConfigured } = await import('../utils/email.js');
+    
+    if (!isEmailConfigured()) {
+      return res.status(503).json({
+        error: 'Email not configured',
+        fix: 'Add RESEND_API_KEY (recommended) or SMTP_HOST+SMTP_USER+SMTP_PASS to Railway Variables',
+        resend_setup: 'Get free API key at https://resend.com, verify revanew.io domain, set RESEND_FROM=invoices@revanew.io',
+      });
+    }
+    
+    const result = await sendEmail({
+      to,
+      subject: '✅ Revanew Email Test — Working!',
+      html: `<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:500px;margin:32px auto;padding:24px;background:#fff;border-radius:12px;border:1px solid #e2e8f0">
+        <h2 style="color:#2563EB;margin:0 0 16px">✅ Email is working!</h2>
+        <p style="color:#334155">Your Revanew email configuration is working correctly.</p>
+        <p style="color:#64748B;font-size:13px">Sent at: ${new Date().toISOString()}</p>
+        <p style="color:#64748B;font-size:13px">Provider: ${process.env.RESEND_API_KEY ? 'Resend' : 'SMTP'}</p>
+        <p style="color:#64748B;font-size:13px">From: ${process.env.RESEND_FROM || process.env.SMTP_FROM || process.env.SMTP_USER || 'not set'}</p>
+      </body></html>`,
+    });
+    
+    res.json({ ok: true, provider: result.provider, id: result.id, message: `Test email sent to ${to}` });
+  } catch (e) {
+    res.status(500).json({
+      ok: false,
+      error: e.message,
+      provider: process.env.RESEND_API_KEY ? 'resend' : 'smtp',
+      resend_from: process.env.RESEND_FROM || 'not set — set RESEND_FROM=invoices@revanew.io',
+      fix: process.env.RESEND_API_KEY
+        ? 'Verify revanew.io at https://resend.com/domains and set RESEND_FROM=invoices@revanew.io in Railway'
+        : 'Check SMTP_HOST, SMTP_USER, SMTP_PASS in Railway Variables',
+    });
+  }
 });
 
 export default router;

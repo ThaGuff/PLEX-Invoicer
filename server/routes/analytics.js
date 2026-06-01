@@ -4,6 +4,7 @@
  */
 import { Router } from 'express';
 import { db } from '../db/schema.js';
+import { sendEmail, buildReminderHtml, isEmailConfigured } from '../utils/email.js';
 
 const router = Router();
 
@@ -185,26 +186,31 @@ router.post('/run-reminders', async (req, res) => {
     `);
 
     let sent = 0;
-    const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM, APP_URL } = process.env;
+    const APP_URL = process.env.APP_URL || 'https://revanew.io';
 
     for (const r of pending.rows) {
       try {
-        if (SMTP_HOST && SMTP_USER) {
-          const nodemailer = (await import('nodemailer')).default;
-          const port = parseInt(SMTP_PORT) || 587;
-          const transporter = nodemailer.createTransport({
-            host: SMTP_HOST, port, secure: port === 465,
-            auth: { user: SMTP_USER, pass: SMTP_PASS },
-          });
-          const portalUrl = `${APP_URL || 'https://plex-invoicer.up.railway.app'}/portal/invoice/${r.public_token}`;
-          await transporter.sendMail({
-            from: SMTP_FROM || SMTP_USER,
+        if (isEmailConfigured() && r.client_email) {
+          const portalUrl = `${APP_URL}/portal/invoice/${r.public_token}`;
+          const daysOverdue = r.due_date
+            ? Math.max(0, Math.ceil((Date.now() - new Date(r.due_date).getTime()) / 86400000))
+            : 0;
+          await sendEmail({
             to: r.client_email,
-            subject: `Friendly reminder: Invoice ${r.number} from ${r.agency_name}`,
-            html: `<p>Hi ${r.client_name || 'there'},</p>
-                   <p>Just a friendly reminder that invoice <strong>${r.number}</strong> for <strong>$${r.amount_due}</strong> is still outstanding.</p>
-                   <p><a href="${portalUrl}" style="background:#13B5EA;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;display:inline-block;font-weight:600">View &amp; Pay Invoice →</a></p>
-                   <p>Thank you,<br>${r.agency_name}</p>`,
+            subject: daysOverdue > 0
+              ? `⚠️ Overdue: Invoice ${r.number} from ${r.agency_name} — $${r.amount_due}`
+              : `Reminder: Invoice ${r.number} from ${r.agency_name} — $${r.amount_due}`,
+            html: buildReminderHtml({
+              clientName: r.client_name,
+              agencyName: r.agency_name,
+              invoiceNum: r.number,
+              amount: `$${Math.round(r.amount_due || 0).toLocaleString()}`,
+              dueDate: r.due_date,
+              portalUrl,
+              logoUrl: r.agency_logo_url || null,
+              accentColor: r.primary_color || null,
+              daysOverdue,
+            }),
           });
         }
         await db.execute(

@@ -203,7 +203,8 @@ router.post('/:id/send', requireAuth, async (req, res) => {
   try {
     const inv = await db.execute(
       `SELECT i.*, a.name as agency_name, a.email as agency_email,
-              a.website as agency_website, a.phone as agency_phone
+              a.website as agency_website, a.phone as agency_phone,
+              a.logo_url as agency_logo_url, a.primary_color as agency_color
        FROM invoices i JOIN accounts a ON i.account_id = a.id WHERE i.id = ?`,
       [req.params.id]
     );
@@ -235,6 +236,8 @@ router.post('/:id/send', requireAuth, async (req, res) => {
             amount: `$${Math.round(invoice.amount_due||0).toLocaleString()}`,
             dueDate: invoice.due_date,
             portalUrl,
+            logoUrl: invoice.agency_logo_url || null,
+            accentColor: invoice.agency_color || null,
           }),
           text: `Hi ${invoice.client_name||'there'},
 

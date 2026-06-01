@@ -981,6 +981,43 @@ export default function Admin() {
         </div>
       )}
 
+      {/* Email Test Section */}
+      {tab === 'system' && (
+        <div style={{ marginTop:16, background:'var(--bg-raised)', borderRadius:12, padding:20, border:'1px solid var(--border)' }}>
+          <div style={{ fontSize:12, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:12 }}>
+            📧 TEST EMAIL DELIVERY
+          </div>
+          <p style={{ fontSize:12, color:'var(--text-secondary)', marginBottom:12, lineHeight:1.5 }}>
+            Send a test email to verify your email configuration is working correctly.
+          </p>
+          <div style={{ display:'flex', gap:8 }}>
+            <input
+              type="email"
+              placeholder="your@email.com"
+              id="test-email-input"
+              defaultValue={user?.email || ''}
+              style={{ flex:1, padding:'8px 12px', borderRadius:8, border:'1px solid var(--border)', background:'var(--bg-page)', color:'var(--text-primary)', fontSize:13 }}
+            />
+            <button
+              onClick={async () => {
+                const email = document.getElementById('test-email-input').value;
+                if (!email) return alert('Enter an email address');
+                const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
+                const r = await fetch('/api/admin/test-email', {
+                  method:'POST',
+                  headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}` },
+                  body: JSON.stringify({ to: email })
+                }).then(res => res.json());
+                if (r.ok) alert(`✅ Test email sent to ${email} via ${r.provider}!`);
+                else alert('❌ Email failed: ' + r.error + '\n\nFix: ' + (r.fix || 'Check Railway Variables'));
+              }}
+              style={{ padding:'8px 16px', borderRadius:8, border:'none', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, whiteSpace:'nowrap' }}>
+              Send Test
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Modals / panels */}
       {panelUser && <UserPanel user={panelUser} onClose={() => setPanelUser(null)} onRefresh={load}/>}
       {onboardUser && <OnboardModal user={onboardUser} onClose={() => setOnboardUser(null)} onSent={load}/>}
