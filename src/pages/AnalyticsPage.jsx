@@ -117,7 +117,7 @@ export default function AnalyticsPage() {
   // Analytics shown for all plans
 
   return (
-    <div style={{ maxWidth:1280, margin:'0 auto', padding:'24px 16px' }}>
+    <div style={{ maxWidth:1280, margin:'0 auto', padding:'24px 16px', width:'100%', boxSizing:'border-box', overflowX:'hidden' }}>
       <div className="flex items-center justify-between mb-6 animate-fade-up">
         <div>
           <h1 style={{ fontSize:22, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.03em' }}>Analytics</h1>

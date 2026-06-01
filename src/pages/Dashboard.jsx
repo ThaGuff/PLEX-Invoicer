@@ -117,10 +117,10 @@ export default function Dashboard() {
   ];
 
   return (
-    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '24px 16px' }} className="page-fill">
+    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '24px 16px', width: '100%', boxSizing: 'border-box' }} className="page-fill">
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 animate-fade-up">
+      <div className="flex items-center justify-between mb-6 animate-fade-up" style={{ flexWrap:"wrap", gap:10 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
             Dashboard

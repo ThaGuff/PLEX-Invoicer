@@ -76,7 +76,68 @@
     width: 100%;
   }
   html { scroll-behavior: smooth; }
-  body {
+  
+/* ═══════════════════════════════════════════════════════════════════
+   CRITICAL MOBILE FIX: Page containers must never exceed viewport
+═══════════════════════════════════════════════════════════════════ */
+
+/* Fix all page wrapper divs with max-width/margin auto pattern */
+.page-fill,
+main > div[style*="max-width"],
+main > div[style*="maxWidth"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+@media (min-width: 768px) {
+  .page-fill,
+  main > div[style*="max-width"],
+  main > div[style*="maxWidth"] {
+    max-width: 1280px !important;
+    width: auto !important;
+  }
+}
+
+/* Prevent any element from causing horizontal scroll */
+main {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+}
+
+/* Fix inner containers on mobile */
+@media (max-width: 767px) {
+  /* All direct children of main get mobile treatment */
+  main > * {
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+  
+  /* Padding normalization - 16px sides on mobile */
+  main > div {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Tables scroll horizontally instead of overflowing */
+  .table-wrapper, table {
+    width: 100% !important;
+    overflow-x: auto !important;
+    display: block !important;
+  }
+  
+  /* Cards stack properly */
+  .grid-cols-4, [style*="grid-template-columns: repeat(4"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .grid-cols-3, [style*="grid-template-columns: repeat(3"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     background: var(--bg-page);
     color: var(--text-primary);

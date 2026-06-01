@@ -312,7 +312,7 @@ export default function ContactsPage() {
   );
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px' }}>
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px', width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Clients</h1>

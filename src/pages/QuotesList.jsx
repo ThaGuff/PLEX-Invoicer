@@ -82,10 +82,10 @@ export default function QuotesList() {
   const revenue  = quotes.filter(q => q.status === 'accepted').reduce((s,q) => s+(q.setup_total||0), 0);
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 16px' }}>
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 16px', width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-5 animate-fade-up">
+      <div className="flex items-center justify-between mb-5 animate-fade-up" style={{ flexWrap:'wrap', gap:10 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>Quotes</h1>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 3 }}>{total} total · {pending} pending</p>

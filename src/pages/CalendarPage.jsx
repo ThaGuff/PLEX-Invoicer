@@ -219,7 +219,7 @@ export default function CalendarPage() {
   return (
     <div style={{ height:'100%', display:'flex', flexDirection:'column', background:'var(--bg-page)', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
       {/* Header */}
-      <div style={{ padding:'20px 24px 0', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
+      <div style={{ padding:'12px 12px 0', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:8, width:'100%', boxSizing:'border-box' }}>
         <div style={{ display:'flex', alignItems:'center', gap:16 }}>
           <button onClick={() => setCurrent(d => { const n=new Date(d); view==='week'?n.setDate(n.getDate()-7):n.setMonth(n.getMonth()-1); return n; })} style={{ width:34, height:34, borderRadius:10, border:'1px solid var(--border)', background:'var(--bg-raised)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-primary)' }}><ChevronLeft size={18}/></button>
           <h2 style={{ margin:0, fontSize:20, fontWeight:800, color:'var(--text-primary)' }}>
@@ -250,7 +250,7 @@ export default function CalendarPage() {
       </div>
 
       {/* Calendar content */}
-      <div style={{ flex:1, overflow:'auto', padding:view==='list'?'20px 24px':'16px 24px 24px' }}>
+      <div style={{ flex:1, overflow:'auto', padding:view==='list'?'12px 12px':'8px 12px 12px', width:'100%', boxSizing:'border-box' }}>
         {/* MONTH VIEW */}
         {view === 'month' && (
           <div style={{ background:'var(--bg-surface)', borderRadius:16, border:'1px solid var(--border)', overflow:'hidden', boxShadow:'0 2px 16px rgba(11,18,32,0.06)' }}>

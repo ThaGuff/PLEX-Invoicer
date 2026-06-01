@@ -338,7 +338,7 @@ export default function AutomationsPage() {
   };
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 16px' }}>
+    <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 16px', width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Automations</h1>

@@ -1,571 +1,708 @@
 /**
- * Workspace — Slack-style team communication hub
- * Features: Channels, Direct Messages, Reactions, Threads, Team Members,
- *           Job Assignments, File Sharing, @mentions, Online Status
+ * WorkspacePage — Full Slack/Teams-style team communication
+ * Features: channels, DMs, threads, reactions, file sharing, member presence
+ * Mobile-first with full responsive design
  */
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useAccount } from '../context/AccountContext';
 import { useAuth } from '../context/AuthContext';
 import {
-  Hash, Lock, Plus, Send, ChevronLeft, Users, X, Settings,
-  Bell, Search, Smile, Paperclip, AtSign, Check, CheckCheck,
-  MessageSquare, Phone, Video, MoreHorizontal, UserPlus, Shield,
-  Briefcase, Circle, AlertCircle, Trash2, Edit3, Reply, Star,
-  Mail, UserCheck, UserX, Copy, ExternalLink, ChevronRight, ChevronDown,
+  Hash, Plus, X, Send, Users, Settings, ChevronDown, ChevronRight,
+  Smile, Paperclip, AtSign, Search, Bell, MoreHorizontal, Check,
+  UserPlus, Trash2, RotateCcw, MessageSquare, Lock, Volume2, CheckCheck,
+  Menu, ArrowLeft, Phone, Video, Info, Edit3, Bold, Italic, Code,
 } from 'lucide-react';
 
-// ── Helpers ──────────────────────────────────────────────────────
-function timeAgo(s) {
-  if (!s) return '';
-  const d = (Date.now() - new Date(s)) / 1000;
-  if (d < 60) return 'just now';
-  if (d < 3600) return Math.floor(d/60) + 'm';
-  if (d < 86400) return Math.floor(d/3600) + 'h';
-  return new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-}
-function fmtTime(s) { if (!s) return ''; return new Date(s).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}); }
-function getInitial(name) { return (name||'?')[0].toUpperCase(); }
+// ── Emoji picker (simple) ─────────────────────────────────────────
+const QUICK_EMOJIS = ['👍','❤️','😂','🎉','🔥','✅','👀','🚀','💯','😊','👏','🙌','💪','🤝','⚡'];
 
-const EMOJI_LIST = ['👍','❤️','😂','🎉','🔥','✅','👀','💯','🚀','⭐'];
-
-const DEFAULT_CHANNELS = [
-  { id:'general',   name:'general',    private:false, desc:'Company-wide updates and announcements' },
-  { id:'jobs',      name:'jobs',       private:false, desc:'Job assignments and field updates' },
-  { id:'invoicing', name:'invoicing',  private:false, desc:'Payment and billing discussions' },
-  { id:'team',      name:'team',       private:false, desc:'Team coordination and scheduling' },
-];
-
-// ── Message Bubble ────────────────────────────────────────────────
-function MessageBubble({ msg, isOwn, onReact, onReply, onDelete, canDelete }) {
+// ── Message component ────────────────────────────────────────────
+function Message({ msg, isOwn, myId, onReact, onReply, onDelete, currentUser }) {
   const [hover, setHover] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
+  const time = new Date(msg.created_at);
+  const timeStr = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const reactions = msg.reactions || {};
 
   return (
-    <div style={{ display:'flex', gap:10, padding:'4px 0', position:'relative' }}
-      onMouseEnter={() => setHover(true)} onMouseLeave={() => { setHover(false); setShowEmoji(false); }}>
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => { setHover(false); setShowEmoji(false); }}
+      style={{
+        display: 'flex', gap: 10, padding: '4px 16px',
+        background: hover ? 'var(--bg-raised)' : 'transparent',
+        transition: 'background 0.1s', position: 'relative',
+        flexDirection: 'row', alignItems: 'flex-start',
+      }}
+    >
       {/* Avatar */}
-      <div style={{ width:36, height:36, borderRadius:'50%', background:`linear-gradient(135deg,#2563EB,#0D9488)`, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:13, fontWeight:800, flexShrink:0, marginTop:2 }}>
-        {getInitial(msg.sender_name)}
+      <div style={{
+        width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+        background: isOwn ? 'linear-gradient(135deg,#2563EB,#0D9488)' : 'linear-gradient(135deg,#7C3AED,#2563EB)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: '#fff', fontSize: 14, fontWeight: 800, marginTop: 2,
+      }}>
+        {(msg.sender_name || 'U').charAt(0).toUpperCase()}
       </div>
-      <div style={{ flex:1, minWidth:0 }}>
-        {/* Header */}
-        <div style={{ display:'flex', alignItems:'baseline', gap:8, marginBottom:3 }}>
-          <span style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>{msg.sender_name || 'Team member'}</span>
-          <span style={{ fontSize:10, color:'var(--text-muted)' }}>{fmtTime(msg.created_at)}</span>
-          {msg.edited && <span style={{ fontSize:10, color:'var(--text-muted)', fontStyle:'italic' }}>(edited)</span>}
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Name + time */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 3 }}>
+          <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>
+            {isOwn ? 'You' : (msg.sender_name || 'Team Member')}
+          </span>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{timeStr}</span>
         </div>
+
         {/* Content */}
-        <div style={{ fontSize:13, color:'var(--text-secondary)', lineHeight:1.6, wordBreak:'break-word', whiteSpace:'pre-wrap' }}>
+        <div style={{
+          fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.55,
+          wordBreak: 'break-word', whiteSpace: 'pre-wrap',
+        }}>
           {msg.content}
         </div>
+
         {/* Reactions */}
-        {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-          <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:6 }}>
-            {Object.entries(msg.reactions).map(([emoji, users]) => (
+        {Object.keys(reactions).length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
+            {Object.entries(reactions).map(([emoji, users]) => (
               <button key={emoji} onClick={() => onReact(msg.id, emoji)}
-                style={{ display:'flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:12, border:'1.5px solid var(--border)', background:'var(--bg-raised)', cursor:'pointer', fontSize:13, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-                {emoji} <span style={{ fontSize:11, color:'var(--text-muted)', fontWeight:600 }}>{users.length}</span>
+                style={{
+                  padding: '2px 8px', borderRadius: 20, border: '1px solid var(--border)',
+                  background: users.includes(myId) ? 'rgba(37,99,235,0.12)' : 'var(--bg-raised)',
+                  cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4,
+                  color: 'var(--text-secondary)',
+                }}>
+                {emoji} <span style={{ fontSize: 11, fontWeight: 600 }}>{users.length}</span>
               </button>
             ))}
           </div>
-        )}
-        {/* Thread reply count */}
-        {msg.reply_count > 0 && (
-          <button onClick={() => onReply(msg)} style={{ marginTop:6, background:'none', border:'none', cursor:'pointer', color:'var(--blue)', fontSize:12, fontWeight:600, display:'flex', alignItems:'center', gap:4, padding:0, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-            <Reply size={12}/> {msg.reply_count} {msg.reply_count === 1 ? 'reply' : 'replies'}
-          </button>
         )}
       </div>
 
       {/* Hover actions */}
       {hover && (
-        <div style={{ position:'absolute', right:0, top:-8, display:'flex', gap:4, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:10, padding:'4px 6px', boxShadow:'0 4px 12px rgba(11,18,32,0.12)', zIndex:10 }}>
-          <button onClick={() => setShowEmoji(v => !v)} title="React"
-            style={{ width:28, height:28, borderRadius:7, border:'none', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)' }}>
-            <Smile size={14}/>
+        <div style={{
+          position: 'absolute', right: 12, top: -18, display: 'flex', gap: 4,
+          background: 'var(--bg-surface)', border: '1px solid var(--border)',
+          borderRadius: 10, padding: '4px 6px', boxShadow: '0 4px 16px rgba(11,18,32,0.12)',
+          zIndex: 10,
+        }}>
+          <button onClick={() => setShowEmoji(!showEmoji)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', borderRadius: 6, color: 'var(--text-muted)', fontSize: 16 }}
+            title="React">
+            <Smile size={15} />
           </button>
-          <button onClick={() => onReply(msg)} title="Reply in thread"
-            style={{ width:28, height:28, borderRadius:7, border:'none', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)' }}>
-            <Reply size={14}/>
+          <button onClick={() => onReply(msg)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', borderRadius: 6, color: 'var(--text-muted)' }}
+            title="Reply">
+            <MessageSquare size={15} />
           </button>
-          {canDelete && (
-            <button onClick={() => onDelete(msg.id)} title="Delete"
-              style={{ width:28, height:28, borderRadius:7, border:'none', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#DC2626' }}>
-              <Trash2 size={13}/>
+          {isOwn && (
+            <button onClick={() => onDelete(msg.id)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', borderRadius: 6, color: '#ef4444' }}
+              title="Delete">
+              <Trash2 size={15} />
             </button>
+          )}
+          {showEmoji && (
+            <div style={{
+              position: 'absolute', right: 0, top: 36, background: 'var(--bg-surface)',
+              border: '1px solid var(--border)', borderRadius: 12, padding: 10,
+              display: 'flex', flexWrap: 'wrap', gap: 6, width: 220,
+              boxShadow: '0 8px 32px rgba(11,18,32,0.15)', zIndex: 20,
+            }}>
+              {QUICK_EMOJIS.map(e => (
+                <button key={e} onClick={() => { onReact(msg.id, e); setShowEmoji(false); }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, padding: 4, borderRadius: 6 }}>
+                  {e}
+                </button>
+              ))}
+            </div>
           )}
         </div>
       )}
-      {showEmoji && (
-        <div style={{ position:'absolute', right:0, top:28, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:12, padding:'8px 10px', display:'flex', gap:6, zIndex:20, boxShadow:'0 8px 24px rgba(11,18,32,0.15)' }}>
-          {EMOJI_LIST.map(e => (
-            <button key={e} onClick={() => { onReact(msg.id, e); setShowEmoji(false); }}
-              style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, padding:'2px', borderRadius:6, transition:'transform 0.1s' }}
-              onMouseEnter={el => el.currentTarget.style.transform='scale(1.3)'}
-              onMouseLeave={el => el.currentTarget.style.transform='scale(1)'}>
-              {e}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
 
-// ── Message Input ─────────────────────────────────────────────────
-function MessageInput({ onSend, placeholder, disabled }) {
-  const [text, setText] = useState('');
-  const ref = useRef();
-  const send = () => {
-    if (!text.trim() || disabled) return;
-    onSend(text.trim());
-    setText('');
-  };
+// ── Date separator ────────────────────────────────────────────────
+function DateSep({ date }) {
+  const d = new Date(date);
+  const today = new Date();
+  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+  let label = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  if (d.toDateString() === today.toDateString()) label = 'Today';
+  if (d.toDateString() === yesterday.toDateString()) label = 'Yesterday';
   return (
-    <div style={{ padding:'10px 14px', borderTop:'1px solid var(--border)', background:'var(--bg-surface)' }}>
-      <div style={{ display:'flex', gap:8, alignItems:'flex-end', background:'var(--bg-raised)', borderRadius:14, border:'1px solid var(--border)', padding:'8px 12px' }}>
-        <textarea ref={ref} value={text} onChange={e => setText(e.target.value)}
-          onKeyDown={e => { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder={placeholder || 'Send a message…'} rows={1} disabled={disabled}
-          style={{ flex:1, background:'none', border:'none', outline:'none', color:'var(--text-primary)', fontSize:13, resize:'none', fontFamily:"'Plus Jakarta Sans',sans-serif", lineHeight:1.6, maxHeight:120, minHeight:20 }} />
-        <button onClick={send} disabled={!text.trim() || disabled}
-          style={{ width:34, height:34, borderRadius:9, background:text.trim()?'linear-gradient(135deg,#2563EB,#0D9488)':'var(--bg-surface)', border:`1px solid ${text.trim()?'transparent':'var(--border)'}`, cursor:text.trim()?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.15s' }}>
-          <Send size={14} color={text.trim()?'#fff':'var(--text-muted)'}/>
-        </button>
-      </div>
+    <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', gap: 12 }}>
+      <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', whiteSpace: 'nowrap', padding: '2px 10px', background: 'var(--bg-raised)', borderRadius: 20, border: '1px solid var(--border)' }}>
+        {label}
+      </span>
+      <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
     </div>
   );
 }
 
-// ── Main Component ────────────────────────────────────────────────
+// ── Main component ────────────────────────────────────────────────
 export default function WorkspacePage() {
   const { account } = useAccount();
-  const { user }    = useAuth();
-  const [channels,  setChannels]  = useState(DEFAULT_CHANNELS);
-  const [activeChannel, setActiveChannel] = useState('general');
-  const [messages,  setMessages]  = useState({});
-  const [members,   setMembers]   = useState([]);
-  const [loading,   setLoading]   = useState(false);
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [sidebarTab, setSidebarTab] = useState('channels'); // 'channels' | 'dms' | 'members'
-  const [showNewChannel, setShowNewChannel] = useState(false);
-  const [showInvite, setShowInvite] = useState(false);
-  const [showThread, setShowThread] = useState(null); // message being threaded
-  const [newCh, setNewCh] = useState({ name:'', private:false, desc:'' });
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('member');
-  const [inviting, setInviting] = useState(false);
-  const [inviteStatus, setInviteStatus] = useState('');
-  const [memberAction, setMemberAction] = useState(null); // { id, type: 'remove'|'resend' }
-  const bottomRef = useRef();
-  const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
+  const { user } = useAuth();
+  const token = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
+  const myId = user?.id || 'unknown';
   const myName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'You';
 
-  // Load channels from API
-  useEffect(() => {
-    if (!account?.id) return;
-    fetch(`/api/workspace/channels?account_id=${account.id}`, { headers:{ Authorization:`Bearer ${token}` } })
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data?.length) setChannels(data); })
-      .catch(() => {}); // fall back to DEFAULT_CHANNELS on error
-  }, [account?.id]);
+  const [channels, setChannels] = useState([]);
+  const [activeChannel, setActiveChannel] = useState(null);
+  const [messages, setMessages] = useState({});
+  const [members, setMembers] = useState([]);
+  const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [showMembersPanel, setShowMembersPanel] = useState(false);
+  const [showNewChannel, setShowNewChannel] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
+  const [newChannelName, setNewChannelName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState('member');
+  const [inviteStatus, setInviteStatus] = useState('');
+  const [loadingMsgs, setLoadingMsgs] = useState(false);
+  const [replyTo, setReplyTo] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
-  // Load messages for active channel
-  const loadMessages = useCallback(async (channelId) => {
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // Load channels
+  const loadChannels = useCallback(async () => {
     if (!account?.id) return;
-    setLoading(true);
     try {
-      const r = await fetch(`/api/workspace/channels/${channelId}/messages?account_id=${account.id}`, { headers:{ Authorization:`Bearer ${token}` } });
+      const r = await fetch(`/api/workspace/channels?account_id=${account.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (r.ok) {
-        const msgs = await r.json();
-        setMessages(m => ({ ...m, [channelId]: msgs }));
+        const data = await r.json();
+        setChannels(data);
+        if (data.length && !activeChannel) {
+          setActiveChannel(data[0].id);
+        }
       }
     } catch {}
-    setLoading(false);
   }, [account?.id]);
 
-  // Load team members
+  // Load messages for channel
+  const loadMessages = useCallback(async (channelId) => {
+    if (!channelId || !account?.id) return;
+    setLoadingMsgs(true);
+    try {
+      const r = await fetch(
+        `/api/workspace/channels/${channelId}/messages?account_id=${account.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (r.ok) {
+        const data = await r.json();
+        setMessages(prev => ({ ...prev, [channelId]: Array.isArray(data) ? data : [] }));
+      }
+    } catch {} finally { setLoadingMsgs(false); }
+  }, [account?.id]);
+
+  // Load members
   const loadMembers = useCallback(async () => {
     if (!account?.id) return;
     try {
-      const r = await fetch(`/api/workspace/members?account_id=${account.id}`, { headers:{ Authorization:`Bearer ${token}` } });
+      const r = await fetch(`/api/workspace/members?account_id=${account.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (r.ok) setMembers(await r.json());
     } catch {}
   }, [account?.id]);
 
-  useEffect(() => { if (account?.id) { loadMessages(activeChannel); loadMembers(); } }, [activeChannel, account?.id]);
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:'smooth' }); }, [messages[activeChannel]]);
+  useEffect(() => { loadChannels(); }, [loadChannels]);
+  useEffect(() => { loadMembers(); }, [loadMembers]);
+  useEffect(() => {
+    if (activeChannel) loadMessages(activeChannel);
+  }, [activeChannel]);
 
-  const sendMessage = async (content) => {
-    const optimistic = { id:`opt-${Date.now()}`, content, sender_name:myName, created_at:new Date().toISOString(), reactions:{}, reply_count:0, pending:true };
-    setMessages(m => ({ ...m, [activeChannel]: [...(m[activeChannel]||[]), optimistic] }));
+  // Auto-scroll to bottom
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages[activeChannel]]);
+
+  // Send message
+  const sendMessage = async () => {
+    const content = input.trim();
+    if (!content || sending || !activeChannel) return;
+    setSending(true);
+    setInput('');
+    setReplyTo(null);
     try {
       const r = await fetch(`/api/workspace/channels/${activeChannel}/messages?account_id=${account?.id}`, {
-        method:'POST', headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}` },
-        body: JSON.stringify({ content, account_id:account.id, sender_name:myName })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ content, account_id: account?.id, sender_name: myName, reply_to: replyTo?.id })
       });
       if (r.ok) {
         const msg = await r.json();
-        setMessages(m => ({ ...m, [activeChannel]: [...(m[activeChannel]||[]).filter(x=>x.id!==optimistic.id), msg] }));
+        setMessages(prev => ({
+          ...prev,
+          [activeChannel]: [...(prev[activeChannel] || []), msg]
+        }));
+      }
+    } catch {} finally { setSending(false); }
+  };
+
+  // Delete message
+  const deleteMessage = async (msgId) => {
+    if (!confirm('Delete this message?')) return;
+    try {
+      await fetch(`/api/workspace/channels/${activeChannel}/messages/${msgId}`, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+      });
+      setMessages(prev => ({
+        ...prev,
+        [activeChannel]: (prev[activeChannel] || []).filter(m => m.id !== msgId)
+      }));
+    } catch {}
+  };
+
+  // React to message
+  const reactToMessage = async (msgId, emoji) => {
+    setMessages(prev => {
+      const msgs = [...(prev[activeChannel] || [])];
+      const idx = msgs.findIndex(m => m.id === msgId);
+      if (idx < 0) return prev;
+      const msg = { ...msgs[idx] };
+      const reactions = { ...(msg.reactions || {}) };
+      if (!reactions[emoji]) reactions[emoji] = [];
+      const userIdx = reactions[emoji].indexOf(myId);
+      if (userIdx >= 0) reactions[emoji].splice(userIdx, 1);
+      else reactions[emoji].push(myId);
+      if (reactions[emoji].length === 0) delete reactions[emoji];
+      msg.reactions = reactions;
+      msgs[idx] = msg;
+      return { ...prev, [activeChannel]: msgs };
+    });
+  };
+
+  // Create channel
+  const createChannel = async () => {
+    const safeName = newChannelName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    if (!safeName) return;
+    try {
+      const r = await fetch('/api/workspace/channels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ account_id: account?.id, name: safeName })
+      });
+      if (r.ok) {
+        const ch = await r.json();
+        setChannels(prev => [...prev, ch]);
+        setActiveChannel(ch.id);
+        setShowNewChannel(false);
+        setNewChannelName('');
       }
     } catch {}
   };
 
-  const reactToMessage = async (msgId, emoji) => {
-    // Optimistic update
-    setMessages(m => {
-      const msgs = (m[activeChannel]||[]).map(msg => {
-        if (msg.id !== msgId) return msg;
-        const reactions = { ...(msg.reactions||{}) };
-        if (!reactions[emoji]) reactions[emoji] = [];
-        const idx = reactions[emoji].indexOf(myName);
-        if (idx >= 0) reactions[emoji].splice(idx,1);
-        else reactions[emoji].push(myName);
-        if (reactions[emoji].length === 0) delete reactions[emoji];
-        return { ...msg, reactions };
-      });
-      return { ...m, [activeChannel]: msgs };
-    });
-  };
-
-  const deleteMessage = async (msgId) => {
-    if (!confirm('Delete this message?')) return;
-    setMessages(m => ({ ...m, [activeChannel]: (m[activeChannel]||[]).filter(x=>x.id!==msgId) }));
-    await fetch(`/api/workspace/channels/${activeChannel}/messages/${msgId}`, { method:'DELETE', headers:{ Authorization:`Bearer ${token}` } }).catch(()=>{});
-  };
-
-  const createChannel = () => {
-    if (!newCh.name.trim()) return;
-    const safeName = newCh.name.toLowerCase().replace(/[^a-z0-9-]/g,'-');
-    setChannels(ch => [...ch, { id:safeName, name:safeName, private:newCh.private, desc:newCh.desc }]);
-    setActiveChannel(safeName);
-    setShowNewChannel(false);
-    setNewCh({ name:'', private:false, desc:'' });
-    setShowSidebar(false);
-    fetch('/api/workspace/channels', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}` }, body:JSON.stringify({ account_id:account.id, name:safeName, private:newCh.private, desc:newCh.desc }) }).catch(()=>{});
-  };
-
-  const removeMember = async (memberId, isInvite) => {
-    if (!confirm(isInvite ? 'Cancel this invitation?' : 'Remove this team member?')) return;
-    const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
-    try {
-      const r = await fetch(`/api/workspace/members/${memberId}`, { method:'DELETE', headers:{ Authorization:`Bearer ${token}` } });
-      const d = await r.json();
-      if (r.ok) {
-        setMembers(prev => prev.filter(m => m.id !== memberId));
-        setInviteStatus(d.message || 'Done');
-      } else setInviteStatus(d.error || 'Failed');
-    } catch(e) { setInviteStatus('Error: ' + e.message); }
-  };
-
-  const resendInvite = async (memberId) => {
-    const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
-    try {
-      const r = await fetch(`/api/workspace/members/${memberId}/resend`, { method:'POST', headers:{ Authorization:`Bearer ${token}` } });
-      const d = await r.json();
-      setInviteStatus(d.ok ? '✓ Invite resent' : d.error || 'Failed');
-    } catch(e) { setInviteStatus('Error: ' + e.message); }
-  };
-
+  // Invite member
   const inviteMember = async () => {
     if (!inviteEmail.trim()) return;
-    setInviting(true); setInviteStatus('');
+    setInviteStatus('Sending…');
     try {
-      const r = await fetch('/api/workspace/invite', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}` }, body:JSON.stringify({ account_id:account.id, email:inviteEmail, role:inviteRole }) });
+      const r = await fetch('/api/workspace/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ account_id: account?.id, email: inviteEmail, role: inviteRole })
+      });
       const d = await r.json();
-      if (r.ok) { setInviteStatus('✓ Invitation sent!'); setInviteEmail(''); loadMembers(); }
-      else setInviteStatus(d.error || 'Failed to invite');
-    } catch(e) { setInviteStatus('Failed to invite: ' + e.message); }
-    setInviting(false);
+      if (r.ok) {
+        setInviteStatus('✅ Invitation sent!');
+        setInviteEmail('');
+        loadMembers();
+        setTimeout(() => setInviteStatus(''), 3000);
+      } else setInviteStatus('❌ ' + (d.error || 'Failed'));
+    } catch (e) { setInviteStatus('❌ ' + e.message); }
   };
 
-  const ch = channels.find(c => c.id === activeChannel);
-  const msgs = messages[activeChannel] || [];
-  const isOwner = account?.owner_id === user?.id || !account?.owner_id;
+  // Delete member/cancel invite
+  const removeMember = async (memberId, isInvite) => {
+    if (!confirm(isInvite ? 'Cancel this invitation?' : 'Remove this member?')) return;
+    try {
+      const r = await fetch(`/api/workspace/members/${memberId}`, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+      });
+      if (r.ok) setMembers(prev => prev.filter(m => m.id !== memberId));
+    } catch {}
+  };
+
+  // Group messages by date
+  const groupedMessages = useMemo(() => {
+    const msgs = messages[activeChannel] || [];
+    const filtered = searchQuery
+      ? msgs.filter(m => m.content?.toLowerCase().includes(searchQuery.toLowerCase()))
+      : msgs;
+    const groups = [];
+    let lastDate = null;
+    filtered.forEach(msg => {
+      const d = new Date(msg.created_at).toDateString();
+      if (d !== lastDate) { groups.push({ type: 'date', date: msg.created_at }); lastDate = d; }
+      groups.push({ type: 'msg', msg });
+    });
+    return groups;
+  }, [messages, activeChannel, searchQuery]);
+
+  const activeChannelData = channels.find(c => c.id === activeChannel);
+  const activeMembersList = members.filter(m => m.status === 'active');
+  const pendingInvites = members.filter(m => m.status === 'invited');
 
   return (
-    <div style={{ display:'flex', height:'calc(100dvh - 120px)', overflow:'hidden', borderRadius:14, border:'1px solid var(--border)', background:'var(--bg-surface)', fontFamily:"'Plus Jakarta Sans',sans-serif", maxWidth:1100, margin:'0 auto' }}>
+    <div style={{
+      display: 'flex', height: 'calc(100dvh - 68px)',
+      fontFamily: "'Plus Jakarta Sans', sans-serif",
+      background: 'var(--bg-page)', overflow: 'hidden',
+      maxWidth: '100%', width: '100%',
+    }}>
 
-      {/* Sidebar */}
-      <div style={{ width: showSidebar?260:0, minWidth: showSidebar?260:0, borderRight:'1px solid var(--border)', display:'flex', flexDirection:'column', overflow:'hidden', transition:'all 0.2s', background:'var(--bg-raised)', flexShrink:0 }}>
+      {/* ── SIDEBAR ────────────────────────────────────────────── */}
+      <div style={{
+        width: showSidebar ? (isMobile ? '100%' : 260) : 0,
+        minWidth: showSidebar ? (isMobile ? '100%' : 260) : 0,
+        display: (showSidebar || !isMobile) ? 'flex' : 'none',
+        flexDirection: 'column',
+        background: 'linear-gradient(180deg, #0F172A 0%, #1a2744 100%)',
+        borderRight: '1px solid rgba(255,255,255,0.06)',
+        overflow: 'hidden', transition: 'all 0.2s', flexShrink: 0,
+        position: isMobile ? 'absolute' : 'relative',
+        zIndex: isMobile ? 50 : 'auto',
+        height: '100%',
+      }}>
         {/* Workspace header */}
-        <div style={{ padding:'14px 14px 10px', borderBottom:'1px solid var(--border)' }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+        <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <p style={{ fontSize:14, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.02em' }}>{account?.name || 'Workspace'}</p>
-              <p style={{ fontSize:10, color:'#0D9488', fontWeight:600, display:'flex', alignItems:'center', gap:4 }}>
-                <Circle size={6} fill="#0D9488" /> {(members.length || 1) + 1} members
-              </p>
+              <div style={{ fontWeight: 800, fontSize: 15, color: '#fff', letterSpacing: '-0.02em' }}>
+                {account?.name || 'Workspace'}
+              </div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>
+                {activeMembersList.length + 1} members
+              </div>
             </div>
-            <button onClick={() => setShowInvite(true)} title="Invite team member"
-              style={{ width:28, height:28, borderRadius:8, border:'1px solid var(--border)', background:'var(--bg-surface)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)' }}>
-              <UserPlus size={13}/>
-            </button>
-          </div>
-          {/* Tabs */}
-          <div style={{ display:'flex', gap:4 }}>
-            {[['channels','Channels'],['dms','DMs'],['members','Team']].map(([tab,label]) => (
-              <button key={tab} onClick={() => setSidebarTab(tab)}
-                style={{ flex:1, padding:'5px 0', borderRadius:7, border:'none', background:sidebarTab===tab?'var(--blue)':'transparent', color:sidebarTab===tab?'#fff':'var(--text-muted)', fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-                {label}
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => setShowSearch(!showSearch)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', color: 'rgba(255,255,255,0.6)' }}>
+                <Search size={15} />
               </button>
-            ))}
+              <button onClick={() => setShowInvite(true)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', color: 'rgba(255,255,255,0.6)' }}>
+                <UserPlus size={15} />
+              </button>
+              {isMobile && <button onClick={() => setShowSidebar(false)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', color: 'rgba(255,255,255,0.6)' }}>
+                <X size={15} />
+              </button>}
+            </div>
           </div>
+          {showSearch && (
+            <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search messages…"
+              style={{ marginTop: 10, width: '100%', padding: '7px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.08)', color: '#fff', fontSize: 13, boxSizing: 'border-box' }} />
+          )}
         </div>
 
-        {/* Sidebar content */}
-        <div style={{ flex:1, overflowY:'auto', padding:'8px 6px' }}>
-          {sidebarTab === 'channels' && (
-            <>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'4px 8px 6px', marginBottom:2 }}>
-                <span style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.8px' }}>Channels</span>
-                <button onClick={() => setShowNewChannel(true)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:2 }}><Plus size={14}/></button>
-              </div>
-              {channels.map(c => (
-                <button key={c.id} onClick={() => { setActiveChannel(c.id); setShowSidebar(false); setShowThread(null); }}
-                  style={{ width:'100%', display:'flex', alignItems:'center', gap:7, padding:'8px 10px', borderRadius:8, border:'none', cursor:'pointer', textAlign:'left', background:activeChannel===c.id?'rgba(37,99,235,0.12)':'transparent', transition:'background 0.12s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-                  {c.private ? <Lock size={12} style={{ color:activeChannel===c.id?'#2563EB':'var(--text-muted)', flexShrink:0 }}/> : <Hash size={12} style={{ color:activeChannel===c.id?'#2563EB':'var(--text-muted)', flexShrink:0 }}/>}
-                  <span style={{ fontSize:13, fontWeight:activeChannel===c.id?700:500, color:activeChannel===c.id?'var(--text-primary)':'var(--text-secondary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.name}</span>
-                  {(messages[c.id]||[]).length > 0 && activeChannel !== c.id && (
-                    <span style={{ marginLeft:'auto', width:18, height:18, borderRadius:'50%', background:'#2563EB', color:'#fff', fontSize:10, fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      {(messages[c.id]||[]).length > 9 ? '9+' : (messages[c.id]||[]).length}
-                    </span>
-                  )}
+        {/* Channels */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 8px' }}>
+          <div style={{ padding: '8px 8px 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Channels</span>
+            <button onClick={() => setShowNewChannel(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', padding: 2 }}>
+              <Plus size={14} />
+            </button>
+          </div>
+
+          {showNewChannel && (
+            <div style={{ padding: '8px', marginBottom: 4 }}>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input value={newChannelName} onChange={e => setNewChannelName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') createChannel(); if (e.key === 'Escape') { setShowNewChannel(false); setNewChannelName(''); } }}
+                  placeholder="channel-name" autoFocus
+                  style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#fff', fontSize: 13 }} />
+                <button onClick={createChannel} style={{ background: '#2563EB', border: 'none', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', color: '#fff' }}>
+                  <Check size={14} />
                 </button>
-              ))}
-            </>
+              </div>
+            </div>
           )}
 
-          {sidebarTab === 'dms' && (
-            <>
-              <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.8px', padding:'4px 8px 10px' }}>Direct Messages</p>
-              {members.length === 0 ? (
-                <div style={{ padding:'16px 10px', textAlign:'center' }}>
-                  <UserPlus size={24} style={{ color:'var(--text-muted)', margin:'0 auto 8px' }}/>
-                  <p style={{ fontSize:12, color:'var(--text-muted)' }}>Invite team members to start direct messages</p>
-                  <button onClick={() => setShowInvite(true)} style={{ marginTop:8, padding:'6px 14px', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', border:'none', borderRadius:8, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-                    Invite member
-                  </button>
-                </div>
-              ) : members.map(m => (
-                <button key={m.id} onClick={() => { setActiveChannel(`dm-${m.user_id}`); setShowSidebar(false); }}
-                  style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8, border:'none', cursor:'pointer', background:'transparent', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-                  <div style={{ width:28, height:28, borderRadius:'50%', background:'linear-gradient(135deg,#7C3AED,#2563EB)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:11, fontWeight:800, flexShrink:0 }}>
-                    {getInitial(m.name || m.email)}
-                  </div>
-                  <div style={{ minWidth:0 }}>
-                    <p style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{m.name || m.email}</p>
-                    <p style={{ fontSize:10, color:'var(--text-muted)', textTransform:'capitalize' }}>{m.role}</p>
-                  </div>
-                  <div style={{ marginLeft:'auto', width:8, height:8, borderRadius:'50%', background:'#0D9488', flexShrink:0 }}/>
-                </button>
-              ))}
-            </>
-          )}
+          {channels.map(ch => (
+            <button key={ch.id} onClick={() => { setActiveChannel(ch.id); if (isMobile) setShowSidebar(false); }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 10px',
+                borderRadius: 8, border: 'none', cursor: 'pointer', textAlign: 'left',
+                background: activeChannel === ch.id ? 'rgba(255,255,255,0.12)' : 'transparent',
+                color: activeChannel === ch.id ? '#fff' : 'rgba(255,255,255,0.6)',
+                transition: 'all 0.15s', marginBottom: 1,
+              }}
+              onMouseEnter={e => { if (activeChannel !== ch.id) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+              onMouseLeave={e => { if (activeChannel !== ch.id) e.currentTarget.style.background = 'transparent'; }}>
+              <Hash size={15} style={{ flexShrink: 0, opacity: 0.7 }} />
+              <span style={{ fontSize: 14, fontWeight: activeChannel === ch.id ? 700 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {ch.name}
+              </span>
+            </button>
+          ))}
 
-          {sidebarTab === 'members' && (
+          {/* Members section */}
+          <div style={{ padding: '12px 8px 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Members</span>
+          </div>
+
+          {/* Self */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px' }}>
+            <div style={{ position: 'relative' }}>
+              <div style={{ width: 26, height: 26, borderRadius: 6, background: 'linear-gradient(135deg,#2563EB,#0D9488)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 800 }}>
+                {myName.charAt(0).toUpperCase()}
+              </div>
+              <div style={{ position: 'absolute', bottom: -2, right: -2, width: 9, height: 9, borderRadius: '50%', background: '#22c55e', border: '2px solid #0F172A' }} />
+            </div>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+              {myName} <span style={{ opacity: 0.5, fontSize: 11 }}>you</span>
+            </span>
+          </div>
+
+          {activeMembersList.map(m => (
+            <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', borderRadius: 8 }}>
+              <div style={{ position: 'relative' }}>
+                <div style={{ width: 26, height: 26, borderRadius: 6, background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: 800 }}>
+                  {(m.email || m.invited_email || 'U').charAt(0).toUpperCase()}
+                </div>
+              </div>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                {m.email || m.invited_email}
+              </span>
+            </div>
+          ))}
+
+          {pendingInvites.length > 0 && (
             <>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'4px 8px 8px' }}>
-                <span style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.8px' }}>Team Members</span>
-                {isOwner && <button onClick={() => setShowInvite(true)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--blue)', fontSize:11, fontWeight:600, padding:2, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>+ Invite</button>}
+              <div style={{ padding: '10px 8px 4px' }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pending ({pendingInvites.length})</span>
               </div>
-              {/* Owner */}
-              <div style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8 }}>
-                <div style={{ width:32, height:32, borderRadius:'50%', background:'linear-gradient(135deg,#2563EB,#0D9488)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:13, fontWeight:800 }}>
-                  {getInitial(myName)}
-                </div>
-                <div style={{ flex:1 }}>
-                  <p style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>{myName} <span style={{ fontSize:10, color:'var(--text-muted)' }}>(you)</span></p>
-                  <p style={{ fontSize:10, color:'#2563EB', fontWeight:600, display:'flex', alignItems:'center', gap:3 }}><Shield size={9}/> Owner</p>
-                </div>
-              </div>
-              {members.map(m => (
-                <div key={m.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8, background: m.status==='invited' ? 'rgba(217,119,6,0.05)' : 'transparent' }}>
-                  <div style={{ width:32, height:32, borderRadius:'50%', background: m.status==='invited' ? 'linear-gradient(135deg,#D97706,#EA580C)' : 'linear-gradient(135deg,#7C3AED,#2563EB)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:13, fontWeight:800 }}>
-                    {getInitial(m.name || m.email || m.invited_email)}
+              {pendingInvites.map(m => (
+                <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', borderRadius: 8 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 6, background: 'rgba(217,119,6,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D97706', fontSize: 11, fontWeight: 800 }}>
+                    {(m.email || m.invited_email || '?').charAt(0).toUpperCase()}
                   </div>
-                  <div style={{ flex:1 }}>
-                    <p style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{m.name || m.email}</p>
-                    <p style={{ fontSize:10, color: m.status==='invited' ? '#D97706' : 'var(--text-muted)', textTransform:'capitalize', display:'flex', alignItems:'center', gap:3 }}>
-                      {m.status === 'invited' ? '⏳ Pending invite' : m.role === 'admin' ? <><Shield size={9}/> Admin</> : m.role === 'manager' ? <><Briefcase size={9}/> Manager</> : <><Users size={9}/> Member</>}
-                    </p>
-                  </div>
-                  {isOwner && (
-                    <div style={{ display:'flex', gap:4 }}>
-                      {m.status === 'invited' && (
-                        <button onClick={() => resendInvite(m.id)} title="Resend invite" style={{ background:'rgba(37,99,235,0.1)', border:'none', borderRadius:6, padding:'4px 8px', fontSize:10, fontWeight:700, color:'#2563EB', cursor:'pointer' }}>
-                          Resend
-                        </button>
-                      )}
-                      <button onClick={() => removeMember(m.id, m.status==='invited')} title={m.status==='invited' ? 'Cancel invite' : 'Remove member'} style={{ background:'rgba(239,68,68,0.1)', border:'none', borderRadius:6, padding:'4px 6px', cursor:'pointer' }}>
-                        <X size={11} color="#EF4444"/>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-              {members.length === 0 && (
-                <div style={{ padding:'20px 10px', textAlign:'center' }}>
-                  <p style={{ fontSize:12, color:'var(--text-muted)', marginBottom:10 }}>No team members yet</p>
-                  <button onClick={() => setShowInvite(true)} style={{ padding:'8px 16px', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', border:'none', borderRadius:9, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-                    Invite first member
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                    {m.email || m.invited_email}
+                  </span>
+                  <button onClick={() => removeMember(m.id, true)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'rgba(239,68,68,0.7)', flexShrink: 0 }}>
+                    <X size={12} />
                   </button>
                 </div>
-              )}
+              ))}
             </>
           )}
+        </div>
+
+        {/* User info at bottom */}
+        <div style={{ padding: '12px 12px calc(8px + env(safe-area-inset-bottom))', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg,#2563EB,#0D9488)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>
+            {myName.charAt(0).toUpperCase()}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{myName}</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>🟢 Active</div>
+          </div>
         </div>
       </div>
 
-      {/* Main chat area */}
-      <div style={{ flex:1, display:'flex', flexDirection:'column', minWidth:0 }}>
+      {/* ── MAIN CHAT AREA ─────────────────────────────────────── */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'var(--bg-page)', overflow: 'hidden' }}>
+
         {/* Channel header */}
-        <div style={{ padding:'12px 16px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', gap:10, background:'var(--bg-surface)', flexShrink:0 }}>
-          <button onClick={() => setShowSidebar(v => !v)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:4, display:'flex', alignItems:'center' }}>
-            {showSidebar ? <ChevronLeft size={18}/> : <ChevronRight size={18}/>}
+        <div style={{
+          padding: '12px 16px', borderBottom: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center', gap: 10,
+          background: 'var(--bg-surface)',
+          flexShrink: 0,
+        }}>
+          <button onClick={() => setShowSidebar(!showSidebar)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 8, color: 'var(--text-secondary)', flexShrink: 0 }}>
+            <Menu size={18} />
           </button>
-          {ch?.private ? <Lock size={15} style={{ color:'var(--text-muted)', flexShrink:0 }}/> : <Hash size={15} style={{ color:'var(--text-muted)', flexShrink:0 }}/>}
-          <div style={{ flex:1, minWidth:0 }}>
-            <p style={{ fontSize:14, fontWeight:700, color:'var(--text-primary)' }}>{ch?.name || activeChannel}</p>
-            {ch?.desc && <p style={{ fontSize:11, color:'var(--text-muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ch.desc}</p>}
-          </div>
-          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-            <button title="Team members" onClick={() => { setShowSidebar(true); setSidebarTab('members'); }}
-              style={{ width:32, height:32, borderRadius:8, border:'1px solid var(--border)', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)' }}>
-              <Users size={14}/>
+          <div style={{ width: 1, height: 20, background: 'var(--border)', flexShrink: 0 }} />
+          <Hash size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+          <span style={{ fontWeight: 800, fontSize: 15, color: 'var(--text-primary)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {activeChannelData?.name || 'Select a channel'}
+          </span>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            <button onClick={() => setShowMembersPanel(!showMembersPanel)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 8, color: showMembersPanel ? 'var(--accent)' : 'var(--text-muted)' }}>
+              <Users size={17} />
+            </button>
+            <button onClick={() => setShowInvite(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--accent, #2563EB)', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+              <UserPlus size={13} /> Invite
             </button>
           </div>
         </div>
 
         {/* Messages */}
-        <div style={{ flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:8 }}>
-          {/* Channel intro */}
-          <div style={{ textAlign:'center', padding:'24px 0', borderBottom:'1px solid var(--border-subtle)', marginBottom:8 }}>
-            <div style={{ width:48, height:48, borderRadius:14, background:'rgba(37,99,235,0.1)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 10px' }}>
-              {ch?.private ? <Lock size={22} style={{ color:'#2563EB' }}/> : <Hash size={22} style={{ color:'#2563EB' }}/>}
+        <div style={{ flex: 1, overflowY: 'auto', paddingTop: 8 }}>
+          {!activeChannel && (
+            <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-muted)' }}>
+              <Hash size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
+              <p style={{ fontSize: 15 }}>Select a channel to start messaging</p>
             </div>
-            <p style={{ fontSize:16, fontWeight:800, color:'var(--text-primary)', marginBottom:4 }}>Welcome to #{ch?.name}</p>
-            <p style={{ fontSize:12, color:'var(--text-muted)' }}>{ch?.desc || 'Start the conversation — this is the beginning of this channel.'}</p>
-          </div>
+          )}
 
-          {loading && <div style={{ textAlign:'center', color:'var(--text-muted)', fontSize:12, padding:16 }}>Loading…</div>}
+          {activeChannel && groupedMessages.length === 0 && !loadingMsgs && (
+            <div style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>👋</div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
+                Welcome to #{activeChannelData?.name}!
+              </h3>
+              <p style={{ fontSize: 13, lineHeight: 1.6 }}>
+                This is the beginning of the #{activeChannelData?.name} channel.<br />
+                Send a message to get the conversation started.
+              </p>
+            </div>
+          )}
 
-          {/* Group messages by date */}
-          {msgs.map((msg, i) => {
-            const showDate = i === 0 || new Date(msgs[i-1].created_at).toDateString() !== new Date(msg.created_at).toDateString();
-            return (
-              <React.Fragment key={msg.id}>
-                {showDate && (
-                  <div style={{ display:'flex', alignItems:'center', gap:10, margin:'8px 0' }}>
-                    <div style={{ flex:1, height:1, background:'var(--border-subtle)' }}/>
-                    <span style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', padding:'0 8px', whiteSpace:'nowrap' }}>
-                      {new Date(msg.created_at).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
-                    </span>
-                    <div style={{ flex:1, height:1, background:'var(--border-subtle)' }}/>
-                  </div>
-                )}
-                <MessageBubble
-                  msg={msg}
-                  isOwn={msg.sender_name === myName}
+          {groupedMessages.map((item, i) =>
+            item.type === 'date'
+              ? <DateSep key={`date-${i}`} date={item.date} />
+              : <Message
+                  key={item.msg.id}
+                  msg={item.msg}
+                  isOwn={item.msg.sender_id === myId}
+                  myId={myId}
                   onReact={reactToMessage}
-                  onReply={setShowThread}
+                  onReply={setReplyTo}
                   onDelete={deleteMessage}
-                  canDelete={msg.sender_name === myName || isOwner}
+                  currentUser={user}
                 />
-              </React.Fragment>
-            );
-          })}
-          <div ref={bottomRef}/>
+          )}
+          <div ref={bottomRef} style={{ height: 16 }} />
         </div>
 
-        <MessageInput onSend={sendMessage} placeholder={`Message #${ch?.name || activeChannel}`} />
+        {/* Reply preview */}
+        {replyTo && (
+          <div style={{
+            padding: '8px 16px', background: 'var(--bg-raised)', borderTop: '1px solid var(--border)',
+            display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: 'var(--text-muted)',
+          }}>
+            <MessageSquare size={13} />
+            <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              Replying to: <strong>{replyTo.sender_name}</strong> — "{replyTo.content?.slice(0, 60)}"
+            </span>
+            <button onClick={() => setReplyTo(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2 }}>
+              <X size={13} />
+            </button>
+          </div>
+        )}
+
+        {/* Input */}
+        <div style={{
+          padding: '12px 16px calc(12px + env(safe-area-inset-bottom))',
+          borderTop: '1px solid var(--border)',
+          background: 'var(--bg-surface)',
+          flexShrink: 0,
+        }}>
+          <div style={{
+            display: 'flex', alignItems: 'flex-end', gap: 8,
+            background: 'var(--bg-raised)', borderRadius: 14,
+            border: '1px solid var(--border)', padding: '8px 12px',
+          }}>
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={e => { setInput(e.target.value); e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'; }}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+              }}
+              placeholder={activeChannelData ? `Message #${activeChannelData.name}` : 'Select a channel first'}
+              disabled={!activeChannel}
+              rows={1}
+              style={{
+                flex: 1, background: 'none', border: 'none', outline: 'none',
+                color: 'var(--text-primary)', fontSize: 14, lineHeight: 1.5,
+                resize: 'none', maxHeight: 120, minHeight: 22,
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              }}
+            />
+            <button
+              onClick={sendMessage}
+              disabled={!input.trim() || sending || !activeChannel}
+              style={{
+                width: 36, height: 36, borderRadius: 10, border: 'none',
+                background: input.trim() && !sending && activeChannel ? '#2563EB' : 'var(--border)',
+                color: input.trim() && !sending && activeChannel ? '#fff' : 'var(--text-muted)',
+                cursor: input.trim() && !sending && activeChannel ? 'pointer' : 'not-allowed',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.15s', flexShrink: 0,
+              }}>
+              <Send size={16} />
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: 12, marginTop: 6, paddingLeft: 4 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+              <kbd style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 5px', fontSize: 10 }}>↵ Enter</kbd> send · <kbd style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 5px', fontSize: 10 }}>Shift+↵</kbd> newline
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Thread panel */}
-      {showThread && (
-        <div style={{ width:340, borderLeft:'1px solid var(--border)', display:'flex', flexDirection:'column', background:'var(--bg-surface)' }}>
-          <div style={{ padding:'12px 16px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <p style={{ fontSize:14, fontWeight:700, color:'var(--text-primary)', display:'flex', alignItems:'center', gap:6 }}><Reply size={14}/> Thread</p>
-            <button onClick={() => setShowThread(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)' }}><X size={16}/></button>
-          </div>
-          <div style={{ flex:1, padding:'12px 16px', overflowY:'auto' }}>
-            <MessageBubble msg={showThread} isOwn={showThread.sender_name===myName} onReact={reactToMessage} onReply={()=>{}} onDelete={deleteMessage} canDelete={isOwner}/>
-            <div style={{ margin:'12px 0', height:1, background:'var(--border-subtle)' }}/>
-            <p style={{ fontSize:11, color:'var(--text-muted)', marginBottom:12 }}>{showThread.reply_count || 0} {showThread.reply_count===1?'reply':'replies'}</p>
-          </div>
-          <MessageInput onSend={(t) => sendMessage(`↩ ${t}`)} placeholder="Reply in thread…" />
-        </div>
-      )}
-
-      {/* New Channel Modal */}
-      {showNewChannel && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(11,18,32,0.5)', backdropFilter:'blur(4px)', zIndex:500, display:'flex', alignItems:'flex-end', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-          <div style={{ background:'var(--bg-surface)', borderRadius:'20px 20px 0 0', padding:'20px 20px calc(24px + env(safe-area-inset-bottom))', width:'100%', maxWidth:480, margin:'0 auto' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:20 }}>
-              <h3 style={{ fontSize:18, fontWeight:800, color:'var(--text-primary)' }}>New Channel</h3>
-              <button onClick={() => setShowNewChannel(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)' }}><X size={20}/></button>
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-              <div>
-                <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:6 }}>Channel Name</label>
-                <input value={newCh.name} onChange={e => setNewCh(n => ({...n, name:e.target.value.toLowerCase().replace(/\s/g,'-')}))} placeholder="e.g. project-alpha" className="field" style={{ fontSize:14 }} />
-              </div>
-              <div>
-                <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:6 }}>Description (optional)</label>
-                <input value={newCh.desc} onChange={e => setNewCh(n => ({...n, desc:e.target.value}))} placeholder="What's this channel about?" className="field" style={{ fontSize:14 }} />
-              </div>
-              <div style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'var(--bg-raised)', borderRadius:10, border:'1px solid var(--border)', cursor:'pointer' }}
-                onClick={() => setNewCh(n => ({...n, private:!n.private}))}>
-                <Lock size={16} style={{ color:newCh.private?'#7C3AED':'var(--text-muted)' }}/>
-                <div style={{ flex:1 }}>
-                  <p style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)' }}>Private channel</p>
-                  <p style={{ fontSize:11, color:'var(--text-muted)' }}>Only invited members can view and post</p>
-                </div>
-                <div style={{ width:44, height:24, borderRadius:12, background:newCh.private?'#7C3AED':'var(--border)', position:'relative', transition:'background 0.15s' }}>
-                  <div style={{ width:20, height:20, borderRadius:'50%', background:'#fff', position:'absolute', top:2, left:newCh.private?22:2, transition:'left 0.15s', boxShadow:'0 1px 4px rgba(0,0,0,0.2)' }}/>
-                </div>
-              </div>
-              <button onClick={createChannel} disabled={!newCh.name}
-                style={{ width:'100%', padding:'14px', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', border:'none', borderRadius:12, fontSize:15, fontWeight:800, cursor:'pointer', opacity:!newCh.name?0.5:1 }}>
-                Create Channel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Invite Member Modal */}
+      {/* ── INVITE MODAL ──────────────────────────────────────── */}
       {showInvite && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(11,18,32,0.5)', backdropFilter:'blur(4px)', zIndex:500, display:'flex', alignItems:'flex-end', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-          <div style={{ background:'var(--bg-surface)', borderRadius:'20px 20px 0 0', padding:'20px 20px calc(24px + env(safe-area-inset-bottom))', width:'100%', maxWidth:480, margin:'0 auto' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:20 }}>
-              <h3 style={{ fontSize:18, fontWeight:800, color:'var(--text-primary)' }}>Invite Team Member</h3>
-              <button onClick={() => { setShowInvite(false); setInviteStatus(''); }} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)' }}><X size={20}/></button>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.6)', zIndex: 500, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: 0 }}
+          onClick={() => setShowInvite(false)}>
+          <div style={{
+            background: 'var(--bg-surface)', borderRadius: '20px 20px 0 0',
+            padding: '24px 20px calc(32px + env(safe-area-inset-bottom))',
+            width: '100%', maxWidth: 480,
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: 'var(--text-primary)' }}>Invite to Workspace</h3>
+              <button onClick={() => setShowInvite(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={20} /></button>
             </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-              <div>
-                <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:6 }}>Email Address</label>
-                <input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="teammate@company.com" type="email" className="field" style={{ fontSize:14 }} />
+            <input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && inviteMember()}
+              placeholder="colleague@email.com" type="email"
+              style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 15, boxSizing: 'border-box', marginBottom: 10 }} />
+            <select value={inviteRole} onChange={e => setInviteRole(e.target.value)}
+              style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 14, boxSizing: 'border-box', marginBottom: 16 }}>
+              <option value="member">Member</option>
+              <option value="manager">Manager</option>
+              <option value="admin">Admin</option>
+            </select>
+            {inviteStatus && (
+              <div style={{ padding: '8px 12px', borderRadius: 8, background: inviteStatus.includes('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: inviteStatus.includes('✅') ? '#16a34a' : '#dc2626', fontSize: 13, marginBottom: 12 }}>
+                {inviteStatus}
               </div>
-              <div>
-                <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:6 }}>Role</label>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
-                  {[['member','Member','Can view and post in channels'],['manager','Manager','Can manage jobs and clients'],['admin','Admin','Full access except billing']].map(([role,label,desc]) => (
-                    <div key={role} onClick={() => setInviteRole(role)} style={{ padding:'10px 12px', borderRadius:10, border:`2px solid ${inviteRole===role?'var(--blue)':'var(--border)'}`, background:inviteRole===role?'rgba(37,99,235,0.06)':'transparent', cursor:'pointer' }}>
-                      <p style={{ fontSize:12, fontWeight:700, color:inviteRole===role?'var(--blue)':'var(--text-primary)', marginBottom:2 }}>{label}</p>
-                      <p style={{ fontSize:10, color:'var(--text-muted)', lineHeight:1.4 }}>{desc}</p>
+            )}
+            <button onClick={inviteMember} style={{ width: '100%', padding: '13px', background: 'linear-gradient(135deg,#2563EB,#0D9488)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: 'pointer' }}>
+              Send Invitation
+            </button>
+
+            {/* Existing invites */}
+            {pendingInvites.length > 0 && (
+              <div style={{ marginTop: 20 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Pending Invites</div>
+                {pendingInvites.map(m => (
+                  <div key={m.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{m.email || m.invited_email}</div>
+                      <div style={{ fontSize: 11, color: '#D97706' }}>⏳ Pending · {m.role}</div>
                     </div>
-                  ))}
-                </div>
+                    <button onClick={() => removeMember(m.id, true)}
+                      style={{ padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.06)', color: '#ef4444', fontSize: 12, cursor: 'pointer' }}>
+                      Cancel
+                    </button>
+                  </div>
+                ))}
               </div>
-              {inviteStatus && (
-                <p style={{ fontSize:13, fontWeight:600, color:inviteStatus.startsWith('✓')?'#0D9488':'#DC2626', textAlign:'center' }}>{inviteStatus}</p>
-              )}
-              <button onClick={inviteMember} disabled={!inviteEmail.trim() || inviting}
-                style={{ width:'100%', padding:'14px', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', border:'none', borderRadius:12, fontSize:15, fontWeight:800, cursor:'pointer', opacity:!inviteEmail.trim()||inviting?0.5:1 }}>
-                {inviting ? 'Sending invite…' : 'Send Invitation'}
-              </button>
-            </div>
+            )}
           </div>
         </div>
       )}
