@@ -74,12 +74,16 @@ export async function sendEmail({ to, subject, html, text, from, replyTo } = {})
 async function sendViaSMTP({ to, from, subject, html, text, replyTo }) {
   const nodemailer = (await import('nodemailer')).default;
   const port = parseInt(process.env.SMTP_PORT) || 587;
+  
+  // When using Resend via SMTP (smtp.resend.com), SMTP_PASS = RESEND_API_KEY
+  const smtpPass = process.env.SMTP_PASS || 
+    (process.env.SMTP_HOST?.includes('resend.com') ? process.env.RESEND_API_KEY : null);
 
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port,
     secure: port === 465,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    auth: { user: process.env.SMTP_USER, pass: smtpPass },
     tls: { rejectUnauthorized: false },
   });
 
