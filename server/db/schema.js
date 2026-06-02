@@ -287,6 +287,17 @@ export async function initDB() {
     `CREATE INDEX IF NOT EXISTS idx_documents_account ON documents(account_id)`,
     `CREATE INDEX IF NOT EXISTS idx_photos_account ON photos(account_id, job_site)`,
     `CREATE INDEX IF NOT EXISTS idx_workspace_msgs ON workspace_messages(account_id, channel_id, created_at)`,
+    // File attachments for workspace messages
+    `CREATE TABLE IF NOT EXISTS workspace_attachments (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL,
+      uploader_id TEXT,
+      file_name TEXT NOT NULL,
+      file_type TEXT,
+      file_data TEXT,
+      file_size INTEGER DEFAULT 0,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`,
     `CREATE TABLE IF NOT EXISTS push_subscriptions (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
