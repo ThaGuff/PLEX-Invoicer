@@ -114,6 +114,7 @@ router.patch('/me', requireAuth, async (req, res) => {
     await db.execute(
       `UPDATE user_profiles SET
         display_name = COALESCE(?, display_name),
+        username = COALESCE(?, username),
         avatar_url = COALESCE(?, avatar_url),
         title = COALESCE(?, title),
         phone = COALESCE(?, phone),
@@ -125,7 +126,7 @@ router.patch('/me', requireAuth, async (req, res) => {
         updated_at = NOW()
        WHERE user_id = ?`,
       [
-        sanitize(display_name), sanitize(avatar_url, 2000), sanitize(title, 100),
+        sanitize(display_name), username?.trim() || null, sanitize(avatar_url, 2000), sanitize(title, 100),
         sanitize(phone, 30), sanitize(bio, 500), sanitize(timezone, 50),
         notification_email !== undefined ? (notification_email ? 1 : 0) : null,
         notification_push !== undefined ? (notification_push ? 1 : 0) : null,

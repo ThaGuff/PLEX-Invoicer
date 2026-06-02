@@ -208,7 +208,10 @@ router.get('/members', requireAuth, async (req, res) => {
   try {
     // Return ALL members including pending invites so team management works
     const members = await db.execute(
-      `SELECT am.*, am.invited_email as email FROM account_members am
+      `SELECT am.*, am.invited_email as email,
+              up.display_name, up.username, up.avatar_url, up.title
+       FROM account_members am
+       LEFT JOIN user_profiles up ON up.user_id = am.user_id
        WHERE am.account_id = ?
        ORDER BY am.status DESC, am.created_at ASC`,
       [account_id]
