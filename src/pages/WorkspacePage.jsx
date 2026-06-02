@@ -201,6 +201,9 @@ export default function WorkspacePage() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [mentionSuggestions, setMentionSuggestions] = useState([]);
   const [mentionQuery, setMentionQuery] = useState('');
+  const [attachments, setAttachments] = useState([]);   // {name, url, type, size}
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const fileInputRef = useRef(null);
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
   const bottomRef = useRef(null);
