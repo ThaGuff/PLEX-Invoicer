@@ -228,6 +228,7 @@ router.post('/:id/send', requireAuth, async (req, res) => {
         const portalUrl = `${origin}/portal/invoice/${invoice.public_token}`;
         await sendEmail({
           to: invoice.client_email,
+          type: 'invoice',
           subject: `Invoice ${invoice.number} from ${invoice.agency_name || 'Revanew'}`,
           html: buildInvoiceHtml({
             clientName: invoice.client_name,

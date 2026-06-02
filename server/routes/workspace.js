@@ -121,6 +121,34 @@ router.post('/channels/:channelId/messages', requireAuth, async (req, res) => {
       }
     }
 
+    // ── Send push notifications to account members ─────────────────
+    // (fire-and-forget, don't block the response)
+    if (process.env.VAPID_PUBLIC_KEY) {
+      const pushPayload = JSON.stringify({
+        title: `${cleanSender} in #${req.params.channelId}`,
+        body: cleanContent.slice(0, 100),
+        url: `${process.env.APP_URL || 'https://revanew.io'}/workspace`,
+        tag: `workspace-${account_id}`,
+      });
+      db.execute(
+        `SELECT ps.* FROM push_subscriptions ps
+         JOIN account_members am ON am.user_id = ps.user_id
+         WHERE am.account_id = ? AND am.status = 'active' AND ps.user_id != ?`,
+        [account_id, req.user.id]
+      ).then(async subs => {
+        if (!subs.rows.length) return;
+        const { getWebPush } = await import('./notifications.js');
+        const wp = await getWebPush();
+        if (!process.env.VAPID_PUBLIC_KEY) return;
+        for (const sub of subs.rows) {
+          wp.sendNotification(
+            { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+            pushPayload, { TTL: 3600 }
+          ).catch(() => {});
+        }
+      }).catch(() => {});
+    }
+
     res.status(201).json(savedMsg);
   } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
 });
@@ -233,6 +261,7 @@ router.post('/invite', requireAuth, async (req, res) => {
     try {
       await sendEmail({
         to: email,
+        type: 'invite',
         subject: `${senderName} invited you to join ${account.name} on Revanew`,
         html: buildInviteHtml({
           inviteeName: email.split('@')[0],

@@ -194,6 +194,8 @@ app.use((req, res, next) => {
 
 // Raw body needed for Stripe webhook signature verification
 app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));
+// Higher body limit for logo uploads (base64 images can be large)
+app.use('/api/accounts', express.json({ limit: '10mb' }));
 app.use(express.json({ limit: '2mb' }));
 app.use(sanitizeRequest); // strip XSS and injection from all request bodies
 

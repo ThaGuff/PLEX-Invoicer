@@ -247,6 +247,7 @@ router.post('/:id/send', requireAuth, async (req, res) => {
 
     await sendEmail({
       to: quote.client_email,
+      type: 'invoice',
       subject: `Quote ${quote.number} from ${quote.agency_name || 'Revanew'}`,
       html: buildQuoteHtml({
         clientName: quote.client_name,

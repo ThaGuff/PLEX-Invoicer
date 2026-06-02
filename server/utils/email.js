@@ -11,14 +11,20 @@
  *   - Until verified, only delivers to the account owner's email
  */
 
-export async function sendEmail({ to, subject, html, text, from, replyTo } = {}) {
+export async function sendEmail({ to, subject, html, text, from, replyTo, type } = {}) {
   if (!to || !subject) throw new Error('to and subject are required');
 
   const toList = Array.isArray(to) ? to.filter(Boolean) : [to].filter(Boolean);
   if (!toList.length) throw new Error('No valid recipients');
 
   const resendKey  = process.env.RESEND_API_KEY;
-  const resendFrom = process.env.RESEND_FROM || 'onboarding@resend.dev';
+  // Determine "from" address based on email type
+  const baseDomain = process.env.RESEND_FROM?.split('@')[1] || null;
+  const invoiceFrom = baseDomain ? `Revanew Invoices <invoices@${baseDomain}>` : (process.env.RESEND_FROM || 'onboarding@resend.dev');
+  const inviteFrom  = baseDomain ? `Revanew Team <invite@${baseDomain}>` : (process.env.RESEND_FROM || 'onboarding@resend.dev');
+  const defaultFrom = process.env.RESEND_FROM || 'onboarding@resend.dev';
+  
+  const resendFrom = type === 'invoice' ? invoiceFrom : type === 'invite' ? inviteFrom : defaultFrom;
   const smtpFrom   = process.env.SMTP_FROM || process.env.SMTP_USER;
   const fromAddr   = from || (resendKey ? resendFrom : smtpFrom) || 'onboarding@resend.dev';
 

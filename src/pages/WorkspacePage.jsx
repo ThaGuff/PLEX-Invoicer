@@ -54,12 +54,39 @@ function Message({ msg, isOwn, myId, onReact, onReply, onDelete, currentUser }) 
           <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{timeStr}</span>
         </div>
 
-        {/* Content */}
-        <div style={{
-          fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.55,
-          wordBreak: 'break-word', whiteSpace: 'pre-wrap',
-        }}>
-          {msg.content}
+        {/* Content - parse images, files, and mentions */}
+        <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.55, wordBreak: 'break-word' }}>
+          {(msg.content || '').split('\n').map((line, i) => {
+            const imageMatch = line.match(/^\[image:(.+?)\]\((.+?)\)$/);
+            const fileMatch = line.match(/^\[file:(.+?)\]\((.+?)\)$/);
+            const mentionMatch = line.includes('@');
+            if (imageMatch) return (
+              <div key={i} style={{ marginTop: 8 }}>
+                <img src={imageMatch[2]} alt={imageMatch[1]}
+                  style={{ maxWidth: '100%', maxHeight: 280, borderRadius: 10, cursor: 'pointer', border: '1px solid var(--border)' }}
+                  onClick={() => window.open(imageMatch[2], '_blank')} />
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>{imageMatch[1]}</div>
+              </div>
+            );
+            if (fileMatch) return (
+              <a key={i} href={fileMatch[2]} download={fileMatch[1]}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--bg-raised)', border: '1px solid var(--border)', borderRadius: 8, textDecoration: 'none', color: 'var(--text-primary)', fontSize: 13, marginTop: 6 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                {fileMatch[1]}
+              </a>
+            );
+            // Highlight @mentions
+            const parts = line.split(/(@\w+)/g);
+            return (
+              <span key={i} style={{ whiteSpace: 'pre-wrap' }}>
+                {parts.map((p, j) => p.startsWith('@')
+                  ? <strong key={j} style={{ color: 'var(--accent, #2563EB)', fontWeight: 700 }}>{p}</strong>
+                  : p
+                )}
+                {i < (msg.content || '').split('\n').length - 1 && '\n'}
+              </span>
+            );
+          })}
         </div>
 
         {/* Reactions */}
@@ -229,6 +256,34 @@ export default function WorkspacePage() {
     if (activeChannel) loadMessages(activeChannel);
   }, [activeChannel]);
 
+  // ── Real-time message polling every 5 seconds ───────────────────
+  useEffect(() => {
+    if (!activeChannel || !account?.id) return;
+    const interval = setInterval(async () => {
+      try {
+        const r = await fetch(
+          `/api/workspace/channels/${activeChannel}/messages?account_id=${account.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (r.ok) {
+          const data = await r.json();
+          if (Array.isArray(data)) {
+            setMessages(prev => {
+              const existing = prev[activeChannel] || [];
+              // Only update if there are new messages (avoid unnecessary re-renders)
+              if (data.length !== existing.length ||
+                  (data.length > 0 && existing.length > 0 && data[data.length-1]?.id !== existing[existing.length-1]?.id)) {
+                return { ...prev, [activeChannel]: data };
+              }
+              return prev;
+            });
+          }
+        }
+      } catch {}
+    }, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval);
+  }, [activeChannel, account?.id]);
+
   // ── Presence heartbeat — update every 60 seconds ────────────────
   useEffect(() => {
     if (!account?.id || !token) return;
@@ -323,6 +378,28 @@ export default function WorkspacePage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages[activeChannel]]);
 
+  // Handle file attachment
+  const handleFileAttach = async (file) => {
+    if (!file) return;
+    setUploadingFile(true);
+    try {
+      const isImage = file.type.startsWith('image/');
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        setAttachments(prev => [...prev, {
+          name: file.name,
+          url: dataUrl,
+          type: isImage ? 'image' : 'file',
+          size: file.size,
+          mimeType: file.type,
+        }]);
+      };
+      reader.readAsDataURL(file);
+    } catch (e) { console.error('File attach error:', e); }
+    finally { setUploadingFile(false); }
+  };
+
   // Send message
   const sendMessage = async () => {
     const content = input.trim();
@@ -334,7 +411,16 @@ export default function WorkspacePage() {
       const r = await fetch(`/api/workspace/channels/${activeChannel}/messages?account_id=${account?.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ content, account_id: account?.id, sender_name: myName, reply_to: replyTo?.id })
+        body: JSON.stringify({ 
+          content: attachments.length > 0 
+            ? content + (content ? '\n' : '') + attachments.map(a => 
+                a.type === 'image' 
+                  ? `[image:${a.name}](${a.url})`
+                  : `[file:${a.name}](${a.url})`
+              ).join('\n')
+            : content,
+          account_id: account?.id, sender_name: myName, reply_to: replyTo?.id 
+        })
       });
       if (r.ok) {
         const msg = await r.json();
@@ -761,7 +847,37 @@ export default function WorkspacePage() {
             background: 'var(--bg-raised)', borderRadius: 14,
             border: '1px solid var(--border)', padding: '8px 12px',
           }}>
-            <textarea
+            {/* Attachment preview bar */}
+            {attachments.length > 0 && (
+              <div style={{ display:'flex', gap:8, padding:'6px 8px', borderBottom:'1px solid var(--border)', flexWrap:'wrap' }}>
+                {attachments.map((att, i) => (
+                  <div key={i} style={{ display:'flex', alignItems:'center', gap:6, padding:'4px 8px', background:'var(--bg-raised)', borderRadius:8, border:'1px solid var(--border)', fontSize:12 }}>
+                    {att.type === 'image'
+                      ? <img src={att.url} alt={att.name} style={{ width:32, height:32, objectFit:'cover', borderRadius:4 }} />
+                      : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+                    }
+                    <span style={{ maxWidth:100, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'var(--text-primary)' }}>{att.name}</span>
+                    <button onClick={() => setAttachments(prev => prev.filter((_,j) => j!==i))}
+                      style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:'0 2px' }}>✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+          {/* Hidden file input */}
+            <input ref={fileInputRef} type="file" accept="image/*,application/pdf,.doc,.docx,.txt,.csv,.xlsx"
+              style={{ display:'none' }} onChange={e => e.target.files[0] && handleFileAttach(e.target.files[0])} />
+            
+            {/* Attach button */}
+            <button onClick={() => fileInputRef.current?.click()} disabled={uploadingFile}
+              title="Attach file or image"
+              style={{ background:'none', border:'none', cursor:'pointer', padding:6, borderRadius:8, color:'var(--text-muted)', flexShrink:0, display:'flex', alignItems:'center', transition:'color 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.color='var(--text-primary)'}
+              onMouseLeave={e => e.currentTarget.style.color='var(--text-muted)'}>
+              <Paperclip size={17} />
+            </button>
+
+          <textarea
               ref={inputRef}
               value={input}
               onChange={e => {

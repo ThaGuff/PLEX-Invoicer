@@ -30,15 +30,39 @@ function LogoUploader({ accountId, currentLogoUrl, currentInitial, accentColor, 
     setUploading(true);
     const reader = new FileReader();
     reader.onload = async (ev) => {
-      const dataUrl = ev.target.result;
-      setPreview(dataUrl);
+      // Compress image to max 800x800 and 400KB before upload
+      const compressImage = (dataUrl, maxWidth = 800, maxHeight = 800, quality = 0.85) => {
+        return new Promise(resolve => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let { width, height } = img;
+            if (width > maxWidth || height > maxHeight) {
+              const ratio = Math.min(maxWidth / width, maxHeight / height);
+              width = Math.round(width * ratio);
+              height = Math.round(height * ratio);
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.src = dataUrl;
+        });
+      };
+
       try {
+        const rawDataUrl = ev.target.result;
+        // Compress if it's an image type (not SVG)
+        const dataUrl = rawDataUrl.startsWith('data:image/svg') ? rawDataUrl : await compressImage(rawDataUrl);
+        setPreview(dataUrl);
         const result = await api.accounts.uploadLogo(accountId, dataUrl);
         if (result?.error) throw new Error(result.error);
         onUploaded(dataUrl);
       } catch (err) {
         console.error('Logo upload failed:', err);
-        alert('Logo upload failed: ' + (err.message || 'Please try a smaller image'));
+        alert('Logo upload failed: ' + (err.message || 'Please try a smaller image (under 5MB)'));
         setPreview(currentLogoUrl);
       }
       setUploading(false);
