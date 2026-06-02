@@ -47,7 +47,14 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
       if (r.ok) {
         setStatus('success');
         setMessage(data.account_name || accountName);
-        // Reload accounts context and go to workspace after 2 seconds
+        // Set the joined account as active so workspace loads correctly
+        if (data.account_id) {
+          localStorage.setItem('plex_active_account', data.account_id);
+          localStorage.setItem('revanew_onboarded', '1'); // Don't treat as new user
+          localStorage.removeItem('revanew_new_user');
+        }
+        // Trigger account context reload and go to workspace after 2 seconds
+        window.dispatchEvent(new CustomEvent('plex:auth-restored'));
         setTimeout(() => navigate('/workspace'), 2500);
       } else {
         setStatus('error');

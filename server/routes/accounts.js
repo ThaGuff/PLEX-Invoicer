@@ -64,9 +64,23 @@ router.get('/', requireAuth, async (req, res) => {
       return res.json(await enrichAccounts(combined));
     }
 
-    // Everyone else: just their own accounts
-    // If they have none yet, auto-create one from their auth profile
-    if (ownedAccounts.rows.length === 0) {
+    // Check if user is an invited member of other accounts
+    const memberAccounts = await db.execute(
+      `SELECT a.* FROM accounts a
+       JOIN account_members am ON am.account_id = a.id
+       WHERE am.user_id = ? AND am.status = 'active'`,
+      [userId]
+    );
+
+    // Return owned + member accounts (deduplicated)
+    const allAccountIds = new Set(ownedAccounts.rows.map(a => a.id));
+    const combined = [...ownedAccounts.rows];
+    for (const a of memberAccounts.rows) {
+      if (!allAccountIds.has(a.id)) combined.push(a);
+    }
+
+    // If user has NO accounts at all (not owner, not member), create one for them
+    if (combined.length === 0) {
       const name = req.user.user_metadata?.full_name
         || req.user.email?.split('@')[0]?.replace(/[^a-zA-Z0-9 ]/g, ' ')
         || 'My Business';
@@ -82,7 +96,7 @@ router.get('/', requireAuth, async (req, res) => {
       return res.json(await enrichAccounts(created.rows));
     }
 
-    res.json(await enrichAccounts(ownedAccounts.rows));
+    res.json(await enrichAccounts(combined));
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

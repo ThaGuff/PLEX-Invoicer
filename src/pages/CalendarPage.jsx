@@ -21,16 +21,41 @@ function GoogleCalendarSync({ accountId }) {
 
   useEffect(() => {
     if (!accountId) return;
+    const params = new URLSearchParams(window.location.search);
+    const justConnected = params.get('google') === 'connected';
+    const hadError = params.get('error');
+    
+    // Clean the URL without reloading
+    if (justConnected || hadError) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    
     fetch(`/api/google-calendar/status?account_id=${accountId}`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json()).then(setStatus).catch(() => {});
+      .then(r => r.json())
+      .then(s => {
+        setStatus(s);
+        // Auto-sync if we just connected
+        if (justConnected && s.connected) {
+          setTimeout(handleSync, 500);
+        }
+        if (hadError === 'google_denied') {
+          alert('⚠️ Google Calendar: Access denied.\n\nThis app is in testing mode. To connect Google Calendar:\n\n1. Go to Google Cloud Console\n2. APIs & Services → OAuth consent screen\n3. Add your email as a Test User\n\nOr wait for Google to verify the app.');
+        } else if (hadError) {
+          alert('Google Calendar connection failed: ' + hadError.replace(/_/g, ' '));
+        }
+      }).catch(() => {});
   }, [accountId]);
 
   const handleConnect = async () => {
     try {
       const r = await fetch(`/api/google-calendar/auth-url?account_id=${accountId}`, { headers: { Authorization: `Bearer ${token}` } });
       const d = await r.json();
-      if (d.url) window.open(d.url, '_blank');
-      else alert(d.error || 'Google Calendar not configured. Set GOOGLE_CLIENT_ID in Railway Variables.');
+      if (d.url) {
+        // Open in same tab so session stays consistent
+        window.location.href = d.url;
+      } else {
+        alert(d.error || 'Google Calendar not configured. Set GOOGLE_CLIENT_ID in Railway Variables.');
+      }
     } catch (e) { alert(e.message); }
   };
 
