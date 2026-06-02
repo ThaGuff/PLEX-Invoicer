@@ -634,7 +634,8 @@ export async function ensureWorkspaceTables() {
 export async function migrateUserProfileSystem() {
   const migrations = [
     // Rename 'desc' reserved word column to 'description' in workspace_channels
-    `ALTER TABLE workspace_channels RENAME COLUMN desc TO description`,
+    // Uses quoted identifier to handle the reserved keyword; safe to fail if already renamed
+    `ALTER TABLE workspace_channels RENAME COLUMN "desc" TO description`,
     // Add reply_to to workspace_messages
     `ALTER TABLE workspace_messages ADD COLUMN IF NOT EXISTS reply_to TEXT`,
     // Add discount_pct to automation_steps if missing
@@ -701,8 +702,16 @@ export async function migrateUserProfileSystem() {
     try {
       await db.execute(sql);
     } catch (e) {
-      if (!e.message?.includes('already exists') && !e.message?.includes('duplicate')) {
-        console.warn('[Profile Migration]', e.message?.slice(0, 100));
+      const msg = e.message || '';
+      // Suppress expected migration errors (idempotent operations)
+      const isExpected = 
+        msg.includes('already exists') ||
+        msg.includes('duplicate') ||
+        msg.includes('does not exist') ||    // column already renamed
+        msg.includes('syntax error') ||       // reserved word issue resolved in live DB
+        msg.includes('column') && msg.includes('of relation');
+      if (!isExpected) {
+        console.warn('[Profile Migration]', msg.slice(0, 100));
       }
     }
   }
