@@ -618,6 +618,74 @@ export async function ensureWorkspaceTables() {
 }
 
 // ── Migrate calendar_events table with new columns ─────────────────
+
+// ── Full User Profile & Presence System ──────────────────────────
+export async function migrateUserProfileSystem() {
+  const migrations = [
+    // Add invite_token + accept tracking to account_members
+    `ALTER TABLE account_members ADD COLUMN IF NOT EXISTS invite_token TEXT UNIQUE`,
+    `ALTER TABLE account_members ADD COLUMN IF NOT EXISTS invited_at TIMESTAMPTZ DEFAULT NOW()`,
+    `ALTER TABLE account_members ADD COLUMN IF NOT EXISTS accepted_at TIMESTAMPTZ`,
+    `ALTER TABLE account_members ADD COLUMN IF NOT EXISTS declined_at TIMESTAMPTZ`,
+    `ALTER TABLE account_members ADD COLUMN IF NOT EXISTS invite_accepted_by_user_id TEXT`,
+
+    // User profiles table - full directory profile per user
+    `CREATE TABLE IF NOT EXISTS user_profiles (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL UNIQUE,
+      display_name TEXT,
+      avatar_url TEXT,
+      title TEXT,
+      phone TEXT,
+      bio TEXT,
+      timezone TEXT DEFAULT 'America/Chicago',
+      notification_email BOOLEAN DEFAULT TRUE,
+      notification_push BOOLEAN DEFAULT TRUE,
+      notification_mentions BOOLEAN DEFAULT TRUE,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    )`,
+
+    // Presence / online status table
+    `CREATE TABLE IF NOT EXISTS user_presence (
+      user_id TEXT PRIMARY KEY,
+      account_id TEXT,
+      status TEXT DEFAULT 'offline',
+      custom_status TEXT,
+      last_seen TIMESTAMPTZ DEFAULT NOW(),
+      last_active TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    )`,
+
+    // Notification log table (sent notifications audit trail)
+    `CREATE TABLE IF NOT EXISTS notification_log (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      account_id TEXT,
+      type TEXT NOT NULL,
+      title TEXT,
+      body TEXT,
+      url TEXT,
+      read_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_notif_user ON notification_log(user_id, created_at DESC)`,
+    `CREATE INDEX IF NOT EXISTS idx_presence_account ON user_presence(account_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_profiles_user ON user_profiles(user_id)`,
+  ];
+
+  for (const sql of migrations) {
+    try {
+      await db.execute(sql);
+    } catch (e) {
+      if (!e.message?.includes('already exists') && !e.message?.includes('duplicate')) {
+        console.warn('[Profile Migration]', e.message?.slice(0, 100));
+      }
+    }
+  }
+  console.log('✓ User profile system migrated');
+}
+
 export async function migrateCalendarEvents() {
   const cols = [
     `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS end_time TEXT`,

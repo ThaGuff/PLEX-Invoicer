@@ -171,6 +171,7 @@ export default function WorkspacePage() {
   const [replyTo, setReplyTo] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [mentionSuggestions, setMentionSuggestions] = useState([]);
   const [mentionQuery, setMentionQuery] = useState('');
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
@@ -228,7 +229,67 @@ export default function WorkspacePage() {
     if (activeChannel) loadMessages(activeChannel);
   }, [activeChannel]);
 
-  // Register for push notifications
+  // ── Presence heartbeat — update every 60 seconds ────────────────
+  useEffect(() => {
+    if (!account?.id || !token) return;
+    const heartbeat = () => {
+      fetch('/api/profiles/presence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ account_id: account.id, status: 'online' })
+      }).catch(() => {});
+    };
+    heartbeat(); // immediate
+    const interval = setInterval(heartbeat, 60000);
+    
+    // Mark as away on tab blur, online on focus
+    const onBlur = () => fetch('/api/profiles/presence', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ account_id: account.id, status: 'away' })
+    }).catch(() => {});
+    const onFocus = () => heartbeat();
+    
+    window.addEventListener('blur', onBlur);
+    window.addEventListener('focus', onFocus);
+    return () => { clearInterval(interval); window.removeEventListener('blur', onBlur); window.removeEventListener('focus', onFocus); };
+  }, [account?.id, token]);
+
+  // ── Load presence for all members ─────────────────────────────
+  const [presence, setPresence] = useState({});
+  useEffect(() => {
+    if (!account?.id || !token) return;
+    const loadPresence = () => {
+      fetch(`/api/profiles/presence/${account.id}`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : [])
+        .then(data => {
+          const map = {};
+          if (Array.isArray(data)) data.forEach(p => { map[p.user_id] = p; });
+          setPresence(map);
+        }).catch(() => {});
+    };
+    loadPresence();
+    const interval = setInterval(loadPresence, 30000);
+    return () => clearInterval(interval);
+  }, [account?.id, token]);
+
+  // ── Notification polling ───────────────────────────────────────
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  useEffect(() => {
+    if (!token) return;
+    const loadNotifs = () => {
+      fetch('/api/profiles/notifications', { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : { notifications: [], unread: 0 })
+        .then(d => { setNotifications(d.notifications || []); setUnreadCount(d.unread || 0); })
+        .catch(() => {});
+    };
+    loadNotifs();
+    const interval = setInterval(loadNotifs, 30000);
+    return () => clearInterval(interval);
+  }, [token]);
+
+  // ── Register for push notifications
   useEffect(() => {
     if (!account?.id || !token) return;
     const registerPush = async () => {
@@ -492,25 +553,43 @@ export default function WorkspacePage() {
               <div style={{ width: 26, height: 26, borderRadius: 6, background: 'linear-gradient(135deg,#2563EB,#0D9488)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 800 }}>
                 {myName.charAt(0).toUpperCase()}
               </div>
-              <div style={{ position: 'absolute', bottom: -2, right: -2, width: 9, height: 9, borderRadius: '50%', background: '#22c55e', border: '2px solid #0F172A' }} />
+              <div style={{ position: 'absolute', bottom: -2, right: -2, width: 9, height: 9, borderRadius: '50%', background: '#22c55e', border: '2px solid #0F172A' }} title="Online" />
             </div>
-            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-              {myName} <span style={{ opacity: 0.5, fontSize: 11 }}>you</span>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+              {myName} <span style={{ opacity: 0.4, fontSize: 10 }}>· you · online</span>
             </span>
           </div>
 
-          {activeMembersList.map(m => (
-            <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', borderRadius: 8 }}>
-              <div style={{ position: 'relative' }}>
-                <div style={{ width: 26, height: 26, borderRadius: 6, background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: 800 }}>
-                  {(m.email || m.invited_email || 'U').charAt(0).toUpperCase()}
+          {activeMembersList.map(m => {
+            const memberPresence = presence[m.user_id];
+            const presenceStatus = memberPresence?.status || 'offline';
+            const presenceColor = presenceStatus === 'online' ? '#22c55e' : presenceStatus === 'away' ? '#F59E0B' : '#6B7280';
+            const presenceLabel = presenceStatus === 'online' ? 'Online' : presenceStatus === 'away' ? 'Away' : 'Offline';
+            const displayName = memberPresence?.display_name || m.email || m.invited_email || 'Member';
+            return (
+              <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', borderRadius: 8 }}>
+                <div style={{ position: 'relative' }}>
+                  {memberPresence?.avatar_url
+                    ? <img src={memberPresence.avatar_url} style={{ width: 26, height: 26, borderRadius: 6, objectFit: 'cover' }} />
+                    : <div style={{ width: 26, height: 26, borderRadius: 6, background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: 800 }}>
+                        {displayName.charAt(0).toUpperCase()}
+                      </div>
+                  }
+                  <div style={{ position: 'absolute', bottom: -2, right: -2, width: 8, height: 8, borderRadius: '50%', background: presenceColor, border: '2px solid #0F172A' }} title={presenceLabel} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, color: presenceStatus === 'offline' ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {displayName}
+                  </div>
+                  {memberPresence?.custom_status && (
+                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {memberPresence.custom_status}
+                    </div>
+                  )}
                 </div>
               </div>
-              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                {m.email || m.invited_email}
-              </span>
-            </div>
-          ))}
+            );
+          })}
 
           {pendingInvites.length > 0 && (
             <>
@@ -566,7 +645,19 @@ export default function WorkspacePage() {
           <span style={{ fontWeight: 800, fontSize: 15, color: 'var(--text-primary)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {activeChannelData?.name || 'Select a channel'}
           </span>
-          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0, alignItems: 'center' }}>
+            {/* Notification bell */}
+            <div style={{ position: 'relative' }}>
+              <button onClick={() => setShowNotifications && setShowNotifications(p => !p)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 8, color: 'var(--text-muted)', position: 'relative' }}>
+                <Bell size={17} />
+                {unreadCount > 0 && (
+                  <span style={{ position: 'absolute', top: 2, right: 2, width: 16, height: 16, borderRadius: '50%', background: '#EF4444', color: '#fff', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+            </div>
             <button onClick={() => setShowMembersPanel(!showMembersPanel)}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 8, color: showMembersPanel ? 'var(--accent)' : 'var(--text-muted)' }}>
               <Users size={17} />

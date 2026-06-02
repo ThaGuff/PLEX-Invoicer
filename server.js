@@ -6,7 +6,7 @@ import path           from 'path';
 import { fileURLToPath } from 'url';
 import helmet         from 'helmet';
 import rateLimit      from 'express-rate-limit';
-import { initDB, initSchemaV2, initStripeConnect, ensureWorkspaceTables, migrateCalendarEvents } from './server/db/schema.js';
+import { initDB, initSchemaV2, initStripeConnect, ensureWorkspaceTables, migrateCalendarEvents, migrateUserProfileSystem } from './server/db/schema.js';
 import { startDbHealthMonitor, getDbHealth } from './server/db/healthcheck.js';
 import { requireAuth, sanitizeRequest } from './server/middleware/auth.js';
 import { requirePlanFeature } from './server/middleware/planGuard.js';
@@ -18,6 +18,7 @@ import authRouter from './server/routes/auth.js';
 import adminRouter       from './server/routes/admin.js';
 import trackingRouter    from './server/routes/tracking.js';
 import aiRouter          from './server/routes/ai.js';
+import profilesRouter     from './server/routes/profiles.js';
 import analyticsRouter   from './server/routes/analytics.js';
 import integrationsRouter from './server/routes/integrations.js';
 import stripeConnectRouter from './server/routes/stripe-connect.js';
@@ -559,6 +560,10 @@ app.use('/api/track',        trackingRouter);
 app.use('/api/admin',        requireAuth, adminLimiter, adminRouter);
 app.use('/api/stripe-connect', stripeConnectRouter); // callback is public
 app.use('/api/ai',           requireAuth, aiRouter);
+app.use('/api/profiles',     profilesRouter);
+
+// ── Workspace invite accept/decline (public + auth) ───────────────
+// These are also registered in workspace router but need top-level access
 
 // ── AI Insights Summary ─────────────────────────────────────────
 app.post('/api/ai/insights-summary', requireAuth, async (req, res) => {

@@ -20,6 +20,7 @@ import Admin from './pages/Admin';
 import TaxesPage from './pages/TaxesPage';
 import BillingPage from './pages/BillingPage';
 import Onboarding from './pages/Onboarding';
+import InviteAcceptPage from './pages/InviteAcceptPage';
 import AutomationsPage from './pages/AutomationsPage';
 import AuthCallback from './pages/AuthCallback';
 import AnalyticsPage  from './pages/AnalyticsPage';
@@ -403,7 +404,22 @@ function AppShell({ children }) {
     if (isNew) {
       localStorage.removeItem('revanew_new_user');
       localStorage.setItem('revanew_onboarded', '1'); // prevent redirect loop
+      // Check for pending invite
+      const pendingInvite = localStorage.getItem('revanew_pending_invite');
+      if (pendingInvite) {
+        localStorage.removeItem('revanew_pending_invite');
+        navigate(`/invite/accept/${pendingInvite}`);
+        return;
+      }
       navigate('/billing?welcome=1');
+      return;
+    }
+    
+    // Check for pending invite from email link (even for existing users)
+    const pendingInvite = localStorage.getItem('revanew_pending_invite');
+    if (pendingInvite && path !== `/invite/accept/${pendingInvite}`) {
+      localStorage.removeItem('revanew_pending_invite');
+      navigate(`/invite/accept/${pendingInvite}`);
       return;
     }
 
@@ -537,6 +553,9 @@ export default function App() {
                     <Route path="/taxes"           element={<TaxesPage />} />
                     <Route path="/billing"         element={<BillingPage />} />
                     <Route path="/onboarding"      element={<Onboarding />} />
+                    <Route path="/invite/accept/:token" element={<InviteAcceptPage mode="accept" />} />
+                    <Route path="/invite/decline/:token" element={<InviteAcceptPage mode="decline" />} />
+                    <Route path="/invite/error" element={<InviteAcceptPage mode="error" />} />
                     <Route path="/automations"     element={<AutomationsPage />} />
                     <Route path="/documents"       element={<React.Suspense fallback={null}><PlanGate feature="documents"><DocumentsPage /></PlanGate></React.Suspense>} />
                     <Route path="/calendar"        element={<React.Suspense fallback={null}><PlanGate feature="calendar"><CalendarPage /></PlanGate></React.Suspense>} />

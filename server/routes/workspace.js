@@ -191,46 +191,197 @@ router.post('/invite', requireAuth, async (req, res) => {
   if (!['member','manager','admin'].includes(role)) return res.status(400).json({ error: 'invalid role' });
 
   try {
-    // Verify caller owns account
-    const acc = await db.execute(`SELECT owner_id, name FROM accounts WHERE id = ?`, [account_id]);
+    const acc = await db.execute(`SELECT owner_id, name, logo_url, primary_color FROM accounts WHERE id = ?`, [account_id]);
     if (!acc.rows.length) return res.status(404).json({ error: 'Account not found' });
+    const account = acc.rows[0];
 
-    // Check if already invited
+    // Check if already has active membership
     const existing = await db.execute(
-      `SELECT id FROM account_members WHERE account_id = ? AND invited_email = ?`,
+      `SELECT id, status FROM account_members WHERE account_id = ? AND invited_email = ?`,
       [account_id, email.toLowerCase()]
     );
-    if (existing.rows.length) return res.status(409).json({ error: 'This email has already been invited' });
+    if (existing.rows.length) {
+      if (existing.rows[0].status === 'active') return res.status(409).json({ error: 'User is already a member' });
+      // Re-invite: regenerate token for existing pending invite
+    }
 
-    const { v4: uuid } = await import('uuid');
-    const id = `mem-${uuid()}`;
-    await db.execute(
-      `INSERT INTO account_members (id, account_id, user_id, role, invited_email, status, created_at)
-       VALUES (?, ?, ?, ?, ?, 'invited', NOW())`,
-      [id, account_id, `invited-${uuid()}`, role, email.toLowerCase()]
-    );
+    const { v4: uuid, v4 } = await import('uuid');
+    const crypto = await import('crypto');
+    const inviteToken = crypto.randomBytes(32).toString('hex');
+    const id = existing.rows[0]?.id || `mem-${uuid()}`;
+    
+    if (existing.rows.length) {
+      // Update existing invite with new token
+      await db.execute(
+        `UPDATE account_members SET invite_token = ?, role = ?, invited_at = NOW(), status = 'invited' WHERE id = ?`,
+        [inviteToken, role, id]
+      );
+    } else {
+      await db.execute(
+        `INSERT INTO account_members (id, account_id, user_id, role, invited_email, status, invite_token, invited_at, created_at)
+         VALUES (?, ?, ?, ?, ?, 'invited', ?, NOW(), NOW())`,
+        [id, account_id, `invited-${v4()}`, role, email.toLowerCase(), inviteToken]
+      );
+    }
 
-    // Send invite email
+    // Send invite email with accept/decline links
+    const appUrl = process.env.APP_URL || 'https://revanew.io';
+    const acceptUrl = `${appUrl}/invite/accept/${inviteToken}`;
+    const declineUrl = `${appUrl}/invite/decline/${inviteToken}`;
+    const senderName = req.user.user_metadata?.full_name || req.user.email?.split('@')[0] || 'A team member';
+
     try {
-      const { sendEmail } = await import('../utils/email.js');
-      const appUrl = process.env.APP_URL || 'https://revanew.io';
-      const acctFull = await db.execute(`SELECT logo_url FROM accounts WHERE id = ?`, [account_id]);
       await sendEmail({
         to: email,
-        subject: `You're invited to join ${acc.rows[0].name} on Revanew`,
+        subject: `${senderName} invited you to join ${account.name} on Revanew`,
         html: buildInviteHtml({
           inviteeName: email.split('@')[0],
-          accountName: acc.rows[0].name,
+          accountName: account.name,
           role,
-          acceptUrl: appUrl,
-          logoUrl: acctFull.rows[0]?.logo_url || null,
+          acceptUrl,
+          declineUrl,
+          senderName,
+          logoUrl: account.logo_url || null,
         }),
       });
+      console.log(`[Workspace] Invite sent to ${email} for ${account.name}`);
     } catch (emailErr) {
       console.warn('[Workspace] Invite email failed:', emailErr.message);
     }
 
-    res.status(201).json({ ok: true, id, message: 'Invitation sent' });
+    res.status(201).json({ ok: true, id, inviteToken, message: 'Invitation sent' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── GET /accept/:token — accept invite (NO AUTH - link from email) ──
+router.get('/accept/:token', async (req, res) => {
+  try {
+    const invite = await db.execute(
+      `SELECT am.*, a.name as account_name, a.owner_id, a.logo_url
+       FROM account_members am
+       JOIN accounts a ON am.account_id = a.id
+       WHERE am.invite_token = ? AND am.status = 'invited'`,
+      [req.params.token]
+    );
+    
+    if (!invite.rows.length) {
+      // Redirect to app with error
+      return res.redirect(`${process.env.APP_URL || 'https://revanew.io'}/invite/error?reason=invalid`);
+    }
+    
+    const inv = invite.rows[0];
+    // Redirect to the app's invite acceptance page with the token
+    res.redirect(`${process.env.APP_URL || 'https://revanew.io'}/invite/accept/${req.params.token}?account=${encodeURIComponent(inv.account_name)}&email=${encodeURIComponent(inv.invited_email)}&role=${inv.role}`);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── POST /accept/:token — complete acceptance (after user logs in) ─
+router.post('/accept/:token', requireAuth, async (req, res) => {
+  try {
+    const invite = await db.execute(
+      `SELECT am.*, a.name as account_name, a.owner_id, a.primary_color
+       FROM account_members am
+       JOIN accounts a ON am.account_id = a.id
+       WHERE am.invite_token = ? AND am.status = 'invited'`,
+      [req.params.token]
+    );
+    
+    if (!invite.rows.length) return res.status(404).json({ error: 'Invite not found or already used' });
+    const inv = invite.rows[0];
+    
+    // Accept: update member record with real user_id
+    await db.execute(
+      `UPDATE account_members SET
+        status = 'active',
+        user_id = ?,
+        invite_accepted_by_user_id = ?,
+        accepted_at = NOW(),
+        invite_token = NULL
+       WHERE id = ?`,
+      [req.user.id, req.user.id, inv.id]
+    );
+    
+    // Notify the account owner that invite was accepted
+    const appUrl = process.env.APP_URL || 'https://revanew.io';
+    const accepterName = req.user.user_metadata?.full_name || req.user.email?.split('@')[0] || 'Someone';
+    
+    // Find owner email
+    const owner = await db.execute(
+      `SELECT email FROM accounts WHERE id = ?`,
+      [inv.account_id]
+    );
+    const ownerEmail = owner.rows[0]?.email;
+    
+    // Store in-app notification for the owner
+    try {
+      const { sendNotification } = await import('./profiles.js');
+      await sendNotification({
+        userId: inv.owner_id,
+        accountId: inv.account_id,
+        type: 'invite_accepted',
+        title: `${accepterName} joined ${inv.account_name}`,
+        body: `${accepterName} accepted your team invitation and joined as ${inv.role}`,
+        url: `${appUrl}/workspace`,
+      });
+    } catch {}
+    
+    // Send email to account owner
+    if (ownerEmail) {
+      sendEmail({
+        to: ownerEmail,
+        subject: `✅ ${accepterName} joined ${inv.account_name}!`,
+        html: `<div style="font-family:sans-serif;max-width:560px;margin:32px auto;padding:32px;background:#fff;border-radius:16px;border:1px solid #e2e8f0">
+          <h2 style="color:#0F172A;margin:0 0 12px">Team member joined! 🎉</h2>
+          <p style="color:#334155;font-size:15px;margin:0 0 20px">
+            <strong>${accepterName}</strong> accepted your invitation and joined <strong>${inv.account_name}</strong> as a <strong>${inv.role}</strong>.
+          </p>
+          <a href="${appUrl}/workspace" style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,#2563EB,#0D9488);color:#fff;text-decoration:none;border-radius:10px;font-weight:700">
+            Open Team Workspace →
+          </a>
+          <p style="color:#94A3B8;font-size:12px;margin-top:20px">Powered by Revanew</p>
+        </div>`,
+      }).catch(e => console.warn('[Workspace] Accept notify email failed:', e.message));
+    }
+    
+    res.json({ ok: true, account_id: inv.account_id, account_name: inv.account_name, role: inv.role });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── POST /decline/:token — decline invitation ─────────────────────
+router.post('/decline/:token', async (req, res) => {
+  try {
+    const invite = await db.execute(
+      `SELECT am.*, a.name as account_name FROM account_members am
+       JOIN accounts a ON am.account_id = a.id
+       WHERE am.invite_token = ? AND am.status = 'invited'`,
+      [req.params.token]
+    );
+    if (!invite.rows.length) return res.status(404).json({ error: 'Invite not found' });
+    const inv = invite.rows[0];
+
+    await db.execute(
+      `UPDATE account_members SET status = 'declined', declined_at = NOW(), invite_token = NULL WHERE id = ?`,
+      [inv.id]
+    );
+    
+    // Notify owner of decline
+    const declinerName = req.body?.name || inv.invited_email;
+    const owner = await db.execute(`SELECT email FROM accounts WHERE id = ?`, [inv.account_id]);
+    if (owner.rows[0]?.email) {
+      sendEmail({
+        to: owner.rows[0].email,
+        subject: `Team invite declined — ${inv.account_name}`,
+        html: `<div style="font-family:sans-serif;max-width:560px;margin:32px auto;padding:32px;background:#fff;border-radius:16px;border:1px solid #e2e8f0">
+          <h2 style="color:#0F172A;margin:0 0 12px">Invitation declined</h2>
+          <p style="color:#334155;font-size:15px;margin:0 0 20px">
+            <strong>${declinerName}</strong> declined your invitation to join <strong>${inv.account_name}</strong>.
+          </p>
+          <p style="color:#64748B;font-size:13px">You can send a new invitation from the Team workspace.</p>
+        </div>`,
+      }).catch(() => {});
+    }
+    
+    res.json({ ok: true, message: 'Invitation declined' });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
