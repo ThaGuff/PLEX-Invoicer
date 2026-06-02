@@ -610,9 +610,22 @@ app.use('/api/calendar',       requireAuth, requirePlanFeature('calendar'),   ca
 app.use('/api/documents',      requireAuth, requirePlanFeature('documents'),  documentsRouter);
 app.use('/api/photos',         requireAuth, requirePlanFeature('photos'),     photosRouter);
 // ── Public workspace invite accept/decline (no auth required) ────
-// These must be BEFORE the auth-gated workspace router below
-app.get('/api/workspace/accept/:token', workspaceRouter);
-app.post('/api/workspace/decline/:token', workspaceRouter);
+// GET: redirect from email link → handled without auth
+app.get('/api/workspace/accept/:token', async (req, res, next) => {
+  // Strip the prefix and re-route through workspace router as /accept/:token
+  req.url = `/accept/${req.params.token}`;
+  workspaceRouter(req, res, next);
+});
+// POST decline: no auth needed
+app.post('/api/workspace/decline/:token', async (req, res, next) => {
+  req.url = `/decline/${req.params.token}`;
+  workspaceRouter(req, res, next);
+});
+// POST accept: requires auth (user must be logged in)
+app.post('/api/workspace/accept/:token', async (req, res, next) => {
+  req.url = `/accept/${req.params.token}`;
+  workspaceRouter(req, res, next);
+});
 
 app.use('/api/workspace',      requireAuth, requirePlanFeature('workspace'),  workspaceRouter);
 app.use('/api/accounts',     requireAuth, accountsRouter);
@@ -708,8 +721,13 @@ async function initDBWithRetry(attempts = 5, delayMs = 3000) {
   console.error('⚠️  DB schema init failed after all attempts — app running with limited DB functionality');
 }
 
-initDBWithRetry().then(() => {
+initDBWithRetry().then(async () => {
   startDbHealthMonitor();
+
+  // ── Run all schema migrations ─────────────────────────────────
+  try { await ensureWorkspaceTables(); } catch (e) { console.warn('workspace tables:', e.message); }
+  try { await migrateCalendarEvents(); } catch (e) { console.warn('calendar migration:', e.message); }
+  try { await migrateUserProfileSystem(); console.log('✓ User profile system ready'); } catch (e) { console.warn('profile migration:', e.message); }
 
   // ── Automation cron — runs every 5 minutes ──────────────────
   // Processes pending automation_runs and smart_reminders

@@ -303,27 +303,40 @@ router.post('/accept/:token', requireAuth, async (req, res) => {
     
     // Notify the account owner that invite was accepted
     const appUrl = process.env.APP_URL || 'https://revanew.io';
-    const accepterName = req.user.user_metadata?.full_name || req.user.email?.split('@')[0] || 'Someone';
+    const accepterName = req.user.user_metadata?.full_name || req.user.email?.split('@')[0] || 'Team member';
     
-    // Find owner email
+    // Find owner email + account info
     const owner = await db.execute(
-      `SELECT email FROM accounts WHERE id = ?`,
+      `SELECT a.email, a.owner_id FROM accounts a WHERE a.id = ?`,
       [inv.account_id]
     );
-    const ownerEmail = owner.rows[0]?.email;
+    const ownerRecord = owner.rows[0];
     
-    // Store in-app notification for the owner
+    // Auto-create profile for the new member
     try {
-      const { sendNotification } = await import('./profiles.js');
-      await sendNotification({
-        userId: inv.owner_id,
-        accountId: inv.account_id,
-        type: 'invite_accepted',
-        title: `${accepterName} joined ${inv.account_name}`,
-        body: `${accepterName} accepted your team invitation and joined as ${inv.role}`,
-        url: `${appUrl}/workspace`,
-      });
+      const { ensureProfile } = await import('./profiles.js');
+      await ensureProfile(req.user.id, req.user.email, accepterName);
     } catch {}
+    
+    // Store in-app notification for the account owner
+    if (ownerRecord?.owner_id) {
+      try {
+        const { v4: uuid } = await import('uuid');
+        await db.execute(
+          `INSERT INTO notification_log (id, user_id, account_id, type, title, body, url, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+          [
+            `notif-${uuid()}`,
+            ownerRecord.owner_id,
+            inv.account_id,
+            'invite_accepted',
+            `${accepterName} joined your team! 🎉`,
+            `${accepterName} accepted the invitation and joined ${inv.account_name} as ${inv.role}.`,
+            `${appUrl}/workspace`,
+          ]
+        );
+      } catch (e) { console.warn('[Workspace] Notification insert failed:', e.message); }
+    }
     
     // Send email to account owner
     if (ownerEmail) {
@@ -364,12 +377,28 @@ router.post('/decline/:token', async (req, res) => {
       [inv.id]
     );
     
-    // Notify owner of decline
+    // Notify owner of decline  
     const declinerName = req.body?.name || inv.invited_email;
-    const owner = await db.execute(`SELECT email FROM accounts WHERE id = ?`, [inv.account_id]);
-    if (owner.rows[0]?.email) {
+    const owner = await db.execute(`SELECT email, owner_id FROM accounts WHERE id = ?`, [inv.account_id]);
+    const ownerRec = owner.rows[0];
+    
+    // Create in-app notification
+    if (ownerRec?.owner_id) {
+      try {
+        const { v4: uuid } = await import('uuid');
+        await db.execute(
+          `INSERT INTO notification_log (id, user_id, account_id, type, title, body, url, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+          [`notif-${uuid()}`, ownerRec.owner_id, inv.account_id, 'invite_declined',
+           `Invite declined`, `${declinerName} declined the invitation to ${inv.account_name}.`,
+           `${process.env.APP_URL || 'https://revanew.io'}/workspace`]
+        );
+      } catch {}
+    }
+    
+    if (ownerRec?.email) {
       sendEmail({
-        to: owner.rows[0].email,
+        to: ownerRec.email,
         subject: `Team invite declined — ${inv.account_name}`,
         html: `<div style="font-family:sans-serif;max-width:560px;margin:32px auto;padding:32px;background:#fff;border-radius:16px;border:1px solid #e2e8f0">
           <h2 style="color:#0F172A;margin:0 0 12px">Invitation declined</h2>

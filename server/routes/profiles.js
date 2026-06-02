@@ -205,24 +205,23 @@ router.get('/notifications', requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── PATCH /notifications/read-all — MUST be before /:id/read ─────
+router.patch('/notifications/read-all', requireAuth, async (req, res) => {
+  try {
+    await db.execute(
+      `UPDATE notification_log SET read_at = NOW() WHERE user_id = ? AND read_at IS NULL`,
+      [req.user.id]
+    );
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── PATCH /notifications/:id/read ────────────────────────────────
 router.patch('/notifications/:id/read', requireAuth, async (req, res) => {
   try {
     await db.execute(
       `UPDATE notification_log SET read_at = NOW() WHERE id = ? AND user_id = ?`,
       [req.params.id, req.user.id]
-    );
-    res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// ── PATCH /notifications/read-all ────────────────────────────────
-// IMPORTANT: This must be before /notifications/:id/read to avoid route conflict
-router.patch('/notifications/read-all', requireAuth, async (req, res) => {
-  try {
-    await db.execute(
-      `UPDATE notification_log SET read_at = NOW() WHERE user_id = ? AND read_at IS NULL`,
-      [req.user.id]
     );
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }

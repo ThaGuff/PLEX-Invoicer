@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AccountProvider } from './context/AccountContext';
@@ -227,6 +227,68 @@ function Nav() {
             <Plus size={16}/> New Quote
           </NavLink>
 
+          {/* Notifications Bell */}
+          <div style={{ position:'relative' }}>
+            <button onClick={() => setShowNotifications(v => !v)}
+              style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 10px', borderRadius:9, border:'none', background:'rgba(255,255,255,0.06)', color:unreadCount > 0 ? '#F59E0B' : 'rgba(255,255,255,0.6)', cursor:'pointer', fontSize:13, fontWeight:600, width:'100%', transition:'all 0.15s', position:'relative' }}
+              onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.12)'}
+              onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.06)'}>
+              <span style={{ position:'relative', display:'flex' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                {unreadCount > 0 && <span style={{ position:'absolute', top:-5, right:-5, width:14, height:14, borderRadius:'50%', background:'#EF4444', color:'#fff', fontSize:9, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid #0F172A' }}>{unreadCount > 9 ? '9+' : unreadCount}</span>}
+              </span>
+              <span>Notifications{unreadCount > 0 ? ` (${unreadCount})` : ''}</span>
+            </button>
+
+            {/* Notification dropdown */}
+            {showNotifications && (
+              <div style={{ position:'absolute', bottom:'calc(100% + 8px)', left:0, width:300, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:14, boxShadow:'0 16px 48px rgba(11,18,32,0.25)', zIndex:200, overflow:'hidden' }}>
+                <div style={{ padding:'12px 14px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <span style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>Notifications</span>
+                  {unreadCount > 0 && (
+                    <button onClick={async () => {
+                      const t = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
+                      await fetch('/api/profiles/notifications/read-all', { method:'PATCH', headers:{ Authorization:`Bearer ${t}` } });
+                      setUnreadCount(0);
+                      setNotifications(prev => prev.map(n => ({ ...n, read_at: new Date().toISOString() })));
+                    }} style={{ fontSize:11, color:'#2563EB', background:'none', border:'none', cursor:'pointer', fontWeight:600 }}>
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+                <div style={{ maxHeight:320, overflowY:'auto' }}>
+                  {notifications.length === 0 && (
+                    <div style={{ padding:'24px 14px', textAlign:'center', color:'var(--text-muted)', fontSize:13 }}>No notifications yet</div>
+                  )}
+                  {notifications.slice(0, 10).map(n => (
+                    <div key={n.id} onClick={async () => {
+                      const t = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
+                      if (!n.read_at) {
+                        await fetch(`/api/profiles/notifications/${n.id}/read`, { method:'PATCH', headers:{ Authorization:`Bearer ${t}` } });
+                        setUnreadCount(c => Math.max(0, c - 1));
+                        setNotifications(prev => prev.map(x => x.id === n.id ? {...x, read_at: new Date().toISOString()} : x));
+                      }
+                      if (n.url) navigate(n.url);
+                      setShowNotifications(false);
+                    }} style={{ padding:'10px 14px', borderBottom:'1px solid var(--border)', cursor:'pointer', background: n.read_at ? 'transparent' : 'rgba(37,99,235,0.06)', display:'flex', gap:10, alignItems:'flex-start' }}
+                    onMouseEnter={e => e.currentTarget.style.background='var(--bg-raised)'}
+                    onMouseLeave={e => e.currentTarget.style.background=n.read_at?'transparent':'rgba(37,99,235,0.06)'}>
+                      <div style={{ fontSize:18, flexShrink:0, lineHeight:1 }}>
+                        {n.type === 'invite_accepted' ? '✅' : n.type === 'invite_declined' ? '❌' : n.type === 'mention' ? '💬' : '🔔'}
+                      </div>
+                      <div>
+                        <div style={{ fontSize:12, fontWeight:n.read_at ? 600 : 800, color:'var(--text-primary)', lineHeight:1.3 }}>{n.title}</div>
+                        {n.body && <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:2, lineHeight:1.4 }}>{n.body}</div>}
+                        <div style={{ fontSize:10, color:'var(--text-muted)', marginTop:3 }}>{new Date(n.created_at).toLocaleString()}</div>
+                      </div>
+                      {!n.read_at && <div style={{ width:6, height:6, borderRadius:'50%', background:'#2563EB', flexShrink:0, marginTop:4 }}/>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Dark mode toggle */}
           <button onClick={() => setDark(v => !v)}
             style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 10px', borderRadius:9, border:'none', background:'rgba(255,255,255,0.06)', color:'rgba(255,255,255,0.6)', cursor:'pointer', fontSize:13, fontWeight:600, fontFamily:"'Plus Jakarta Sans',sans-serif", width:'100%', transition:'all 0.15s' }}
@@ -242,9 +304,12 @@ function Nav() {
             onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.12)'}
             onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.06)'}
             title="Account Settings">
-            {/* Avatar */}
-            <div style={{ width:34, height:34, borderRadius:10, background:'linear-gradient(135deg,#2563EB,#7C3AED)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:14, fontWeight:800, color:'#fff', boxShadow:'0 2px 8px rgba(37,99,235,0.4)' }}>
-              {(user?.user_metadata?.full_name || user?.email || 'U').charAt(0).toUpperCase()}
+            {/* Avatar with online indicator */}
+            <div style={{ position:'relative', flexShrink:0 }}>
+              <div style={{ width:34, height:34, borderRadius:10, background:'linear-gradient(135deg,#2563EB,#7C3AED)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:800, color:'#fff', boxShadow:'0 2px 8px rgba(37,99,235,0.4)' }}>
+                {(user?.user_metadata?.full_name || user?.email || 'U').charAt(0).toUpperCase()}
+              </div>
+              <div style={{ position:'absolute', bottom:-2, right:-2, width:10, height:10, borderRadius:'50%', background:'#22C55E', border:'2px solid #0F172A' }} title="Online" />
             </div>
             {/* Name & email */}
             <div style={{ flex:1, minWidth:0 }}>
@@ -309,7 +374,69 @@ function Nav() {
           <div style={{ position:'fixed', bottom:'calc(74px + env(safe-area-inset-bottom))', left:12, right:12, zIndex:110,
             background:'var(--bg-surface)', borderRadius:18, border:'1px solid var(--border)',
             boxShadow:'0 -8px 40px rgba(11,18,32,0.18)', padding:'10px 6px', display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:4 }}>
-            {/* Dark mode toggle */}
+            {/* Notifications Bell */}
+          <div style={{ position:'relative' }}>
+            <button onClick={() => setShowNotifications(v => !v)}
+              style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 10px', borderRadius:9, border:'none', background:'rgba(255,255,255,0.06)', color:unreadCount > 0 ? '#F59E0B' : 'rgba(255,255,255,0.6)', cursor:'pointer', fontSize:13, fontWeight:600, width:'100%', transition:'all 0.15s', position:'relative' }}
+              onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.12)'}
+              onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.06)'}>
+              <span style={{ position:'relative', display:'flex' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                {unreadCount > 0 && <span style={{ position:'absolute', top:-5, right:-5, width:14, height:14, borderRadius:'50%', background:'#EF4444', color:'#fff', fontSize:9, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid #0F172A' }}>{unreadCount > 9 ? '9+' : unreadCount}</span>}
+              </span>
+              <span>Notifications{unreadCount > 0 ? ` (${unreadCount})` : ''}</span>
+            </button>
+
+            {/* Notification dropdown */}
+            {showNotifications && (
+              <div style={{ position:'absolute', bottom:'calc(100% + 8px)', left:0, width:300, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:14, boxShadow:'0 16px 48px rgba(11,18,32,0.25)', zIndex:200, overflow:'hidden' }}>
+                <div style={{ padding:'12px 14px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <span style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>Notifications</span>
+                  {unreadCount > 0 && (
+                    <button onClick={async () => {
+                      const t = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
+                      await fetch('/api/profiles/notifications/read-all', { method:'PATCH', headers:{ Authorization:`Bearer ${t}` } });
+                      setUnreadCount(0);
+                      setNotifications(prev => prev.map(n => ({ ...n, read_at: new Date().toISOString() })));
+                    }} style={{ fontSize:11, color:'#2563EB', background:'none', border:'none', cursor:'pointer', fontWeight:600 }}>
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+                <div style={{ maxHeight:320, overflowY:'auto' }}>
+                  {notifications.length === 0 && (
+                    <div style={{ padding:'24px 14px', textAlign:'center', color:'var(--text-muted)', fontSize:13 }}>No notifications yet</div>
+                  )}
+                  {notifications.slice(0, 10).map(n => (
+                    <div key={n.id} onClick={async () => {
+                      const t = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
+                      if (!n.read_at) {
+                        await fetch(`/api/profiles/notifications/${n.id}/read`, { method:'PATCH', headers:{ Authorization:`Bearer ${t}` } });
+                        setUnreadCount(c => Math.max(0, c - 1));
+                        setNotifications(prev => prev.map(x => x.id === n.id ? {...x, read_at: new Date().toISOString()} : x));
+                      }
+                      if (n.url) navigate(n.url);
+                      setShowNotifications(false);
+                    }} style={{ padding:'10px 14px', borderBottom:'1px solid var(--border)', cursor:'pointer', background: n.read_at ? 'transparent' : 'rgba(37,99,235,0.06)', display:'flex', gap:10, alignItems:'flex-start' }}
+                    onMouseEnter={e => e.currentTarget.style.background='var(--bg-raised)'}
+                    onMouseLeave={e => e.currentTarget.style.background=n.read_at?'transparent':'rgba(37,99,235,0.06)'}>
+                      <div style={{ fontSize:18, flexShrink:0, lineHeight:1 }}>
+                        {n.type === 'invite_accepted' ? '✅' : n.type === 'invite_declined' ? '❌' : n.type === 'mention' ? '💬' : '🔔'}
+                      </div>
+                      <div>
+                        <div style={{ fontSize:12, fontWeight:n.read_at ? 600 : 800, color:'var(--text-primary)', lineHeight:1.3 }}>{n.title}</div>
+                        {n.body && <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:2, lineHeight:1.4 }}>{n.body}</div>}
+                        <div style={{ fontSize:10, color:'var(--text-muted)', marginTop:3 }}>{new Date(n.created_at).toLocaleString()}</div>
+                      </div>
+                      {!n.read_at && <div style={{ width:6, height:6, borderRadius:'50%', background:'#2563EB', flexShrink:0, marginTop:4 }}/>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Dark mode toggle */}
             <button onClick={() => { setDark(v => !v); }}
               style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5, padding:'12px 4px', borderRadius:12, border:'none',
                 background: dark ? 'rgba(99,102,241,0.12)' : 'transparent', cursor:'pointer',
