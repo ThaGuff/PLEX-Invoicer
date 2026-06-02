@@ -275,6 +275,54 @@ function Nav() {
               </span>
               <span>Notifications{unreadCount > 0 ? ` (${unreadCount})` : ''}</span>
             </button>
+            {/* Notification dropdown */}
+            {showNotifications && (
+              <div style={{ position:'absolute', bottom:'calc(100% + 8px)', left:0, width:300, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:14, boxShadow:'0 16px 48px rgba(11,18,32,0.25)', zIndex:200, overflow:'hidden' }}>
+                <div style={{ padding:'12px 14px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <span style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>Notifications</span>
+                  {unreadCount > 0 && (
+                    <button onClick={async () => {
+                      const t = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
+                      await fetch('/api/profiles/notifications/read-all', { method:'PATCH', headers:{ Authorization:`Bearer ${t}` } });
+                      setUnreadCount(0);
+                      setNotifications(prev => prev.map(n => ({ ...n, read_at: new Date().toISOString() })));
+                    }} style={{ fontSize:11, color:'#2563EB', background:'none', border:'none', cursor:'pointer', fontWeight:600 }}>
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+                <div style={{ maxHeight:320, overflowY:'auto' }}>
+                  {notifications.length === 0 && (
+                    <div style={{ padding:'24px 14px', textAlign:'center', color:'var(--text-muted)', fontSize:13 }}>No notifications yet</div>
+                  )}
+                  {notifications.slice(0,10).map(n => (
+                    <div key={n.id} onClick={async () => {
+                      const t = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
+                      if (!n.read_at) {
+                        await fetch(`/api/profiles/notifications/${n.id}/read`, { method:'PATCH', headers:{ Authorization:`Bearer ${t}` } });
+                        setUnreadCount(c => Math.max(0, c-1));
+                        setNotifications(prev => prev.map(x => x.id===n.id ? {...x, read_at: new Date().toISOString()} : x));
+                      }
+                      if (n.url) navigate(n.url);
+                      setShowNotifications(false);
+                    }} style={{ padding:'10px 14px', borderBottom:'1px solid var(--border)', cursor:'pointer', background: n.read_at ? 'transparent' : 'rgba(37,99,235,0.06)', display:'flex', gap:10, alignItems:'flex-start' }}
+                    onMouseEnter={e => e.currentTarget.style.background='var(--bg-raised)'}
+                    onMouseLeave={e => e.currentTarget.style.background=n.read_at?'transparent':'rgba(37,99,235,0.06)'}>
+                      <div style={{ fontSize:18, flexShrink:0, lineHeight:1 }}>
+                        {n.type==='invite_accepted'?'✅':n.type==='invite_declined'?'❌':n.type==='mention'?'💬':'🔔'}
+                      </div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:12, fontWeight:n.read_at?600:800, color:'var(--text-primary)', lineHeight:1.3 }}>{n.title}</div>
+                        {n.body && <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:2, lineHeight:1.4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{n.body}</div>}
+                        <div style={{ fontSize:10, color:'var(--text-muted)', marginTop:3 }}>{new Date(n.created_at).toLocaleString()}</div>
+                      </div>
+                      {!n.read_at && <div style={{ width:6, height:6, borderRadius:'50%', background:'#2563EB', flexShrink:0, marginTop:4 }}/>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Dark mode toggle */}
           <button onClick={() => setDark(v => !v)}

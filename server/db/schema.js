@@ -622,6 +622,9 @@ export async function ensureWorkspaceTables() {
 // ── Full User Profile & Presence System ──────────────────────────
 export async function migrateUserProfileSystem() {
   const migrations = [
+    // Add reply_to to workspace_messages
+    `ALTER TABLE workspace_messages ADD COLUMN IF NOT EXISTS reply_to TEXT`,
+    
     // Add invite_token + accept tracking to account_members
     `ALTER TABLE account_members ADD COLUMN IF NOT EXISTS invite_token TEXT UNIQUE`,
     `ALTER TABLE account_members ADD COLUMN IF NOT EXISTS invited_at TIMESTAMPTZ DEFAULT NOW()`,
