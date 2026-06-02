@@ -381,26 +381,64 @@ export default function WorkspacePage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages[activeChannel]]);
 
-  // Handle file attachment
+  // Handle file attachment - upload to backend to avoid base64 in messages
   const handleFileAttach = async (file) => {
-    if (!file) return;
+    if (!file || !account?.id) return;
     setUploadingFile(true);
     try {
       const isImage = file.type.startsWith('image/');
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const dataUrl = e.target.result;
-        setAttachments(prev => [...prev, {
-          name: file.name,
-          url: dataUrl,
-          type: isImage ? 'image' : 'file',
-          size: file.size,
-          mimeType: file.type,
-        }]);
+        try {
+          // Upload to backend
+          const r = await fetch('/api/workspace/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({
+              account_id: account.id,
+              file_data: dataUrl,
+              file_name: file.name,
+              file_type: file.type,
+              file_size: file.size,
+            })
+          });
+          const d = await r.json();
+          if (r.ok && d.url) {
+            // Store URL reference (not base64) in attachment
+            setAttachments(prev => [...prev, {
+              name: file.name,
+              url: dataUrl, // show preview locally using dataUrl
+              serverUrl: d.url, // use server URL in the actual message
+              type: isImage ? 'image' : 'file',
+              size: file.size,
+              mimeType: file.type,
+            }]);
+          } else {
+            alert('Upload failed: ' + (d.error || 'Unknown error'));
+          }
+        } catch (err) {
+          // Fallback: use local dataUrl (for small files)
+          if (file.size < 500000) {
+            setAttachments(prev => [...prev, {
+              name: file.name,
+              url: dataUrl,
+              serverUrl: null,
+              type: isImage ? 'image' : 'file',
+              size: file.size,
+              mimeType: file.type,
+            }]);
+          } else {
+            alert('File too large to attach directly. Try a smaller file under 500KB.');
+          }
+        }
+        setUploadingFile(false);
       };
       reader.readAsDataURL(file);
-    } catch (e) { console.error('File attach error:', e); }
-    finally { setUploadingFile(false); }
+    } catch (e) { 
+      console.error('File attach error:', e); 
+      setUploadingFile(false); 
+    }
   };
 
   // Send message
@@ -416,11 +454,12 @@ export default function WorkspacePage() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ 
           content: attachments.length > 0 
-            ? content + (content ? '\n' : '') + attachments.map(a => 
-                a.type === 'image' 
-                  ? `[image:${a.name}](${a.url})`
-                  : `[file:${a.name}](${a.url})`
-              ).join('\n')
+            ? content + (content ? '\n' : '') + attachments.map(a => {
+                const url = a.serverUrl || a.url; // prefer server URL to avoid base64 in DB
+                return a.type === 'image' 
+                  ? `[image:${a.name}](${url})`
+                  : `[file:${a.name}](${url})`;
+              }).join('\n')
             : content,
           account_id: account?.id, sender_name: myName, reply_to: replyTo?.id 
         })

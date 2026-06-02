@@ -9,7 +9,8 @@ import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
-const MAX_MESSAGE_LENGTH = 4000;
+const MAX_MESSAGE_LENGTH = 10000; // Allow longer messages but NOT base64 files
+const MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024; // 5MB max for file attachments
 const MAX_CHANNEL_NAME_LENGTH = 80;
 
 function sanitizeText(str, maxLen) {
@@ -52,6 +53,11 @@ router.post('/channels/:channelId/messages', requireAuth, async (req, res) => {
   if (!account_id) return res.status(400).json({ error: 'account_id required' });
   if (!content?.trim()) return res.status(400).json({ error: 'content required' });
   if (!/^[a-zA-Z0-9_-]+$/.test(req.params.channelId)) return res.status(400).json({ error: 'Invalid channel ID' });
+  // Block base64 data URLs in message content (file attachments should use attachment endpoint)
+  if (content && (content.includes('data:application/') || content.includes('data:image/')) 
+      && content.length > 5000) {
+    return res.status(413).json({ error: 'File too large for message. Use file upload instead.' });
+  }
   const cleanContent = sanitizeText(content, MAX_MESSAGE_LENGTH);
   const cleanSender  = sanitizeText(sender_name || req.user.email?.split('@')[0] || 'Team member', 100);
   try {
@@ -340,6 +346,7 @@ router.post('/accept/:token', requireAuth, async (req, res) => {
       [inv.account_id]
     );
     const ownerRecord = owner.rows[0];
+    const ownerEmail = ownerRecord?.email || null; // ← was undefined before - BUG FIX
     
     // Auto-create profile for the new member
     try {
@@ -513,5 +520,51 @@ router.post('/members/:memberId/resend', requireAuth, async (req, res) => {
 
 
 ;
+
+
+// ── POST /api/workspace/upload — store file attachment and return URL ──
+router.post('/upload', requireAuth, async (req, res) => {
+  const { account_id, file_data, file_name, file_type, file_size } = req.body;
+  if (!account_id || !file_data || !file_name) {
+    return res.status(400).json({ error: 'account_id, file_data, and file_name required' });
+  }
+  if (file_size > 10 * 1024 * 1024) { // 10MB max
+    return res.status(413).json({ error: 'File too large (max 10MB)' });
+  }
+  try {
+    await assertAccountAccess(account_id, req.user.id);
+    const { v4: uuid } = await import('uuid');
+    const attachId = `att-${uuid()}`;
+    
+    // Store file data in workspace_attachments table
+    await db.execute(
+      `INSERT INTO workspace_attachments (id, account_id, uploader_id, file_name, file_type, file_data, file_size, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+      [attachId, account_id, req.user.id, file_name.slice(0,255), file_type || 'application/octet-stream', file_data, file_size || 0]
+    );
+    
+    // Return the attachment URL (served by our API)
+    const appUrl = process.env.APP_URL || 'https://revanew.io';
+    res.json({ ok: true, id: attachId, url: `${appUrl}/api/workspace/attachment/${attachId}`, name: file_name, type: file_type });
+  } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
+});
+
+// ── GET /api/workspace/attachment/:id — serve stored attachment ──
+router.get('/attachment/:id', requireAuth, async (req, res) => {
+  try {
+    const att = await db.execute(`SELECT * FROM workspace_attachments WHERE id = ?`, [req.params.id]);
+    if (!att.rows.length) return res.status(404).json({ error: 'Attachment not found' });
+    const file = att.rows[0];
+    await assertAccountAccess(file.account_id, req.user.id);
+    
+    // Return the file as base64 data URL for images, or direct download for docs
+    const isImage = file.file_type?.startsWith('image/');
+    if (isImage) {
+      res.json({ url: file.file_data, name: file.file_name, type: file.file_type });
+    } else {
+      res.json({ url: file.file_data, name: file.file_name, type: file.file_type, download: true });
+    }
+  } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
+});
 
 export default router;

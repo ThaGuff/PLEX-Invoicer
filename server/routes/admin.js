@@ -618,7 +618,7 @@ router.delete('/user/:userId', async (req, res) => {
       return res.json({ ok: true, deleted: 'account', accountId });
     }
 
-    // Full user delete — delete all their accounts + Supabase user
+    // Full user delete — delete all their accounts + remove from any memberships + Supabase user
     const sb = getSupabaseAdmin();
     const userAccounts = await db.execute(`SELECT id FROM accounts WHERE owner_id = ? AND id != 'plex-master'`, [userId]);
     for (const a of userAccounts.rows) {
@@ -631,8 +631,18 @@ router.delete('/user/:userId', async (req, res) => {
       await db.execute(`DELETE FROM calendar_events WHERE account_id = ?`, [a.id]);
       await db.execute(`DELETE FROM documents WHERE account_id = ?`, [a.id]);
       await db.execute(`DELETE FROM photos WHERE account_id = ?`, [a.id]);
+      await db.execute(`DELETE FROM workspace_channels WHERE account_id = ?`, [a.id]);
+      await db.execute(`DELETE FROM workspace_messages WHERE account_id = ?`, [a.id]);
+      await db.execute(`DELETE FROM notification_log WHERE account_id = ?`, [a.id]);
       await db.execute(`DELETE FROM accounts WHERE id = ?`, [a.id]);
     }
+    // Also remove user from any team memberships in OTHER accounts
+    await db.execute(`DELETE FROM account_members WHERE user_id = ?`, [userId]);
+    // Clean up profiles and presence
+    await db.execute(`DELETE FROM user_profiles WHERE user_id = ?`, [userId]).catch(() => {});
+    await db.execute(`DELETE FROM user_presence WHERE user_id = ?`, [userId]).catch(() => {});
+    await db.execute(`DELETE FROM notification_log WHERE user_id = ?`, [userId]).catch(() => {});
+    await db.execute(`DELETE FROM push_subscriptions WHERE user_id = ?`, [userId]).catch(() => {});
 
     // Delete from Supabase auth if admin client available
     if (sb) {
@@ -933,6 +943,58 @@ router.post('/migrate/profiles', async (req, res) => {
   }
   const allOk = results.every(r => r.ok);
   res.json({ ok: allOk, results });
+});
+
+
+// ── POST /api/admin/repair-members — fix corrupt user_id in account_members ──
+// Matches members by invited_email to their actual Supabase user_id
+router.post('/repair-members', async (req, res) => {
+  try {
+    const sb = getSupabaseAdmin();
+    if (!sb) return res.status(503).json({ error: 'Supabase admin client not available' });
+
+    // Get all account members with status='active' 
+    const members = await db.execute(
+      `SELECT am.id, am.invited_email, am.user_id, am.account_id, a.owner_id
+       FROM account_members am
+       JOIN accounts a ON a.id = am.account_id
+       WHERE am.status = 'active'`
+    );
+
+    // Get all Supabase users
+    const { data: supaData } = await sb.auth.admin.listUsers({ perPage: 1000 });
+    const supaUsers = supaData?.users || [];
+    const emailToId = {};
+    supaUsers.forEach(u => { if (u.email) emailToId[u.email.toLowerCase()] = u.id; });
+
+    let fixed = 0;
+    const issues = [];
+
+    for (const m of members.rows) {
+      const expectedUserId = emailToId[m.invited_email?.toLowerCase()];
+      if (!expectedUserId) {
+        issues.push({ email: m.invited_email, issue: 'not in Supabase', account: m.account_id });
+        continue;
+      }
+      // If user_id is wrong (e.g. = owner_id, or not matching email)
+      if (m.user_id !== expectedUserId) {
+        // Don't allow a member's user_id to equal the account owner_id unless they're the same person
+        const isOwner = m.user_id === m.owner_id;
+        if (isOwner || m.user_id !== expectedUserId) {
+          await db.execute(
+            `UPDATE account_members SET user_id = ? WHERE id = ?`,
+            [expectedUserId, m.id]
+          );
+          issues.push({ email: m.invited_email, old_id: m.user_id?.slice(0,8), new_id: expectedUserId?.slice(0,8), fixed: true });
+          fixed++;
+        }
+      }
+    }
+
+    res.json({ ok: true, fixed, total: members.rows.length, issues });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 export default router;
