@@ -194,6 +194,8 @@ router.get('/presence/:accountId', requireAuth, async (req, res) => {
 // ── GET /notifications — notification inbox ───────────────────────
 router.get('/notifications', requireAuth, async (req, res) => {
   try {
+    // Ensure profile exists (auto-create on first access)
+    await ensureProfile(req.user.id, req.user.email, req.user.user_metadata?.full_name);
     const notifs = await db.execute(
       `SELECT * FROM notification_log WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
       [req.user.id]
@@ -215,6 +217,7 @@ router.patch('/notifications/:id/read', requireAuth, async (req, res) => {
 });
 
 // ── PATCH /notifications/read-all ────────────────────────────────
+// IMPORTANT: This must be before /notifications/:id/read to avoid route conflict
 router.patch('/notifications/read-all', requireAuth, async (req, res) => {
   try {
     await db.execute(

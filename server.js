@@ -609,6 +609,11 @@ app.use('/api/google-calendar',     googleCalendarRouter);
 app.use('/api/calendar',       requireAuth, requirePlanFeature('calendar'),   calendarRouter);
 app.use('/api/documents',      requireAuth, requirePlanFeature('documents'),  documentsRouter);
 app.use('/api/photos',         requireAuth, requirePlanFeature('photos'),     photosRouter);
+// ── Public workspace invite accept/decline (no auth required) ────
+// These must be BEFORE the auth-gated workspace router below
+app.get('/api/workspace/accept/:token', workspaceRouter);
+app.post('/api/workspace/decline/:token', workspaceRouter);
+
 app.use('/api/workspace',      requireAuth, requirePlanFeature('workspace'),  workspaceRouter);
 app.use('/api/accounts',     requireAuth, accountsRouter);
 app.use('/api/contacts', requireAuth, contactsRouter);
