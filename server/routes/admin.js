@@ -871,6 +871,68 @@ router.post('/test-email', async (req, res) => {
         : 'Check SMTP_HOST, SMTP_USER, SMTP_PASS in Railway Variables',
     });
   }
+})
+
+// ── POST /api/admin/migrate/profiles — create user profile tables ─
+router.post('/migrate/profiles', async (req, res) => {
+  const results = [];
+  const ddl = [
+    `CREATE TABLE IF NOT EXISTS user_profiles (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL UNIQUE,
+      display_name TEXT,
+      avatar_url TEXT,
+      title TEXT,
+      phone TEXT,
+      bio TEXT,
+      timezone TEXT DEFAULT 'America/Chicago',
+      notification_email BOOLEAN DEFAULT TRUE,
+      notification_push BOOLEAN DEFAULT TRUE,
+      notification_mentions BOOLEAN DEFAULT TRUE,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    )`,
+    `CREATE TABLE IF NOT EXISTS user_presence (
+      user_id TEXT PRIMARY KEY,
+      account_id TEXT,
+      status TEXT DEFAULT 'offline',
+      custom_status TEXT,
+      last_seen TIMESTAMPTZ DEFAULT NOW(),
+      last_active TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    )`,
+    `CREATE TABLE IF NOT EXISTS notification_log (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      account_id TEXT,
+      type TEXT NOT NULL,
+      title TEXT,
+      body TEXT,
+      url TEXT,
+      read_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_notif_user ON notification_log(user_id, created_at DESC)`,
+    `CREATE INDEX IF NOT EXISTS idx_presence_account ON user_presence(account_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_profiles_user ON user_profiles(user_id)`,
+    `ALTER TABLE account_members ADD COLUMN IF NOT EXISTS invite_token TEXT UNIQUE`,
+    `ALTER TABLE account_members ADD COLUMN IF NOT EXISTS invited_at TIMESTAMPTZ DEFAULT NOW()`,
+    `ALTER TABLE account_members ADD COLUMN IF NOT EXISTS accepted_at TIMESTAMPTZ`,
+    `ALTER TABLE account_members ADD COLUMN IF NOT EXISTS declined_at TIMESTAMPTZ`,
+    `ALTER TABLE account_members ADD COLUMN IF NOT EXISTS invite_accepted_by_user_id TEXT`,
+    `ALTER TABLE workspace_messages ADD COLUMN IF NOT EXISTS reply_to TEXT`,
+  ];
+  for (const sql of ddl) {
+    try {
+      await db.execute(sql);
+      results.push({ ok: true, sql: sql.slice(0, 60) });
+    } catch(e) {
+      const isExisting = e.message?.includes('already exists') || e.message?.includes('duplicate');
+      results.push({ ok: isExisting, sql: sql.slice(0, 60), error: isExisting ? 'already exists' : e.message?.slice(0,80) });
+    }
+  }
+  const allOk = results.every(r => r.ok);
+  res.json({ ok: allOk, results });
 });
 
 export default router;
