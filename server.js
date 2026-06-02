@@ -849,9 +849,9 @@ initDBWithRetry().then(async () => {
         `SELECT id, name, email, trial_ends_at FROM accounts
          WHERE subscription_status = 'trialing'
            AND trial_ends_at IS NOT NULL
-           AND trial_ends_at > NOW()
-           AND trial_ends_at <= NOW() + INTERVAL '3 days'
-           AND (trial_reminder_sent_at IS NULL OR trial_reminder_sent_at < NOW() - INTERVAL '23 hours')
+           AND trial_ends_at::timestamptz > NOW()
+           AND trial_ends_at::timestamptz <= NOW() + INTERVAL '3 days'
+           AND (trial_reminder_sent_at IS NULL OR trial_reminder_sent_at::timestamptz < NOW() - INTERVAL '23 hours')
          LIMIT 50`
       );
       for (const acct of expiring.rows) {

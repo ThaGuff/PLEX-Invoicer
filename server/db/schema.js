@@ -270,7 +270,7 @@ export async function initDB() {
       account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
       name TEXT NOT NULL,
       private INTEGER DEFAULT 0,
-      desc TEXT,
+      description TEXT,
       created_by TEXT,
       created_at TIMESTAMP DEFAULT NOW()
     )`,
@@ -633,6 +633,8 @@ export async function ensureWorkspaceTables() {
 // ── Full User Profile & Presence System ──────────────────────────
 export async function migrateUserProfileSystem() {
   const migrations = [
+    // Rename 'desc' reserved word column to 'description' in workspace_channels
+    `ALTER TABLE workspace_channels RENAME COLUMN desc TO description`,
     // Add reply_to to workspace_messages
     `ALTER TABLE workspace_messages ADD COLUMN IF NOT EXISTS reply_to TEXT`,
     // Add discount_pct to automation_steps if missing

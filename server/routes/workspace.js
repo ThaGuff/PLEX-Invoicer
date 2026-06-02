@@ -175,7 +175,7 @@ router.get('/channels', requireAuth, async (req, res) => {
 
 // ── POST /api/workspace/channels ──────────────────────────────────
 router.post('/channels', requireAuth, async (req, res) => {
-  const { account_id, name, private: isPrivate = false, desc = '' } = req.body;
+  const { account_id, name, private: isPrivate = false, desc = '', description = desc } = req.body;
   if (!account_id) return res.status(400).json({ error: 'account_id required' });
   if (!name?.trim()) return res.status(400).json({ error: 'channel name required' });
   const safeName = name.toLowerCase().replace(/[^a-z0-9-]/g, '-').slice(0, MAX_CHANNEL_NAME_LENGTH);
@@ -192,7 +192,7 @@ router.post('/channels', requireAuth, async (req, res) => {
       await db.execute(
         `INSERT INTO workspace_channels (id, account_id, name, description, created_by, created_at)
          VALUES (?, ?, ?, ?, ?, NOW())`,
-        [id, account_id, safeName, sanitizeText(desc, 500), req.user.id]
+        [id, account_id, safeName, sanitizeText(description || desc, 500), req.user.id]
       );
     });
     const ch = await db.execute(`SELECT * FROM workspace_channels WHERE id = ?`, [id]);
