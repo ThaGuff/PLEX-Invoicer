@@ -5,7 +5,7 @@ import express       from 'express';
 import path           from 'path';
 import { fileURLToPath } from 'url';
 import helmet         from 'helmet';
-import rateLimit      from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { initDB, initSchemaV2, initStripeConnect, ensureWorkspaceTables, migrateCalendarEvents, migrateUserProfileSystem } from './server/db/schema.js';
 import { startDbHealthMonitor, getDbHealth } from './server/db/healthcheck.js';
 import { requireAuth, sanitizeRequest } from './server/middleware/auth.js';
@@ -99,16 +99,16 @@ app.use((req, res, next) => {
 // ── Rate limiting ────────────────────────────────────────────────
 // General API rate limit
 // Extract user identity from JWT token (for per-user rate limiting)
+// Falls back to ipKeyGenerator (handles IPv6) when no token present
 const getUserKey = (req) => {
   try {
     const auth = req.headers.authorization || '';
     const token = auth.replace('Bearer ', '');
     if (token && token.length > 20) {
-      // Use first 16 chars of token as key (sufficient for identity, avoids logging full token)
-      return token.slice(0, 16);
+      return 'usr:' + token.slice(0, 24); // user-scoped key, not IP
     }
   } catch {}
-  return req.ip; // fallback to IP
+  return ipKeyGenerator(req); // proper IPv4/IPv6 handling for unauthenticated
 };
 
 // Skip polling routes from rate limiting (they run constantly in background)
@@ -736,7 +736,7 @@ app.get('*', (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🚀 PLEX Invoicer running on :${PORT}`);
   console.log(`   OpenAI:    ${process.env.OPENAI_API_KEY         ? '✓ set' : '✗ not set — website scraping disabled'}`);
-  console.log(`   Supabase:  ${process.env.SUPABASE_URL           ? '✓ set' : '✗ not set — running in dev mode (no auth)'}`);
+  console.log(`   Supabase:  ${(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL) ? '✓ set' : '✗ not set — running in dev mode (no auth)'}`);
   console.log(`   Stripe:    ${process.env.STRIPE_SECRET_KEY      ? '✓ set' : '✗ not set — payments disabled'}`);
   console.log(`   Email:     ${process.env.RESEND_API_KEY ? '✓ Resend configured' : process.env.SMTP_HOST ? '✓ SMTP configured' : '✗ not set — set RESEND_API_KEY or SMTP_HOST'}`);
   console.log(`   App URL:   ${process.env.APP_URL                || 'not set (using relative URLs)'}\n`);
@@ -780,7 +780,7 @@ initDBWithRetry().then(async () => {
       // Get pending automation runs due now
       const pending = await db.execute(`
         SELECT r.id, r.sequence_id, r.step_id, r.invoice_id, r.quote_id, r.contact_id,
-               s.channel, s.subject, s.body, s.discount_pct,
+               s.channel, s.subject, s.body, COALESCE(s.discount_pct, '10') as discount_pct,
                seq.account_id,
                COALESCE(i.client_name, q.client_name, c.name) as client_name,
                COALESCE(i.client_email, q.client_email, c.email) as client_email,

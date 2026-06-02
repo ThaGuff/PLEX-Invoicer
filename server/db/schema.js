@@ -624,6 +624,10 @@ export async function migrateUserProfileSystem() {
   const migrations = [
     // Add reply_to to workspace_messages
     `ALTER TABLE workspace_messages ADD COLUMN IF NOT EXISTS reply_to TEXT`,
+    // Add discount_pct to automation_steps if missing
+    `ALTER TABLE automation_steps ADD COLUMN IF NOT EXISTS discount_pct TEXT DEFAULT '10'`,
+    // Add trial_reminder_sent_at to accounts if missing
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS trial_reminder_sent_at TIMESTAMPTZ`,
     // Add username to user_profiles
     `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS username TEXT`,
     
@@ -675,7 +679,7 @@ export async function migrateUserProfileSystem() {
       read_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )`,
-    `CREATE INDEX IF NOT EXISTS idx_notif_user ON notification_log(user_id, created_at DESC)`,
+    `CREATE INDEX IF NOT EXISTS idx_notif_user ON notification_log(user_id, created_at)`,
     `CREATE INDEX IF NOT EXISTS idx_presence_account ON user_presence(account_id)`,
     `CREATE INDEX IF NOT EXISTS idx_profiles_user ON user_profiles(user_id)`,
   ];

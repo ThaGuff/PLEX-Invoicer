@@ -57,6 +57,15 @@ function Message({ msg, isOwn, myId, onReact, onReply, onDelete, currentUser }) 
         {/* Content - parse images, files, and mentions */}
         <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.55, wordBreak: 'break-word' }}>
           {(msg.content || '').split('\n').map((line, i) => {
+            // Skip raw base64 blobs that were accidentally stored as message content
+            const isRawBase64 = line.length > 200 && !line.includes(' ') && 
+              (line.startsWith('data:') || /^[A-Za-z0-9+/]{100}/.test(line));
+            if (isRawBase64) return (
+              <div key={i} style={{ padding: '6px 10px', background:'rgba(239,68,68,0.08)', borderRadius:8, fontSize:12, color:'#dc2626', fontStyle:'italic' }}>
+                📎 Attachment (legacy format — re-send to view)
+              </div>
+            );
+            
             const imageMatch = line.match(/^\[image:(.+?)\]\((.+?)\)$/);
             const fileMatch = line.match(/^\[file:(.+?)\]\((.+?)\)$/);
             const mentionMatch = line.includes('@');
@@ -75,14 +84,18 @@ function Message({ msg, isOwn, myId, onReact, onReply, onDelete, currentUser }) 
                 {fileMatch[1]}
               </a>
             );
-            // Highlight @mentions
-            const parts = line.split(/(@\w+)/g);
+            // Highlight @mentions and clean up email-based @mentions
+            const parts = line.split(/(@[\w.@]+)/g);
             return (
               <span key={i} style={{ whiteSpace: 'pre-wrap' }}>
-                {parts.map((p, j) => p.startsWith('@')
-                  ? <strong key={j} style={{ color: 'var(--accent, #2563EB)', fontWeight: 700 }}>{p}</strong>
-                  : p
-                )}
+                {parts.map((p, j) => {
+                  if (!p.startsWith('@')) return p;
+                  // Clean up email-based mentions: @user@domain.com → @user
+                  const cleanMention = p.includes('@', 1) 
+                    ? '@' + p.slice(1).split('@')[0] 
+                    : p;
+                  return <strong key={j} style={{ color: 'var(--accent, #2563EB)', fontWeight: 700 }}>{cleanMention}</strong>;
+                })}
                 {i < (msg.content || '').split('\n').length - 1 && '\n'}
               </span>
             );
