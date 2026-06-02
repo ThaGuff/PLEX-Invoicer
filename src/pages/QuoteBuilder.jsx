@@ -11,6 +11,7 @@ import {
 import { SERVICES, SECTIONS, YEARLY_DISCOUNT_DEFAULT, getService } from '../data/services';
 import { useAccount } from '../context/AccountContext';
 import { exportPDF } from '../utils/exportPDF';
+import { TEMPLATE_LIST, QUOTE_TEMPLATES } from '../data/quoteTemplates';
 import { openMailto } from '../utils/exportEmail';
 import { api } from '../utils/api';
 import AIInvoiceParser from '../components/AIInvoiceParser';
@@ -108,7 +109,7 @@ function CustomSection({ section, services, selected, included, prices, billingM
   const [savingItem, setSavingItem] = useState(false);
   const [editingLabel, setEditingLabel] = useState(false);
   const [newLabel, setNewLabel] = useState(section.label);
-  const [newItem, setNewItem] = useState({ name: '', description: '', setup_price: '', monthly_price: '' });
+  const [newItem, setNewItem] = useState({ name: '', description: '', setup_price: '', monthly_price: '', unit: 'per job' });
   const count = services.filter(s => selected[s.id]).length;
 
   const handleAddItem = async () => {
@@ -121,9 +122,10 @@ function CustomSection({ section, services, selected, included, prices, billingM
         description:   newItem.description.trim(),
         setup_price:   parseFloat(newItem.setup_price)   || 0,
         monthly_price: parseFloat(newItem.monthly_price) || 0,
+        unit: newItem.unit || 'per job',
       });
       onItemAdded(created);
-      setNewItem({ name: '', description: '', setup_price: '', monthly_price: '' });
+      setNewItem({ name: '', description: '', setup_price: '', monthly_price: '', unit: 'per job' });
       setAddingItem(false);
     } catch (e) { alert('Failed to add service: ' + e.message); }
     setSavingItem(false);
@@ -196,7 +198,7 @@ function CustomSection({ section, services, selected, included, prices, billingM
                   <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
                   <input type="number" min={0} value={newItem.setup_price}
                     onChange={e => setNewItem(p => ({ ...p, setup_price: e.target.value }))}
-                    className="field pl-6 text-sm" placeholder="Setup / one-time" />
+                    className="field pl-6 text-sm" placeholder="One-time price" />
                 </div>
                 <div className="relative">
                   <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
@@ -212,7 +214,7 @@ function CustomSection({ section, services, selected, included, prices, billingM
                   {savingItem ? <RefreshCw size={11} className="animate-spin" /> : <Plus size={11} />}
                   {savingItem ? 'Adding…' : 'Add service'}
                 </button>
-                <button onClick={() => { setAddingItem(false); setNewItem({ name:'', description:'', setup_price:'', monthly_price:'' }); }}
+                <button onClick={() => { setAddingItem(false); setNewItem({ name:'', description:'', setup_price:'', monthly_price:'', unit:'per job' }); }}
                   className="btn-ghost text-xs py-2 px-3">Cancel</button>
               </div>
             </div>
@@ -424,6 +426,53 @@ export default function QuoteBuilder() {
   const [taxZip, setTaxZip]               = useState('');
   const [taxLooking, setTaxLooking]       = useState(false);
   const [taxLookupResult, setTaxLookupResult] = useState(null);
+
+  // Quote template state
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [templateApplied, setTemplateApplied] = useState(false);
+
+  // Website scraper state (now lives in QuoteBuilder)
+  const [scanUrl, setScanUrl]       = useState('');
+  const [scanning, setScanning]     = useState(false);
+  const [scanResult, setScanResult] = useState(null);
+
+  const handleScan = async () => {
+    if (!scanUrl.trim()) return;
+    setScanning(true);
+    setScanResult(null);
+    try {
+      const { scrapeWebsite } = await import('../utils/scraper');
+      const result = await scrapeWebsite(scanUrl.trim());
+      if (result.success && result.data) {
+        const d = result.data;
+        const svcs = d.services || [];
+        if (svcs.length > 0) {
+          const secId = 'scraped-' + Date.now();
+          const newSec = { id: secId, name: d.businessName ? `${d.businessName} Services` : 'Imported Services', position: customSections.length };
+          const newSvcItems = svcs.map((svc, i) => ({
+            id: `scraped-svc-${i}`,
+            section_id: secId,
+            name: svc.name,
+            description: svc.description || '',
+            setup_price: 0,
+            monthly_price: svc.price || 0,
+            unit: 'per job',
+            position: i,
+          }));
+          setCustomSections(prev => [...prev, newSec]);
+          setCustomItems(prev => [...prev, ...newSvcItems]);
+          setScanResult(`Imported ${svcs.length} services from ${d.businessName || 'website'}`);
+        } else {
+          setScanResult('No services found. Try a different URL or use a template above.');
+        }
+      } else {
+        setScanResult('Scan failed. Please check the URL and try again.');
+      }
+    } catch (e) {
+      setScanResult('Error scanning website: ' + e.message);
+    }
+    setScanning(false);
+  };
 
   const [notes, setNotes] = useState(
     'Pricing valid for 30 days. Monthly billing starts after setup is complete. Setup begins within 48 hours of signed agreement and initial deposit. No long-term contracts on monthly services.'
@@ -697,49 +746,140 @@ export default function QuoteBuilder() {
             </div>
           </div>
 
-          {/* Billing mode */}
-          <div className="card p-5 mb-4">
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
-              <Calendar size={14} style={{ color: accent }} />
-              <span className="text-sm font-semibold text-ink">Billing mode</span>
+          {/* ── QUOTE TEMPLATE SELECTOR ── */}
+          <div className="card p-5 mb-4" style={{ border: `1.5px solid ${accent}30` }}>
+            <div className="flex items-center gap-2 mb-3">
+              <span style={{ fontSize: 18 }}>📋</span>
+              <div>
+                <p className="text-sm font-bold text-ink">Industry Quote Templates</p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Load pre-built services for your trade — then customize as needed</p>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              {[
-                { key: 'monthly', Icon: CreditCard, title: 'Month-to-month', sub: 'Standard pricing, no commitment. Cancel with 30 days notice.' },
-                { key: 'annual',  Icon: Calendar,   title: 'Annual plan',     sub: '12-month commitment at a discounted monthly rate.', badge: `Save ${yearlyDiscount}%` },
-              ].map(opt => {
-                const active = billingMode === opt.key;
-                return (
-                  <button key={opt.key} onClick={() => setBillingMode(opt.key)}
-                    className="relative flex flex-col items-start p-4 text-left transition-all border-2 rounded-lg"
-                    style={{ borderColor: active ? accent : 'var(--border)', background: active ? accent + '10' : '#FFFFFF' }}>
-                    {opt.badge && (
-                      <span className="absolute top-3 right-3 text-xs font-bold px-2 py-0.5 rounded text-white" style={{ background: accent }}>
-                        {opt.badge}
-                      </span>
-                    )}
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <opt.Icon size={14} style={{ color: active ? accent : '#7A7E85' }} />
-                      <span className="text-sm font-semibold" style={{ color: active ? accent : '#1a1a1a' }}>{opt.title}</span>
-                      {active && <CheckCircle size={13} style={{ color: accent }} />}
+
+            {/* Template Dropdown */}
+            <select
+              value={selectedTemplate}
+              onChange={e => setSelectedTemplate(e.target.value)}
+              className="w-full text-sm border rounded-lg px-3 py-2.5 mb-3 bg-white"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-primary)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              <option value="">— Select your trade / industry —</option>
+              {TEMPLATE_LIST.map(t => (
+                <option key={t.id} value={t.id}>
+                  {t.icon}  {t.name} — {t.description}
+                </option>
+              ))}
+            </select>
+
+            {selectedTemplate && QUOTE_TEMPLATES[selectedTemplate] && (
+              <div>
+                {/* Template preview */}
+                <div className="flex items-center justify-between mb-3 p-3 rounded-lg" style={{ background: QUOTE_TEMPLATES[selectedTemplate].color + '10', border: `1px solid ${QUOTE_TEMPLATES[selectedTemplate].color}30` }}>
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontSize: 22 }}>{QUOTE_TEMPLATES[selectedTemplate].icon}</span>
+                    <div>
+                      <p className="text-sm font-bold" style={{ color: QUOTE_TEMPLATES[selectedTemplate].color }}>{QUOTE_TEMPLATES[selectedTemplate].name}</p>
+                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                        {QUOTE_TEMPLATES[selectedTemplate].sections.reduce((a, s) => a + s.services.length, 0)} services across {QUOTE_TEMPLATES[selectedTemplate].sections.length} categories
+                      </p>
                     </div>
-                    <p className="text-xs text-ink-muted leading-relaxed pr-10">{opt.sub}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const tmpl = QUOTE_TEMPLATES[selectedTemplate];
+                      if (!tmpl) return;
+
+                      // Add each section and its services as custom catalog items
+                      const newSections = [];
+                      const newItems = [];
+                      tmpl.sections.forEach((sec, si) => {
+                        const secId = `tmpl-${selectedTemplate}-sec-${si}`;
+                        newSections.push({ id: secId, name: sec.name, position: customSections.length + si });
+                        sec.services.forEach((svc, svi) => {
+                          newItems.push({
+                            id: svc.id,
+                            section_id: secId,
+                            name: svc.name,
+                            description: svc.description,
+                            setup_price: 0,
+                            monthly_price: svc.defaultPrice,
+                            unit: svc.unit,
+                            position: svi,
+                          });
+                        });
+                      });
+
+                      // Merge into existing custom catalog
+                      setCustomSections(prev => {
+                        const existing = new Set(prev.map(s => s.id));
+                        return [...prev, ...newSections.filter(s => !existing.has(s.id))];
+                      });
+                      setCustomItems(prev => {
+                        const existing = new Set(prev.map(i => i.id));
+                        return [...prev, ...newItems.filter(i => !existing.has(i.id))];
+                      });
+
+                      // Pre-fill notes and payment terms
+                      setNotes(tmpl.notes || notes);
+
+                      setTemplateApplied(true);
+                      setSelectedTemplate('');
+                      setTimeout(() => setTemplateApplied(false), 3000);
+                    }}
+                    className="px-4 py-2 rounded-lg text-white text-sm font-bold transition-all"
+                    style={{ background: QUOTE_TEMPLATES[selectedTemplate].color, boxShadow: `0 4px 12px ${QUOTE_TEMPLATES[selectedTemplate].color}40` }}>
+                    Load Template ✨
                   </button>
-                );
-              })}
-            </div>
-            {billingMode === 'annual' && (
-              <div className="flex items-center gap-3 px-4 py-3 rounded text-sm border"
-                style={{ background: accent + '0D', borderColor: accent + '40', borderRadius: '6px' }}>
-                <Info size={13} style={{ color: accent }} className="shrink-0" />
-                <span className="text-xs text-ink-muted flex-1">Discount applied to all monthly line items:</span>
-                <div className="flex items-center gap-2">
-                  <input type="number" min={1} max={50} value={yearlyDiscount}
-                    onChange={e => setYearlyDiscount(Math.min(50, Math.max(1, parseFloat(e.target.value) || 0)))}
-                    className="w-14 text-center text-sm font-bold rounded outline-none border-2 px-1 py-1 bg-white"
-                    style={{ borderColor: accent, color: accent }} />
-                  <span className="text-sm font-semibold text-ink">% off</span>
                 </div>
+
+                {/* Section preview */}
+                <div className="grid gap-1">
+                  {QUOTE_TEMPLATES[selectedTemplate].sections.map(sec => (
+                    <div key={sec.name} className="flex items-center justify-between text-xs px-2 py-1 rounded" style={{ background: 'var(--bg-raised)' }}>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{sec.name}</span>
+                      <span style={{ color: 'var(--text-muted)' }}>{sec.services.length} services</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {templateApplied && (
+              <div className="mt-3 p-3 rounded-lg text-sm font-semibold" style={{ background: 'rgba(34,197,94,0.1)', color: '#16a34a', border: '1px solid rgba(34,197,94,0.2)' }}>
+                ✅ Template loaded! Services added to your catalog below. Customize prices as needed.
+              </div>
+            )}
+          </div>
+
+          {/* ── Website Scraper (Import from URL) ── */}
+          <div className="card p-5 mb-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span style={{ fontSize: 16 }}>🌐</span>
+              <div>
+                <p className="text-sm font-bold text-ink">Import from Website</p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Scan your website to auto-import services and pricing</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                placeholder="https://yourwebsite.com"
+                value={scanUrl ?? ''}
+                onChange={e => setScanUrl(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleScan()}
+                className="flex-1 text-sm border rounded-lg px-3 py-2 bg-white"
+                style={{ borderColor: 'var(--border)', color: 'var(--text-primary)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              />
+              <button
+                onClick={handleScan}
+                disabled={scanning || !scanUrl?.trim()}
+                className="px-4 py-2 rounded-lg text-white text-sm font-bold transition-all disabled:opacity-50"
+                style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}>
+                {scanning ? '⏳ Scanning…' : '🔍 Scan'}
+              </button>
+            </div>
+            {scanResult && (
+              <div className="mt-2 p-2 rounded text-xs" style={{ background: 'rgba(34,197,94,0.08)', color: '#16a34a', border: '1px solid rgba(34,197,94,0.2)' }}>
+                ✅ {scanResult}
               </div>
             )}
           </div>
@@ -958,40 +1098,7 @@ export default function QuoteBuilder() {
               </div>
             </div>
 
-            {/* Good / Better / Best pricing packages */}
-            <div className="card p-4">
-              <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--text-muted)', letterSpacing: '0.9px' }}>Pricing packages</p>
-              <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>Let clients choose a tier that fits their budget.</p>
-              <div className="space-y-2 mb-3">
-                {[
-                  { key: 'good',   label: 'Good',   emoji: '✅', desc: 'Essentials only',   discount: 0  },
-                  { key: 'better', label: 'Better', emoji: '⭐', desc: 'Most popular',       discount: 0, badge: true },
-                  { key: 'best',   label: 'Best',   emoji: '🚀', desc: 'Full service',       discount: 0  },
-                ].map(pkg => (
-                  <button key={pkg.key}
-                    onClick={() => setActivePackage(activePackage === pkg.key ? null : pkg.key)}
-                    className="w-full text-left p-2.5 rounded-xl text-sm transition-all"
-                    style={{
-                      border: activePackage === pkg.key ? '1.5px solid #4B7BFF' : '1px solid var(--border)',
-                      background: activePackage === pkg.key ? 'rgba(75,123,255,0.06)' : 'var(--bg-page)',
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
-                      cursor: 'pointer',
-                    }}>
-                    <div className="flex items-center gap-2">
-                      <span>{pkg.emoji}</span>
-                      <span style={{ fontWeight: 700, color: activePackage === pkg.key ? '#4B7BFF' : 'var(--text-primary)' }}>{pkg.label}</span>
-                      {pkg.badge && <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 10, background: 'linear-gradient(135deg, #4B7BFF, #7B4FE8)', color: '#fff' }}>Popular</span>}
-                      <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-muted)' }}>{pkg.desc}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-              {activePackage && (
-                <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(75,123,255,0.06)', border: '0.5px solid rgba(75,123,255,0.2)', fontSize: 11, color: '#4B7BFF', fontWeight: 600 }}>
-                  💡 "{activePackage.charAt(0).toUpperCase()+activePackage.slice(1)}" package selected. Clients will see this highlighted when viewing their quote.
-                </div>
-              )}
-            </div>
+
 
             {/* Tax rate */}
             <div className="card p-4">
@@ -1049,6 +1156,12 @@ export default function QuoteBuilder() {
                 style={{ background: saveState === 'saved' ? '#22c55e' : accent }}>
                 <Save size={15} /> {saveBtnLabel}
               </button>
+              <button onClick={() => window.print()} disabled={selectedCount === 0}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-40"
+                style={{ background: 'var(--bg-raised)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Print
+              </button>
               <button onClick={() => exportPDF(fullState)} disabled={selectedCount === 0}
                 className="btn-ghost w-full disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
                 <Download size={15} /> Export PDF
@@ -1060,6 +1173,18 @@ export default function QuoteBuilder() {
               <button onClick={handleClear} className="btn-danger-ghost w-full">
                 <Trash2 size={13} /> Clear all
               </button>
+            </div>
+
+            {/* Revanew branding */}
+            <div style={{ marginTop: 16, textAlign: 'center', padding: '10px 0', borderTop: '1px solid var(--border)' }}>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4l3 3"/></svg>
+                Powered by{' '}
+                <a href="https://revanew.io" target="_blank" rel="noopener noreferrer"
+                  style={{ color: accent, fontWeight: 700, textDecoration: 'none' }}>
+                  Revanew.io
+                </a>
+              </p>
             </div>
 
           </div>
