@@ -126,8 +126,8 @@ function Nav() {
     };
 
     loadNotifs(); heartbeat();
-    const ni = setInterval(loadNotifs, 30000);
-    const pi = setInterval(heartbeat, 60000);
+    const ni = setInterval(loadNotifs, 60000);  // Poll every 60s (was 30s)
+    const pi = setInterval(heartbeat, 120000); // Heartbeat every 2min (was 60s)
     const onBlur  = () => { const t = getToken(); if (t) fetch('/api/profiles/presence', { method:'POST', headers:{'Content-Type':'application/json',Authorization:`Bearer ${t}`}, body:JSON.stringify({account_id:account.id,status:'away'}) }).catch(()=>{}); };
     const onFocus = () => heartbeat();
     window.addEventListener('blur', onBlur);

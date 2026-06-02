@@ -283,7 +283,7 @@ export default function WorkspacePage() {
           }
         }
       } catch {}
-    }, 5000); // Poll every 5 seconds
+    }, 8000); // Poll every 8 seconds (was 5s - balance real-time vs rate limits)
     return () => clearInterval(interval);
   }, [activeChannel, account?.id]);
 

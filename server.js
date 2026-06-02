@@ -98,13 +98,51 @@ app.use((req, res, next) => {
 
 // ── Rate limiting ────────────────────────────────────────────────
 // General API rate limit
+// Extract user identity from JWT token (for per-user rate limiting)
+const getUserKey = (req) => {
+  try {
+    const auth = req.headers.authorization || '';
+    const token = auth.replace('Bearer ', '');
+    if (token && token.length > 20) {
+      // Use first 16 chars of token as key (sufficient for identity, avoids logging full token)
+      return token.slice(0, 16);
+    }
+  } catch {}
+  return req.ip; // fallback to IP
+};
+
+// Skip polling routes from rate limiting (they run constantly in background)
+const isPollingRoute = (req) => {
+  const p = req.path;
+  const method = req.method;
+  // Read-only polling routes that run on intervals
+  if (method === 'GET' && (
+    p.includes('/messages') ||
+    p.includes('/notifications') ||
+    p.includes('/presence') ||
+    p.includes('/channels') ||
+    p.includes('/members') ||
+    p.includes('/status')
+  )) return true;
+  // Presence heartbeat
+  if (method === 'POST' && p.includes('/presence')) return true;
+  return false;
+};
+
 const apiLimiter = rateLimit({
-  windowMs:  15 * 60 * 1000, // 15 minutes
-  max:       300,             // 300 requests per 15 min per IP
+  windowMs:  15 * 60 * 1000,     // 15 minutes
+  max:       2000,                // 2000 requests per 15 min per user (not IP)
   standardHeaders: true,
   legacyHeaders:  false,
   message: { error: 'Too many requests, please try again later.' },
-  skip: (req) => req.ip === '127.0.0.1', // skip localhost
+  keyGenerator: getUserKey,       // Per-user limit, not per-IP
+  skip: (req) => {
+    // Skip localhost
+    if (req.ip === '127.0.0.1') return true;
+    // Skip polling routes entirely
+    if (isPollingRoute(req)) return true;
+    return false;
+  },
 });
 
 // Strict limit for auth-adjacent routes
@@ -119,7 +157,8 @@ const strictLimiter = rateLimit({
 // Admin limiter — generous since the panel makes many calls
 const adminLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max:      200,             // 200 requests per 15 min
+  max:      500,             // 500 requests per 15 min (admin makes many calls)
+  keyGenerator: getUserKey,
   message: { error: 'Admin rate limit exceeded, please wait a moment.' },
   standardHeaders: true,
   legacyHeaders:  false,
