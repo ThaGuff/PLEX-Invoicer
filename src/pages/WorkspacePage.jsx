@@ -178,7 +178,17 @@ export default function WorkspacePage() {
   const { user } = useAuth();
   const token = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
   const myId = user?.id || 'unknown';
-  const myName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'You';
+  // Use display_name from profile if set, fallback to Supabase metadata
+  const [myProfile, setMyProfile] = React.useState(null);
+  React.useEffect(() => {
+    if (!user?.id || !token) return;
+    fetch('/api/profiles/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.profile) setMyProfile(d.profile); })
+      .catch(() => {});
+  }, [user?.id]);
+  const myName = myProfile?.display_name || myProfile?.username || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'You';
+  const myUsername = myProfile?.username || null;
 
   const [channels, setChannels] = useState([]);
   const [activeChannel, setActiveChannel] = useState(null);
@@ -249,7 +259,13 @@ export default function WorkspacePage() {
       const r = await fetch(`/api/workspace/members?account_id=${account.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (r.ok) setMembers(await r.json());
+      if (r.ok) {
+        const raw = await r.json();
+        if (Array.isArray(raw)) {
+          // Enrich with profile data (display_name, username)
+          setMembers(raw);
+        }
+      }
     } catch {}
   }, [account?.id]);
 
@@ -852,8 +868,8 @@ export default function WorkspacePage() {
                   {p.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <div style={{ fontSize:13, fontWeight:700 }}>@{p.name}</div>
-                  {p.email && <div style={{ fontSize:11, color:'var(--text-muted)' }}>{p.email}</div>}
+                  <div style={{ fontSize:13, fontWeight:700 }}>{p.display || p.name}</div>
+                  <div style={{ fontSize:11, color:'var(--text-muted)' }}>@{p.name}</div>
                 </div>
               </button>
             ))}
@@ -935,9 +951,13 @@ export default function WorkspacePage() {
                   const q = mentionMatch[1].toLowerCase();
                   setMentionQuery(q);
                   const allPeople = [
-                    ...members.map(m => ({ name: m.email?.split('@')[0] || '', email: m.email || m.invited_email })),
-                    { name: 'here', email: null },
-                    { name: 'channel', email: null },
+                    ...members.map(m => ({ 
+                      name: m.username || m.display_name || m.email?.split('@')[0] || '', 
+                      email: m.email || m.invited_email,
+                      display: m.display_name || m.username || m.email?.split('@')[0],
+                    })),
+                    { name: 'here', email: null, display: 'All channel members' },
+                    { name: 'channel', email: null, display: 'All channel members' },
                   ];
                   setMentionSuggestions(allPeople.filter(p => p.name.toLowerCase().startsWith(q)).slice(0, 5));
                 } else {

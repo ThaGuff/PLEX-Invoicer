@@ -335,10 +335,10 @@ function Nav() {
 
           {/* User profile row */}
           <div style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 10px', borderRadius:10, cursor:'pointer', transition:'all 0.15s', background:'rgba(255,255,255,0.06)' }}
-            onClick={() => window.dispatchEvent(new CustomEvent('revanew:settings'))}
+            onClick={() => setShowUserProfile(true)}
             onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.12)'}
             onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.06)'}
-            title="Account Settings">
+            title="My Profile">
             {/* Avatar with online indicator */}
             <div style={{ position:'relative', flexShrink:0 }}>
               <div style={{ width:34, height:34, borderRadius:10, background:'linear-gradient(135deg,#2563EB,#7C3AED)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:800, color:'#fff', boxShadow:'0 2px 8px rgba(37,99,235,0.4)' }}>
@@ -355,10 +355,10 @@ function Nav() {
                 {user?.email || 'Settings'}
               </div>
             </div>
-            {/* Settings icon */}
+            {/* Profile icon */}
             <div style={{ color:'rgba(255,255,255,0.4)', flexShrink:0 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
               </svg>
             </div>
           </div>
@@ -485,6 +485,7 @@ function AppShell({ children }) {
 
   // ── State declarations (must come before useEffects) ──────────
   const [showSettings,   setShowSettings]   = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
 
   const [showNewAccount, setShowNewAccount] = useState(false);
   const [showUserMenu,   setShowUserMenu]   = useState(false);
@@ -586,6 +587,7 @@ function AppShell({ children }) {
 {/* Mobile header removed — sidebar nav is the primary navigation */}
 
       {showSettings   && <AccountSettings onClose={() => setShowSettings(false)} />}
+      {showUserProfile && <UserProfileModal onClose={() => setShowUserProfile(false)} />}
       {showNewAccount && <NewAccountModal onClose={() => setShowNewAccount(false)} onCreated={() => {}} />}
 
       {/* ── Main layout: sidebar + content ─────────────────────── */}

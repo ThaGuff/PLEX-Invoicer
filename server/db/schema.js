@@ -624,6 +624,8 @@ export async function migrateUserProfileSystem() {
   const migrations = [
     // Add reply_to to workspace_messages
     `ALTER TABLE workspace_messages ADD COLUMN IF NOT EXISTS reply_to TEXT`,
+    // Add username to user_profiles
+    `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS username TEXT`,
     
     // Add invite_token + accept tracking to account_members
     `ALTER TABLE account_members ADD COLUMN IF NOT EXISTS invite_token TEXT UNIQUE`,
@@ -637,6 +639,7 @@ export async function migrateUserProfileSystem() {
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL UNIQUE,
       display_name TEXT,
+      username TEXT UNIQUE,
       avatar_url TEXT,
       title TEXT,
       phone TEXT,

@@ -43,6 +43,7 @@ async function ensureProfile(userId, email, displayName) {
 }
 
 async function getProfile(userId) {
+  // Returns profile including username
   const r = await db.execute(
     `SELECT up.*, am.role, am.account_id, am.status as member_status
      FROM user_profiles up
@@ -100,7 +101,15 @@ router.get('/me', requireAuth, async (req, res) => {
 router.patch('/me', requireAuth, async (req, res) => {
   try {
     await ensureProfile(req.user.id, req.user.email, req.user.user_metadata?.full_name);
-    const { display_name, avatar_url, title, phone, bio, timezone, notification_email, notification_push, notification_mentions } = req.body;
+    const { display_name, username, avatar_url, title, phone, bio, timezone, notification_email, notification_push, notification_mentions } = req.body;
+    
+    // Validate username: alphanumeric + underscore only, 3-30 chars
+    if (username !== undefined && username !== null) {
+      const uname = username.trim();
+      if (uname && !/^[a-zA-Z0-9_]{3,30}$/.test(uname)) {
+        return res.status(400).json({ error: 'Username must be 3-30 characters (letters, numbers, underscore only)' });
+      }
+    }
     
     await db.execute(
       `UPDATE user_profiles SET
