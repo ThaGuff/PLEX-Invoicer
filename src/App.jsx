@@ -598,9 +598,7 @@ function AppShell({ children }) {
 
         {/* Page content — scroll container, works on iOS + Android */}
         <main style={{ flex:1, minWidth:0, overflowX:'hidden', overflowY:'auto', 
-          display:'flex', flexDirection:'column',
           WebkitOverflowScrolling:'touch',
-          height:'100%',
           paddingBottom:'calc(env(safe-area-inset-bottom) + 80px)' }}>
           {children}
         </main>
