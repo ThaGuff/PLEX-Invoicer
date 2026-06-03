@@ -573,7 +573,7 @@ function AppShell({ children }) {
   );
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-page)', overflowX: 'hidden', maxWidth: '100vw', display:'flex', flexDirection:'column' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-page)', overflow: 'hidden', maxWidth: '100vw', width:'100%', display:'flex', flexDirection:'column', height:'100dvh' }}>
       <React.Suspense fallback={null}><TrialBanner /></React.Suspense>
       <React.Suspense fallback={null}><InstallPWA /></React.Suspense>
       {showTour && (
@@ -592,12 +592,16 @@ function AppShell({ children }) {
       {showNewAccount && <NewAccountModal onClose={() => setShowNewAccount(false)} onCreated={() => {}} />}
 
       {/* ── Main layout: sidebar + content ─────────────────────── */}
-      <div style={{ display:'flex', flex:1, minHeight:0 }}>
+      <div style={{ display:'flex', flex:1, minHeight:0, overflow:'hidden' }}>
         {/* Left sidebar nav — desktop */}
         <Nav />
 
-        {/* Page content */}
-        <main style={{ flex:1, minWidth:0, overflowX:'hidden', overflowY:'auto', display:'flex', flexDirection:'column' }}>
+        {/* Page content — scroll container, works on iOS + Android */}
+        <main style={{ flex:1, minWidth:0, overflowX:'hidden', overflowY:'auto', 
+          display:'flex', flexDirection:'column',
+          WebkitOverflowScrolling:'touch',
+          height:'100%',
+          paddingBottom:'calc(env(safe-area-inset-bottom) + 80px)' }}>
           {children}
         </main>
       </div>

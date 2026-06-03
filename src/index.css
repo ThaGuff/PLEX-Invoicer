@@ -1150,9 +1150,23 @@ header.md\:hidden {
   /* Smooth momentum scrolling on iOS */
   main, .page-max, .scroll-x {
     -webkit-overflow-scrolling: touch !important;
+    overflow-y: auto !important;
   }
 
-  /* Prevent body bounce */
+  /* The outer app shell must NOT scroll — only main does */
+  body, html {
+    overflow: hidden !important;
+    height: 100% !important;
+  }
+
+  /* main is the sole scroll container */
+  main {
+    height: 100% !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Prevent body bounce but allow content scroll */
   body { overscroll-behavior: none; }
 }
 
