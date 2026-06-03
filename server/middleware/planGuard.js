@@ -127,7 +127,8 @@ export function requirePlanFeature(feature) {
       next();
     } catch (e) {
       console.error('planGuard error:', e.message);
-      next(); // fail open
+      // Fail CLOSED for security - if we can't verify plan, deny access
+      return res.status(503).json({ error: 'Plan verification temporarily unavailable. Please try again.' });
     }
   };
 }

@@ -22,6 +22,7 @@ import profilesRouter     from './server/routes/profiles.js';
 import analyticsRouter   from './server/routes/analytics.js';
 import integrationsRouter from './server/routes/integrations.js';
 import stripeConnectRouter from './server/routes/stripe-connect.js';
+import referralsRouter     from './server/routes/referrals.js';
 import taxRouter          from './server/routes/tax.js';
 import automationsRouter  from './server/routes/automations.js';
 import notificationsRouter    from './server/routes/notifications.js';
@@ -319,16 +320,19 @@ app.post('/api/webhooks/stripe', async (req, res) => {
   try {
     const { default: Stripe } = await import('stripe');
     const stripe = new Stripe(stripeKey);
-    let event = req.body;
-    if (webhookSecret) {
-      const sig = req.headers['stripe-signature'];
-      try {
-        event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-      } catch (e) {
-        return res.status(400).send(`Webhook signature failed: ${e.message}`);
-      }
-    } else {
-      event = JSON.parse(req.body);
+    // SECURITY: Always require webhook signature verification
+    // Set STRIPE_WEBHOOK_SECRET in Railway env vars via: stripe listen --forward-to ...
+    if (!webhookSecret) {
+      console.error('[Webhook] STRIPE_WEBHOOK_SECRET not set — rejecting unsigned webhook for security');
+      return res.status(400).send('Webhook secret not configured. Set STRIPE_WEBHOOK_SECRET env var.');
+    }
+    let event;
+    const sig = req.headers['stripe-signature'];
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } catch (e) {
+      console.error('[Webhook] Signature verification failed:', e.message);
+      return res.status(400).send(`Webhook signature failed: ${e.message}`);
     }
     const { db } = await import('./server/db/schema.js');
     // ── checkout.session.completed ───────────────────────────────
@@ -672,6 +676,7 @@ app.get('/api/calendar/events', requireAuth, async (req, res) => {
     res.json(result.rows);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
+app.use('/api/referrals',      referralsRouter); // auth checked per-route (validate is public)
 app.use('/api/calendar',       requireAuth, requirePlanFeature('calendar'),   calendarRouter);
 app.use('/api/documents',      requireAuth, requirePlanFeature('documents'),  documentsRouter);
 app.use('/api/photos',         requireAuth, requirePlanFeature('photos'),     photosRouter);

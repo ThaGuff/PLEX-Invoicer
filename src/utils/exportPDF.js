@@ -61,7 +61,7 @@ export function exportPDF(state) {
     selected = {}, sectionMap = {}, prices = {}, included = {},
     discType = 'pct', discValue = 0, discSetup = true, discMonthly = true,
     notes = '',
-    agencyName       = 'Revanew',
+    agencyName       = '',
     agencyEmail      = '',
     agencyPhone      = '',
     agencyWebsite    = '',

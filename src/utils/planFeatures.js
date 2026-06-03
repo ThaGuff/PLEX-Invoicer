@@ -8,36 +8,50 @@
 
 export const PLAN_LIMITS = {
   starter: {
-    quotes_per_month:    10,
-    invoices_per_month:  10,
+    quotes_per_month:    25,      // matches server planGuard
+    invoices_per_month:  25,      // matches server planGuard
     accounts:            1,
     contacts:            25,
     tax_reporting:       false,
     ai_parse:            false,
     stripe_connect:      false,
     cashflow_dashboard:  false,
-    smart_reminders:     3,       // max active reminders
+    automations:         false,
+    analytics:           false,
+    calendar:            false,
+    documents:           false,
+    photos:              false,
+    workspace:           false,
+    smart_reminders:     3,
     pdf_export:          true,
     csv_export:          false,
     custom_branding:     false,
+    push_notifications:  false,
     payment_methods:     ['cash', 'check', 'zelle', 'venmo', 'other'],
-    payment_processing:  false,   // no Stripe/card processing
+    payment_processing:  false,
   },
   pro: {
-    quotes_per_month:    100,
-    invoices_per_month:  100,
+    quotes_per_month:    -1,      // unlimited — matches server
+    invoices_per_month:  -1,
     accounts:            5,
-    contacts:            -1,      // unlimited
+    contacts:            -1,
     tax_reporting:       true,
     ai_parse:            true,
     stripe_connect:      true,
     cashflow_dashboard:  true,
+    automations:         true,
+    analytics:           true,
+    calendar:            true,
+    documents:           true,
+    photos:              true,
+    workspace:           true,
     smart_reminders:     -1,
     pdf_export:          true,
     csv_export:          true,
     custom_branding:     true,
+    push_notifications:  true,
     payment_methods:     ['stripe', 'square', 'paypal', 'zelle', 'venmo', 'cash', 'check', 'ach', 'other'],
-    payment_processing:  true,    // Stripe card + ACH
+    payment_processing:  true,
   },
   agency: {
     quotes_per_month:    -1,

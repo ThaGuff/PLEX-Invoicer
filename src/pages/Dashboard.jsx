@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useAccount } from '../context/AccountContext';
 import CashflowDashboard from '../components/CashflowDashboard';
+import DashboardHeader from '../components/DashboardHeader';
 import WeeklyScheduleWidget from '../components/WeeklyScheduleWidget';
 import DraggableWidget from '../components/DraggableWidget';
 import { api } from '../utils/api';
@@ -122,16 +123,9 @@ export default function Dashboard() {
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: '24px 16px', width: '100%', boxSizing: 'border-box' }} className="page-fill">
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 animate-fade-up" style={{ flexWrap:"wrap", gap:10 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-            Dashboard
-          </h1>
-          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>
-            {account?.name} · {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-          </p>
-        </div>
-
+      {/* ── Dashboard Header — sleek time/greeting bar ── */}
+      <div className="animate-fade-up" style={{ marginBottom: 28 }}>
+        <DashboardHeader account={account} accent={accent} />
       </div>
 
       {/* Stat cards */}

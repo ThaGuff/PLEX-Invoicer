@@ -1,96 +1,95 @@
 /**
  * OnboardingTour — Contextual, non-blocking page guide
- * Shows helpful tooltips as users navigate the app naturally
- * Each page shows a tip the FIRST TIME a new user visits it
- * Users can explore freely — the tour follows them, not the other way around
+ * Updated to reflect all features added since initial build:
+ * - Company onboarding wizard
+ * - Quote templates by industry
+ * - Payment due date / due upon receipt
+ * - Draggable dashboard widgets
+ * - Weekly schedule widget
+ * - Business type auto-template
+ * - Team workspace chat
+ * - Notifications
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { X, ChevronRight, Lightbulb } from 'lucide-react';
 
-// Tips per page - shown first time a new user visits that page
 const PAGE_TIPS = {
   '/dashboard': {
     title: '👋 Welcome to Revanew!',
-    body: "This is your command center. See revenue at a glance, create quotes, and track outstanding invoices. Explore the sidebar to access all features.",
-    selector: null,
-    cta: 'Start with Settings →',
+    body: "Your command center. See live revenue stats, overdue alerts, and your weekly schedule at a glance. The cashflow forecast is on the right — switch between Bar, Line, and Pie charts. Drag widgets to rearrange them on desktop.",
+    cta: 'Set up your business →',
     ctaAction: () => window.dispatchEvent(new CustomEvent('revanew:settings')),
     position: 'center',
   },
   '/quotes/new': {
-    title: '📝 Create Your First Quote',
-    body: "Add your client's info, select services from your catalog (or type them), set prices, and hit Save. Your client gets a professional link to review and e-sign.",
-    selector: '[data-tour="quote-client"], input[placeholder*="lient"]',
+    title: '📝 Create a Quote in Seconds',
+    body: "Pick your industry template (HVAC, Electrical, Plumbing, and 12 others) to auto-load all your services. Set a payment due date or check 'Due upon receipt'. Your company logo and info appear automatically on every quote.",
     position: 'bottom',
     cta: null,
   },
   '/quotes': {
-    title: '📋 Track All Your Quotes',
-    body: "Every quote you send lives here. Status updates automatically: Draft → Sent → Viewed → Accepted. Click any quote to view, edit, or convert to an invoice.",
-    selector: null,
+    title: '📋 All Your Quotes',
+    body: "Status updates automatically: Draft → Sent → Viewed → Accepted. Click any quote to edit or convert to an invoice. Set a default template in Account Settings so services load automatically every time.",
     position: 'center',
     cta: null,
   },
   '/invoices': {
-    title: '💰 Your Invoice Dashboard',
-    body: "Invoices live here. Send payment links, mark as paid, and see overdue amounts at a glance. Click any invoice to send reminders or create a Stripe payment link.",
-    selector: null,
+    title: '💰 Invoice Dashboard',
+    body: "Send invoices directly from here — your client gets a branded payment link. Use 'Send & Mark Sent' for email delivery or 'Send Reminder' for follow-ups. Overdue invoices show as alerts on your dashboard.",
     position: 'center',
     cta: null,
   },
   '/contacts': {
     title: '👥 Client Directory',
-    body: "Every client you quote is saved here automatically. Tap any client to see their complete history — all quotes, invoices, and payment status in one place.",
-    selector: null,
+    body: "Every client you quote is saved here automatically. See complete history — all quotes, invoices, and payment status per client.",
     position: 'center',
     cta: null,
   },
   '/calendar': {
     title: '📅 Job Scheduling',
-    body: "Schedule jobs, estimates, and appointments here. Switch between Month, Week, and List views. Tap any day to add a new event — assign it to team members and tag it.",
-    selector: null,
+    body: "Schedule jobs and appointments here. Events sync to your dashboard's weekly schedule widget automatically. Connect Google Calendar via Account Settings → Integrations to sync both ways.",
+    position: 'center',
+    cta: null,
+  },
+  '/documents': {
+    title: '📁 Document Storage',
+    body: "Upload contracts, permits, photos, and project files. All file types supported — PDFs, Word docs, images. Click the download icon to view or save any file.",
     position: 'center',
     cta: null,
   },
   '/workspace': {
     title: '💬 Team Workspace',
-    body: "Your team's Slack-style chat hub. Create channels, share files and photos, @mention teammates for instant notifications. Invite your team using the Invite button above.",
-    selector: null,
+    body: "Slack-style team chat. Create channels, share files, @mention teammates for instant notifications. Every message notifies all team members. Invite your team from Account Settings.",
     position: 'center',
     cta: null,
   },
   '/automations': {
-    title: '⚡ Set It & Forget It',
-    body: "Automate follow-ups for unread quotes, overdue invoices, and repeat customers. Set up a sequence once — Revanew sends the emails automatically on your schedule.",
-    selector: null,
+    title: '⚡ Automation Engine',
+    body: "Set up once — runs forever. Create follow-up sequences for unread quotes, overdue invoices, and repeat customers. Automations trigger automatically when you send quotes and invoices.",
     position: 'center',
     cta: null,
   },
   '/analytics': {
     title: '📊 Business Intelligence',
-    body: "See predictive revenue, track quote acceptance rates, spot at-risk deals, and get AI-powered recommendations to grow your revenue.",
-    selector: null,
+    body: "Predictive revenue, quote acceptance rates, overdue risk scoring, and AI-powered growth recommendations. All data updates in real time.",
     position: 'center',
     cta: null,
   },
-  '/admin': {
-    title: '⚙️ Account Settings',
-    body: "Set up your business: add your logo, colors, contact info, and service catalog. Your branding appears on every quote, invoice, and email your clients receive.",
-    selector: '[data-tour="logo-section"], input[placeholder*="usiness"]',
-    position: 'bottom',
-    cta: 'Upload your logo first',
-    ctaAction: null,
+  '/billing': {
+    title: '💳 Your Subscription',
+    body: "Starter: 25 quotes/invoices per month, PDF export, basic features. Pro ($49/mo): Unlimited quotes, AI tools, Stripe payments, automations, calendar, documents, team workspace. Agency ($99/mo): Everything + white-label and API access.",
+    position: 'center',
+    cta: null,
   },
 };
 
-const STORAGE_KEY = 'revanew_tour_seen_pages';
+const STORAGE_KEY = 'revanew_tour_seen_pages_v2';
 
 function getSeenPages() {
   try { return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')); }
   catch { return new Set(); }
 }
-
 function markPageSeen(path) {
   const seen = getSeenPages();
   seen.add(path);
@@ -98,190 +97,85 @@ function markPageSeen(path) {
 }
 
 export default function OnboardingTour({ onDone }) {
-  const location = useLocation();
+  const loc = useLocation();
   const [tip, setTip] = useState(null);
-  const [targetRect, setTargetRect] = useState(null);
   const [visible, setVisible] = useState(false);
   const timerRef = useRef(null);
-
-  const currentPath = location.pathname;
 
   const dismiss = useCallback(() => {
     setVisible(false);
     setTimeout(() => setTip(null), 300);
-    if (currentPath) markPageSeen(currentPath);
-  }, [currentPath]);
-
-  const findAndHighlight = useCallback((selector) => {
-    if (!selector) { setTargetRect(null); return; }
-    const selectors = selector.split(',').map(s => s.trim());
-    for (const sel of selectors) {
-      try {
-        const el = document.querySelector(sel);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            setTimeout(() => setTargetRect(el.getBoundingClientRect()), 400);
-            return;
-          }
-        }
-      } catch {}
-    }
-    setTargetRect(null);
   }, []);
 
   useEffect(() => {
-    // Clear any pending tip
-    if (timerRef.current) clearTimeout(timerRef.current);
-    setVisible(false);
-
-    // Check if this is a new user (tour enabled)
-    const isNewUser = localStorage.getItem('revanew_show_tour') === '1';
-    if (!isNewUser) return;
-
-    // Check if user has seen this page already
+    const path = loc.pathname;
+    const pageTip = PAGE_TIPS[path];
+    if (!pageTip) return;
     const seen = getSeenPages();
-    const normalPath = currentPath.split('/').slice(0, 2).join('/') || '/dashboard';
-    const pageTip = PAGE_TIPS[normalPath] || PAGE_TIPS[currentPath];
-
-    if (!pageTip || seen.has(normalPath)) return;
-
-    // Show tip after a short delay (let page render)
+    if (seen.has(path)) return;
+    clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       setTip(pageTip);
       setVisible(true);
-      if (pageTip.selector) findAndHighlight(pageTip.selector);
-      else setTargetRect(null);
+      markPageSeen(path);
     }, 1200);
+    return () => clearTimeout(timerRef.current);
+  }, [loc.pathname]);
 
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [currentPath]);
-
-  if (!tip || !visible) return null;
-
-  // Calculate tooltip position
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const TW = Math.min(320, vw - 32);
-
-  let tooltipStyle = { position: 'fixed', zIndex: 10001, width: TW };
-
-  if (!targetRect || tip.position === 'center') {
-    tooltipStyle = {
-      ...tooltipStyle,
-      top: '50%', left: '50%',
-      transform: 'translate(-50%, -50%)',
-    };
-  } else {
-    const pad = 12;
-    switch (tip.position) {
-      case 'bottom':
-        tooltipStyle.top = Math.min(targetRect.bottom + 14, vh - 320);
-        tooltipStyle.left = Math.max(pad, Math.min(targetRect.left + targetRect.width/2 - TW/2, vw - TW - pad));
-        break;
-      case 'right':
-        tooltipStyle.top = Math.max(pad, targetRect.top);
-        tooltipStyle.left = Math.min(targetRect.right + 14, vw - TW - pad);
-        break;
-      default:
-        tooltipStyle.top = '50%'; tooltipStyle.left = '50%';
-        tooltipStyle.transform = 'translate(-50%,-50%)';
-    }
-  }
-
-  const hasHighlight = !!targetRect && tip.position !== 'center';
+  if (!tip) return null;
 
   return (
-    <>
-      <style>{`
-        .tour-tip { animation: tourSlideUp 0.25s ease both; }
-        @keyframes tourSlideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
-      `}</style>
-
-      {/* Backdrop - semi-transparent, lets users click through after dismiss */}
-      {!hasHighlight && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(11,18,32,0.45)', zIndex:9999, backdropFilter:'blur(1px)' }}
-          onClick={dismiss} />
-      )}
-
-      {/* SVG spotlight when we have a target */}
-      {hasHighlight && (() => {
-        const pad = 8;
-        const x = Math.max(0, targetRect.left - pad);
-        const y = Math.max(0, targetRect.top - pad);
-        const w = targetRect.width + pad * 2;
-        const h = targetRect.height + pad * 2;
-        return (
-          <>
-            <svg style={{ position:'fixed', inset:0, width:'100%', height:'100%', zIndex:9999, pointerEvents:'none' }}>
-              <defs>
-                <mask id="tour-spotlight-mask">
-                  <rect width="100%" height="100%" fill="white" />
-                  <rect x={x} y={y} width={w} height={h} rx={8} fill="black" />
-                </mask>
-              </defs>
-              <rect width="100%" height="100%" fill="rgba(11,18,32,0.6)" mask="url(#tour-spotlight-mask)" />
-              <rect x={x} y={y} width={w} height={h} rx={8} fill="none" stroke="#2563EB" strokeWidth="2.5" opacity="0.9" />
-              <rect x={x-2} y={y-2} width={w+4} height={h+4} rx={10} fill="none" stroke="#2563EB" strokeWidth="1" opacity="0.3" />
-            </svg>
-            <div style={{ position:'fixed', inset:0, zIndex:10000 }} onClick={dismiss} />
-          </>
-        );
-      })()}
-
-      {/* Tip card */}
-      <div className="tour-tip" style={{
-        ...tooltipStyle,
-        background: 'var(--bg-surface, #fff)',
+    <div style={{
+      position: 'fixed', bottom: 90, right: 20, zIndex: 999,
+      width: 320, maxWidth: 'calc(100vw - 40px)',
+      transform: visible ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.95)',
+      opacity: visible ? 1 : 0,
+      transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+      pointerEvents: visible ? 'auto' : 'none',
+    }}>
+      <div style={{
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border)',
         borderRadius: 16,
-        padding: '20px 22px 22px',
-        boxShadow: '0 0 0 1px var(--border, rgba(0,0,0,0.1)), 0 20px 60px rgba(11,18,32,0.3)',
-        fontFamily: "'Plus Jakarta Sans', sans-serif",
+        boxShadow: '0 20px 60px rgba(11,18,32,0.2)',
+        overflow: 'hidden',
       }}>
-        {/* Header */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <Lightbulb size={16} style={{ color:'#F59E0B', flexShrink:0 }} />
-            <span style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.06em' }}>Quick tip</span>
-          </div>
-          <button onClick={dismiss}
-            style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:'2px 4px', borderRadius:6, display:'flex', lineHeight:1 }}>
-            <X size={16} />
-          </button>
-        </div>
+        {/* Accent bar */}
+        <div style={{ height: 3, background: 'linear-gradient(90deg, #2563EB, #7C3AED, #0D9488)' }} />
 
-        {/* Content */}
-        <h3 style={{ fontSize:16, fontWeight:800, color:'var(--text-primary)', margin:'0 0 8px', lineHeight:1.3, letterSpacing:'-0.01em' }}>
-          {tip.title}
-        </h3>
-        <p style={{ fontSize:13, color:'var(--text-secondary)', lineHeight:1.65, margin:0 }}>
-          {tip.body}
-        </p>
-
-        {/* Actions */}
-        <div style={{ display:'flex', gap:8, marginTop:16, alignItems:'center', justifyContent:'space-between' }}>
-          <button onClick={dismiss}
-            style={{ fontSize:12, color:'var(--text-muted)', background:'none', border:'none', cursor:'pointer', padding:0 }}>
-            Got it
-          </button>
-          {tip.cta && (
-            <button onClick={() => { tip.ctaAction?.(); dismiss(); }}
-              style={{ display:'flex', alignItems:'center', gap:4, padding:'8px 14px', borderRadius:8, border:'none', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700 }}>
-              {tip.cta} <ChevronRight size={13} />
+        <div style={{ padding: '16px 18px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Lightbulb size={13} style={{ color: '#2563EB' }} />
+              </div>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+                {tip.title}
+              </p>
+            </div>
+            <button onClick={dismiss} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2, flexShrink: 0, lineHeight: 1 }}>
+              <X size={14} />
             </button>
-          )}
-          <button onClick={() => {
-            // Mark all pages as seen = dismiss tour entirely
-            Object.keys(PAGE_TIPS).forEach(p => markPageSeen(p));
-            localStorage.removeItem('revanew_show_tour');
-            dismiss();
-            onDone?.();
-          }} style={{ fontSize:11, color:'var(--text-muted)', background:'none', border:'none', cursor:'pointer', padding:0, opacity:0.7 }}>
-            Skip all tips
-          </button>
+          </div>
+
+          <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+            {tip.body}
+          </p>
+
+          <div style={{ display: 'flex', gap: 8 }}>
+            {tip.cta && (
+              <button onClick={() => { tip.ctaAction?.(); dismiss(); }}
+                style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: 'none', background: '#2563EB', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                {tip.cta} <ChevronRight size={11} />
+              </button>
+            )}
+            <button onClick={dismiss}
+              style={{ flex: tip.cta ? 0 : 1, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              Got it
+            </button>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
