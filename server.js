@@ -650,11 +650,12 @@ app.use('/api/google-calendar',     googleCalendarRouter);
 // Dashboard widget needs calendar events without plan gate - limited endpoint
 app.get('/api/calendar/events', requireAuth, async (req, res) => {
   try {
+    const { db: calDb } = await import('./server/db/schema.js');
     const { account_id, start, end } = req.query;
     if (!account_id) return res.status(400).json({ error: 'account_id required' });
-    const { assertAccountAccess } = await import('./server/routes/calendar.js').catch(() => ({}));
-    // Inline auth check
-    const access = await db.execute(
+    
+    // Auth check - verify account access
+    const access = await calDb.execute(
       `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ? AND status='active'))`,
       [account_id, req.user.id, req.user.id]
     );
@@ -664,7 +665,7 @@ app.get('/api/calendar/events', requireAuth, async (req, res) => {
     const future = end ? end.split('T')[0] : new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
     const startDate = start ? start.split('T')[0] : today;
     
-    const result = await db.execute(
+    const result = await calDb.execute(
       `SELECT * FROM calendar_events WHERE account_id = ? AND date >= ? AND date <= ? ORDER BY date ASC, time ASC LIMIT 15`,
       [account_id, startDate, future]
     );
