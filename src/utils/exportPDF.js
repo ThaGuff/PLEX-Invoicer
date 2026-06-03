@@ -71,6 +71,7 @@ export function exportPDF(state) {
     agencyTagline    = '',
     agencyTechnician = '',
     agencyTaxNum     = '',
+    whiteLabelPlan   = false,
     primaryColor     = '#13B5EA',
     agencyLogoUrl    = null,
     customSections   = [],

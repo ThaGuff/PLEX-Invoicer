@@ -559,6 +559,7 @@ export default function QuoteBuilder() {
     agencyTagline:    account?.company_tagline  || '',
     agencyTechnician: account?.technician_name  || '',
     agencyTaxNum:     account?.tax_number       || '',
+    whiteLabelPlan:   canUseFeature(account?.plan, 'white_label'),
     agencyLogoUrl: account?.logo_url || null,
     primaryColor:  accent,
     clientName, clientBiz, clientEmail, clientPhone,
@@ -741,19 +742,20 @@ export default function QuoteBuilder() {
                 {account?.logo_url ? (
                   <img src={account.logo_url} alt={account.name} style={{ height:48, maxWidth:120, objectFit:'contain', borderRadius:8, background:'white', padding:4, boxShadow:'0 1px 4px rgba(0,0,0,0.1)' }} />
                 ) : (
-                  <div style={{ width:48, height:48, borderRadius:10, background: accent, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:22, fontWeight:800, flexShrink:0 }}>
-                    {(account?.name || 'B').charAt(0)}
-                  </div>
+                  <img src="/logo-revanew.png" alt="Revanew"
+                    style={{ width:48, height:48, borderRadius:10, objectFit:'contain', flexShrink:0, background:'#0d1b6b', padding:4 }} />
                 )}
                 <div>
                   <p style={{ fontSize:16, fontWeight:800, color:'var(--text-primary)', lineHeight:1.2 }}>{account?.name}</p>
                   {account?.email && <p style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>{account.email}</p>}
                   {account?.phone && <p style={{ fontSize:12, color:'var(--text-muted)' }}>{account.phone}</p>}
                 </div>
-                <div style={{ marginLeft:'auto', textAlign:'right' }}>
-                  <p style={{ fontSize:10, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.05em', fontWeight:600 }}>Powered by</p>
-                  <a href="https://revanew.io" target="_blank" rel="noopener noreferrer" style={{ fontSize:12, fontWeight:700, color: accent, textDecoration:'none' }}>Revanew.io</a>
-                </div>
+                {!canUseFeature(account?.plan, 'white_label') && (
+                  <div style={{ marginLeft:'auto', textAlign:'right' }}>
+                    <p style={{ fontSize:10, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.05em', fontWeight:600 }}>Powered by</p>
+                    <a href="https://revanew.io" target="_blank" rel="noopener noreferrer" style={{ fontSize:12, fontWeight:700, color: accent, textDecoration:'none' }}>Revanew.io</a>
+                  </div>
+                )}
               </div>
             </div>
           )}

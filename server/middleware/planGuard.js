@@ -26,9 +26,10 @@ export const PLAN_LIMITS = {
     push_notifications:  false,
   },
   pro: {
-    quotes_per_month:    -1,   // unlimited
+    quotes_per_month:    -1,      // unlimited
     invoices_per_month:  -1,
-    team_members:        3,
+    team_members:        5,        // up to 5 team members
+    sub_accounts:        1,        // own account only
     ai_parse:            true,
     stripe_connect:      true,
     csv_export:          true,
@@ -39,14 +40,17 @@ export const PLAN_LIMITS = {
     documents:           true,
     photos:              true,
     workspace:           true,
-    white_label:         false,
-    api_access:          false,
+    white_label:         false,    // Agency only
+    api_access:          false,    // Agency only
+    custom_reports:      false,    // Agency only
+    priority_support:    false,    // Agency only
     push_notifications:  true,
   },
   agency: {
     quotes_per_month:    -1,
     invoices_per_month:  -1,
-    team_members:        -1,   // unlimited
+    team_members:        -1,       // unlimited team members
+    sub_accounts:        -1,       // unlimited sub-accounts/clients
     ai_parse:            true,
     stripe_connect:      true,
     csv_export:          true,
@@ -57,8 +61,10 @@ export const PLAN_LIMITS = {
     documents:           true,
     photos:              true,
     workspace:           true,
-    white_label:         true,
-    api_access:          true,
+    white_label:         true,     // Remove Revanew branding
+    api_access:          true,     // REST API key access
+    custom_reports:      true,     // Advanced analytics & exports
+    priority_support:    true,     // Priority support queue
     push_notifications:  true,
   },
 };

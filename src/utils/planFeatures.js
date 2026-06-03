@@ -31,9 +31,10 @@ export const PLAN_LIMITS = {
     payment_processing:  false,
   },
   pro: {
-    quotes_per_month:    -1,      // unlimited — matches server
+    quotes_per_month:    -1,
     invoices_per_month:  -1,
-    accounts:            5,
+    accounts:            1,        // own account only
+    team_members:        5,
     contacts:            -1,
     tax_reporting:       true,
     ai_parse:            true,
@@ -45,6 +46,9 @@ export const PLAN_LIMITS = {
     documents:           true,
     photos:              true,
     workspace:           true,
+    white_label:         false,    // Agency only
+    api_access:          false,    // Agency only
+    custom_reports:      false,    // Agency only
     smart_reminders:     -1,
     pdf_export:          true,
     csv_export:          true,
@@ -56,16 +60,28 @@ export const PLAN_LIMITS = {
   agency: {
     quotes_per_month:    -1,
     invoices_per_month:  -1,
-    accounts:            -1,
+    accounts:            -1,       // unlimited sub-accounts
+    team_members:        -1,       // unlimited team members
     contacts:            -1,
     tax_reporting:       true,
     ai_parse:            true,
     stripe_connect:      true,
     cashflow_dashboard:  true,
+    automations:         true,
+    analytics:           true,
+    calendar:            true,
+    documents:           true,
+    photos:              true,
+    workspace:           true,
+    white_label:         true,     // Remove Revanew branding
+    api_access:          true,     // REST API access
+    custom_reports:      true,     // Advanced analytics
+    priority_support:    true,
     smart_reminders:     -1,
     pdf_export:          true,
     csv_export:          true,
     custom_branding:     true,
+    push_notifications:  true,
     payment_methods:     ['stripe', 'square', 'paypal', 'zelle', 'venmo', 'cash', 'check', 'ach', 'other'],
     payment_processing:  true,
   },

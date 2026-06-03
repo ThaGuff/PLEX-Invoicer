@@ -72,15 +72,15 @@ export default function DashboardHeader({ account, accent = '#2563EB' }) {
               padding: 4, boxShadow: `0 4px 14px rgba(${rgb},0.25)`, flexShrink: 0
             }} />
           ) : (
-            <div style={{
-              width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-              background: `linear-gradient(135deg, rgba(${rgb},0.9), rgba(${rgb},0.6))`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontSize: 20, fontWeight: 800,
-              boxShadow: `0 4px 14px rgba(${rgb},0.3)`,
-            }}>
-              {(account?.name || 'R').charAt(0)}
-            </div>
+            <img
+              src="/logo-revanew.png"
+              alt="Revanew"
+              style={{
+                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                objectFit: 'contain',
+                boxShadow: `0 4px 14px rgba(${rgb},0.3)`,
+              }}
+            />
           )}
 
           <div>

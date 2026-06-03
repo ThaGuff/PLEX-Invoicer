@@ -243,9 +243,24 @@ export default function Dashboard() {
 
         {/* Right column: Schedule summary + Predictive Cashflow */}
         <div className="animate-fade-up-delay-4" style={{ display:'flex', flexDirection:'column', gap:12 }}>
-          {/* Weekly schedule & alerts */}
+          {/* Weekly schedule & alerts — Pro+ only */}
           <DraggableWidget id="weekly-schedule" title="This Week" icon="📅" accent={accent}>
-            <WeeklyScheduleWidget accountId={account?.id} accent={accent} />
+            {canUseFeature(account?.plan, 'calendar')
+              ? <WeeklyScheduleWidget accountId={account?.id} accent={accent} />
+              : (
+                <div style={{ padding:24, textAlign:'center', background:'var(--bg-surface)' }}>
+                  <p style={{ fontSize:28, marginBottom:8 }}>🔒</p>
+                  <p style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)', marginBottom:4 }}>Schedule — Pro Feature</p>
+                  <p style={{ fontSize:11, color:'var(--text-muted)', marginBottom:12 }}>
+                    Upgrade to Pro to view your weekly schedule, upcoming jobs, and overdue invoice alerts.
+                  </p>
+                  <a href="/billing" style={{ fontSize:11, fontWeight:700, color: accent, textDecoration:'none',
+                    padding:'6px 14px', border:`1.5px solid ${accent}`, borderRadius:8, display:'inline-block' }}>
+                    Upgrade to Pro →
+                  </a>
+                </div>
+              )
+            }
           </DraggableWidget>
 
           {/* Predictive cashflow */}
