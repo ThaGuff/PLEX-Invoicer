@@ -19,16 +19,21 @@ export default function WeeklyScheduleWidget({ accountId, accent = '#2563EB' }) 
         const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
         const h = { Authorization: `Bearer ${token}` };
 
-        // Fetch calendar events for next 7 days
+        // First: try to sync Google Calendar (silent, non-blocking)
+        fetch(`/api/google-calendar/sync?account_id=${accountId}`, {
+          method: 'POST', headers: h
+        }).catch(() => {}); // silent fail if not connected
+
+        // Fetch calendar events for next 14 days (manual + synced Google events)
         const now = new Date();
-        const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        const nextTwoWeeks = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
         const r = await fetch(
-          `/api/calendar/events?account_id=${accountId}&start=${now.toISOString()}&end=${nextWeek.toISOString()}`,
+          `/api/calendar/events?account_id=${accountId}&start=${now.toISOString()}&end=${nextTwoWeeks.toISOString()}`,
           { headers: h }
         );
         if (r.ok) {
           const data = await r.json();
-          setEvents((Array.isArray(data) ? data : data?.events || []).slice(0, 6));
+          setEvents((Array.isArray(data) ? data : data?.events || []).slice(0, 8));
         }
 
         // Fetch overdue invoices
@@ -125,18 +130,32 @@ export default function WeeklyScheduleWidget({ accountId, accent = '#2563EB' }) 
               <div key={ev.id || i}
                 style={{ display:'flex', alignItems:'flex-start', gap:10, padding:'7px 0', borderBottom: i < events.length-1 ? '0.5px solid var(--border)' : 'none' }}>
                 <div style={{ width:28, height:28, borderRadius:7, background:`${accent}15`, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                  <span style={{ fontSize:9, fontWeight:700, color: accent, lineHeight:1 }}>{new Date(ev.start_time || ev.start || ev.date).toLocaleDateString('en-US',{month:'short'}).toUpperCase()}</span>
-                  <span style={{ fontSize:13, fontWeight:800, color: accent, lineHeight:1 }}>{new Date(ev.start_time || ev.start || ev.date).getDate()}</span>
+                  <span style={{ fontSize:9, fontWeight:700, color: accent, lineHeight:1 }}>
+                    {new Date((ev.date || ev.start_time || ev.start) + 'T12:00:00').toLocaleDateString('en-US',{month:'short'}).toUpperCase()}
+                  </span>
+                  <span style={{ fontSize:13, fontWeight:800, color: accent, lineHeight:1 }}>
+                    {new Date((ev.date || ev.start_time || ev.start) + 'T12:00:00').getDate()}
+                  </span>
                 </div>
                 <div style={{ flex:1, minWidth:0 }}>
                   <p style={{ fontSize:12, fontWeight:600, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                     {ev.title || ev.summary || 'Untitled'}
                   </p>
-                  <p style={{ fontSize:11, color:'var(--text-muted)', display:'flex', alignItems:'center', gap:3, marginTop:2 }}>
-                    <Clock size={9} />
-                    {fmtDate(ev.start_time || ev.start || ev.date)}
-                    {ev.start_time && ` · ${fmtTime(ev.start_time)}`}
-                  </p>
+                  <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:2, flexWrap:'wrap' }}>
+                    <p style={{ fontSize:11, color:'var(--text-muted)', display:'flex', alignItems:'center', gap:3 }}>
+                      <Clock size={9} />
+                      {fmtDate(ev.date || ev.start_time || ev.start)}
+                      {ev.time ? ` · ${ev.time}` : (ev.start_time ? ` · ${fmtTime(ev.start_time)}` : '')}
+                    </p>
+                    {ev.client_name && (
+                      <span style={{ fontSize:10, color:'var(--text-muted)', background:'var(--bg-raised)', padding:'1px 6px', borderRadius:8 }}>
+                        {ev.client_name}
+                      </span>
+                    )}
+                    {ev.location && (
+                      <span style={{ fontSize:10, color:'var(--text-muted)' }}>📍 {ev.location}</span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

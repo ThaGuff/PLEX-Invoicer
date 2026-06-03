@@ -51,6 +51,32 @@ router.get('/', requireAuth, async (req, res) => {
   } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
 });
 
+// ── GET /api/calendar/events — date range query (for dashboard widget) ──
+router.get('/events', requireAuth, async (req, res) => {
+  const { account_id, start, end } = req.query;
+  if (!account_id) return res.status(400).json({ error: 'account_id required' });
+  try {
+    await assertAccountAccess(account_id, req.user.id);
+    let sql = `SELECT * FROM calendar_events WHERE account_id = ? ORDER BY date ASC, time ASC LIMIT 20`;
+    const params = [account_id];
+    if (start && end) {
+      // Extract just the date portion from ISO timestamps
+      const startDate = start.split('T')[0];
+      const endDate   = end.split('T')[0];
+      sql = `SELECT * FROM calendar_events WHERE account_id = ? AND date >= ? AND date <= ? ORDER BY date ASC, time ASC LIMIT 20`;
+      params.push(startDate, endDate);
+    } else {
+      // Default: next 14 days
+      const today = new Date().toISOString().split('T')[0];
+      const future = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
+      sql = `SELECT * FROM calendar_events WHERE account_id = ? AND date >= ? AND date <= ? ORDER BY date ASC, time ASC LIMIT 20`;
+      params.push(today, future);
+    }
+    const result = await db.execute(sql, params);
+    res.json(result.rows);
+  } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
+});
+
 // ── POST /api/calendar ────────────────────────────────────────────
 router.post('/', requireAuth, async (req, res) => {
   const { account_id, title, date, time, end_time, duration, location, notes, status, type, color, assigned_to, tags } = req.body;

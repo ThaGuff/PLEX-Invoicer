@@ -647,6 +647,30 @@ app.use('/api/tax',            requireAuth, taxRouter);
 app.use('/api/automations',    requireAuth, automationsRouter);
 app.use('/api/notifications',       notificationsRouter);
 app.use('/api/google-calendar',     googleCalendarRouter);
+// Dashboard widget needs calendar events without plan gate - limited endpoint
+app.get('/api/calendar/events', requireAuth, async (req, res) => {
+  try {
+    const { account_id, start, end } = req.query;
+    if (!account_id) return res.status(400).json({ error: 'account_id required' });
+    const { assertAccountAccess } = await import('./server/routes/calendar.js').catch(() => ({}));
+    // Inline auth check
+    const access = await db.execute(
+      `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ? AND status='active'))`,
+      [account_id, req.user.id, req.user.id]
+    );
+    if (!access.rows.length) return res.status(403).json({ error: 'Access denied' });
+    
+    const today = new Date().toISOString().split('T')[0];
+    const future = end ? end.split('T')[0] : new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
+    const startDate = start ? start.split('T')[0] : today;
+    
+    const result = await db.execute(
+      `SELECT * FROM calendar_events WHERE account_id = ? AND date >= ? AND date <= ? ORDER BY date ASC, time ASC LIMIT 15`,
+      [account_id, startDate, future]
+    );
+    res.json(result.rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
 app.use('/api/calendar',       requireAuth, requirePlanFeature('calendar'),   calendarRouter);
 app.use('/api/documents',      requireAuth, requirePlanFeature('documents'),  documentsRouter);
 app.use('/api/photos',         requireAuth, requirePlanFeature('photos'),     photosRouter);

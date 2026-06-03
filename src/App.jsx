@@ -98,6 +98,7 @@ function Nav() {
   const accent = account?.primary_color || '#13B5EA';
   const loc    = useLocation();
   const navigate = useNavigate();
+  const [showUserProfile, setShowUserProfile] = React.useState(false);
   const [showMobileMore, setShowMobileMore] = useState(false);
 
   // ── Notifications + Presence (global, lives in Nav so always active) ──
@@ -473,6 +474,7 @@ function Nav() {
           </div>
         </>
       )}
+      {showUserProfile && <UserProfileModal onClose={() => setShowUserProfile(false)} />}
     </>
   );
 }
