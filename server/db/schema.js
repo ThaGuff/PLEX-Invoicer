@@ -33,6 +33,20 @@ export async function initDB() {
     )
   `);
 
+  // Referral system
+  await db.execute(`CREATE TABLE IF NOT EXISTS referrals (
+    id TEXT PRIMARY KEY,
+    referrer_account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    referral_code TEXT UNIQUE NOT NULL,
+    referred_email TEXT,
+    referred_account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL,
+    status TEXT DEFAULT 'pending',
+    reward_type TEXT DEFAULT 'credit',
+    reward_value REAL DEFAULT 25.00,
+    rewarded_at TEXT,
+    created_at TEXT DEFAULT (NOW()::text)
+  )`);
+
   // Add owner_id column if upgrading existing DB
   try {
     await db.execute(`ALTER TABLE accounts ADD COLUMN IF NOT EXISTS owner_id TEXT`);
@@ -648,6 +662,8 @@ export async function migrateUserProfileSystem() {
     `ALTER TABLE workspace_channels RENAME COLUMN "desc" TO description`,
     // Add due_date to quotes
     `ALTER TABLE quotes ADD COLUMN IF NOT EXISTS due_date TEXT`,
+    // Referral account credit
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS account_credit REAL DEFAULT 0`,
     // Add business_type and default_template to accounts
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS business_type TEXT`,
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS default_template TEXT`,
