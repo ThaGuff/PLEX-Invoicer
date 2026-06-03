@@ -44,11 +44,21 @@ export default function InvoicesList() {
     setInvoices(v => v.filter(x => x.id !== id));
   };
 
-  const handleReminder = async (id, e) => {
+  const handleSendInvoice = async (id, e) => {
     e.stopPropagation();
     try {
-      await api.invoices.sendReminder(id);
-    } catch (err) { console.error('Reminder failed:', err.message); }
+      const result = await api.invoices.send(id);
+      if (result?.email_sent) {
+        alert('✅ Invoice sent successfully to ' + (invoices.find(i => i.id === id)?.client_email || 'client'));
+      } else {
+        alert('Invoice marked as sent. ' + (result?.message || ''));
+      }
+      // Refresh list to show updated status
+      await load();
+    } catch (err) { 
+      console.error('Send invoice failed:', err.message);
+      alert('Failed to send invoice: ' + err.message);
+    }
   };
 
   const enriched = invoices.map(inv => ({ ...inv, _overdue: isOD(inv) }));
@@ -162,11 +172,11 @@ export default function InvoicesList() {
                   </div>
                   <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
                     {inv.status !== 'paid' && inv.status !== 'cancelled' && (
-                      <button onClick={e => handleReminder(inv.id, e)}
+                      <button onClick={e => handleSendInvoice(inv.id, e)}
                         style={{ display:'flex', alignItems:'center', gap:5, fontSize:10, fontWeight:600, padding:'5px 10px', borderRadius:7, border:'0.5px solid var(--border)', background:'var(--bg-page)', cursor:'pointer', color:'var(--text-muted)', transition:'all 0.15s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
                         onMouseEnter={e => { e.currentTarget.style.borderColor='#2563EB'; e.currentTarget.style.color='#2563EB'; }}
                         onMouseLeave={e => { e.currentTarget.style.borderColor='var(--border)'; e.currentTarget.style.color='var(--text-muted)'; }}>
-                        <Bell size={10} /> Send Invoice
+                        <Send size={10} /> Send Invoice
                       </button>
                     )}
                     <button onClick={e => handleDelete(inv.id, e)}

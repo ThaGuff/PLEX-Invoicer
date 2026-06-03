@@ -112,7 +112,7 @@ export default function Dashboard() {
   const quickActions = [
     { icon: Plus,       label: 'New quote',  desc: 'Build & send in minutes',        color: '#2563EB', to: '/quotes/new' },
     { icon: Receipt,    label: 'Invoices',   desc: 'View and manage invoices',        color: '#0D9488', to: '/invoices' },
-    { icon: Calendar,   label: 'Schedule',   desc: 'Manage your calendar & jobs',     color: '#7C3AED', to: '/schedule' },
+    { icon: Calendar,   label: 'Schedule',   desc: 'Manage your calendar & jobs',     color: '#7C3AED', to: '/calendar' },
     { icon: Users,      label: 'Team',       desc: 'Chat and collaborate with team',  color: '#D97706', to: '/workspace' },
   ];
 
@@ -167,6 +167,9 @@ export default function Dashboard() {
 
       {/* Main content grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 440px), 1fr))', gap: 12 }} className="animate-fade-up-delay-3">
+
+        {/* Left column: Recent quotes + Outstanding invoices stacked */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
         {/* Recent quotes */}
         <div className="glow-card overflow-hidden">
@@ -246,14 +249,16 @@ export default function Dashboard() {
             );
           })}
         </div>
-      </div>
+        </div>{/* end left column */}
 
-      {/* Cashflow — spans full width below */}
-      <div className="animate-fade-up-delay-4" style={{ marginTop: 16 }}>
-        {canUseFeature(account?.plan, 'cashflow_dashboard')
-          ? <CashflowDashboard accountId={account?.id} accent={accent} />
-          : <PlanGate feature="cashflow_dashboard" />
-        }
+        {/* Right column: Predictive Cashflow */}
+        <div className="animate-fade-up-delay-4">
+          {canUseFeature(account?.plan, 'cashflow_dashboard')
+            ? <CashflowDashboard accountId={account?.id} accent={accent} />
+            : <PlanGate feature="cashflow_dashboard" />
+          }
+        </div>
+
       </div>
     </div>
   );

@@ -122,7 +122,7 @@ router.post('/', requireAuth, async (req, res) => {
     const {
       account_id, contact_id, client_name, client_biz, client_email, client_phone,
       billing_mode, yearly_discount, disc_type, disc_value, disc_setup, disc_monthly,
-      notes, valid_days, setup_total, monthly_total, tax_rate = 0, tax_amount = 0, items = []
+      notes, valid_days, due_date, setup_total, monthly_total, tax_rate = 0, tax_amount = 0, items = []
     } = req.body;
     if (!account_id) return res.status(400).json({ error: 'account_id required' });
 
@@ -136,13 +136,13 @@ router.post('/', requireAuth, async (req, res) => {
     await db.execute(
       `INSERT INTO quotes (id, account_id, number, contact_id, client_name, client_biz,
         client_email, client_phone, billing_mode, yearly_discount, disc_type, disc_value,
-        disc_setup, disc_monthly, notes, valid_days, setup_total, monthly_total, tax_rate, tax_amount, public_token)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        disc_setup, disc_monthly, notes, valid_days, due_date, setup_total, monthly_total, tax_rate, tax_amount, public_token)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [id, account_id, number, contact_id || null, client_name || '', client_biz || '',
        client_email || '', client_phone || '', billing_mode || 'monthly',
        yearly_discount || 15, disc_type || 'pct', disc_value || 0,
        disc_setup ? 1 : 0, disc_monthly ? 1 : 0,
-       notes || '', valid_days || 30, setup_total || 0, monthly_total || 0,
+       notes || '', valid_days || 30, due_date || null, setup_total || 0, monthly_total || 0,
        tax_rate || 0, tax_amount || 0, public_token]
     );
 
@@ -215,7 +215,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
 
     const allowed = ['status','client_name','client_biz','client_email','client_phone',
       'billing_mode','yearly_discount','disc_type','disc_value','notes',
-      'setup_total','monthly_total','tax_rate','tax_amount','sent_at','accepted_at'];
+      'setup_total','monthly_total','tax_rate','tax_amount','due_date','sent_at','accepted_at'];
     const updates = [`updated_at = NOW()`];
     const vals = [];
     allowed.forEach(f => {
@@ -312,7 +312,8 @@ router.post('/:id/convert', requireAuth, async (req, res) => {
     const number = nextNumber(existingInv.rows, prefix);
     const invId = `inv-${uuid()}`;
     const public_token = uuid().replace(/-/g, '');
-    const due_date = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+    // Use quote's due_date if set, otherwise default to 30 days
+    const due_date = q.due_date || new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
     const amount_due = q.setup_total || 0;
 
     await db.execute(

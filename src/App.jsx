@@ -7,6 +7,7 @@ import { useAccount } from './context/AccountContext';
 import AccountSwitcher from './components/AccountSwitcher';
 import AccountSettings from './components/AccountSettings';
 import NewAccountModal from './components/NewAccountModal';
+import UserProfileModal from './components/UserProfileModal';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import QuoteBuilder from './pages/QuoteBuilder';
@@ -277,7 +278,7 @@ function Nav() {
             </button>
             {/* Notification dropdown */}
             {showNotifications && (
-              <div style={{ position:'absolute', bottom:'calc(100% + 8px)', left:0, width:300, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:14, boxShadow:'0 16px 48px rgba(11,18,32,0.25)', zIndex:200, overflow:'hidden' }}>
+              <div style={{ position:'fixed', bottom:70, left:8, right:8, maxWidth:340, margin:'0 auto', background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:14, boxShadow:'0 16px 48px rgba(11,18,32,0.25)', zIndex:400, overflow:'hidden' }}>
                 <div style={{ padding:'12px 14px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                   <span style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>Notifications</span>
                   {unreadCount > 0 && (
@@ -291,7 +292,7 @@ function Nav() {
                     </button>
                   )}
                 </div>
-                <div style={{ maxHeight:320, overflowY:'auto' }}>
+                <div style={{ maxHeight:'calc(60vh - 120px)', overflowY:'auto' }}>
                   {notifications.length === 0 && (
                     <div style={{ padding:'24px 14px', textAlign:'center', color:'var(--text-muted)', fontSize:13 }}>No notifications yet</div>
                   )}

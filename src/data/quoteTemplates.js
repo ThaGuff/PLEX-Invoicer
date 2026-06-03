@@ -11,9 +11,17 @@ export const QUOTE_TEMPLATES = {
     icon: '❄️',
     color: '#0ea5e9',
     description: 'Heating, Ventilation & Air Conditioning',
-    notes: 'All work is performed by licensed HVAC technicians. Parts carry a 1-year manufacturer warranty. Labor warranted for 90 days. Service calls scheduled within 24-48 hours.',
+    notes: 'Prices shown are per unit/job. Labor rate: $125/hr. Service call fee applied toward repair if work is completed. Parts carry a 1-year manufacturer warranty. Labor warranted for 90 days.',
     paymentTerms: 'Net 30. 50% deposit required to schedule. Balance due upon completion. Late payments subject to 1.5% monthly interest.',
     sections: [
+      {
+        name: 'Labor Rates',
+        services: [
+          { id: 'hvac-labor-hr', name: 'HVAC Labor — Hourly Rate', description: 'Standard hourly rate for HVAC repair, maintenance, or installation labor', unit: 'per hour', defaultPrice: 125 },
+          { id: 'hvac-labor-trip', name: 'Service / Trip Charge', description: 'Diagnostic visit fee — applied toward repair if work is completed same day', unit: 'per visit', defaultPrice: 89 },
+          { id: 'hvac-labor-after-hr', name: 'After-Hours / Emergency Rate', description: 'Weekend, holiday, or after-hours service rate', unit: 'per hour', defaultPrice: 185 },
+        ]
+      },
       {
         name: 'Diagnostic & Inspection',
         services: [
@@ -66,6 +74,14 @@ export const QUOTE_TEMPLATES = {
     notes: 'All work performed by licensed electricians and complies with NEC code. Permits pulled as required. Work carries 1-year labor warranty.',
     paymentTerms: 'Net 15. Payment due upon project completion. We accept check, cash, and all major credit cards.',
     sections: [
+      {
+        name: 'Labor Rates',
+        services: [
+          { id: 'elec-labor-hr', name: 'Electrician Labor — Hourly Rate', description: 'Licensed electrician hourly rate for repairs, installation, and service calls', unit: 'per hour', defaultPrice: 135 },
+          { id: 'elec-labor-trip', name: 'Service / Trip Charge', description: 'Service call fee — applied toward work if completed same day', unit: 'per visit', defaultPrice: 95 },
+          { id: 'elec-labor-after', name: 'After-Hours / Emergency Rate', description: 'Weekend, holiday, or emergency electrical service', unit: 'per hour', defaultPrice: 200 },
+        ]
+      },
       {
         name: 'Diagnostic & Inspection',
         services: [
@@ -125,6 +141,14 @@ export const QUOTE_TEMPLATES = {
     notes: 'All work performed by licensed plumbers. Parts carry manufacturer warranty. Labor warranted for 1 year. Permits obtained as required by local code.',
     paymentTerms: 'Payment due upon completion. Emergency service rates apply outside normal business hours.',
     sections: [
+      {
+        name: 'Labor Rates',
+        services: [
+          { id: 'plumb-labor-hr', name: 'Plumber Labor — Hourly Rate', description: 'Licensed plumber hourly rate for service, repair, and installation', unit: 'per hour', defaultPrice: 125 },
+          { id: 'plumb-labor-trip', name: 'Service / Trip Charge', description: 'Minimum service call fee — credited toward repair', unit: 'per visit', defaultPrice: 89 },
+          { id: 'plumb-labor-after', name: 'After-Hours / Emergency Plumbing', description: 'Emergency service outside normal business hours', unit: 'per hour', defaultPrice: 195 },
+        ]
+      },
       {
         name: 'Diagnostic & Inspection',
         services: [

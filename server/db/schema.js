@@ -79,6 +79,7 @@ export async function initDB() {
       disc_monthly INTEGER DEFAULT 1,
       notes TEXT,
       valid_days INTEGER DEFAULT 30,
+      due_date TEXT,
       setup_total REAL DEFAULT 0,
       monthly_total REAL DEFAULT 0,
       tax_rate REAL DEFAULT 0,
@@ -636,6 +637,8 @@ export async function migrateUserProfileSystem() {
     // Rename 'desc' reserved word column to 'description' in workspace_channels
     // Uses quoted identifier to handle the reserved keyword; safe to fail if already renamed
     `ALTER TABLE workspace_channels RENAME COLUMN "desc" TO description`,
+    // Add due_date to quotes
+    `ALTER TABLE quotes ADD COLUMN IF NOT EXISTS due_date TEXT`,
     // Add reply_to to workspace_messages
     `ALTER TABLE workspace_messages ADD COLUMN IF NOT EXISTS reply_to TEXT`,
     // Add discount_pct to automation_steps if missing

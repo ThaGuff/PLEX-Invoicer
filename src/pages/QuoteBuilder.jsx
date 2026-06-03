@@ -81,12 +81,12 @@ function ServiceRow({ svc, sectionId, isSelected, isIncluded, setupPrice, monthl
               <Toggle checked={isIncluded} onChange={v => onIncludeChange(svc.id, v)} />
             </div>
             <div className="flex flex-col items-end gap-1">
-              <span className="text-xs text-ink-muted">Setup</span>
+              <span className="text-xs text-ink-muted">Price</span>
               {isIncluded ? <span className="text-xs font-semibold text-green-600 w-[86px] text-right">Included</span>
                 : <PriceCell value={setupPrice} onChange={v => onPriceChange(svc.id, 'setup', v)} accent={accent} />}
             </div>
             <div className="flex flex-col items-end gap-1">
-              <span className="text-xs text-ink-muted">Monthly</span>
+              <span className="text-xs text-ink-muted">Recurring</span>
               {isIncluded ? <span className="text-xs font-semibold text-green-600 w-[86px] text-right">Included</span>
                 : <div className="flex flex-col items-end">
                     <PriceCell value={monthlyPrice} onChange={v => onPriceChange(svc.id, 'monthly', v)} accent={accent} />
@@ -204,7 +204,7 @@ function CustomSection({ section, services, selected, included, prices, billingM
                   <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
                   <input type="number" min={0} value={newItem.monthly_price}
                     onChange={e => setNewItem(p => ({ ...p, monthly_price: e.target.value }))}
-                    className="field pl-6 text-sm" placeholder="Monthly" />
+                    className="field pl-6 text-sm" placeholder="Recurring/mo" />
                 </div>
               </div>
               <div className="flex gap-2">
@@ -410,6 +410,12 @@ export default function QuoteBuilder() {
   const [quoteDate,   setQuoteDate]   = useState(() =>
     new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   );
+  // Payment due date — defaults to 30 days from today, user can override
+  const [dueDate, setDueDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toISOString().split('T')[0]; // YYYY-MM-DD for date input
+  });
 
   const [billingMode,    setBillingMode]    = useState('monthly');
   const [yearlyDiscount, setYearlyDiscount] = useState(YEARLY_DISCOUNT_DEFAULT);
@@ -454,8 +460,8 @@ export default function QuoteBuilder() {
             section_id: secId,
             name: svc.name,
             description: svc.description || '',
-            setup_price: 0,
-            monthly_price: svc.price || 0,
+            setup_price: svc.price || 0,   // Per-job pricing for service businesses
+            monthly_price: 0,
             unit: 'per job',
             position: i,
           }));
@@ -490,6 +496,7 @@ export default function QuoteBuilder() {
       setClientName(q.client_name || '');
       setClientBiz(q.client_biz || '');
       setClientEmail(q.client_email || '');
+      if (q.due_date) setDueDate(q.due_date);
       setClientPhone(q.client_phone || '');
       setBillingMode(q.billing_mode || 'monthly');
       setYearlyDiscount(q.yearly_discount || 15);
@@ -617,6 +624,7 @@ export default function QuoteBuilder() {
         client_name:     clientName,
         client_biz:      clientBiz,
         client_email:    clientEmail,
+        due_date:        dueDate,
         client_phone:    clientPhone,
         billing_mode:    billingMode,
         yearly_discount: yearlyDiscount,
@@ -743,6 +751,21 @@ export default function QuoteBuilder() {
                   <input type={f.type || 'text'} value={f.v} onChange={e => f.s(e.target.value)} placeholder={f.ph} className="field" />
                 </div>
               ))}
+              {/* Payment Due Date — separate because it uses type=date */}
+              <div>
+                <label className="text-xs font-medium text-ink-muted block mb-1">Payment Due Date</label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={e => setDueDate(e.target.value)}
+                  className="field"
+                  min={new Date().toISOString().split('T')[0]}
+                  style={{ colorScheme: 'light dark' }}
+                />
+                <p className="text-xs text-ink-muted mt-1">
+                  {dueDate ? `Due ${new Date(dueDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : 'Set payment deadline'}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -800,8 +823,8 @@ export default function QuoteBuilder() {
                             section_id: secId,
                             name: svc.name,
                             description: svc.description,
-                            setup_price: 0,
-                            monthly_price: svc.defaultPrice,
+                            setup_price: svc.defaultPrice,   // Trade services = per job / per unit price
+                            monthly_price: 0,
                             unit: svc.unit,
                             position: svi,
                           });

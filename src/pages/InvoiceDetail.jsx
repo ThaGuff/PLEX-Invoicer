@@ -415,11 +415,11 @@ Thank you!`);
                   <button onClick={handleSend} disabled={!!working}
                     className="w-full flex items-center gap-2 text-sm font-semibold text-white py-2.5 px-4 rounded-lg disabled:opacity-50"
                     style={{ background: accent }}>
-                    <Send size={15} /> {working === 'send' ? 'Sending…' : 'Mark as sent'}
+                    <Send size={15} /> {working === 'send' ? 'Sending…' : 'Send & Mark Sent'}
                   </button>
-                  <button onClick={handleRemind} disabled={!!working}
+                  <button onClick={handleSend} disabled={!!working}
                     className="btn-ghost w-full flex items-center gap-2 text-sm">
-                    <Bell size={15} /> Send reminder
+                    <Send size={15} /> Send Invoice
                   </button>
                   <button onClick={handlePaymentLink} disabled={!!working}
                     className="btn-ghost w-full flex items-center gap-2 text-sm">
