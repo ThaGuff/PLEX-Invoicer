@@ -139,6 +139,45 @@ router.patch('/me', requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── GET /notifications — notification inbox ───────────────────────
+router.get('/notifications', requireAuth, async (req, res) => {
+  try {
+    // Ensure profile exists (auto-create on first access)
+    await ensureProfile(req.user.id, req.user.email, req.user.user_metadata?.full_name);
+    const notifs = await db.execute(
+      `SELECT * FROM notification_log WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
+      [req.user.id]
+    );
+    const unread = notifs.rows.filter(n => !n.read_at).length;
+    res.json({ notifications: notifs.rows, unread });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── PATCH /notifications/read-all — MUST be before /:id/read ─────
+router.patch('/notifications/read-all', requireAuth, async (req, res) => {
+  try {
+    await db.execute(
+      `UPDATE notification_log SET read_at = NOW() WHERE user_id = ? AND read_at IS NULL`,
+      [req.user.id]
+    );
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── PATCH /notifications/:id/read ────────────────────────────────
+router.patch('/notifications/:id/read', requireAuth, async (req, res) => {
+  try {
+    await db.execute(
+      `UPDATE notification_log SET read_at = NOW() WHERE id = ? AND user_id = ?`,
+      [req.params.id, req.user.id]
+    );
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+export { ensureProfile, getProfile, sendNotification };
+
+
 // ── GET /:userId ──────────────────────────────────────────────────
 router.get('/:userId', requireAuth, async (req, res) => {
   try {
@@ -201,41 +240,4 @@ router.get('/presence/:accountId', requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── GET /notifications — notification inbox ───────────────────────
-router.get('/notifications', requireAuth, async (req, res) => {
-  try {
-    // Ensure profile exists (auto-create on first access)
-    await ensureProfile(req.user.id, req.user.email, req.user.user_metadata?.full_name);
-    const notifs = await db.execute(
-      `SELECT * FROM notification_log WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
-      [req.user.id]
-    );
-    const unread = notifs.rows.filter(n => !n.read_at).length;
-    res.json({ notifications: notifs.rows, unread });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// ── PATCH /notifications/read-all — MUST be before /:id/read ─────
-router.patch('/notifications/read-all', requireAuth, async (req, res) => {
-  try {
-    await db.execute(
-      `UPDATE notification_log SET read_at = NOW() WHERE user_id = ? AND read_at IS NULL`,
-      [req.user.id]
-    );
-    res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// ── PATCH /notifications/:id/read ────────────────────────────────
-router.patch('/notifications/:id/read', requireAuth, async (req, res) => {
-  try {
-    await db.execute(
-      `UPDATE notification_log SET read_at = NOW() WHERE id = ? AND user_id = ?`,
-      [req.params.id, req.user.id]
-    );
-    res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-export { ensureProfile, getProfile, sendNotification };
 export default router;
