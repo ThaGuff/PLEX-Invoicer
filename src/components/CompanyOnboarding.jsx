@@ -28,6 +28,38 @@ const TEMPLATE_OPTIONS = [
   { id: 'other',             icon: '🏢', label: 'Other' },
 ];
 
+// Field must be defined OUTSIDE the parent component to avoid remount on every keystroke
+function Field({ icon: Icon, label, k, placeholder, type = 'text', required = false, form, setForm, accent }) {
+  const inputStyle = {
+    width: '100%', padding: '10px 12px 10px 36px', borderRadius: 10,
+    border: '1.5px solid var(--border)', background: 'var(--bg-page)',
+    color: 'var(--text-primary)', fontSize: 14, boxSizing: 'border-box',
+    outline: 'none', fontFamily: "'Plus Jakarta Sans', sans-serif",
+    transition: 'border-color 0.15s',
+  };
+  const labelStyle = {
+    fontSize: 11, fontWeight: 700, color: 'var(--text-muted)',
+    textTransform: 'uppercase', letterSpacing: '0.06em',
+    display: 'block', marginBottom: 6,
+  };
+  return (
+    <div>
+      <label style={labelStyle}>{label}{required && <span style={{ color: accent }}> *</span>}</label>
+      <div style={{ position: 'relative' }}>
+        <Icon size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: accent, opacity: 0.7 }} />
+        <input
+          type={type}
+          value={form[k]}
+          onChange={e => setForm(p => ({ ...p, [k]: e.target.value }))}
+          placeholder={placeholder}
+          style={inputStyle}
+          autoComplete="off"
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function CompanyOnboarding({ onComplete }) {
   const { account, activeId, updateAccount } = useAccount();
   const token = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
@@ -92,36 +124,6 @@ export default function CompanyOnboarding({ onComplete }) {
     setSaving(false);
   };
 
-  const inputStyle = {
-    width: '100%', padding: '10px 12px 10px 36px', borderRadius: 10,
-    border: '1.5px solid var(--border)', background: 'var(--bg-page)',
-    color: 'var(--text-primary)', fontSize: 14, boxSizing: 'border-box',
-    outline: 'none', fontFamily: "'Plus Jakarta Sans', sans-serif",
-    transition: 'border-color 0.15s',
-  };
-
-  const labelStyle = {
-    fontSize: 11, fontWeight: 700, color: 'var(--text-muted)',
-    textTransform: 'uppercase', letterSpacing: '0.06em',
-    display: 'block', marginBottom: 6,
-  };
-
-  const Field = ({ icon: Icon, label, k, placeholder, type = 'text', required = false }) => (
-    <div>
-      <label style={labelStyle}>{label}{required && <span style={{ color: accent }}> *</span>}</label>
-      <div style={{ position: 'relative' }}>
-        <Icon size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: accent, opacity: 0.7 }} />
-        <input
-          type={type}
-          value={form[k]}
-          onChange={e => set(k, e.target.value)}
-          placeholder={placeholder}
-          style={inputStyle}
-        />
-      </div>
-    </div>
-  );
-
   const totalSteps = 3;
   const progress = (step / totalSteps) * 100;
 
@@ -158,16 +160,16 @@ export default function CompanyOnboarding({ onComplete }) {
                 📋 This information appears on every quote and invoice you send — make it accurate and professional.
               </div>
 
-              <Field icon={Building2} label="Company Name" k="name" placeholder="Hot/Cold HVAC Service & Repair" required />
-              <Field icon={MapPin}    label="Company Address" k="business_address" placeholder="420 Blaine Street" />
-              <Field icon={MapPin}    label="City, State, ZIP" k="city_state_zip" placeholder="Birmingham, AL 35201" />
-              <Field icon={Phone}     label="Company Phone Number" k="phone" placeholder="(256) 000-0000" type="tel" />
-              <Field icon={Globe}     label="Website" k="website" placeholder="www.yourbusiness.com" />
-              <Field icon={Mail}      label="Company Email" k="email" placeholder="office@yourbusiness.com" type="email" />
-              <Field icon={User}      label="Technician / Rep Name" k="technician_name" placeholder="Joe Smith" />
-              <Field icon={Award}     label="License Number" k="license_number" placeholder="HVAC-2024-001 (optional)" />
-              <Field icon={Tag}       label="Company Tagline" k="company_tagline" placeholder="Quality You Can Count On" />
-              <Field icon={Briefcase} label="Tax / EIN Number" k="tax_number" placeholder="XX-XXXXXXX (optional)" />
+              <Field form={form} setForm={setForm} accent={accent} icon={Building2} label="Company Name" k="name" placeholder="Hot/Cold HVAC Service & Repair" required />
+              <Field form={form} setForm={setForm} accent={accent} icon={MapPin}    label="Company Address" k="business_address" placeholder="420 Blaine Street" />
+              <Field form={form} setForm={setForm} accent={accent} icon={MapPin}    label="City, State, ZIP" k="city_state_zip" placeholder="Birmingham, AL 35201" />
+              <Field form={form} setForm={setForm} accent={accent} icon={Phone}     label="Company Phone Number" k="phone" placeholder="(256) 000-0000" type="tel" />
+              <Field form={form} setForm={setForm} accent={accent} icon={Globe}     label="Website" k="website" placeholder="www.yourbusiness.com" />
+              <Field form={form} setForm={setForm} accent={accent} icon={Mail}      label="Company Email" k="email" placeholder="office@yourbusiness.com" type="email" />
+              <Field form={form} setForm={setForm} accent={accent} icon={User}      label="Technician / Rep Name" k="technician_name" placeholder="Joe Smith" />
+              <Field form={form} setForm={setForm} accent={accent} icon={Award}     label="License Number" k="license_number" placeholder="HVAC-2024-001 (optional)" />
+              <Field form={form} setForm={setForm} accent={accent} icon={Tag}       label="Company Tagline" k="company_tagline" placeholder="Quality You Can Count On" />
+              <Field form={form} setForm={setForm} accent={accent} icon={Briefcase} label="Tax / EIN Number" k="tax_number" placeholder="XX-XXXXXXX (optional)" />
             </div>
           )}
 
