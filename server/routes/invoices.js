@@ -255,6 +255,20 @@ ${invoice.agency_name||'Revanew'}`,
       }
     }
 
+    // Auto-trigger invoice_sent automations
+    try {
+      const automationUrl = `${req.protocol}://${req.get('host')}/api/automations/trigger`;
+      // Fire automation trigger asynchronously (don't await)
+      fetch(automationUrl, {
+        method: 'POST',
+        headers: { 'Authorization': req.headers.authorization, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          account_id: invoice.account_id, trigger: 'invoice_sent',
+          invoice_id: invoice.id, contact_id: invoice.contact_id
+        })
+      }).catch(() => {}); // silent fail
+    } catch {}
+
     res.json({
       ok: true,
       email_sent,

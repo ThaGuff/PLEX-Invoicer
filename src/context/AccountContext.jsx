@@ -19,11 +19,19 @@ export function AccountProvider({ children }) {
       setAccounts(list);
 
       const saved   = localStorage.getItem('plex_active_account');
-      const ownedIds = list.map(a => a.id);
+      const allIds  = list.map(a => a.id);
 
-      if (saved && ownedIds.includes(saved)) {
+      // Prefer accounts the user OWNS over accounts they're just a member of
+      // Fetch current user id from auth to determine ownership
+      let userId = null;
+      try {
+        const { data: { user: u } } = await import('@supabase/supabase-js').catch(() => ({ data: { user: null } }));
+      } catch {}
+
+      if (saved && allIds.includes(saved)) {
         setActiveId(saved);
       } else if (list.length > 0) {
+        // Default to first account in list (server sorts owned first)
         setActiveId(list[0].id);
         localStorage.setItem('plex_active_account', list[0].id);
       } else {

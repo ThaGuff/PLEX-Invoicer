@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp, FileText, DollarSign, AlertCircle,
   Plus, ArrowRight, CheckCircle, Clock, Send,
-  Zap, Receipt, Users, BarChart2, RefreshCw,
+  Zap, Receipt, Users, Calendar, BarChart2, RefreshCw,
   ArrowUpRight, ChevronRight, Sparkles, Activity,
 } from 'lucide-react';
 import { useAccount } from '../context/AccountContext';
@@ -110,10 +110,10 @@ export default function Dashboard() {
   ];
 
   const quickActions = [
-    { icon: Plus,       label: 'New quote',     desc: 'Build & send in minutes',    color: '#2563EB', to: '/quotes/new' },
-    { icon: Receipt,    label: 'Record payment', desc: 'Mark an invoice as paid',   color: '#0D9488', to: '/invoices' },
-    { icon: Users,      label: 'Add client',     desc: 'Create a contact record',   color: '#7C3AED', to: '/contacts' },
-    { icon: Zap,        label: 'Automate',       desc: 'Set up a follow-up sequence', color: '#D97706', to: '/automations' },
+    { icon: Plus,       label: 'New quote',  desc: 'Build & send in minutes',        color: '#2563EB', to: '/quotes/new' },
+    { icon: Receipt,    label: 'Invoices',   desc: 'View and manage invoices',        color: '#0D9488', to: '/invoices' },
+    { icon: Calendar,   label: 'Schedule',   desc: 'Manage your calendar & jobs',     color: '#7C3AED', to: '/schedule' },
+    { icon: Users,      label: 'Team',       desc: 'Chat and collaborate with team',  color: '#D97706', to: '/workspace' },
   ];
 
   return (
@@ -248,8 +248,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Cashflow — Pro+ */}
-      <div style={{ marginTop: 20 }} className="animate-fade-up-delay-4">
+      {/* Cashflow — spans full width below */}
+      <div className="animate-fade-up-delay-4" style={{ marginTop: 16 }}>
         {canUseFeature(account?.plan, 'cashflow_dashboard')
           ? <CashflowDashboard accountId={account?.id} accent={accent} />
           : <PlanGate feature="cashflow_dashboard" />

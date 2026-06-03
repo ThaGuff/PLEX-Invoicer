@@ -459,8 +459,8 @@ export default function QuoteBuilder() {
             unit: 'per job',
             position: i,
           }));
-          setCustomSections(prev => [...prev, newSec]);
-          setCustomItems(prev => [...prev, ...newSvcItems]);
+          setLocalSections(prev => [...(prev ?? customSections), newSec]);
+          setLocalItems(prev => [...(prev ?? customItems), ...newSvcItems]);
           setScanResult(`Imported ${svcs.length} services from ${d.businessName || 'website'}`);
         } else {
           setScanResult('No services found. Try a different URL or use a template above.');
@@ -809,13 +809,15 @@ export default function QuoteBuilder() {
                       });
 
                       // Merge into existing custom catalog
-                      setCustomSections(prev => {
-                        const existing = new Set(prev.map(s => s.id));
-                        return [...prev, ...newSections.filter(s => !existing.has(s.id))];
+                      setLocalSections(prev => {
+                        const base = prev ?? customSections;
+                        const existing = new Set(base.map(s => s.id));
+                        return [...base, ...newSections.filter(s => !existing.has(s.id))];
                       });
-                      setCustomItems(prev => {
-                        const existing = new Set(prev.map(i => i.id));
-                        return [...prev, ...newItems.filter(i => !existing.has(i.id))];
+                      setLocalItems(prev => {
+                        const base = prev ?? customItems;
+                        const existing = new Set(base.map(i => i.id));
+                        return [...base, ...newItems.filter(i => !existing.has(i.id))];
                       });
 
                       // Pre-fill notes and payment terms
@@ -956,9 +958,14 @@ export default function QuoteBuilder() {
             {/* Summary card */}
             <div className="card overflow-hidden">
               <div className="px-5 py-3 flex items-center justify-between" style={{ background: accent }}>
-                <span className="text-sm font-bold text-white flex items-center gap-2">
-                  <TrendingUp size={14} /> Quote summary
-                </span>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  {account?.logo_url && (
+                    <img src={account.logo_url} alt="" style={{ width:28, height:28, borderRadius:6, objectFit:'contain', background:'#fff', padding:2, flexShrink:0 }} />
+                  )}
+                  <span className="text-sm font-bold text-white flex items-center gap-2">
+                    <TrendingUp size={14} /> {account?.name || 'Quote summary'}
+                  </span>
+                </div>
                 {selectedCount > 0 && (
                   <span className="text-xs font-bold bg-white px-2 py-0.5 rounded" style={{ color: accent }}>
                     {selectedCount} item{selectedCount !== 1 ? 's' : ''}

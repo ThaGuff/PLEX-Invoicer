@@ -166,7 +166,7 @@ export default function InvoicesList() {
                         style={{ display:'flex', alignItems:'center', gap:5, fontSize:10, fontWeight:600, padding:'5px 10px', borderRadius:7, border:'0.5px solid var(--border)', background:'var(--bg-page)', cursor:'pointer', color:'var(--text-muted)', transition:'all 0.15s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
                         onMouseEnter={e => { e.currentTarget.style.borderColor='#2563EB'; e.currentTarget.style.color='#2563EB'; }}
                         onMouseLeave={e => { e.currentTarget.style.borderColor='var(--border)'; e.currentTarget.style.color='var(--text-muted)'; }}>
-                        <Bell size={10} /> Remind
+                        <Bell size={10} /> Send Invoice
                       </button>
                     )}
                     <button onClick={e => handleDelete(inv.id, e)}

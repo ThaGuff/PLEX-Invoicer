@@ -150,12 +150,36 @@ export default function DocumentsPage() {
                   <p style={{ fontSize:11, color:'var(--text-muted)', marginTop:2 }}>{dtype.label} · {fmtSize(doc.size)} · {fmtDate(doc.created_at)}</p>
                 </div>
                 <div style={{ display:'flex', gap:8, flexShrink:0 }}>
-                  {doc.url && (
-                    <a href={doc.url} target="_blank" rel="noreferrer"
-                      style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:9, border:'1px solid var(--border)', color:'var(--text-muted)', textDecoration:'none', transition:'all 0.15s' }}>
-                      <Download size={14} />
-                    </a>
-                  )}
+                  <button onClick={async () => {
+                    try {
+                      const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
+                      if (doc.url) {
+                        // Inline url - open directly
+                        if (doc.url.startsWith('data:')) {
+                          const a = document.createElement('a');
+                          a.href = doc.url;
+                          a.download = doc.name;
+                          a.click();
+                        } else {
+                          window.open(doc.url, '_blank');
+                        }
+                      } else {
+                        // Fetch from server
+                        const r = await fetch(`/api/documents/${doc.id}/download`, { headers: { Authorization: `Bearer ${token}` } });
+                        const d = await r.json();
+                        if (d.url) {
+                          const a = document.createElement('a');
+                          a.href = d.url;
+                          a.download = d.name || doc.name;
+                          a.click();
+                        }
+                      }
+                    } catch(e) { alert('Could not open file: ' + e.message); }
+                  }}
+                    style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:9, border:'1px solid var(--border)', background:'transparent', cursor:'pointer', color:'var(--text-muted)', transition:'all 0.15s' }}
+                    title="Download / Open">
+                    <Download size={14} />
+                  </button>
                   <button onClick={() => handleDelete(doc.id)}
                     style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:9, border:'1px solid var(--border)', background:'transparent', cursor:'pointer', color:'var(--text-muted)', transition:'all 0.15s' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor='#DC2626'; e.currentTarget.style.color='#DC2626'; }}

@@ -73,10 +73,11 @@ router.get('/', requireAuth, async (req, res) => {
     );
 
     // Return owned + member accounts (deduplicated)
+    // Owned accounts come FIRST - ensures members default to their own account
     const allAccountIds = new Set(ownedAccounts.rows.map(a => a.id));
-    const combined = [...ownedAccounts.rows];
+    const combined = [...ownedAccounts.rows]; // owned first
     for (const a of memberAccounts.rows) {
-      if (!allAccountIds.has(a.id)) combined.push(a);
+      if (!allAccountIds.has(a.id)) combined.push(a); // member accounts after
     }
 
     // If user has NO accounts at all (not owner, not member), create one for them

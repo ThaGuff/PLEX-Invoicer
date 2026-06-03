@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { TrendingUp, RefreshCw, Calendar, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { TrendingUp, RefreshCw, Calendar, Clock, ChevronDown, ChevronUp, BarChart2, TrendingUp as LineIcon, PieChart } from 'lucide-react';
+import { BarChart, Bar, LineChart, Line, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { api } from '../utils/api';
 
 function fmt(n) { return '$' + Math.round(n || 0).toLocaleString(); }
@@ -23,6 +24,7 @@ export default function CashflowDashboard({ accountId, accent = '#13B5EA' }) {
   const [loading, setLoading] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
   const [error, setError] = useState('');
+  const [chartType, setChartType] = useState('bar'); // 'bar' | 'line' | 'pie'
 
   const load = async () => {
     if (!accountId) return;
@@ -81,9 +83,24 @@ export default function CashflowDashboard({ accountId, accent = '#13B5EA' }) {
             </p>
           </div>
         </div>
-        <button onClick={load} className="p-1.5 text-ink-muted hover:text-ink" title="Refresh">
-          <RefreshCw size={13} />
-        </button>
+        <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+          {/* Chart type selector */}
+          {[
+            { type: 'bar',  Icon: BarChart2,  label: 'Bar chart' },
+            { type: 'line', Icon: TrendingUp, label: 'Line chart' },
+            { type: 'pie',  Icon: PieChart,   label: 'Pie chart' },
+          ].map(({ type, Icon, label }) => (
+            <button key={type} onClick={() => setChartType(type)} title={label}
+              style={{ padding:'4px 6px', borderRadius:6, border:'none', cursor:'pointer', transition:'all 0.15s',
+                background: chartType === type ? accent + '20' : 'transparent',
+                color: chartType === type ? accent : 'var(--text-muted)' }}>
+              <Icon size={13} />
+            </button>
+          ))}
+          <button onClick={load} className="p-1.5 text-ink-muted hover:text-ink" title="Refresh" style={{ marginLeft:4 }}>
+            <RefreshCw size={13} />
+          </button>
+        </div>
       </div>
 
       {/* Summary cards */}
@@ -98,17 +115,46 @@ export default function CashflowDashboard({ accountId, accent = '#13B5EA' }) {
         ))}
       </div>
 
-      {/* 12-week bar chart */}
+      {/* Chart — bar / line / pie based on chartType */}
       <div className="px-5 pt-4 pb-2">
         <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">12-week predicted inflow</p>
-        <div className="space-y-1.5">
-          {weeks12.map((w, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <span className="text-xs text-ink-muted w-20 shrink-0">{w.label}</span>
-              <MiniBar amount={w.amount} max={maxWeek} color={i === 0 ? '#ef4444' : i <= 2 ? accent : '#6366f1'} />
-            </div>
-          ))}
-        </div>
+        {chartType === 'bar' && (
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={weeks12} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} tickFormatter={v => '$'+Math.round(v/1000)+'k'} />
+              <Tooltip formatter={(v) => ['$'+Math.round(v).toLocaleString(), 'Predicted']} contentStyle={{ fontSize: 12, border: '1px solid var(--border)', background: 'var(--bg-surface)', borderRadius: 8 }} />
+              <Bar dataKey="amount" radius={[4,4,0,0]}>
+                {weeks12.map((w, i) => <Cell key={i} fill={i === 0 ? '#ef4444' : i <= 2 ? accent : '#6366f1'} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+        {chartType === 'line' && (
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={weeks12} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} tickFormatter={v => '$'+Math.round(v/1000)+'k'} />
+              <Tooltip formatter={(v) => ['$'+Math.round(v).toLocaleString(), 'Predicted']} contentStyle={{ fontSize: 12, border: '1px solid var(--border)', background: 'var(--bg-surface)', borderRadius: 8 }} />
+              <Line type="monotone" dataKey="amount" stroke={accent} strokeWidth={2.5} dot={{ r: 3, fill: accent }} activeDot={{ r: 5 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+        {chartType === 'pie' && (
+          <ResponsiveContainer width="100%" height={200}>
+            <RePieChart>
+              <Pie data={weeks12.filter(w => w.amount > 0)} dataKey="amount" nameKey="label" cx="50%" cy="50%" outerRadius={80} label={({name, value}) => `${name}: $${Math.round(value).toLocaleString()}`} labelLine={false}>
+                {weeks12.filter(w => w.amount > 0).map((w, i) => (
+                  <Cell key={i} fill={[accent, '#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#0ea5e9', '#d946ef', '#10b981', '#f97316', '#06b6d4', '#84cc16'][i % 12]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(v) => '$'+Math.round(v).toLocaleString()} contentStyle={{ fontSize: 12, border: '1px solid var(--border)', background: 'var(--bg-surface)', borderRadius: 8 }} />
+              <Legend iconSize={8} wrapperStyle={{ fontSize: 10 }} />
+            </RePieChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       {/* Expand: per-invoice predictions + client profiles */}

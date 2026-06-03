@@ -249,7 +249,6 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider value={{
       user, session, loading, supabase,
       isAuthenticated: !!user,
-      supabase,
       idleWarning,
       sessionExpired,
       signInWithGoogle,

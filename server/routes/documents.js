@@ -96,10 +96,9 @@ router.post('/', requireAuth, (req, res, next) => {
     // For now: return metadata without file content
     // Store file as base64 data URL for immediate preview
     // In production with Supabase Storage configured, this would be a CDN URL instead
-    const isImage = req.file.mimetype?.startsWith('image/');
-    const dataUrl = isImage
-      ? `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
-      : null; // non-images: no preview, just download metadata
+    // Store ALL files as base64 for reliable download
+    // Supabase Storage can be added later for CDN delivery
+    const dataUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
     
     await db.execute(
       `INSERT INTO documents (id, account_id, name, doc_type, size, mime_type, storage_key, url, created_at)
@@ -109,6 +108,19 @@ router.post('/', requireAuth, (req, res, next) => {
     const doc = await db.execute(`SELECT * FROM documents WHERE id = ?`, [id]);
     const d = doc.rows[0];
     res.status(201).json({ id: d.id, name: d.name, doc_type: d.doc_type, size: d.size, url: d.url, created_at: d.created_at });
+  } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
+});
+
+// ── GET /api/documents/:id/download — serve file content ─────────────
+router.get('/:id/download', requireAuth, async (req, res) => {
+  try {
+    const doc = await db.execute(`SELECT * FROM documents WHERE id = ?`, [req.params.id]);
+    if (!doc.rows.length) return res.status(404).json({ error: 'Not found' });
+    const d = doc.rows[0];
+    await assertAccountAccess(d.account_id, req.user.id);
+    if (!d.url) return res.status(404).json({ error: 'File content not available' });
+    // Return as JSON so frontend can handle it
+    res.json({ url: d.url, name: d.name, mime_type: d.mime_type });
   } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
 });
 

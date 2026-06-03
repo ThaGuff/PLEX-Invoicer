@@ -22,6 +22,7 @@ credentials/
 
 # Database files — contain user data
 data/
+!src/data/
 *.db
 *.sqlite
 *.sqlite3
