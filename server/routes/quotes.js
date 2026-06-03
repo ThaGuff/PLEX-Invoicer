@@ -343,10 +343,8 @@ router.post('/:id/convert', requireAuth, async (req, res) => {
       `SELECT * FROM invoice_items WHERE invoice_id = ? ORDER BY sort_order`, [invId]
     );
     res.json({ ...inv.rows[0], items: invItems.rows });
-  } catch (e) { 
-    console.error('[Convert quote error]', e.message, e.stack?.split('
-')[1]);
-    res.status(500).json({ error: e.message }); 
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
