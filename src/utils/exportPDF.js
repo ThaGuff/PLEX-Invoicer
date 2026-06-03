@@ -30,7 +30,7 @@ function drawFooter(doc, W, H, agencyName, agencyWebsite, agencyEmail, agencyPho
   doc.setFontSize(7.5);
   doc.setTextColor(...INK_MUTED);
   doc.text(
-    [agencyName, agencyWebsite, agencyEmail, agencyPhone].filter(Boolean).join('  ·  '),
+    [agencyName, agencyAddress ? agencyAddress + (agencyCityState ? ', ' + agencyCityState : '') : null, agencyPhone, agencyEmail, agencyWebsite].filter(Boolean).join('  ·  '),
     W / 2, H - FOOTER_H + 14, { align: 'center' }
   );
   if (totalPages > 1) {
@@ -61,14 +61,20 @@ export function exportPDF(state) {
     selected = {}, sectionMap = {}, prices = {}, included = {},
     discType = 'pct', discValue = 0, discSetup = true, discMonthly = true,
     notes = '',
-    agencyName    = 'Revanew',
-    agencyEmail   = 'hello@plexautomation.io',
-    agencyPhone   = '256-609-4618',
-    agencyWebsite = 'plexautomation.io',
-    primaryColor  = '#13B5EA',
-    agencyLogoUrl = null,
-    customSections = [],
-    customItems    = [],
+    agencyName       = 'Revanew',
+    agencyEmail      = '',
+    agencyPhone      = '',
+    agencyWebsite    = '',
+    agencyAddress    = '',
+    agencyCityState  = '',
+    agencyLicense    = '',
+    agencyTagline    = '',
+    agencyTechnician = '',
+    agencyTaxNum     = '',
+    primaryColor     = '#13B5EA',
+    agencyLogoUrl    = null,
+    customSections   = [],
+    customItems      = [],
   } = state;
 
   const accent    = hexToRgb(primaryColor);
@@ -105,9 +111,19 @@ export function exportPDF(state) {
   }
 
   doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.setTextColor(...INK);
-  doc.text(agencyName, 66, 30);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(...INK_MUTED);
-  doc.text([agencyWebsite, agencyEmail, agencyPhone].filter(Boolean).join('  ·  '), 66, 45);
+  doc.text(agencyName, 66, 28);
+  if (agencyTagline) {
+    doc.setFont('helvetica', 'italic'); doc.setFontSize(8); doc.setTextColor(...accent);
+    doc.text(agencyTagline, 66, 38);
+  }
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...INK_MUTED);
+  const contactLine = [agencyPhone, agencyEmail, agencyWebsite].filter(Boolean).join('  ·  ');
+  const addrLine = [agencyAddress, agencyCityState].filter(Boolean).join(', ');
+  const licLine = agencyLicense ? `Lic# ${agencyLicense}` : '';
+  const techLine = agencyTechnician ? `Tech: ${agencyTechnician}` : '';
+  if (contactLine) doc.text(contactLine, 66, agencyTagline ? 47 : 40);
+  if (addrLine) doc.text([addrLine, licLine].filter(Boolean).join('  ·  '), 66, agencyTagline ? 55 : 48);
+  if (techLine) doc.text(techLine, 66, agencyTagline ? 63 : 56);
 
   doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...accent);
   doc.text('QUOTE', W - MARGIN, 28, { align: 'right' });

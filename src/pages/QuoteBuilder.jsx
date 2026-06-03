@@ -549,10 +549,16 @@ export default function QuoteBuilder() {
   };
 
   const fullState = {
-    agencyName:    account?.name     || 'Revanew',
-    agencyEmail:   account?.email    || 'hello@plexautomation.io',
-    agencyPhone:   account?.phone    || '256-609-4618',
-    agencyWebsite: account?.website  || 'plexautomation.io',
+    agencyName:       account?.name             || 'Revanew',
+    agencyEmail:      account?.email            || '',
+    agencyPhone:      account?.phone            || '',
+    agencyWebsite:    account?.website          || '',
+    agencyAddress:    account?.business_address || '',
+    agencyCityState:  account?.city_state_zip   || '',
+    agencyLicense:    account?.license_number   || '',
+    agencyTagline:    account?.company_tagline  || '',
+    agencyTechnician: account?.technician_name  || '',
+    agencyTaxNum:     account?.tax_number       || '',
     agencyLogoUrl: account?.logo_url || null,
     primaryColor:  accent,
     clientName, clientBiz, clientEmail, clientPhone,

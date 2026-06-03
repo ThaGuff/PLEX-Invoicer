@@ -8,6 +8,7 @@ import AccountSwitcher from './components/AccountSwitcher';
 import AccountSettings from './components/AccountSettings';
 import NewAccountModal from './components/NewAccountModal';
 import UserProfileModal from './components/UserProfileModal';
+import CompanyOnboarding from './components/CompanyOnboarding';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import QuoteBuilder from './pages/QuoteBuilder';
@@ -489,6 +490,18 @@ function AppShell({ children }) {
   // ── State declarations (must come before useEffects) ──────────
   const [showSettings,   setShowSettings]   = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    // Show onboarding if never dismissed this session (we check account later)
+    return false; // Will be set after account loads
+  });
+  React.useEffect(() => {
+    // Show onboarding when account loads and hasn't completed setup
+    if (account && account.onboarding_complete !== 1 && !account.business_address && !account.technician_name) {
+      // Only show for accounts that have no company info at all
+      const dismissed = sessionStorage.getItem('onboarding_dismissed_' + account.id);
+      if (!dismissed) setShowOnboarding(true);
+    }
+  }, [account?.id, account?.onboarding_complete]);
 
   const [showNewAccount, setShowNewAccount] = useState(false);
   const [showUserMenu,   setShowUserMenu]   = useState(false);
@@ -591,6 +604,14 @@ function AppShell({ children }) {
 
       {showSettings   && <AccountSettings onClose={() => setShowSettings(false)} />}
       {showUserProfile && <UserProfileModal onClose={() => setShowUserProfile(false)} />}
+      {showOnboarding  && (
+        <CompanyOnboarding
+          onComplete={() => {
+            setShowOnboarding(false);
+            sessionStorage.setItem('onboarding_dismissed_' + account?.id, '1');
+          }}
+        />
+      )}
       {showNewAccount && <NewAccountModal onClose={() => setShowNewAccount(false)} onCreated={() => {}} />}
 
       {/* ── Main layout: sidebar + content ─────────────────────── */}

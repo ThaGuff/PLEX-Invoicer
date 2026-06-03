@@ -22,7 +22,14 @@ export async function initDB() {
       trial_ends_at TEXT,
       created_at TEXT DEFAULT (NOW()::text),
       business_type TEXT DEFAULT NULL,
-      default_template TEXT DEFAULT NULL
+      default_template TEXT DEFAULT NULL,
+      business_address TEXT,
+      city_state_zip TEXT,
+      tax_number TEXT,
+      technician_name TEXT,
+      license_number TEXT,
+      company_tagline TEXT,
+      onboarding_complete INTEGER DEFAULT 0
     )
   `);
 
@@ -644,6 +651,13 @@ export async function migrateUserProfileSystem() {
     // Add business_type and default_template to accounts
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS business_type TEXT`,
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS default_template TEXT`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS business_address TEXT`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS city_state_zip TEXT`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS tax_number TEXT`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS technician_name TEXT`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS license_number TEXT`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS company_tagline TEXT`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS onboarding_complete INTEGER DEFAULT 0`,
     // Add reply_to to workspace_messages
     `ALTER TABLE workspace_messages ADD COLUMN IF NOT EXISTS reply_to TEXT`,
     // Add discount_pct to automation_steps if missing

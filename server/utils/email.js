@@ -133,7 +133,7 @@ ${content}
 </div>
 </body></html>`;
 
-export function buildInvoiceHtml({ clientName, agencyName, invoiceNum, amount, dueDate, portalUrl, logoUrl, accentColor }) {
+export function buildInvoiceHtml({ clientName, agencyName, invoiceNum, amount, dueDate, portalUrl, logoUrl, accentColor, agencyPhone = '', agencyEmail = '', agencyAddress = '', agencyCityState = '', agencyLicense = '', agencyTagline = '' }) {
   const accent = accentColor || '#2563EB';
   return emailBase(`
   <div style="background:linear-gradient(135deg,${accent},#0D9488);padding:36px 40px">

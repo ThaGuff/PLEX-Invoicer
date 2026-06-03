@@ -366,13 +366,19 @@ export default function AccountSettings({ onClose }) {
   const accent = account?.primary_color || '#13B5EA';
 
   const [form, setForm] = useState({
-    name:             account?.name          || '',
-    email:            account?.email         || '',
-    phone:            account?.phone         || '',
-    website:          account?.website       || '',
-    logo_initial:     account?.logo_initial  || account?.name?.[0]?.toUpperCase() || 'A',
-    primary_color:    account?.primary_color || '#13B5EA',
-    business_type:    account?.business_type || '',
+    name:             account?.name             || '',
+    email:            account?.email            || '',
+    phone:            account?.phone            || '',
+    website:          account?.website          || '',
+    business_address: account?.business_address || '',
+    city_state_zip:   account?.city_state_zip   || '',
+    technician_name:  account?.technician_name  || '',
+    license_number:   account?.license_number   || '',
+    company_tagline:  account?.company_tagline  || '',
+    tax_number:       account?.tax_number       || '',
+    logo_initial:     account?.logo_initial     || account?.name?.[0]?.toUpperCase() || 'A',
+    primary_color:    account?.primary_color    || '#13B5EA',
+    business_type:    account?.business_type    || '',
     default_template: account?.default_template || '',
   });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -580,8 +586,14 @@ export default function AccountSettings({ onClose }) {
               {[
                 { k: 'name',         label: 'Business name',       ph: 'Acme Powerwash',     span: 2 },
                 { k: 'email',        label: 'Email',               ph: 'hello@business.com' },
-                { k: 'phone',        label: 'Phone',               ph: '(256) 000-0000' },
-                { k: 'website',      label: 'Website',             ph: 'acmepowerwash.com' },
+                { k: 'phone',            label: 'Phone',                  ph: '(256) 000-0000' },
+                { k: 'website',          label: 'Website',                ph: 'acmepowerwash.com' },
+                { k: 'business_address', label: 'Street Address',         ph: '420 Main Street' },
+                { k: 'city_state_zip',   label: 'City, State, ZIP',       ph: 'Birmingham, AL 35201' },
+                { k: 'technician_name',  label: 'Technician / Rep Name',  ph: 'Joe Smith' },
+                { k: 'license_number',   label: 'License Number',         ph: 'HVAC-2024-001 (optional)' },
+                { k: 'company_tagline',  label: 'Tagline',                ph: 'Quality You Can Count On' },
+                { k: 'tax_number',       label: 'Tax / EIN Number',       ph: 'XX-XXXXXXX (optional)' },
                 { k: 'logo_initial', label: 'Logo letter (1 char)', ph: 'A' },
               ].map(f => (
                 <div key={f.k} className={f.span === 2 ? 'col-span-2' : ''}>
