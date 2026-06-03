@@ -204,6 +204,7 @@ export default function WorkspacePage() {
   const myUsername = myProfile?.username || null;
 
   const [channels, setChannels] = useState([]);
+  const [dmChannels, setDmChannels] = useState([]); // Direct Message channels
   const [activeChannel, setActiveChannel] = useState(null);
   const [messages, setMessages] = useState({});
   const [members, setMembers] = useState([]);
@@ -241,7 +242,10 @@ export default function WorkspacePage() {
       });
       if (r.ok) {
         const data = await r.json();
-        setChannels(data);
+        const regular = data.filter(ch => !ch.is_dm);
+        const dms = data.filter(ch => ch.is_dm);
+        setChannels(regular);
+        setDmChannels(dms);
         if (data.length && !activeChannel) {
           setActiveChannel(data[0].id);
         }
@@ -699,6 +703,44 @@ export default function WorkspacePage() {
             </button>
           ))}
 
+          {/* Direct Messages section */}
+          <div style={{ padding: '12px 8px 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Direct Messages</span>
+          </div>
+
+          {/* Existing DM channels */}
+          {dmChannels.map(dm => {
+            const isDmActive = activeChannel === dm.id;
+            // Show name of the OTHER person in the DM
+            const dmName = dm.name || 'Direct Message';
+            return (
+              <button key={dm.id}
+                onClick={() => { setActiveChannel(dm.id); if (isMobile) setShowSidebar(false); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 10px',
+                  borderRadius: 8, border: 'none', cursor: 'pointer', textAlign: 'left',
+                  background: isDmActive ? 'rgba(255,255,255,0.12)' : 'transparent',
+                  color: isDmActive ? '#fff' : 'rgba(255,255,255,0.65)',
+                  transition: 'all 0.15s', marginBottom: 1,
+                }}
+                onMouseEnter={e => { if (!isDmActive) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+                onMouseLeave={e => { if (!isDmActive) e.currentTarget.style.background = 'transparent'; }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: isDmActive ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>
+                  {dmName.charAt(0).toUpperCase()}
+                </div>
+                <span style={{ fontSize: 13, fontWeight: isDmActive ? 700 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {dmName}
+                </span>
+              </button>
+            );
+          })}
+
+          {dmChannels.length === 0 && (
+            <div style={{ padding: '6px 10px', fontSize: 12, color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>
+              Click a member below to start a DM
+            </div>
+          )}
+
           {/* Members section */}
           <div style={{ padding: '12px 8px 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
             <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Members</span>
@@ -724,7 +766,12 @@ export default function WorkspacePage() {
             const presenceLabel = presenceStatus === 'online' ? 'Online' : presenceStatus === 'away' ? 'Away' : 'Offline';
             const displayName = memberPresence?.display_name || m.email || m.invited_email || 'Member';
             return (
-              <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', borderRadius: 8 }}>
+              <button key={m.id}
+                onClick={() => m.user_id && openDM(m.user_id, displayName)}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', borderRadius: 8, width: '100%', border: 'none', background: 'transparent', cursor: m.user_id ? 'pointer' : 'default', textAlign: 'left', transition: 'background 0.1s' }}
+                onMouseEnter={e => { if (m.user_id) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                title={m.user_id ? `Message ${displayName}` : 'Pending invite'}>
                 <div style={{ position: 'relative' }}>
                   {memberPresence?.avatar_url
                     ? <img src={memberPresence.avatar_url} style={{ width: 26, height: 26, borderRadius: 6, objectFit: 'cover' }} />
@@ -744,7 +791,7 @@ export default function WorkspacePage() {
                     </div>
                   )}
                 </div>
-              </div>
+              </button>
             );
           })}
 
@@ -754,18 +801,18 @@ export default function WorkspacePage() {
                 <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pending ({pendingInvites.length})</span>
               </div>
               {pendingInvites.map(m => (
-                <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', borderRadius: 8 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: 6, background: 'rgba(217,119,6,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D97706', fontSize: 11, fontWeight: 800 }}>
-                    {(m.email || m.invited_email || '?').charAt(0).toUpperCase()}
-                  </div>
-                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                    {m.email || m.invited_email}
-                  </span>
-                  <button onClick={() => removeMember(m.id, true)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'rgba(239,68,68,0.7)', flexShrink: 0 }}>
-                    <X size={12} />
-                  </button>
-                </div>
+                 <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', borderRadius: 8 }}>
+                   <div style={{ width: 26, height: 26, borderRadius: 6, background: 'rgba(217,119,6,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D97706', fontSize: 11, fontWeight: 800 }}>
+                     {(m.email || m.invited_email || '?').charAt(0).toUpperCase()}
+                   </div>
+                   <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                     {m.email || m.invited_email} <span style={{fontSize:10,color:'rgba(217,119,6,0.6)'}}>· pending</span>
+                   </span>
+                   <button onClick={() => removeMember(m.id, true)}
+                     style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'rgba(239,68,68,0.7)', flexShrink: 0 }}>
+                     <X size={12} />
+                   </button>
+                 </div>
               ))}
             </>
           )}

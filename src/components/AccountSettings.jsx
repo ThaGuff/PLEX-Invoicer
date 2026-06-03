@@ -743,6 +743,42 @@ export default function AccountSettings({ onClose }) {
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t shrink-0" style={{ borderColor: 'var(--border)', background: 'var(--bg-page)' }}>
           <button onClick={onClose} className="btn-ghost">Close</button>
+          {/* ── Plan Features Overview ── */}
+          {account?.plan && (
+            <div style={{ marginBottom:20, padding:'16px', borderRadius:12, background:'var(--bg-raised)', border:'1px solid var(--border)' }}>
+              <p style={{ fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--text-muted)', margin:'0 0 10px' }}>
+                Your Plan — {account.plan === 'starter' ? 'Starter' : account.plan === 'pro' ? 'Pro' : 'Agency'}
+              </p>
+              <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                {account.plan === 'agency' && (
+                  <div style={{ padding:'8px 12px', borderRadius:8, background:'rgba(37,99,235,0.08)', border:'1px solid rgba(37,99,235,0.2)', fontSize:12, color:'var(--text-primary)' }}>
+                    <strong>🏷️ White-Label Active</strong> — "Powered by Revanew" is hidden from all your quotes, invoices, and PDFs. Your brand only.
+                  </div>
+                )}
+                {account.plan === 'agency' && (
+                  <div style={{ padding:'8px 12px', borderRadius:8, background:'rgba(37,99,235,0.08)', border:'1px solid rgba(37,99,235,0.2)', fontSize:12, color:'var(--text-primary)' }}>
+                    <strong>🔑 API Access Active</strong> — Use the Revanew REST API to integrate with your own tools and workflows.
+                  </div>
+                )}
+                {account.plan === 'agency' && (
+                  <div style={{ padding:'8px 12px', borderRadius:8, background:'rgba(37,99,235,0.08)', border:'1px solid rgba(37,99,235,0.2)', fontSize:12, color:'var(--text-primary)' }}>
+                    <strong>👥 Unlimited Team Members</strong> — Add unlimited staff with no per-seat limit.
+                  </div>
+                )}
+                {account.plan === 'pro' && (
+                  <div style={{ padding:'8px 12px', borderRadius:8, background:'rgba(37,99,235,0.06)', border:'1px solid rgba(37,99,235,0.15)', fontSize:12, color:'var(--text-muted)' }}>
+                    <strong>5 Team Members</strong> included. Upgrade to Agency for unlimited team members, white-label branding, and API access.
+                  </div>
+                )}
+                {account.plan === 'starter' && (
+                  <div style={{ padding:'8px 12px', borderRadius:8, background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.2)', fontSize:12, color:'var(--text-muted)' }}>
+                    <strong>Starter Plan</strong> — 25 quotes/invoices per month. <a href="/billing" style={{ color:'#2563EB', fontWeight:600 }}>Upgrade to Pro</a> for unlimited, team workspace, AI tools, calendar, documents, automations, and more.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Business type & default template */}
           <div style={{ marginBottom:16 }}>
             <label className="text-xs font-semibold text-ink-muted uppercase tracking-wider block mb-2">Business Type & Default Quote Template</label>
