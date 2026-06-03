@@ -201,6 +201,34 @@ router.post('/channels', requireAuth, async (req, res) => {
 });
 
 
+// ── POST /api/workspace/dm — create or fetch DM channel ───────────
+router.post('/dm', requireAuth, async (req, res) => {
+  try {
+    const { account_id, target_user_id } = req.body;
+    if (!account_id || !target_user_id) return res.status(400).json({ error: 'account_id and target_user_id required' });
+    await assertAccountAccess(account_id, req.user.id);
+    const sortedIds = [req.user.id, target_user_id].sort().join(',');
+    const existing = await db.execute(
+      `SELECT * FROM workspace_channels WHERE account_id = ? AND is_dm = 1 AND dm_user_ids = ?`,
+      [account_id, sortedIds]
+    );
+    if (existing.rows.length) return res.json(existing.rows[0]);
+    const tp = await db.execute(`SELECT display_name, username FROM user_profiles WHERE user_id = ?`, [target_user_id]);
+    const mp = await db.execute(`SELECT display_name, username FROM user_profiles WHERE user_id = ?`, [req.user.id]);
+    const targetName = tp.rows[0]?.display_name || tp.rows[0]?.username || 'User';
+    const myName = mp.rows[0]?.display_name || mp.rows[0]?.username || 'User';
+    const { randomUUID } = await import('crypto');
+    const id = `wch-dm-${randomUUID()}`;
+    await db.execute(
+      `INSERT INTO workspace_channels (id, account_id, name, is_dm, is_private, dm_user_ids, created_by)
+       VALUES (?, ?, ?, 1, 1, ?, ?)`,
+      [id, account_id, `${myName} & ${targetName}`, sortedIds, req.user.id]
+    );
+    const created = await db.execute(`SELECT * FROM workspace_channels WHERE id = ?`, [id]);
+    res.json(created.rows[0]);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── GET /api/workspace/members?account_id= ────────────────────────
 router.get('/members', requireAuth, async (req, res) => {
   const { account_id } = req.query;

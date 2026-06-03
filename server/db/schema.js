@@ -294,6 +294,8 @@ export async function initDB() {
       account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
       name TEXT NOT NULL,
       private INTEGER DEFAULT 0,
+      is_dm INTEGER DEFAULT 0,
+      dm_user_ids TEXT,
       description TEXT,
       created_by TEXT,
       created_at TIMESTAMP DEFAULT NOW()
@@ -628,10 +630,14 @@ export async function ensureWorkspaceTables() {
       account_id TEXT NOT NULL,
       name TEXT NOT NULL,
       is_private INTEGER DEFAULT 0,
+      is_dm INTEGER DEFAULT 0,
+      dm_user_ids TEXT,
       description TEXT,
       created_by TEXT,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )`,
+    `ALTER TABLE workspace_channels ADD COLUMN IF NOT EXISTS is_dm INTEGER DEFAULT 0`,
+    `ALTER TABLE workspace_channels ADD COLUMN IF NOT EXISTS dm_user_ids TEXT`,
     `CREATE TABLE IF NOT EXISTS workspace_messages (
       id TEXT PRIMARY KEY,
       account_id TEXT NOT NULL,

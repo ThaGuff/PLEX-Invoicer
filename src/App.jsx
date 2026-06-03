@@ -366,6 +366,18 @@ function Nav() {
             </div>
           </div>
 
+          {/* Business Settings quick link */}
+          <button onClick={() => window.dispatchEvent(new CustomEvent('revanew:settings'))}
+            style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8,
+              border:'none', background:'transparent', color:'rgba(255,255,255,0.5)',
+              cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:"'Plus Jakarta Sans',sans-serif",
+              transition:'all 0.15s', width:'100%' }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+            </svg>
+            Business Settings
+          </button>
+
           {/* Sign out */}
           <button onClick={signOut} style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8, border:'none', background:'transparent', color:'rgba(255,255,255,0.38)', cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:"'Plus Jakarta Sans',sans-serif", transition:'all 0.15s', width:'100%', letterSpacing:'-0.01em' }}
             onMouseEnter={e => { e.currentTarget.style.color='rgba(239,68,68,0.9)'; e.currentTarget.style.background='rgba(239,68,68,0.1)'; }}
