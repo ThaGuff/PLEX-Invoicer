@@ -131,13 +131,7 @@ export default function Dashboard() {
             {account?.name} · {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => navigate('/quotes/new')}
-            className="flex items-center gap-2 text-white font-bold rounded-xl"
-            style={{ background: 'var(--gradient)', padding: '10px 20px', fontSize: 13, border: 'none', cursor: 'pointer', boxShadow: '0 4px 14px rgba(37,99,235,0.35)' }}>
-            <Plus size={15} /> New quote
-          </button>
-        </div>
+
       </div>
 
       {/* Stat cards */}
