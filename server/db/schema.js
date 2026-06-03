@@ -20,7 +20,9 @@ export async function initDB() {
       stripe_onboarded INTEGER DEFAULT 0,
       subscription_status TEXT DEFAULT 'trialing',
       trial_ends_at TEXT,
-      created_at TEXT DEFAULT (NOW()::text)
+      created_at TEXT DEFAULT (NOW()::text),
+      business_type TEXT DEFAULT NULL,
+      default_template TEXT DEFAULT NULL
     )
   `);
 
@@ -639,6 +641,9 @@ export async function migrateUserProfileSystem() {
     `ALTER TABLE workspace_channels RENAME COLUMN "desc" TO description`,
     // Add due_date to quotes
     `ALTER TABLE quotes ADD COLUMN IF NOT EXISTS due_date TEXT`,
+    // Add business_type and default_template to accounts
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS business_type TEXT`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS default_template TEXT`,
     // Add reply_to to workspace_messages
     `ALTER TABLE workspace_messages ADD COLUMN IF NOT EXISTS reply_to TEXT`,
     // Add discount_pct to automation_steps if missing

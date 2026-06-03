@@ -278,7 +278,7 @@ function Nav() {
             </button>
             {/* Notification dropdown */}
             {showNotifications && (
-              <div style={{ position:'fixed', bottom:70, left:8, right:8, maxWidth:340, margin:'0 auto', background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:14, boxShadow:'0 16px 48px rgba(11,18,32,0.25)', zIndex:400, overflow:'hidden' }}>
+              <div style={{ position:'fixed', top:16, right:16, width:360, maxWidth:'calc(100vw - 32px)', background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:14, boxShadow:'0 16px 48px rgba(11,18,32,0.25)', zIndex:400, overflow:'hidden' }}>
                 <div style={{ padding:'12px 14px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                   <span style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>Notifications</span>
                   {unreadCount > 0 && (

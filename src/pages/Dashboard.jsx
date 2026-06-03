@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import { useAccount } from '../context/AccountContext';
 import CashflowDashboard from '../components/CashflowDashboard';
+import WeeklyScheduleWidget from '../components/WeeklyScheduleWidget';
+import DraggableWidget from '../components/DraggableWidget';
 import { api } from '../utils/api';
 
 function fmt(n)    { return '$' + Math.abs(Math.round((n||0)*100)/100).toLocaleString('en-US',{minimumFractionDigits:0}); }
@@ -251,12 +253,20 @@ export default function Dashboard() {
         </div>
         </div>{/* end left column */}
 
-        {/* Right column: Predictive Cashflow */}
-        <div className="animate-fade-up-delay-4">
-          {canUseFeature(account?.plan, 'cashflow_dashboard')
-            ? <CashflowDashboard accountId={account?.id} accent={accent} />
-            : <PlanGate feature="cashflow_dashboard" />
-          }
+        {/* Right column: Schedule summary + Predictive Cashflow */}
+        <div className="animate-fade-up-delay-4" style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          {/* Weekly schedule & alerts */}
+          <DraggableWidget id="weekly-schedule" title="This Week" icon="📅" accent={accent}>
+            <WeeklyScheduleWidget accountId={account?.id} accent={accent} />
+          </DraggableWidget>
+
+          {/* Predictive cashflow */}
+          <DraggableWidget id="cashflow" title="Cashflow Forecast" icon="💰" accent={accent}>
+            {canUseFeature(account?.plan, 'cashflow_dashboard')
+              ? <CashflowDashboard accountId={account?.id} accent={accent} />
+              : <PlanGate feature="cashflow_dashboard" />
+            }
+          </DraggableWidget>
         </div>
 
       </div>

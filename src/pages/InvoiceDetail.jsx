@@ -417,9 +417,9 @@ Thank you!`);
                     style={{ background: accent }}>
                     <Send size={15} /> {working === 'send' ? 'Sending…' : 'Send & Mark Sent'}
                   </button>
-                  <button onClick={handleSend} disabled={!!working}
+                  <button onClick={handleRemind} disabled={!!working}
                     className="btn-ghost w-full flex items-center gap-2 text-sm">
-                    <Send size={15} /> Send Invoice
+                    <Bell size={15} /> Send Reminder
                   </button>
                   <button onClick={handlePaymentLink} disabled={!!working}
                     className="btn-ghost w-full flex items-center gap-2 text-sm">

@@ -411,6 +411,7 @@ export default function QuoteBuilder() {
     new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   );
   // Payment due date — defaults to 30 days from today, user can override
+  const [dueUponReceipt, setDueUponReceipt] = useState(false);
   const [dueDate, setDueDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 30);
@@ -497,6 +498,7 @@ export default function QuoteBuilder() {
       setClientBiz(q.client_biz || '');
       setClientEmail(q.client_email || '');
       if (q.due_date) setDueDate(q.due_date);
+      if (q.due_upon_receipt) setDueUponReceipt(true);
       setClientPhone(q.client_phone || '');
       setBillingMode(q.billing_mode || 'monthly');
       setYearlyDiscount(q.yearly_discount || 15);
@@ -624,7 +626,8 @@ export default function QuoteBuilder() {
         client_name:     clientName,
         client_biz:      clientBiz,
         client_email:    clientEmail,
-        due_date:        dueDate,
+        due_date:        dueUponReceipt ? 'due_upon_receipt' : dueDate,
+        due_upon_receipt: dueUponReceipt ? 1 : 0,
         client_phone:    clientPhone,
         billing_mode:    billingMode,
         yearly_discount: yearlyDiscount,
@@ -725,6 +728,30 @@ export default function QuoteBuilder() {
         {/* ── LEFT ── */}
         <div>
 
+          {/* Company branding header — always shows logo */}
+          {(account?.logo_url || account?.name) && (
+            <div className="card p-4 mb-4" style={{ background: `linear-gradient(135deg, ${accent}08, ${accent}04)`, borderColor: `${accent}20` }}>
+              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                {account?.logo_url ? (
+                  <img src={account.logo_url} alt={account.name} style={{ height:48, maxWidth:120, objectFit:'contain', borderRadius:8, background:'white', padding:4, boxShadow:'0 1px 4px rgba(0,0,0,0.1)' }} />
+                ) : (
+                  <div style={{ width:48, height:48, borderRadius:10, background: accent, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:22, fontWeight:800, flexShrink:0 }}>
+                    {(account?.name || 'B').charAt(0)}
+                  </div>
+                )}
+                <div>
+                  <p style={{ fontSize:16, fontWeight:800, color:'var(--text-primary)', lineHeight:1.2 }}>{account?.name}</p>
+                  {account?.email && <p style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>{account.email}</p>}
+                  {account?.phone && <p style={{ fontSize:12, color:'var(--text-muted)' }}>{account.phone}</p>}
+                </div>
+                <div style={{ marginLeft:'auto', textAlign:'right' }}>
+                  <p style={{ fontSize:10, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.05em', fontWeight:600 }}>Powered by</p>
+                  <a href="https://revanew.io" target="_blank" rel="noopener noreferrer" style={{ fontSize:12, fontWeight:700, color: accent, textDecoration:'none' }}>Revanew.io</a>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Client info */}
           <div className="card p-5 mb-4">
             <div className="flex items-center gap-2 mb-4 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
@@ -751,20 +778,38 @@ export default function QuoteBuilder() {
                   <input type={f.type || 'text'} value={f.v} onChange={e => f.s(e.target.value)} placeholder={f.ph} className="field" />
                 </div>
               ))}
-              {/* Payment Due Date — separate because it uses type=date */}
+              {/* Payment Due Date — with "Due upon receipt" option */}
               <div>
                 <label className="text-xs font-medium text-ink-muted block mb-1">Payment Due Date</label>
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={e => setDueDate(e.target.value)}
-                  className="field"
-                  min={new Date().toISOString().split('T')[0]}
-                  style={{ colorScheme: 'light dark' }}
-                />
-                <p className="text-xs text-ink-muted mt-1">
-                  {dueDate ? `Due ${new Date(dueDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : 'Set payment deadline'}
-                </p>
+                {/* Due upon receipt checkbox */}
+                <label style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8, cursor:'pointer', userSelect:'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={dueUponReceipt}
+                    onChange={e => setDueUponReceipt(e.target.checked)}
+                    style={{ width:16, height:16, accentColor: accent, cursor:'pointer' }}
+                  />
+                  <span style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)' }}>Due upon receipt</span>
+                  <span style={{ fontSize:11, color:'var(--text-muted)' }}>Payment expected immediately on completion</span>
+                </label>
+                {!dueUponReceipt && (
+                  <>
+                    <input
+                      type="date"
+                      value={dueDate}
+                      onChange={e => setDueDate(e.target.value)}
+                      className="field"
+                      min={new Date().toISOString().split('T')[0]}
+                      style={{ colorScheme: 'light dark' }}
+                    />
+                    <p className="text-xs text-ink-muted mt-1">
+                      {dueDate ? `Due ${new Date(dueDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : 'Set payment deadline'}
+                    </p>
+                  </>
+                )}
+                {dueUponReceipt && (
+                  <p style={{ fontSize:12, color: accent, fontWeight:600, marginTop:4 }}>✓ Payment due upon receipt of invoice</p>
+                )}
               </div>
             </div>
           </div>
@@ -800,7 +845,12 @@ export default function QuoteBuilder() {
                   <div className="flex items-center gap-2">
                     <span style={{ fontSize: 22 }}>{QUOTE_TEMPLATES[selectedTemplate].icon}</span>
                     <div>
+                      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                       <p className="text-sm font-bold" style={{ color: QUOTE_TEMPLATES[selectedTemplate].color }}>{QUOTE_TEMPLATES[selectedTemplate].name}</p>
+                      {account?.default_template === selectedTemplate && (
+                        <span style={{ fontSize:10, fontWeight:700, padding:'1px 6px', borderRadius:8, background:'#22c55e20', color:'#16a34a', border:'1px solid #22c55e40' }}>⭐ Your default</span>
+                      )}
+                    </div>
                       <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                         {QUOTE_TEMPLATES[selectedTemplate].sections.reduce((a, s) => a + s.services.length, 0)} services across {QUOTE_TEMPLATES[selectedTemplate].sections.length} categories
                       </p>
@@ -854,6 +904,27 @@ export default function QuoteBuilder() {
                     style={{ background: QUOTE_TEMPLATES[selectedTemplate].color, boxShadow: `0 4px 12px ${QUOTE_TEMPLATES[selectedTemplate].color}40` }}>
                     Load Template ✨
                   </button>
+                  {account?.id && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          const t = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
+                          await fetch(`/api/accounts/${account.id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type':'application/json', Authorization:`Bearer ${t}` },
+                            body: JSON.stringify({ default_template: selectedTemplate })
+                          });
+                          await refreshAccount();
+                          setTemplateApplied(true);
+                          setTimeout(() => setTemplateApplied(false), 3000);
+                        } catch(e) { console.error(e); }
+                      }}
+                      className="px-3 py-2 rounded-lg text-xs font-semibold transition-all"
+                      style={{ background: 'var(--bg-raised)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+                      title="Auto-load this template for all new quotes">
+                      ⭐ Set as default
+                    </button>
+                  )}
                 </div>
 
                 {/* Section preview */}

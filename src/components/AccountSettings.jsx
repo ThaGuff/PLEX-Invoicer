@@ -366,12 +366,14 @@ export default function AccountSettings({ onClose }) {
   const accent = account?.primary_color || '#13B5EA';
 
   const [form, setForm] = useState({
-    name:          account?.name          || '',
-    email:         account?.email         || '',
-    phone:         account?.phone         || '',
-    website:       account?.website       || '',
-    logo_initial:  account?.logo_initial  || account?.name?.[0]?.toUpperCase() || 'A',
-    primary_color: account?.primary_color || '#13B5EA',
+    name:             account?.name          || '',
+    email:            account?.email         || '',
+    phone:            account?.phone         || '',
+    website:          account?.website       || '',
+    logo_initial:     account?.logo_initial  || account?.name?.[0]?.toUpperCase() || 'A',
+    primary_color:    account?.primary_color || '#13B5EA',
+    business_type:    account?.business_type || '',
+    default_template: account?.default_template || '',
   });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
@@ -729,6 +731,35 @@ export default function AccountSettings({ onClose }) {
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t shrink-0" style={{ borderColor: 'var(--border)', background: 'var(--bg-page)' }}>
           <button onClick={onClose} className="btn-ghost">Close</button>
+          {/* Business type & default template */}
+          <div style={{ marginBottom:16 }}>
+            <label className="text-xs font-semibold text-ink-muted uppercase tracking-wider block mb-2">Business Type & Default Quote Template</label>
+            <select value={form.business_type || ''} onChange={e => { set('business_type', e.target.value); set('default_template', e.target.value); }}
+              className="field w-full text-sm mb-2">
+              <option value="">— Select your industry —</option>
+              <option value="hvac">❄️ HVAC — Heating, Ventilation & Air Conditioning</option>
+              <option value="electrical">⚡ Electrical Contractor</option>
+              <option value="plumbing">🔧 Plumbing</option>
+              <option value="handyman">🔨 Handyman</option>
+              <option value="construction">🏗️ Construction</option>
+              <option value="generalContractor">📋 General Contractor</option>
+              <option value="insurance">🏠 Insurance Restoration</option>
+              <option value="flooring">🏡 Flooring</option>
+              <option value="pressureWashing">💧 Pressure Washing</option>
+              <option value="junkRemoval">🚛 Junk Removal</option>
+              <option value="treeService">🌳 Tree Service</option>
+              <option value="painting">🎨 Painting</option>
+              <option value="concrete">🧱 Concrete & Masonry</option>
+              <option value="farming">🐄 Cattle & Farming</option>
+              <option value="it">💻 Information Technology</option>
+            </select>
+            {form.business_type && (
+              <p style={{ fontSize:11, color:'#22c55e', fontWeight:600 }}>
+                ✅ New quotes will automatically load your {form.business_type.toUpperCase()} service template
+              </p>
+            )}
+          </div>
+
           <button onClick={handleSave} disabled={saving}
             className="btn-primary flex items-center gap-2 disabled:opacity-50">
             {savedOk ? <><CheckCircle size={14} /> Saved!</>
