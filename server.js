@@ -23,6 +23,7 @@ import analyticsRouter   from './server/routes/analytics.js';
 import integrationsRouter from './server/routes/integrations.js';
 import stripeConnectRouter from './server/routes/stripe-connect.js';
 import referralsRouter     from './server/routes/referrals.js';
+import timeTrackingRouter  from './server/routes/time-tracking.js';
 import taxRouter          from './server/routes/tax.js';
 import automationsRouter  from './server/routes/automations.js';
 import notificationsRouter    from './server/routes/notifications.js';
@@ -707,7 +708,8 @@ app.get('/api/calendar/events', requireAuth, async (req, res) => {
     res.json(result.rows);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
-app.use('/api/referrals',      referralsRouter); // auth checked per-route (validate is public)
+app.use('/api/referrals',      referralsRouter);
+app.use('/api/time',           requireAuth, timeTrackingRouter); // auth checked per-route (validate is public)
 app.use('/api/calendar',       requireAuth, requirePlanFeature('calendar'),   calendarRouter);
 app.use('/api/documents',      requireAuth, requirePlanFeature('documents'),  documentsRouter);
 app.use('/api/photos',         requireAuth, requirePlanFeature('photos'),     photosRouter);

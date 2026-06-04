@@ -688,6 +688,39 @@ export async function migrateUserProfileSystem() {
     `ALTER TABLE quotes ADD COLUMN IF NOT EXISTS due_date TEXT`,
     // Referral account credit
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS account_credit REAL DEFAULT 0`,
+    // Time tracking system
+    `CREATE TABLE IF NOT EXISTS time_entries (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      project_name TEXT NOT NULL,
+      description TEXT,
+      contact_id TEXT REFERENCES contacts(id) ON DELETE SET NULL,
+      quote_id TEXT,
+      invoice_id TEXT,
+      assigned_to TEXT,
+      start_time TIMESTAMPTZ,
+      end_time TIMESTAMPTZ,
+      duration_minutes INTEGER DEFAULT 0,
+      is_billable INTEGER DEFAULT 1,
+      hourly_rate REAL DEFAULT 0,
+      billed_amount REAL DEFAULT 0,
+      status TEXT DEFAULT 'pending',
+      is_invoiced INTEGER DEFAULT 0,
+      timer_running INTEGER DEFAULT 0,
+      tags TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`,
+    `CREATE TABLE IF NOT EXISTS time_projects (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      contact_id TEXT,
+      hourly_rate REAL DEFAULT 0,
+      budget_hours REAL,
+      billing_method TEXT DEFAULT 'hourly',
+      status TEXT DEFAULT 'active',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`,
     // Logo blob storage (serves via /api/accounts/:id/logo-img)
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS logo_data TEXT`,
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS logo_mime TEXT DEFAULT 'image/jpeg'`,

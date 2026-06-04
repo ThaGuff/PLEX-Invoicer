@@ -12,6 +12,8 @@ import CompanyOnboarding from './components/CompanyOnboarding';
 import OfflineBanner from './components/OfflineBanner';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
+import LandingPage from './pages/LandingPage';
+import TimeTrackingPage from './pages/TimeTrackingPage';
 import QuoteBuilder from './pages/QuoteBuilder';
 import QuotesList from './pages/QuotesList';
 import InvoicesList from './pages/InvoicesList';
@@ -89,7 +91,11 @@ function RequireAuth({ children }) {
       <div className="w-7 h-7 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#13B5EA', borderTopColor: 'transparent' }} />
     </div>
   );
-  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
+  if (!isAuthenticated) {
+    // Redirect to landing page if at root, otherwise to login
+    const dest = location.pathname === '/' ? '/landing' : '/login';
+    return <Navigate to={dest} state={{ from: location }} replace />;
+  }
   return children;
 }
 
@@ -709,6 +715,7 @@ export default function App() {
                     <Route path="/invoices"        element={<InvoicesList />} />
                     <Route path="/invoices/:id"    element={<InvoiceDetail />} />
                     <Route path="/contacts"        element={<Contacts />} />
+                    <Route path="/time"           element={<TimeTrackingPage />} />
                     <Route path="/contacts/new"    element={<Contacts />} />
                     <Route path="/admin"            element={<Admin />} />
                     <Route path="/taxes"           element={<TaxesPage />} />
