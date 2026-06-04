@@ -91,11 +91,7 @@ function RequireAuth({ children }) {
       <div className="w-7 h-7 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#13B5EA', borderTopColor: 'transparent' }} />
     </div>
   );
-  if (!isAuthenticated) {
-    // Redirect to landing page if at root, otherwise to login
-    const dest = location.pathname === '/' ? '/landing' : '/login';
-    return <Navigate to={dest} state={{ from: location }} replace />;
-  }
+  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
   return children;
 }
 
@@ -677,6 +673,15 @@ function useDarkMode() {
   }, [dark]);
 
   return [dark, setDark];
+}
+
+// Route that shows landing for unauth, dashboard for auth
+function LandingRoute() {
+  const { isAuthenticated, loading } = useAuth();
+  const nav = useNavigate();
+  if (loading) return null;
+  if (isAuthenticated) { nav('/dashboard', { replace: true }); return null; }
+  return <LandingPage />;
 }
 
 export default function App() {
