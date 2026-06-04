@@ -177,6 +177,7 @@ function Nav() {
     { to: '/workspace',   label: 'Team',      icon: MessageSquare,   color: '#7C3AED' },
     { to: '/automations', label: 'Automate',  icon: Zap,             color: '#D97706' },
     { to: '/analytics',   label: 'Analytics', icon: BarChart2,       color: '#2563EB' },
+    { to: '/time',        label: 'Time',      icon: Timer,           color: '#0D9488' },
     { to: '/billing',     label: 'Billing',   icon: CreditCard,      color: '#7C3AED' },
     ...(isOwner ? [{ to: '/admin', label: 'Admin', icon: Shield, color: '#ef4444' }] : []),
   ];
@@ -701,6 +702,8 @@ export default function App() {
         <IdleWarningBannerWrapper />
         <Routes>
           {/* Public — no auth required */}
+          <Route path="/"                         element={<LandingRoute />} />
+          <Route path="/landing"                  element={<LandingPage />} />
           <Route path="/login"                    element={<Login />} />
           <Route path="/auth/callback"              element={<AuthCallback />} />
           <Route path="/portal/quote/:token"      element={<PublicQuote />} />
