@@ -307,7 +307,7 @@ router.post('/:id/logo', requireAuth, async (req, res) => {
     }
 
     // Store the base64 data and mime type, use a clean URL as logo_url
-    const logoServeUrl = \`/api/accounts/\${req.params.id}/logo-img\`;
+    const logoServeUrl = `/api/accounts/${req.params.id}/logo-img`;
     await db.execute(
       `UPDATE accounts SET logo_url = ?, logo_data = ?, logo_mime = ? WHERE id = ?`,
       [logoServeUrl, b64, mime, req.params.id]

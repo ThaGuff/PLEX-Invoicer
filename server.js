@@ -699,6 +699,23 @@ app.post('/api/workspace/accept/:token', async (req, res, next) => {
 });
 
 app.use('/api/workspace',      requireAuth, requirePlanFeature('workspace'),  workspaceRouter);
+// Public logo-img endpoint — no auth required (used in emails, PDFs, shared links)
+app.get('/api/accounts/:id/logo-img', async (req, res) => {
+  try {
+    const { db: adb } = await import('./server/db/schema.js');
+    const r = await adb.execute(
+      `SELECT logo_data, logo_mime FROM accounts WHERE id = ?`, [req.params.id]
+    );
+    if (!r.rows.length || !r.rows[0].logo_data) {
+      return res.status(404).send('No logo');
+    }
+    const { logo_data, logo_mime } = r.rows[0];
+    const buf = Buffer.from(logo_data, 'base64');
+    res.set('Content-Type', logo_mime || 'image/jpeg');
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.send(buf);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
 app.use('/api/accounts',     requireAuth, accountsRouter);
 app.use('/api/contacts', requireAuth, contactsRouter);
 app.use('/api/quotes',   requireAuth, quotesRouter);
