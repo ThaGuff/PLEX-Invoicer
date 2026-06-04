@@ -691,6 +691,28 @@ export async function migrateUserProfileSystem() {
     // Logo blob storage (serves via /api/accounts/:id/logo-img)
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS logo_data TEXT`,
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS logo_mime TEXT DEFAULT 'image/jpeg'`,
+    // Custom fields system (new tables)
+    `CREATE TABLE IF NOT EXISTS contact_custom_fields (
+      id TEXT PRIMARY KEY, account_id TEXT NOT NULL, field_name TEXT NOT NULL,
+      field_key TEXT NOT NULL, field_type TEXT NOT NULL DEFAULT 'text',
+      field_options TEXT DEFAULT '[]', is_required INTEGER DEFAULT 0,
+      sort_order INTEGER DEFAULT 0, created_at TEXT DEFAULT (NOW()::text)
+    )`,
+    `CREATE TABLE IF NOT EXISTS contact_custom_values (
+      id TEXT PRIMARY KEY, contact_id TEXT NOT NULL, account_id TEXT NOT NULL,
+      field_id TEXT NOT NULL, value TEXT, created_at TEXT DEFAULT (NOW()::text),
+      updated_at TEXT DEFAULT (NOW()::text), UNIQUE(contact_id, field_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS contact_saved_views (
+      id TEXT PRIMARY KEY, account_id TEXT NOT NULL, name TEXT NOT NULL,
+      filters TEXT DEFAULT '{}', sort_by TEXT DEFAULT 'name',
+      created_by TEXT, created_at TEXT DEFAULT (NOW()::text)
+    )`,
+    `CREATE TABLE IF NOT EXISTS contact_tasks (
+      id TEXT PRIMARY KEY, contact_id TEXT NOT NULL, account_id TEXT NOT NULL,
+      title TEXT NOT NULL, due_date TEXT, completed INTEGER DEFAULT 0,
+      assigned_to TEXT, priority TEXT DEFAULT 'normal', created_at TEXT DEFAULT (NOW()::text)
+    )`,
     // Add business_type and default_template to accounts
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS business_type TEXT`,
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS default_template TEXT`,

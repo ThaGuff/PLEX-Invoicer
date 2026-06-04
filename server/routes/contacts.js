@@ -168,21 +168,22 @@ router.get('/', requireAuth, async (req, res) => {
     await assertAccess(account_id, req.user.id);
 
     // Base query with live financial aggregation
+    const safeSortBy = ['name','lifetime_value','outstanding_balance','last_invoice_date','created_at','ai_revenue_score','ai_health_score'].includes(sort_by) ? sort_by : 'name';
     const contacts = await db.execute(
       `SELECT c.*,
         COALESCE((SELECT SUM(i.amount_paid) FROM invoices i WHERE i.contact_id = c.id AND i.status='paid'), 0) as lifetime_value,
         COALESCE((SELECT SUM(i.amount_due) FROM invoices i WHERE i.contact_id = c.id AND i.status NOT IN ('paid','void')), 0) as outstanding_balance,
         (SELECT i.created_at FROM invoices i WHERE i.contact_id = c.id ORDER BY i.created_at DESC LIMIT 1) as last_invoice_date,
         (SELECT i.paid_at FROM invoices i WHERE i.contact_id = c.id AND i.status='paid' ORDER BY i.paid_at DESC LIMIT 1) as last_payment_date,
-        (SELECT MAX(COALESCE(n.created_at, q.created_at)) FROM (
-          SELECT created_at FROM contact_notes WHERE contact_id = c.id
-          UNION ALL SELECT created_at FROM quotes WHERE contact_id = c.id
-        ) t(created_at)) as last_activity_date,
+        GREATEST(
+          COALESCE((SELECT MAX(cn.created_at) FROM contact_notes cn WHERE cn.contact_id = c.id), '1970-01-01'),
+          COALESCE((SELECT MAX(q.created_at) FROM quotes q WHERE q.contact_id = c.id), '1970-01-01')
+        ) as last_activity_date,
         (SELECT COUNT(*) FROM quotes WHERE contact_id = c.id) as total_quotes,
         (SELECT COUNT(*) FROM invoices WHERE contact_id = c.id) as total_invoices
        FROM contacts c
        WHERE c.account_id = ?
-       ORDER BY c.${['name','lifetime_value','last_activity_date','created_at','ai_revenue_score'].includes(sort_by) ? sort_by : 'name'} ${sort_dir === 'desc' ? 'DESC' : 'ASC'}
+       ORDER BY c.${safeSortBy} ${sort_dir === 'desc' ? 'DESC' : 'ASC'}
        LIMIT ?`,
       [account_id, parseInt(limit)]
     );
