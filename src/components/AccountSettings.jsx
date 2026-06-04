@@ -743,39 +743,20 @@ export default function AccountSettings({ onClose }) {
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t shrink-0" style={{ borderColor: 'var(--border)', background: 'var(--bg-page)' }}>
           <button onClick={onClose} className="btn-ghost">Close</button>
-          {/* ── Plan Features Overview ── */}
+          {/* ── Plan badge (compact) ── */}
           {account?.plan && (
-            <div style={{ marginBottom:20, padding:'16px', borderRadius:12, background:'var(--bg-raised)', border:'1px solid var(--border)' }}>
-              <p style={{ fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--text-muted)', margin:'0 0 10px' }}>
-                Your Plan — {account.plan === 'starter' ? 'Starter' : account.plan === 'pro' ? 'Pro' : 'Agency'}
-              </p>
-              <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                {account.plan === 'agency' && (
-                  <div style={{ padding:'8px 12px', borderRadius:8, background:'rgba(37,99,235,0.08)', border:'1px solid rgba(37,99,235,0.2)', fontSize:12, color:'var(--text-primary)' }}>
-                    <strong>🏷️ White-Label Active</strong> — "Powered by Revanew" is hidden from all your quotes, invoices, and PDFs. Your brand only.
-                  </div>
-                )}
-                {account.plan === 'agency' && (
-                  <div style={{ padding:'8px 12px', borderRadius:8, background:'rgba(37,99,235,0.08)', border:'1px solid rgba(37,99,235,0.2)', fontSize:12, color:'var(--text-primary)' }}>
-                    <strong>🔑 API Access Active</strong> — Use the Revanew REST API to integrate with your own tools and workflows.
-                  </div>
-                )}
-                {account.plan === 'agency' && (
-                  <div style={{ padding:'8px 12px', borderRadius:8, background:'rgba(37,99,235,0.08)', border:'1px solid rgba(37,99,235,0.2)', fontSize:12, color:'var(--text-primary)' }}>
-                    <strong>👥 Unlimited Team Members</strong> — Add unlimited staff with no per-seat limit.
-                  </div>
-                )}
-                {account.plan === 'pro' && (
-                  <div style={{ padding:'8px 12px', borderRadius:8, background:'rgba(37,99,235,0.06)', border:'1px solid rgba(37,99,235,0.15)', fontSize:12, color:'var(--text-muted)' }}>
-                    <strong>5 Team Members</strong> included. Upgrade to Agency for unlimited team members, white-label branding, and API access.
-                  </div>
-                )}
-                {account.plan === 'starter' && (
-                  <div style={{ padding:'8px 12px', borderRadius:8, background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.2)', fontSize:12, color:'var(--text-muted)' }}>
-                    <strong>Starter Plan</strong> — 25 quotes/invoices per month. <a href="/billing" style={{ color:'#2563EB', fontWeight:600 }}>Upgrade to Pro</a> for unlimited, team workspace, AI tools, calendar, documents, automations, and more.
-                  </div>
-                )}
-              </div>
+            <div style={{ marginBottom:14, display:'flex', alignItems:'center', gap:8, padding:'8px 12px', borderRadius:10, background:'var(--bg-raised)', border:'1px solid var(--border)' }}>
+              <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20,
+                background: account.plan==='agency' ? '#6366f115' : account.plan==='pro' ? '#2563eb15' : '#22c55e15',
+                color: account.plan==='agency' ? '#6366f1' : account.plan==='pro' ? '#2563eb' : '#16a34a',
+                border: `1px solid ${account.plan==='agency' ? '#6366f130' : account.plan==='pro' ? '#2563eb30' : '#22c55e30'}`
+              }}>{account.plan.toUpperCase()}</span>
+              <span style={{ fontSize:12, color:'var(--text-muted)', flex:1 }}>
+                {account.plan==='agency' && '🏷️ White-label · 🔑 API access · 👥 Unlimited team'}
+                {account.plan==='pro' && '5 team members · All core features'}
+                {account.plan==='starter' && '25 quotes/invoices/mo · '}
+                {account.plan==='starter' && <a href="/billing" style={{ color:'#2563EB', fontWeight:600 }}>Upgrade →</a>}
+              </span>
             </div>
           )}
 

@@ -120,15 +120,32 @@ const emailBase = (content, accentColor = '#2563EB') => `<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light">
+<style>
+  @media only screen and (max-width:600px) {
+    .email-container { margin: 0 !important; border-radius: 0 !important; }
+    .email-pad { padding: 24px 20px !important; }
+    .email-hero { padding: 28px 20px !important; }
+    .amount-text { font-size: 22px !important; }
+    .cta-btn { padding: 14px 20px !important; font-size: 15px !important; }
+  }
+</style>
 </head>
 <body style="margin:0;padding:0;background:#F1F5F9;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased">
-<div style="max-width:600px;margin:32px auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,0.08)">
+<div class="email-container" style="max-width:600px;margin:24px auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 48px rgba(0,0,0,0.1)">
 ${content}
-<div style="padding:24px 40px;background:#F8FAFC;border-top:1px solid #E2E8F0;text-align:center">
-  <p style="margin:0;color:#94A3B8;font-size:12px;line-height:1.6">
-    Powered by <a href="https://revanew.io" style="color:${accentColor};text-decoration:none;font-weight:600">Revanew</a> · 
-    The billing platform for service businesses
-  </p>
+<!-- Footer -->
+<div style="padding:20px 40px;background:#F8FAFC;border-top:1px solid #E2E8F0">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td style="text-align:center">
+        <p style="margin:0 0 6px;color:#CBD5E1;font-size:11px;letter-spacing:0.05em;text-transform:uppercase">Powered by</p>
+        <a href="https://revanew.io" style="color:${accentColor};text-decoration:none;font-size:14px;font-weight:700">Revanew.io</a>
+        <p style="margin:8px 0 0;color:#94A3B8;font-size:11px;line-height:1.6">
+          Quotes · Invoices · Get Paid · <a href="https://revanew.io" style="color:#94A3B8">revanew.io</a>
+        </p>
+      </td>
+    </tr>
+  </table>
 </div>
 </div>
 </body></html>`;

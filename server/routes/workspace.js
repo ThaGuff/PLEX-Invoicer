@@ -352,7 +352,21 @@ router.post('/accept/:token', requireAuth, async (req, res) => {
       [req.params.token]
     );
     
-    if (!invite.rows.length) return res.status(404).json({ error: 'Invite not found or already used' });
+    if (!invite.rows.length) {
+      // Check if already accepted by this user (idempotent: return success)
+      const alreadyMember = await db.execute(
+        `SELECT am.*, a.id as account_id, a.name as account_name FROM account_members am
+         JOIN accounts a ON am.account_id = a.id
+         WHERE am.user_id = ? AND am.status = 'active'`,
+        [req.user.id]
+      );
+      if (alreadyMember.rows.length) {
+        // Already a member - return success so frontend completes gracefully
+        const m = alreadyMember.rows[0];
+        return res.json({ ok: true, account_id: m.account_id, account_name: m.account_name, already_accepted: true });
+      }
+      return res.status(404).json({ error: 'Invite not found or already used' });
+    }
     const inv = invite.rows[0];
     
     // Accept: update member record with real user_id

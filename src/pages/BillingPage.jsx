@@ -387,7 +387,7 @@ export default function BillingPage() {
           {[
             { label: 'Privacy policy', href: 'https://plexautomation.io/privacy' },
             { label: 'Terms of service', href: 'https://plexautomation.io/terms' },
-            { label: 'Support', href: 'mailto:hello@plexautomation.io' },
+            { label: 'Support', href: 'mailto:support@revanew.io' },
           ].map(({ label, href }) => (
             <a key={label} href={href} target="_blank" rel="noreferrer"
               className="text-xs" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500 }}>

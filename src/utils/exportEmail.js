@@ -11,9 +11,9 @@ export function buildEmailBody(state) {
     selected, prices, included,
     discType, discValue, discSetup, discMonthly,
     notes,
-    agencyName = 'Revanew',
-    agencyEmail = 'hello@plexautomation.io',
-    agencyWebsite = 'plexautomation.io',
+    agencyName = '',
+    agencyEmail = '',
+    agencyWebsite = '',
     sectionMap = {},
   } = state;
 

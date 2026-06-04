@@ -233,6 +233,27 @@ export default function WorkspacePage() {
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
+  // ── Open / create a DM with a team member ──────────────────────────
+  const openDM = React.useCallback(async (targetUserId, targetName) => {
+    if (!account?.id || !targetUserId) return;
+    try {
+      const r = await fetch('/api/workspace/dm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ account_id: account.id, target_user_id: targetUserId }),
+      });
+      if (!r.ok) { console.error('DM create failed:', await r.text()); return; }
+      const dmCh = await r.json();
+      if (dmCh.id) {
+        // Add to DM list if not already there
+        setDmChannels(prev => prev.find(c => c.id === dmCh.id) ? prev : [...prev, dmCh]);
+        setActiveChannel(dmCh.id);
+        // On mobile, hide sidebar to show chat
+        if (isMobile) setShowSidebar(false);
+      }
+    } catch(e) { console.error('DM error:', e); }
+  }, [account?.id, token, isMobile]);
+
   // Load channels
   const loadChannels = useCallback(async () => {
     if (!account?.id) return;

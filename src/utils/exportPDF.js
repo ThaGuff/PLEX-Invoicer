@@ -187,7 +187,7 @@ export function exportPDF(state) {
   });
 
   customSections.forEach(sec => {
-    const items = (customItems || []).filter(i => i.sectionId === sec.id && selected[i.id]);
+    const items = (customItems || []).filter(i => (i.sectionId === sec.id || i.section_id === sec.id) && selected[i.id]);
     if (!items.length) return;
     tableRows.push([{ content: (sec.label || sec.name || 'Custom').toUpperCase(), colSpan: 5, styles: {
       fillColor: SURFACE, fontStyle: 'bold', textColor: accent, fontSize: 7.5,

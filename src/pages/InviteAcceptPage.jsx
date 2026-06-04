@@ -20,18 +20,23 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
   const [status, setStatus] = useState('idle'); // idle | processing | success | error | needs_login
   const [message, setMessage] = useState('');
 
+  const hasAttempted = React.useRef(false);
+
   useEffect(() => {
     if (authLoading) return;
     if (mode === 'decline') {
-      handleDecline();
+      if (!hasAttempted.current) { hasAttempted.current = true; handleDecline(); }
       return;
     }
     if (!isAuthenticated) {
       setStatus('needs_login');
       return;
     }
-    // User is logged in, process accept
-    handleAccept();
+    // User is logged in, process accept — only once
+    if (!hasAttempted.current) {
+      hasAttempted.current = true;
+      handleAccept();
+    }
   }, [authLoading, isAuthenticated, token]);
 
   const handleAccept = async () => {

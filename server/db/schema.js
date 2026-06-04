@@ -240,13 +240,13 @@ export async function initDB() {
   if (existing.rows.length === 0) {
     await db.execute(`
       INSERT INTO accounts (id, name, email, phone, website, logo_initial, primary_color, plan, subscription_status)
-      VALUES ('plex-master', 'PLEX Automation', 'hello@plexautomation.io',
-              '256-609-4618', 'plexautomation.io', 'P', '#13B5EA', 'agency', 'active')
+      VALUES ('plex-master', 'PLEX Automation', '',
+              '', '', 'P', '#13B5EA', 'agency', 'active')
     `);
   }
   // Ensure plex-master always has owner email set (owner_id set dynamically on first login)
   await db.execute(`
-    UPDATE accounts SET email = 'guffey.ryan@gmail.com' WHERE id = 'plex-master' AND (email IS NULL OR email = 'hello@plexautomation.io')
+    UPDATE accounts SET email = COALESCE(NULLIF(email,''), '') WHERE id = 'plex-master' AND false
   `).catch(() => {});
 
   // ── New feature tables ──────────────────────────────────────────
