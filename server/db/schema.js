@@ -591,6 +591,13 @@ export async function initSchemaV2() {
   // Add CRM fields to contacts if missing
   const crmCols = [
     `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS tags TEXT DEFAULT '[]'`,
+    `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS contact_type TEXT DEFAULT 'customer'`,
+    `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS company_size TEXT`,
+    `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS website TEXT`,
+    `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS job_title TEXT`,
+    `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS rating INTEGER DEFAULT 0`,
+    `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS last_contacted TEXT`,
+    `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS source TEXT`,
     `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS lifetime_value REAL DEFAULT 0`,
     `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS last_contact_at TEXT`,
     `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS close_probability REAL DEFAULT 0`,
@@ -637,6 +644,7 @@ export async function ensureWorkspaceTables() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     )`,
     `ALTER TABLE workspace_channels ADD COLUMN IF NOT EXISTS is_dm INTEGER DEFAULT 0`,
+    `ALTER TABLE workspace_messages ADD COLUMN IF NOT EXISTS edited_at TIMESTAMPTZ`,
     `ALTER TABLE workspace_channels ADD COLUMN IF NOT EXISTS dm_user_ids TEXT`,
     `CREATE TABLE IF NOT EXISTS workspace_messages (
       id TEXT PRIMARY KEY,

@@ -22,6 +22,13 @@ function LogoUploader({ accountId, currentLogoUrl, currentInitial, accentColor, 
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState(currentLogoUrl || null);
 
+  // Sync preview when parent passes a new logo URL (e.g. after account refresh)
+  React.useEffect(() => {
+    if (currentLogoUrl && currentLogoUrl !== preview) {
+      setPreview(currentLogoUrl);
+    }
+  }, [currentLogoUrl]);
+
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -85,7 +92,12 @@ function LogoUploader({ accountId, currentLogoUrl, currentInitial, accentColor, 
       <div className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden border-2 shrink-0"
         style={{ borderColor: accentColor + '40', background: preview ? '#fff' : accentColor + '15' }}>
         {preview
-          ? <img src={preview} alt="Logo" className="w-full h-full object-contain" />
+          ? <img
+              src={preview + (preview.startsWith('/api/') && !preview.includes('?t=') ? '?t=' + Date.now() : '')}
+              alt="Logo"
+              className="w-full h-full object-contain"
+              onError={() => setPreview(null)}
+            />
           : <span className="text-xl font-bold" style={{ color: accentColor }}>{(currentInitial || '?').toUpperCase()}</span>
         }
       </div>

@@ -1,5 +1,6 @@
 import FinancingCalculator from '../components/FinancingCalculator';
 import { canUseFeature } from '../utils/planFeatures';
+import { saveDraftOffline, isOnline, onNetworkChange } from '../utils/offlineStore';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -410,6 +411,14 @@ export default function QuoteBuilder() {
   const [quoteDate,   setQuoteDate]   = useState(() =>
     new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   );
+  const [offlineMode, setOfflineMode] = useState(!isOnline());
+
+  // Monitor online/offline status
+  React.useEffect(() => {
+    const cleanup = onNetworkChange(online => setOfflineMode(!online));
+    return cleanup;
+  }, []);
+
   // Payment due date — defaults to 30 days from today, user can override
   const [dueUponReceipt, setDueUponReceipt] = useState(false);
   const [dueDate, setDueDate] = useState(() => {

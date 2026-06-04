@@ -1,142 +1,129 @@
 /**
- * Revanew Service Worker
- * Enables: offline support, install prompt, background sync
- * Strategy: Cache-first for assets, Network-first for API calls
+ * Revanew Service Worker — Offline Mode
+ * Caches core app shell + API responses
+ * Queues quote creation/edits when offline for sync when back online
  */
+const CACHE_VERSION = 'revanew-v3';
+const STATIC_CACHE  = `${CACHE_VERSION}-static`;
+const API_CACHE     = `${CACHE_VERSION}-api`;
 
-const CACHE_NAME   = 'revanew-v3';
-const STATIC_CACHE = 'revanew-static-v3';
-const API_CACHE    = 'revanew-api-v3';
-
-// Assets to pre-cache on install
-const PRECACHE_URLS = [
-  // '/' removed — never pre-cache HTML (breaks OAuth)
-  // '/'
+// Core app shell files to cache for offline
+const PRECACHE = [
+  '/',
+  '/index.html',
+  '/favicon.ico',
+  '/favicon.svg',
+  '/logo-revanew.png',
   '/manifest.json',
-  '/apple-touch-icon.png',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
 ];
 
-// ── Install ───────────────────────────────────────────────────────
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(STATIC_CACHE).then(cache => {
-      return cache.addAll(PRECACHE_URLS.map(url => new Request(url, { cache: 'reload' })));
-    }).then(() => self.skipWaiting())
+// API routes to cache for offline reading
+const CACHE_API_PATTERNS = [
+  /\/api\/accounts/,
+  /\/api\/contacts/,
+  /\/api\/quotes\?/,
+  /\/api\/invoices\?/,
+];
+
+// Queue for offline mutations (quote create/edit)
+const SYNC_QUEUE_NAME = 'revanew-offline-queue';
+
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(STATIC_CACHE).then(cache => cache.addAll(PRECACHE)).then(() => self.skipWaiting())
   );
 });
 
-// ── Activate ──────────────────────────────────────────────────────
-self.addEventListener('activate', event => {
-  event.waitUntil(
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(k => k !== STATIC_CACHE && k !== API_CACHE)
-          .map(k => caches.delete(k))
-      )
+      Promise.all(keys.filter(k => k !== STATIC_CACHE && k !== API_CACHE).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
 
-// ── Fetch ─────────────────────────────────────────────────────────
-self.addEventListener('fetch', event => {
-  const { request } = event;
+self.addEventListener('fetch', (e) => {
+  const { request } = e;
   const url = new URL(request.url);
 
-  // Skip non-GET, cross-origin, and chrome-extension requests
-  if (request.method !== 'GET') return;
-  if (url.origin !== self.location.origin) return;
-  if (request.url.startsWith('chrome-extension://')) return;
+  // Skip non-GET non-same-origin requests (except our API)
+  if (url.origin !== self.location.origin && !url.hostname.includes('revanew.io')) return;
 
-  // API calls: Network-first, fall back to cache
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(
+  // For navigation requests — serve index.html from cache (SPA routing)
+  if (request.mode === 'navigate') {
+    e.respondWith(
+      fetch(request).catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // For GET API calls — network first, fall back to cache
+  if (request.method === 'GET' && CACHE_API_PATTERNS.some(p => p.test(url.pathname))) {
+    e.respondWith(
       fetch(request)
-        .then(res => {
-          if (res.ok) {
-            const clone = res.clone();
-            caches.open(API_CACHE).then(c => c.put(request, clone));
+        .then(response => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(API_CACHE).then(cache => cache.put(request, clone));
           }
-          return res;
+          return response;
         })
         .catch(() => caches.match(request))
     );
     return;
   }
 
-  // Static assets: Cache-first
-  if (
-    url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|ico|woff|woff2|ttf)$/) ||
-    url.pathname.startsWith('/assets/')
-  ) {
-    event.respondWith(
-      caches.match(request).then(cached => {
-        if (cached) return cached;
-        return fetch(request).then(res => {
-          const clone = res.clone();
-          caches.open(STATIC_CACHE).then(c => c.put(request, clone));
-          return res;
+  // For POST/PATCH (quote creation) while offline — queue for sync
+  if ((request.method === 'POST' || request.method === 'PATCH') && url.pathname.startsWith('/api/quotes')) {
+    e.respondWith(
+      fetch(request.clone()).catch(async () => {
+        // We're offline — queue this for later
+        const body = await request.clone().json().catch(() => ({}));
+        const queueEntry = {
+          id: Date.now() + '-' + Math.random().toString(36).slice(2),
+          method: request.method,
+          url: request.url,
+          headers: Object.fromEntries(request.headers.entries()),
+          body,
+          timestamp: new Date().toISOString(),
+        };
+        // Notify clients to store in IndexedDB
+        const clients = await self.clients.matchAll();
+        clients.forEach(c => c.postMessage({ type: 'OFFLINE_QUEUE', entry: queueEntry }));
+        // Return an optimistic response
+        return new Response(JSON.stringify({
+          __offline: true,
+          __queueId: queueEntry.id,
+          id: 'offline-' + queueEntry.id,
+          message: 'Saved offline. Will sync when connection is restored.',
+        }), {
+          headers: { 'Content-Type': 'application/json' },
+          status: 202,
         });
       })
     );
     return;
   }
 
-  // HTML navigation: ALWAYS network — never cache HTML pages
-  // Caching HTML breaks Supabase OAuth (tokens in URL hash get lost)
-  if (request.headers.get('accept')?.includes('text/html') || request.mode === 'navigate') {
-    event.respondWith(fetch(request));
-    return;
-  }
-});
-
-// ── Push notifications ─────────────────────────────────────────────
-self.addEventListener('push', event => {
-  if (!event.data) return;
-  
-  let payload;
-  try { payload = event.data.json(); }
-  catch { payload = { title: 'Revanew', body: event.data.text() }; }
-
-  event.waitUntil(
-    self.registration.showNotification(payload.title || 'Revanew', {
-      body:    payload.body    || '',
-      icon:    '/icons/icon-192.png',
-      badge:   '/icons/icon-96.png',
-      tag:     payload.tag    || 'revanew-notification',
-      data:    payload.data   || {},
-      actions: payload.actions || [],
-      vibrate: [200, 100, 200],
-      requireInteraction: payload.requireInteraction || false,
-    })
+  // Static assets — cache first
+  e.respondWith(
+    caches.match(request).then(cached => cached || fetch(request).then(response => {
+      if (response.ok && request.method === 'GET') {
+        caches.open(STATIC_CACHE).then(cache => cache.put(request, response.clone()));
+      }
+      return response;
+    })).catch(() => caches.match('/index.html'))
   );
 });
 
-// ── Notification click ────────────────────────────────────────────
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  const url = event.notification.data?.url || '/';
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then(windowClients => {
-        const existing = windowClients.find(c => c.url.includes(self.location.origin));
-        if (existing) { existing.focus(); existing.navigate(url); return; }
-        clients.openWindow(url);
-      })
-  );
-});
-
-// ── Background sync ───────────────────────────────────────────────
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-pending-actions') {
-    event.waitUntil(syncPendingActions());
+// Handle background sync
+self.addEventListener('sync', (e) => {
+  if (e.tag === SYNC_QUEUE_NAME) {
+    e.waitUntil(syncOfflineQueue());
   }
 });
 
-async function syncPendingActions() {
-  // TODO: Sync any offline-queued quote/invoice actions
-  console.log('[SW] Background sync fired');
+async function syncOfflineQueue() {
+  const clients = await self.clients.matchAll();
+  clients.forEach(c => c.postMessage({ type: 'SYNC_START' }));
 }
-/* force-rebuild-sw-v3-no-html-cache */

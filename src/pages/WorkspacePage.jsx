@@ -17,7 +17,7 @@ import {
 const QUICK_EMOJIS = ['👍','❤️','😂','🎉','🔥','✅','👀','🚀','💯','😊','👏','🙌','💪','🤝','⚡'];
 
 // ── Message component ────────────────────────────────────────────
-function Message({ msg, isOwn, myId, onReact, onReply, onDelete, currentUser }) {
+function Message({ msg, isOwn, myId, onReact, onReply, onDelete, onEdit, currentUser, isEditing, editContent, onEditChange, onEditSave, onEditCancel }) {
   const [hover, setHover] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
   const time = new Date(msg.created_at);
@@ -52,6 +52,7 @@ function Message({ msg, isOwn, myId, onReact, onReply, onDelete, currentUser }) 
             {isOwn ? 'You' : (msg.sender_name || 'Team Member')}
           </span>
           <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{timeStr}</span>
+          {msg.edited_at && <span style={{ fontSize: 10, color: 'var(--text-muted)', fontStyle: 'italic' }}>(edited)</span>}
         </div>
 
         {/* Content - parse images, files, and mentions */}
@@ -102,6 +103,25 @@ function Message({ msg, isOwn, myId, onReact, onReply, onDelete, currentUser }) 
           })}
         </div>
 
+        {/* Inline edit mode */}
+        {isEditing && (
+          <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <textarea
+              value={editContent}
+              onChange={e => onEditChange(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onEditSave(); } if (e.key === 'Escape') onEditCancel(); }}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #2563EB', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 14, resize: 'none', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+              rows={2}
+              autoFocus
+            />
+            <div style={{ display: 'flex', gap: 6, fontSize: 11 }}>
+              <button onClick={onEditSave} style={{ padding: '4px 10px', borderRadius: 6, background: '#2563EB', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 11 }}>Save</button>
+              <button onClick={onEditCancel} style={{ padding: '4px 10px', borderRadius: 6, background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: 11 }}>Cancel (Esc)</button>
+              <span style={{ color: 'var(--text-muted)', lineHeight: '24px' }}>· Enter to save, Shift+Enter for newline</span>
+            </div>
+          </div>
+        )}
+
         {/* Reactions */}
         {Object.keys(reactions).length > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
@@ -139,11 +159,18 @@ function Message({ msg, isOwn, myId, onReact, onReply, onDelete, currentUser }) 
             <MessageSquare size={15} />
           </button>
           {isOwn && (
-            <button onClick={() => onDelete(msg.id)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', borderRadius: 6, color: '#ef4444' }}
-              title="Delete">
-              <Trash2 size={15} />
-            </button>
+            <>
+              <button onClick={() => onEdit(msg)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', borderRadius: 6, color: 'var(--text-muted)' }}
+                title="Edit message">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button onClick={() => onDelete(msg.id)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', borderRadius: 6, color: '#ef4444' }}
+                title="Delete message">
+                <Trash2 size={15} />
+              </button>
+            </>
           )}
           {showEmoji && (
             <div style={{
@@ -532,14 +559,44 @@ export default function WorkspacePage() {
   const deleteMessage = async (msgId) => {
     if (!confirm('Delete this message?')) return;
     try {
-      await fetch(`/api/workspace/channels/${activeChannel}/messages/${msgId}`, {
+      const r = await fetch(`/api/workspace/messages/${msgId}`, {
         method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
       });
-      setMessages(prev => ({
-        ...prev,
-        [activeChannel]: (prev[activeChannel] || []).filter(m => m.id !== msgId)
-      }));
-    } catch {}
+      if (r.ok) {
+        setMessages(prev => ({
+          ...prev,
+          [activeChannel]: (prev[activeChannel] || []).filter(m => m.id !== msgId)
+        }));
+      }
+    } catch(e) { console.error('Delete failed:', e); }
+  };
+
+  const [editingMsgId, setEditingMsgId] = React.useState(null);
+  const [editContent, setEditContent] = React.useState('');
+
+  const startEditMessage = (msg) => {
+    setEditingMsgId(msg.id);
+    setEditContent(msg.content);
+  };
+
+  const saveEditMessage = async () => {
+    if (!editingMsgId || !editContent.trim()) return;
+    try {
+      const r = await fetch(`/api/workspace/messages/${editingMsgId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ content: editContent }),
+      });
+      if (r.ok) {
+        const updated = await r.json();
+        setMessages(prev => ({
+          ...prev,
+          [activeChannel]: (prev[activeChannel] || []).map(m => m.id === editingMsgId ? { ...m, content: updated.content, edited_at: updated.edited_at } : m)
+        }));
+      }
+    } catch(e) { console.error('Edit failed:', e); }
+    setEditingMsgId(null);
+    setEditContent('');
   };
 
   // React to message
@@ -927,6 +984,12 @@ export default function WorkspacePage() {
                   onReact={reactToMessage}
                   onReply={setReplyTo}
                   onDelete={deleteMessage}
+                  onEdit={startEditMessage}
+                  isEditing={editingMsgId === item.msg.id}
+                  editContent={editContent}
+                  onEditChange={setEditContent}
+                  onEditSave={saveEditMessage}
+                  onEditCancel={() => { setEditingMsgId(null); setEditContent(''); }}
                   currentUser={user}
                 />
           )}

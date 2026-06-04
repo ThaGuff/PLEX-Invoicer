@@ -9,6 +9,7 @@ import AccountSettings from './components/AccountSettings';
 import NewAccountModal from './components/NewAccountModal';
 import UserProfileModal from './components/UserProfileModal';
 import CompanyOnboarding from './components/CompanyOnboarding';
+import OfflineBanner from './components/OfflineBanner';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import QuoteBuilder from './pages/QuoteBuilder';
@@ -616,6 +617,7 @@ function AppShell({ children }) {
 
       {showSettings   && <AccountSettings onClose={() => setShowSettings(false)} />}
       {showUserProfile && <UserProfileModal onClose={() => setShowUserProfile(false)} />}
+      <OfflineBanner />
       {showOnboarding  && (
         <CompanyOnboarding
           onComplete={() => {
@@ -672,6 +674,14 @@ function useDarkMode() {
 }
 
 export default function App() {
+  // Register service worker for offline support
+  React.useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('[SW] Registered, scope:', reg.scope))
+        .catch(err => console.warn('[SW] Registration failed:', err));
+    }
+  }, []);
   return (
     <ErrorBoundary>
     <BrowserRouter>

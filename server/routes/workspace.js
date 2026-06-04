@@ -635,4 +635,40 @@ router.get('/attachment/:id', requireAuth, async (req, res) => {
   } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
 });
 
+// ── DELETE /api/workspace/messages/:id — delete a message ─────────
+router.delete('/messages/:id', requireAuth, async (req, res) => {
+  try {
+    const msg = await db.execute(`SELECT * FROM workspace_messages WHERE id = ?`, [req.params.id]);
+    if (!msg.rows.length) return res.status(404).json({ error: 'Message not found' });
+    const m = msg.rows[0];
+    // Only the sender or account owner can delete
+    if (m.sender_id !== req.user.id) {
+      const isOwner = await db.execute(
+        `SELECT id FROM accounts WHERE id = ? AND owner_id = ?`, [m.account_id, req.user.id]
+      );
+      if (!isOwner.rows.length) return res.status(403).json({ error: 'Cannot delete others messages' });
+    }
+    await db.execute(`DELETE FROM workspace_messages WHERE id = ?`, [req.params.id]);
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── PATCH /api/workspace/messages/:id — edit a message ────────────
+router.patch('/messages/:id', requireAuth, async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content?.trim()) return res.status(400).json({ error: 'content required' });
+    const msg = await db.execute(`SELECT * FROM workspace_messages WHERE id = ?`, [req.params.id]);
+    if (!msg.rows.length) return res.status(404).json({ error: 'Message not found' });
+    if (msg.rows[0].sender_id !== req.user.id) return res.status(403).json({ error: 'Cannot edit others messages' });
+    const clean = sanitizeText(content, MAX_MESSAGE_LENGTH);
+    await db.execute(
+      `UPDATE workspace_messages SET content = ?, edited_at = NOW() WHERE id = ?`,
+      [clean, req.params.id]
+    );
+    const updated = await db.execute(`SELECT * FROM workspace_messages WHERE id = ?`, [req.params.id]);
+    res.json(updated.rows[0]);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 export default router;
