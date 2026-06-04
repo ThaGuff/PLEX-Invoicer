@@ -812,6 +812,19 @@ export async function migrateCalendarEvents() {
     `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS color TEXT DEFAULT '#2563EB'`,
     `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS assigned_to TEXT`,
     `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS tags TEXT`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS client_phone TEXT`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS contact_id TEXT`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS quote_id TEXT`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS invoice_id TEXT`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS estimated_revenue REAL DEFAULT 0`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS deposit_amount REAL DEFAULT 0`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS deposit_paid INTEGER DEFAULT 0`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS priority TEXT DEFAULT 'normal'`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS equipment_needed TEXT`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS job_confirmed INTEGER DEFAULT 0`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS recurrence TEXT`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS ai_risk_score INTEGER DEFAULT 0`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS ai_risk_reason TEXT`,
   ];
   for (const sql of cols) {
     try { await db.execute(sql); } catch(e) {

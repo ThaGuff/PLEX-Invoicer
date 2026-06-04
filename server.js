@@ -651,6 +651,37 @@ app.use('/api/tax',            requireAuth, taxRouter);
 app.use('/api/automations',    requireAuth, automationsRouter);
 app.use('/api/notifications',       notificationsRouter);
 app.use('/api/google-calendar',     googleCalendarRouter);
+// AI summary also needs to be accessible for command center
+app.get('/api/calendar/ai-summary', requireAuth, async (req, res) => {
+  try {
+    const { db: calDb } = await import('./server/db/schema.js');
+    const { account_id } = req.query;
+    if (!account_id) return res.status(400).json({ error: 'account_id required' });
+    const access = await calDb.execute(
+      `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ? AND status='active'))`,
+      [account_id, req.user.id, req.user.id]
+    );
+    if (!access.rows.length) return res.status(403).json({ error: 'Access denied' });
+    // Forward to calendar router handler
+    req.query.account_id = account_id;
+    const calendarRouter = await import('./server/routes/calendar.js');
+    // Direct DB call for now
+    const today = req.query.date || new Date().toISOString().split('T')[0];
+    const [dayEvents, weekEvents] = await Promise.all([
+      calDb.execute(`SELECT * FROM calendar_events WHERE account_id = ? AND date = ? ORDER BY time ASC`, [account_id, today]),
+      calDb.execute(`SELECT * FROM calendar_events WHERE account_id = ? AND date >= ? AND date <= ? ORDER BY date ASC, time ASC`,
+        [account_id, today, new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]]),
+    ]);
+    const todayRev = dayEvents.rows.reduce((s, e) => s + parseFloat(e.estimated_revenue || 0), 0);
+    const weekRev = weekEvents.rows.reduce((s, e) => s + parseFloat(e.estimated_revenue || 0), 0);
+    res.json({
+      today: { total_events: dayEvents.rows.length, projected_revenue: todayRev, conflicts: 0, gaps: 0, unconfirmed: dayEvents.rows.filter(e=>!e.job_confirmed).length, risk_score: 0 },
+      week: { total_events: weekEvents.rows.length, projected_revenue: weekRev },
+      recommendations: [], conflicts: [], gaps: [], overdue_invoices: [], team: {},
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // Dashboard widget needs calendar events without plan gate - limited endpoint
 app.get('/api/calendar/events', requireAuth, async (req, res) => {
   try {
