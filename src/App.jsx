@@ -38,7 +38,7 @@ const DocumentsPage = React.lazy(() => import('./pages/DocumentsPage').catch(() 
 const CalendarPage  = React.lazy(() => import('./pages/CalendarPage').catch(() => ({ default: () => null })));
 const PhotosPage    = React.lazy(() => import('./pages/PhotosPage').catch(() => ({ default: () => null })));
 const WorkspacePage = React.lazy(() => import('./pages/WorkspacePage').catch(() => ({ default: () => null })));
-import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield, BarChart2, Sun, Moon, Grid, Calendar, FolderOpen, Image as ImageIcon, MessageSquare, Lock, Settings, Camera, Users2, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, FileText, Receipt, Users, Zap, Plus, LogOut, CreditCard, Shield, BarChart2, Sun, Moon, Grid, Calendar, FolderOpen, Image as ImageIcon, MessageSquare, Lock, Settings, Camera, Users2, ShieldCheck, Clock } from 'lucide-react';
 import { IdleWarningBanner, SessionExpiredModal } from './components/SessionModals';
 
 
@@ -156,6 +156,7 @@ function Nav() {
     '/workspace':   'pro',
     '/automations': 'pro',
     '/analytics':   'pro',
+    '/time':        'pro',
     '/billing':     null,
     '/admin':       null,
   };
@@ -177,7 +178,7 @@ function Nav() {
     { to: '/workspace',   label: 'Team',      icon: MessageSquare,   color: '#7C3AED' },
     { to: '/automations', label: 'Automate',  icon: Zap,             color: '#D97706' },
     { to: '/analytics',   label: 'Analytics', icon: BarChart2,       color: '#2563EB' },
-    { to: '/time',        label: 'Time',      icon: Timer,           color: '#0D9488' },
+    { to: '/time',        label: 'Time',      icon: Clock,           color: '#0D9488' },
     { to: '/billing',     label: 'Billing',   icon: CreditCard,      color: '#7C3AED' },
     ...(isOwner ? [{ to: '/admin', label: 'Admin', icon: Shield, color: '#ef4444' }] : []),
   ];
