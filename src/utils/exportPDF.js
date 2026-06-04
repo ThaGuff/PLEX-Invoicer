@@ -20,7 +20,7 @@ function hexToRgb(hex) {
   return [parseInt(c.slice(0,2),16), parseInt(c.slice(2,4),16), parseInt(c.slice(4,6),16)];
 }
 
-function drawFooter(doc, W, H, agencyName, agencyWebsite, agencyEmail, agencyPhone, pageNum, totalPages) {
+function drawFooter(doc, W, H, agencyName, agencyWebsite, agencyEmail, agencyPhone, pageNum, totalPages, agencyAddress = '', agencyCityState = '', whiteLabelPlan = false) {
   doc.setFillColor(...WHITE);
   doc.rect(0, H - FOOTER_H, W, FOOTER_H, 'F');
   const accent = hexToRgb(doc.__accentHex || '#13B5EA');
@@ -29,10 +29,13 @@ function drawFooter(doc, W, H, agencyName, agencyWebsite, agencyEmail, agencyPho
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(...INK_MUTED);
-  doc.text(
-    [agencyName, agencyAddress ? agencyAddress + (agencyCityState ? ', ' + agencyCityState : '') : null, agencyPhone, agencyEmail, agencyWebsite].filter(Boolean).join('  ·  '),
-    W / 2, H - FOOTER_H + 14, { align: 'center' }
-  );
+  const footerLine = [agencyName, agencyAddress ? agencyAddress + (agencyCityState ? ', ' + agencyCityState : '') : null, agencyPhone, agencyEmail, agencyWebsite].filter(Boolean).join('  ·  ');
+  doc.text(footerLine || '', W / 2, H - FOOTER_H + 14, { align: 'center' });
+  if (!whiteLabelPlan) {
+    doc.setFontSize(6.5);
+    doc.setTextColor(190, 195, 200);
+    doc.text('Powered by Revanew.io', W / 2, H - FOOTER_H + 24, { align: 'center' });
+  }
   if (totalPages > 1) {
     doc.text(`Page ${pageNum} of ${totalPages}`, W - MARGIN, H - FOOTER_H + 14, { align: 'right' });
   }
@@ -220,7 +223,7 @@ export function exportPDF(state) {
     alternateRowStyles: { fillColor: SURFACE },
     didDrawPage: () => {
       const p = doc.internal.getCurrentPageInfo().pageNumber;
-      drawFooter(doc, W, H, agencyName, agencyWebsite, agencyEmail, agencyPhone, p, '?');
+      drawFooter(doc, W, H, agencyName, agencyWebsite, agencyEmail, agencyPhone, p, '?', agencyAddress, agencyCityState, whiteLabelPlan);
     },
   });
 
@@ -265,7 +268,7 @@ export function exportPDF(state) {
   if (finalY + tH + (noteH ? noteH + 16 : 0) > usableBottom) {
     doc.addPage();
     const p = doc.internal.getCurrentPageInfo().pageNumber;
-    drawFooter(doc, W, H, agencyName, agencyWebsite, agencyEmail, agencyPhone, p, '?');
+    drawFooter(doc, W, H, agencyName, agencyWebsite, agencyEmail, agencyPhone, p, '?', agencyAddress, agencyCityState, whiteLabelPlan);
     finalY = MARGIN + 16;
   }
 
@@ -311,7 +314,7 @@ export function exportPDF(state) {
   const totalPages = doc.internal.getNumberOfPages();
   for (let p = 1; p <= totalPages; p++) {
     doc.setPage(p);
-    drawFooter(doc, W, H, agencyName, agencyWebsite, agencyEmail, agencyPhone, p, totalPages);
+    drawFooter(doc, W, H, agencyName, agencyWebsite, agencyEmail, agencyPhone, p, totalPages, agencyAddress, agencyCityState, whiteLabelPlan);
   }
 
   doc.save(`Quote_${(agencyName||'PLEX').replace(/\s+/g,'_')}_${(clientName||'Client').replace(/\s+/g,'_')}.pdf`);

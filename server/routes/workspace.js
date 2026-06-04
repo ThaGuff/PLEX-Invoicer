@@ -39,10 +39,27 @@ router.get('/channels/:channelId/messages', requireAuth, async (req, res) => {
   if (!/^[a-zA-Z0-9_-]+$/.test(req.params.channelId)) return res.status(400).json({ error: 'Invalid channel ID' });
   try {
     await assertAccountAccess(account_id, req.user.id);
-    const msgs = await db.execute(
-      `SELECT id, channel_id, content, sender_name, sender_id, created_at FROM workspace_messages WHERE account_id = ? AND channel_id = ? ORDER BY created_at ASC LIMIT 200`,
-      [account_id, req.params.channelId]
+    // For DM channels: check if the channel is a DM that includes this user
+    // If so, fetch messages by channel_id only (cross-account DMs)
+    const chCheck = await db.execute(
+      `SELECT is_dm, dm_user_ids FROM workspace_channels WHERE id = ?`,
+      [req.params.channelId]
     );
+    const isDMForUser = chCheck.rows[0]?.is_dm && chCheck.rows[0]?.dm_user_ids?.includes(req.user.id);
+    
+    let msgs;
+    if (isDMForUser) {
+      // Cross-account DM: fetch by channel_id only, no account_id restriction
+      msgs = await db.execute(
+        `SELECT id, channel_id, content, sender_name, sender_id, created_at FROM workspace_messages WHERE channel_id = ? ORDER BY created_at ASC LIMIT 200`,
+        [req.params.channelId]
+      );
+    } else {
+      msgs = await db.execute(
+        `SELECT id, channel_id, content, sender_name, sender_id, created_at FROM workspace_messages WHERE account_id = ? AND channel_id = ? ORDER BY created_at ASC LIMIT 200`,
+        [account_id, req.params.channelId]
+      );
+    }
     res.json(msgs.rows);
   } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
 });
@@ -64,10 +81,16 @@ router.post('/channels/:channelId/messages', requireAuth, async (req, res) => {
     await assertAccountAccess(account_id, req.user.id);
     const { v4: uuid } = await import('uuid');
     const id = `msg-${uuid()}`;
+    // For cross-account DM channels, use the channel's original account_id
+    const chForInsert = await db.execute(
+      `SELECT account_id, is_dm, dm_user_ids FROM workspace_channels WHERE id = ?`,
+      [req.params.channelId]
+    );
+    const insertAccountId = chForInsert.rows[0]?.account_id || account_id;
     await db.execute(
       `INSERT INTO workspace_messages (id, account_id, channel_id, content, sender_name, sender_id, reply_to, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-      [id, account_id, req.params.channelId, cleanContent, cleanSender, req.user.id, reply_to || null]
+      [id, insertAccountId, req.params.channelId, cleanContent, cleanSender, req.user.id, reply_to || null]
     );
     const msg = await db.execute(`SELECT * FROM workspace_messages WHERE id = ?`, [id]);
     const savedMsg = msg.rows[0];

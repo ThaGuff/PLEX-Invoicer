@@ -53,7 +53,7 @@ app.use(helmet({
       styleSrc:       ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc:        ["'self'", "data:", "https://fonts.gstatic.com"],
       imgSrc:         ["'self'", "data:", "blob:", "https:"],
-      connectSrc:     ["'self'", "https://*.supabase.co", "https://api.anthropic.com", "https://api.stripe.com", "https://js.stripe.com", "wss://*.supabase.co"],
+      connectSrc:     ["'self'", "data:", "blob:", "https://*.supabase.co", "https://api.anthropic.com", "https://api.stripe.com", "https://js.stripe.com", "wss://*.supabase.co"],
       frameSrc:       ["'self'", "https://js.stripe.com"],
       frameAncestors: ["'none'"],  // prevent clickjacking
       objectSrc:      ["'none'"],

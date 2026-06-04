@@ -289,17 +289,46 @@ router.post('/:id/convert', requireAuth, async (req, res) => {
     }
     const account_id = q.account_id;
 
-    // Idempotency: return existing invoice if already converted
+    // If invoice already exists for this quote, UPDATE it with latest quote data
     const alreadyConverted = await db.execute(
       `SELECT * FROM invoices WHERE quote_id = ? AND account_id = ? ORDER BY created_at DESC LIMIT 1`,
       [q.id, account_id]
     );
     if (alreadyConverted.rows.length) {
       const existing = alreadyConverted.rows[0];
-      const existingItems = await db.execute(
+      // Only update if invoice isn't already paid
+      if (existing.status !== 'paid' && existing.status !== 'partial') {
+        const due_date_up = q.due_date || existing.due_date;
+        const amount_due_up = q.setup_total || 0;
+        await db.execute(
+          `UPDATE invoices SET
+            client_name = ?, client_biz = ?, client_email = ?, client_phone = ?,
+            billing_mode = ?, setup_total = ?, monthly_total = ?, amount_due = ?,
+            due_date = ?, notes = ?, tax_rate = ?, tax_amount = ?,
+            updated_at = CURRENT_TIMESTAMP
+           WHERE id = ?`,
+          [q.client_name, q.client_biz, q.client_email, q.client_phone,
+           q.billing_mode, q.setup_total, q.monthly_total, amount_due_up,
+           due_date_up, q.notes, q.tax_rate || 0, q.tax_amount || 0, existing.id]
+        );
+        // Rebuild line items from updated quote
+        const updatedItems = await db.execute(
+          `SELECT * FROM quote_items WHERE quote_id = ? ORDER BY sort_order`, [q.id]
+        );
+        await db.execute(`DELETE FROM invoice_items WHERE invoice_id = ?`, [existing.id]);
+        await Promise.all(updatedItems.rows.map((item, i) => db.execute(
+          `INSERT INTO invoice_items (id, invoice_id, section_label, name, description,
+            setup_price, monthly_price, is_included, sort_order)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [`ii-${uuid()}`, existing.id, item.section_label, item.name, item.description,
+           item.setup_price, item.monthly_price, item.is_included, i]
+        )));
+      }
+      const refreshed = await db.execute(`SELECT * FROM invoices WHERE id = ?`, [existing.id]);
+      const refreshedItems = await db.execute(
         `SELECT * FROM invoice_items WHERE invoice_id = ? ORDER BY sort_order`, [existing.id]
       );
-      return res.json({ ...existing, items: existingItems.rows });
+      return res.json({ ...refreshed.rows[0], items: refreshedItems.rows });
     }
 
     const items = await db.execute(
