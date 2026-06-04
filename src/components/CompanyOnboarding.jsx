@@ -65,6 +65,13 @@ export default function CompanyOnboarding({ onComplete }) {
   const token = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
   const accent = account?.primary_color || '#2563EB';
 
+  // Shared style for labels used directly in the component (not via Field component)
+  const labelStyle = {
+    fontSize: 11, fontWeight: 700, color: 'var(--text-muted)',
+    textTransform: 'uppercase', letterSpacing: '0.06em',
+    display: 'block', marginBottom: 6,
+  };
+
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [logoPreview, setLogoPreview] = useState(account?.logo_url || null);
