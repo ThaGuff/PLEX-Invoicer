@@ -1271,7 +1271,26 @@ export default function QuoteBuilder() {
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                 Print
               </button>
-              <button onClick={() => exportPDF(fullState)} disabled={selectedCount === 0}
+              <button onClick={async () => {
+                // If logo is a URL (not data:), fetch it first for jsPDF
+                let exportState = { ...fullState };
+                if (exportState.agencyLogoUrl && !exportState.agencyLogoUrl.startsWith('data:')) {
+                  try {
+                    const logoR = await fetch(exportState.agencyLogoUrl);
+                    const blob = await logoR.blob();
+                    const reader = new FileReader();
+                    const dataUrl = await new Promise(res => {
+                      reader.onload = e => res(e.target.result);
+                      reader.readAsDataURL(blob);
+                    });
+                    exportState.agencyLogoUrl = dataUrl;
+                  } catch(e) { 
+                    console.warn('Logo fetch for PDF failed:', e);
+                    exportState.agencyLogoUrl = null;
+                  }
+                }
+                exportPDF(exportState);
+              }} disabled={selectedCount === 0}
                 className="btn-ghost w-full disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
                 <Download size={15} /> Export PDF
               </button>

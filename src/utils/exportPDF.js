@@ -93,20 +93,27 @@ export function exportPDF(state) {
   doc.setFillColor(...accent); doc.rect(0, 0, 4, 70, 'F');
   doc.setFillColor(...accent); doc.rect(0, 68, W, 2.5, 'F');
 
-  // Logo: use uploaded image if available, fallback to letter initial
-  if (agencyLogoUrl && agencyLogoUrl.startsWith('data:image/')) {
+  // Logo: support both data: URLs and relative /api/... URLs
+  const addLogoToDoc = (logoUrl) => {
+    if (!logoUrl) return false;
     try {
-      const ext = agencyLogoUrl.includes('data:image/png') ? 'PNG'
-                : agencyLogoUrl.includes('data:image/jpg') || agencyLogoUrl.includes('data:image/jpeg') ? 'JPEG'
-                : 'PNG';
-      doc.addImage(agencyLogoUrl, ext, 20, 14, 36, 36);
-    } catch {
-      // Fallback to letter initial if image fails
-      doc.setFillColor(...accent);
-      doc.roundedRect(20, 14, 36, 36, 4, 4, 'F');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.setTextColor(...WHITE);
-      doc.text((agencyName || 'P')[0].toUpperCase(), 38, 38, { align: 'center' });
-    }
+      let dataUrl = logoUrl;
+      // If it's already a data URL, use directly
+      if (logoUrl.startsWith('data:image/')) {
+        const ext = logoUrl.includes('data:image/png') ? 'PNG'
+                  : logoUrl.includes('data:image/jpg') || logoUrl.includes('data:image/jpeg') ? 'JPEG'
+                  : 'PNG';
+        doc.addImage(dataUrl, ext, 20, 14, 36, 36);
+        return true;
+      }
+      // For relative or full URLs, we can't fetch synchronously in jsPDF
+      // The logo should have been pre-fetched and converted to data URL before calling exportPDF
+      return false;
+    } catch { return false; }
+  };
+
+  if (agencyLogoUrl && addLogoToDoc(agencyLogoUrl)) {
+    // Logo added successfully
   } else {
     doc.setFillColor(...accent);
     doc.roundedRect(20, 14, 36, 36, 4, 4, 'F');

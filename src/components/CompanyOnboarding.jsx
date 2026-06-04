@@ -98,8 +98,8 @@ export default function CompanyOnboarding({ onComplete }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Upload logo if changed
-      let logoUrl = logoPreview;
+      // Upload logo if changed (logoPreview is a local data: URL for preview only)
+      let logoUrl = account?.logo_url || null; // default to existing
       if (logoPreview && logoPreview !== account?.logo_url) {
         const r = await fetch(`/api/accounts/${activeId}/logo`, {
           method: 'POST',
@@ -108,7 +108,8 @@ export default function CompanyOnboarding({ onComplete }) {
         });
         if (r.ok) {
           const d = await r.json();
-          logoUrl = d.logo_url;
+          // Server returns a clean URL (/api/accounts/:id/logo-img), not the data: URL
+          logoUrl = d.logo_url || null;
         }
       }
 

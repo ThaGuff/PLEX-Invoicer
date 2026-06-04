@@ -59,7 +59,10 @@ function LogoUploader({ accountId, currentLogoUrl, currentInitial, accentColor, 
         setPreview(dataUrl);
         const result = await api.accounts.uploadLogo(accountId, dataUrl);
         if (result?.error) throw new Error(result.error);
-        onUploaded(dataUrl);
+        // Use server-returned logo_url (proper URL endpoint, not data: URL)
+        const serverUrl = result?.logo_url || dataUrl;
+        setPreview(serverUrl); // Update preview to the clean URL
+        onUploaded(serverUrl);
       } catch (err) {
         console.error('Logo upload failed:', err);
         alert('Logo upload failed: ' + (err.message || 'Please try a smaller image (under 5MB)'));
@@ -568,12 +571,13 @@ export default function AccountSettings({ onClose }) {
               currentInitial={form.logo_initial || form.name?.[0]}
               accentColor={accent}
               onUploaded={async url => {
-                // Immediately update local preview
-                setLogoUrl(url);
-                // Refresh account context so it propagates everywhere
+                // url is now /api/accounts/:id/logo-img (a proper URL, not data:)
+                // Add cache-buster so browser re-fetches the new logo
+                const cacheBusted = url ? (url + '?t=' + Date.now()) : null;
+                setLogoUrl(cacheBusted);
+                // Refresh account context so logo propagates everywhere
                 try {
-                  const updated = await refreshAccount(activeId);
-                  if (updated?.logo_url !== undefined) setLogoUrl(updated.logo_url || null);
+                  await refreshAccount(activeId);
                 } catch (e) { console.warn('Logo refresh failed:', e.message); }
               }}
             />

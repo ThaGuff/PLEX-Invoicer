@@ -670,6 +670,9 @@ export async function migrateUserProfileSystem() {
     `ALTER TABLE quotes ADD COLUMN IF NOT EXISTS due_date TEXT`,
     // Referral account credit
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS account_credit REAL DEFAULT 0`,
+    // Logo blob storage (serves via /api/accounts/:id/logo-img)
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS logo_data TEXT`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS logo_mime TEXT DEFAULT 'image/jpeg'`,
     // Add business_type and default_template to accounts
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS business_type TEXT`,
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS default_template TEXT`,

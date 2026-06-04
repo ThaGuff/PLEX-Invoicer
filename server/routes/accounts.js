@@ -277,21 +277,64 @@ router.delete('/:id/items/:iid', async (req, res) => {
 router.post('/:id/logo', requireAuth, async (req, res) => {
   try {
     const { logo_data_url } = req.body;
-    // Allow clearing (empty string) or setting a new logo (data URL or https URL)
     if (logo_data_url === undefined) return res.status(400).json({ error: 'logo_data_url required' });
-    if (logo_data_url && !logo_data_url.startsWith('data:image/') && !logo_data_url.startsWith('https://')) {
+    
+    if (!logo_data_url) {
+      // Clearing logo
+      await db.execute(`UPDATE accounts SET logo_url = NULL, logo_data = NULL, logo_mime = NULL WHERE id = ?`, [req.params.id]);
+      const updated = await db.execute(`SELECT * FROM accounts WHERE id = ?`, [req.params.id]);
+      return res.json({ ok: true, logo_url: null, account: updated.rows[0] });
+    }
+
+    // Accept data URLs or https URLs
+    if (!logo_data_url.startsWith('data:image/') && !logo_data_url.startsWith('https://')) {
       return res.status(400).json({ error: 'Must be an image data URL or HTTPS URL' });
     }
-    // Size check - base64 data URLs for images can be large
-    if (logo_data_url && logo_data_url.length > 4 * 1024 * 1024) {
-      return res.status(413).json({ error: 'Logo image too large — please use an image under 3MB' });
+
+    // For https URLs: store directly as logo_url (CDN/Supabase storage)
+    if (logo_data_url.startsWith('https://')) {
+      await db.execute(`UPDATE accounts SET logo_url = ? WHERE id = ?`, [logo_data_url, req.params.id]);
+      const updated = await db.execute(`SELECT * FROM accounts WHERE id = ?`, [req.params.id]);
+      return res.json({ ok: true, logo_url: logo_data_url, account: updated.rows[0] });
     }
-    await db.execute(`UPDATE accounts SET logo_url = ? WHERE id = ?`, [logo_data_url || null, req.params.id]);
-    // Return the updated account so the frontend can refresh
+
+    // For data URLs: extract base64 and mime, store separately, serve via endpoint
+    const match = logo_data_url.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+    if (!match) return res.status(400).json({ error: 'Invalid image data URL format' });
+    const [, mime, b64] = match;
+    if (b64.length > 3 * 1024 * 1024) {
+      return res.status(413).json({ error: 'Logo too large — please use an image under 2MB' });
+    }
+
+    // Store the base64 data and mime type, use a clean URL as logo_url
+    const logoServeUrl = \`/api/accounts/\${req.params.id}/logo-img\`;
+    await db.execute(
+      `UPDATE accounts SET logo_url = ?, logo_data = ?, logo_mime = ? WHERE id = ?`,
+      [logoServeUrl, b64, mime, req.params.id]
+    );
     const updated = await db.execute(`SELECT * FROM accounts WHERE id = ?`, [req.params.id]);
-    res.json({ ok: true, logo_url: logo_data_url || null, account: updated.rows[0] });
+    res.json({ ok: true, logo_url: logoServeUrl, account: updated.rows[0] });
   } catch (e) {
     console.error('Logo upload error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── GET /api/accounts/:id/logo-img — serve the stored logo image ──
+router.get('/:id/logo-img', async (req, res) => {
+  try {
+    const r = await db.execute(
+      `SELECT logo_data, logo_mime FROM accounts WHERE id = ?`, [req.params.id]
+    );
+    if (!r.rows.length || !r.rows[0].logo_data) {
+      return res.status(404).send('No logo');
+    }
+    const { logo_data, logo_mime } = r.rows[0];
+    const buf = Buffer.from(logo_data, 'base64');
+    res.set('Content-Type', logo_mime || 'image/jpeg');
+    res.set('Cache-Control', 'public, max-age=86400'); // 1 day cache
+    res.send(buf);
+  } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
