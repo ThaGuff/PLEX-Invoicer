@@ -183,21 +183,21 @@ function AppMockup() {
           {/* Header bar */}
           <div style={{ background: 'linear-gradient(135deg, rgba(37,99,235,0.12), rgba(13,148,136,0.08))', borderRadius: 10, padding: '12px 14px', marginBottom: 10, border: '1px solid rgba(37,99,235,0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ fontSize: 10, color: '#60A5FA', fontWeight: 600 }}>☀️ GOOD MORNING, RYAN</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: '#fff' }}>PLEX Automation</div>
+              <div style={{ fontSize: 10, color: '#60A5FA', fontWeight: 600 }}>☀️ GOOD MORNING, ALEX</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#fff' }}>Ridge Top Services</div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: '#60A5FA' }}>9:22 PM</div>
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>Wednesday, June 4</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#60A5FA' }}>9:22 AM</div>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>Thursday, June 4</div>
             </div>
           </div>
           {/* Stat cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 10 }}>
             {[
-              { label: 'COLLECTED', value: '$22,247', color: '#34D399' },
-              { label: 'OUTSTANDING', value: '$7,047', color: '#60A5FA' },
-              { label: 'THIS MONTH', value: '$12,000', color: '#A78BFA' },
-              { label: 'QUOTES', value: '11', color: '#F59E0B' },
+              { label: 'COLLECTED', value: '$48,320', color: '#34D399' },
+              { label: 'OUTSTANDING', value: '$12,840', color: '#60A5FA' },
+              { label: 'THIS MONTH', value: '$18,500', color: '#A78BFA' },
+              { label: 'QUOTES', value: '24', color: '#F59E0B' },
             ].map(({ label, value, color }) => (
               <div key={label} style={{ background: '#242B3D', borderRadius: 8, padding: '8px 10px', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: 3 }}>{label}</div>
@@ -209,15 +209,15 @@ function AppMockup() {
           <div style={{ background: '#242B3D', borderRadius: 10, padding: '10px 12px', border: '1px solid rgba(255,255,255,0.06)' }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>RECENT QUOTES</div>
             {[
-              { num: 'PQ-0011', name: 'guffey', amount: '$15,200', status: 'Draft' },
-              { num: 'PQ-0010', name: '—', amount: '$247', status: 'Draft' },
-              { num: 'PQ-0009', name: 'Ryan', amount: '$1,800', status: 'Draft' },
+              { num: 'Q-0024', name: 'Johnson HVAC', amount: '$4,800', status: 'Sent' },
+              { num: 'Q-0023', name: 'Smith Electric', amount: '$2,150', status: 'Accepted' },
+              { num: 'Q-0022', name: 'Metro Plumbing', amount: '$1,890', status: 'Draft' },
             ].map(({ num, name, amount, status }) => (
               <div key={num} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '0.5px solid rgba(255,255,255,0.05)' }}>
                 <span style={{ fontSize: 10, color: '#60A5FA', fontWeight: 600 }}>{num}</span>
                 <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>{name}</span>
                 <span style={{ fontSize: 10, color: '#fff', fontWeight: 700 }}>{amount}</span>
-                <span style={{ fontSize: 8, padding: '2px 6px', borderRadius: 4, background: 'rgba(100,116,139,0.3)', color: 'rgba(255,255,255,0.6)' }}>{status}</span>
+                <span style={{ fontSize: 8, padding: '2px 6px', borderRadius: 4, background: status === 'Accepted' ? 'rgba(34,197,94,0.3)' : status === 'Sent' ? 'rgba(37,99,235,0.3)' : 'rgba(100,116,139,0.3)', color: status === 'Accepted' ? '#34D399' : status === 'Sent' ? '#60A5FA' : 'rgba(255,255,255,0.6)' }}>{status}</span>
               </div>
             ))}
           </div>
@@ -227,12 +227,12 @@ function AppMockup() {
       {/* Floating stats cards */}
       <div style={{ position: 'absolute', top: -20, right: -30, background: '#1e3a5f', border: '1px solid rgba(37,99,235,0.3)', borderRadius: 12, padding: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
         <div style={{ fontSize: 10, color: '#60A5FA', fontWeight: 600 }}>AI Revenue Score</div>
-        <div style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>87<span style={{ fontSize: 12, color: '#34D399' }}>/100 ↑</span></div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>92<span style={{ fontSize: 12, color: '#34D399' }}>/100 ↑</span></div>
       </div>
 
       <div style={{ position: 'absolute', bottom: 20, left: -30, background: '#0f2d40', border: '1px solid rgba(13,148,136,0.3)', borderRadius: 12, padding: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
         <div style={{ fontSize: 10, color: '#2DD4BF', fontWeight: 600 }}>Invoice Sent ✓</div>
-        <div style={{ fontSize: 13, color: '#fff', fontWeight: 700 }}>$2,800 → HVAC Install</div>
+        <div style={{ fontSize: 13, color: '#fff', fontWeight: 700 }}>$4,800 → HVAC Install</div>
       </div>
     </div>
   );

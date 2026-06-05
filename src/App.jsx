@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import LandingPage from './pages/LandingPage';
 import TimeTrackingPage from './pages/TimeTrackingPage';
+import SettingsPage from './pages/SettingsPage';
 import QuoteBuilder from './pages/QuoteBuilder';
 import QuotesList from './pages/QuotesList';
 import InvoicesList from './pages/InvoicesList';
@@ -382,6 +383,18 @@ function Nav() {
             </svg>
             Business Settings
           </button>
+          {/* App Settings link */}
+          <button onClick={() => navigate('/settings')}
+            style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8,
+              border:'none', background: isActive('/settings') ? 'rgba(255,255,255,0.08)' : 'transparent',
+              color: isActive('/settings') ? '#fff' : 'rgba(255,255,255,0.5)',
+              cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:"'Plus Jakarta Sans',sans-serif",
+              transition:'all 0.15s', width:'100%' }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            App Settings
+          </button>
 
           {/* Sign out */}
           <button onClick={signOut} style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8, border:'none', background:'transparent', color:'rgba(255,255,255,0.38)', cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:"'Plus Jakarta Sans',sans-serif", transition:'all 0.15s', width:'100%', letterSpacing:'-0.01em' }}
@@ -725,6 +738,7 @@ export default function App() {
                     <Route path="/invoices/:id"    element={<InvoiceDetail />} />
                     <Route path="/contacts"        element={<Contacts />} />
                     <Route path="/time"           element={<TimeTrackingPage />} />
+                    <Route path="/settings"       element={<SettingsPage />} />
                     <Route path="/contacts/new"    element={<Contacts />} />
                     <Route path="/admin"            element={<Admin />} />
                     <Route path="/taxes"           element={<TaxesPage />} />

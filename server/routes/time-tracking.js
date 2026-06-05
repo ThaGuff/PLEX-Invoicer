@@ -178,4 +178,71 @@ router.post('/projects', requireAuth, async (req, res) => {
   } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
 });
 
+// ── POST /api/time/convert — convert billable entries to invoice ──
+router.post('/convert', requireAuth, async (req, res) => {
+  const { account_id, entry_ids, client_name = '', client_email = '', notes = '' } = req.body;
+  if (!account_id || !entry_ids?.length) return res.status(400).json({ error: 'account_id and entry_ids required' });
+  try {
+    await assertAccess(account_id, req.user.id);
+
+    // Fetch selected entries
+    const placeholders = entry_ids.map(() => '?').join(',');
+    const entries = await db.execute(
+      `SELECT * FROM time_entries WHERE id IN (${placeholders}) AND account_id = ? AND is_billable = 1 AND is_invoiced = 0`,
+      [...entry_ids, account_id]
+    );
+    if (!entries.rows.length) return res.status(400).json({ error: 'No billable un-invoiced entries found' });
+
+    const totalAmount = entries.rows.reduce((s, e) => s + parseFloat(e.billed_amount || 0), 0);
+    const totalMinutes = entries.rows.reduce((s, e) => s + parseInt(e.duration_minutes || 0), 0);
+
+    // Generate invoice number
+    const existing = await db.execute(`SELECT number FROM invoices WHERE account_id = ?`, [account_id]);
+    const acc = await db.execute(`SELECT name FROM accounts WHERE id = ?`, [account_id]);
+    const prefix = (acc.rows[0]?.name || 'T').substring(0, 1).toUpperCase() + 'INV';
+    const nums = existing.rows.map(r => parseInt((r.number || '').replace(/[^0-9]/g, '') || '0')).filter(n => !isNaN(n));
+    const nextNum = (nums.length ? Math.max(...nums) : 0) + 1;
+    const number = `${prefix}-${String(nextNum).padStart(4, '0')}`;
+
+    const { v4: uuid } = await import('uuid');
+    const invId = `inv-${uuid()}`;
+    const public_token = uuid().replace(/-/g, '');
+    const due_date = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+
+    // Build line items description from entries
+    const entryDescriptions = entries.rows.map(e =>
+      `${e.project_name}${e.description ? ': ' + e.description : ''} — ${Math.round(e.duration_minutes / 60 * 10) / 10}h @ $${e.hourly_rate}/hr`
+    );
+    const invoiceNotes = notes || entryDescriptions.join('
+');
+
+    await db.execute(
+      `INSERT INTO invoices (id, account_id, number, client_name, client_email, billing_mode,
+        setup_total, monthly_total, amount_due, due_date, notes, public_token, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [invId, account_id, number, client_name, client_email, 'monthly',
+       totalAmount, 0, totalAmount, due_date, invoiceNotes, public_token, 'generated']
+    );
+
+    // Create invoice items from time entries
+    await Promise.all(entries.rows.map((e, i) => db.execute(
+      `INSERT INTO invoice_items (id, invoice_id, section_label, name, description, setup_price, monthly_price, is_included, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [`ii-${uuid()}`, invId, 'Time & Labor',
+       e.project_name,
+       `${Math.round(e.duration_minutes / 60 * 10) / 10}h @ $${e.hourly_rate}/hr${e.description ? ' — ' + e.description : ''}`,
+       parseFloat(e.billed_amount || 0), 0, 0, i]
+    )));
+
+    // Mark entries as invoiced
+    await db.execute(
+      `UPDATE time_entries SET is_invoiced = 1, invoice_id = ?, status = 'invoiced' WHERE id IN (${placeholders})`,
+      [invId, ...entry_ids]
+    );
+
+    const inv = await db.execute(`SELECT * FROM invoices WHERE id = ?`, [invId]);
+    res.json({ ok: true, invoice: inv.rows[0], invoice_id: invId, number });
+  } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
+});
+
 export default router;

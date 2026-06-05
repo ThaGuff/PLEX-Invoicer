@@ -3,6 +3,7 @@
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAccount } from '../context/AccountContext';
+import { useNavigate } from 'react-router-dom';
 import { Play, Square, Plus, Trash2, Clock, DollarSign, FileText, CheckCircle, X, ChevronDown } from 'lucide-react';
 
 function pad(n) { return String(n).padStart(2,'0'); }
@@ -14,6 +15,7 @@ function formatDuration(mins) {
 function fmt$(n) { return n > 0 ? '$' + parseFloat(n||0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '$0.00'; }
 
 export default function TimeTrackingPage() {
+  const navigate = useNavigate();
   const { account } = useAccount();
   const accent = account?.primary_color || '#2563EB';
   const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
@@ -112,6 +114,37 @@ export default function TimeTrackingPage() {
     load();
   };
 
+  const [showConvertModal, setShowConvertModal] = React.useState(false);
+  const [convertClient, setConvertClient] = React.useState('');
+  const [convertEmail, setConvertEmail] = React.useState('');
+  const [converting, setConverting] = React.useState(false);
+  const [convertSuccess, setConvertSuccess] = React.useState(null);
+
+  const handleConvertToInvoice = async () => {
+    const ids = billable.map(e => e.id);
+    if (!ids.length) return;
+    setConverting(true);
+    try {
+      const r = await fetch('/api/time/convert', {
+        method: 'POST', headers: h,
+        body: JSON.stringify({
+          account_id: account.id,
+          entry_ids: ids,
+          client_name: convertClient,
+          client_email: convertEmail,
+        })
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error);
+      setConvertSuccess(d);
+      setShowConvertModal(false);
+      setConvertClient('');
+      setConvertEmail('');
+      load();
+    } catch(e) { alert('Failed: ' + e.message); }
+    setConverting(false);
+  };
+
   const billable = entries.filter(e => e.is_billable && !e.is_invoiced);
   const totalUnbilled = billable.reduce((s, e) => s + parseFloat(e.billed_amount || 0), 0);
 
@@ -168,7 +201,8 @@ export default function TimeTrackingPage() {
           {totalUnbilled > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 12, color: '#D97706', fontWeight: 600 }}>{fmt$(totalUnbilled)} unbilled</span>
-              <button style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: '#059669', color: '#fff', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit' }}>
+              <button onClick={() => setShowConvertModal(true)}
+                style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: '#059669', color: '#fff', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit' }}>
                 Convert to Invoice
               </button>
             </div>
@@ -270,6 +304,51 @@ export default function TimeTrackingPage() {
               <button onClick={handleStartNew} disabled={!form.project_name}
                 style={{ padding: '9px 18px', borderRadius: 10, border: 'none', background: accent, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6, opacity: !form.project_name ? 0.5 : 1 }}>
                 <Play size={13} /> Start Timer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {convertSuccess && (
+        <div style={{ position:'fixed', bottom:24, left:'50%', transform:'translateX(-50%)', zIndex:1000, display:'flex', alignItems:'center', gap:10, padding:'12px 20px', borderRadius:12, background:'#059669', color:'#fff', boxShadow:'0 8px 32px rgba(0,0,0,0.2)', fontFamily:'inherit', fontSize:13, fontWeight:600 }}>
+          ✅ Invoice {convertSuccess.number} created!
+          <button onClick={() => navigate(`/invoices/${convertSuccess.invoice_id}`)}
+            style={{ padding:'4px 10px', borderRadius:7, background:'rgba(255,255,255,0.2)', border:'none', color:'#fff', cursor:'pointer', fontSize:12, fontWeight:700, fontFamily:'inherit' }}>
+            View Invoice →
+          </button>
+          <button onClick={() => setConvertSuccess(null)} style={{ background:'none', border:'none', color:'rgba(255,255,255,0.7)', cursor:'pointer', fontSize:16, padding:0 }}>✕</button>
+        </div>
+      )}
+
+      {showConvertModal && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(11,18,32,0.6)', zIndex:500, display:'flex', alignItems:'center', justifyContent:'center', padding:20, backdropFilter:'blur(4px)' }}>
+          <div style={{ background:'var(--bg-surface)', borderRadius:18, width:'100%', maxWidth:440, boxShadow:'0 32px 80px rgba(11,18,32,0.25)', fontFamily:'inherit', overflow:'hidden' }}>
+            <div style={{ padding:'18px 22px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <h3 style={{ margin:0, fontSize:16, fontWeight:800, color:'var(--text-primary)' }}>Convert to Invoice</h3>
+              <button onClick={() => setShowConvertModal(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', fontSize:20, padding:0, lineHeight:1 }}>✕</button>
+            </div>
+            <div style={{ padding:'18px 22px', display:'flex', flexDirection:'column', gap:12 }}>
+              <div style={{ padding:'10px 14px', borderRadius:10, background:'#05966910', border:'1px solid #05966930', fontSize:12, color:'#059669', fontWeight:600 }}>
+                {billable.length} billable {billable.length === 1 ? 'entry' : 'entries'} · Total: {fmt$(totalUnbilled)}
+              </div>
+              {[
+                { k:'convertClient', label:'Client Name', ph:'Jane Smith', val:convertClient, set:setConvertClient },
+                { k:'convertEmail', label:'Client Email (optional)', ph:'jane@company.com', val:convertEmail, set:setConvertEmail },
+              ].map(({ k, label, ph, val, set }) => (
+                <div key={k}>
+                  <label style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.06em', display:'block', marginBottom:5 }}>{label}</label>
+                  <input value={val} onChange={e => set(e.target.value)} placeholder={ph}
+                    style={{ width:'100%', padding:'9px 12px', borderRadius:10, border:'1.5px solid var(--border)', background:'var(--bg-page)', color:'var(--text-primary)', fontSize:13, boxSizing:'border-box', fontFamily:'inherit', outline:'none' }} />
+                </div>
+              ))}
+              <p style={{ fontSize:11, color:'var(--text-muted)', margin:0 }}>Time entries will be listed as line items. You can edit the invoice after creation.</p>
+            </div>
+            <div style={{ padding:'14px 22px', borderTop:'1px solid var(--border)', display:'flex', gap:8, justifyContent:'flex-end' }}>
+              <button onClick={() => setShowConvertModal(false)} style={{ padding:'9px 16px', borderRadius:10, border:'1.5px solid var(--border)', background:'transparent', color:'var(--text-muted)', cursor:'pointer', fontSize:13, fontWeight:600, fontFamily:'inherit' }}>Cancel</button>
+              <button onClick={handleConvertToInvoice} disabled={converting}
+                style={{ padding:'9px 20px', borderRadius:10, border:'none', background:'#059669', color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, fontFamily:'inherit', opacity:converting ? 0.6 : 1 }}>
+                {converting ? 'Creating…' : 'Create Invoice'}
               </button>
             </div>
           </div>
