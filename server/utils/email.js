@@ -219,3 +219,81 @@ export function buildQuoteHtml({ clientName, agencyName, quoteNum, totalAmount, 
 
   return emailBase(body, accentColor);
 }
+
+export function buildReminderHtml({ clientName, agencyName, invoiceNum, amount, dueDate, portalUrl, logoUrl, accentColor, daysOverdue }) {
+  const accent = accentColor || '#DC2626';
+  const isOverdue = daysOverdue > 0;
+  return emailBase(`
+  <div style="background:linear-gradient(135deg,${isOverdue ? '#DC2626' : '#D97706'},${isOverdue ? '#9F1239' : '#B45309'});padding:36px 40px">
+    ${logoUrl ? `<img src="${logoUrl}" alt="${agencyName || 'Logo'}" style="height:44px;margin-bottom:16px;object-fit:contain;border-radius:8px;background:#fff;padding:6px 10px;display:block">` : ''}
+    <h1 style="color:#fff;margin:0 0 6px;font-size:26px;font-weight:800">${isOverdue ? '&#9888;&#65039; Invoice Overdue' : '&#128276; Payment Reminder'}</h1>
+    <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px">from ${agencyName || 'Revanew'} &middot; Invoice #${invoiceNum}</p>
+  </div>
+  <div style="padding:36px 40px">
+    <p style="color:#334155;font-size:16px;margin:0 0 8px">Hi ${clientName || 'there'},</p>
+    <p style="color:#64748B;font-size:14px;margin:0 0 28px;line-height:1.6">
+      ${isOverdue
+        ? `Invoice #${invoiceNum} is <strong style="color:#DC2626">${daysOverdue} day${daysOverdue > 1 ? 's' : ''} overdue</strong>. Please pay at your earliest convenience to avoid any late fees.`
+        : `Just a friendly reminder that invoice #${invoiceNum} is due ${dueDate ? `on <strong>${dueDate}</strong>` : 'soon'}.`
+      }
+    </p>
+    <div style="background:#FEF2F2;border:2px solid #FECACA;border-radius:14px;padding:24px 28px;margin:0 0 28px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="color:#64748B;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em">Balance Due</span>
+        <span style="color:#DC2626;font-size:28px;font-weight:900">${amount}</span>
+      </div>
+    </div>
+    <a href="${portalUrl}" style="display:block;text-align:center;padding:16px 32px;background:linear-gradient(135deg,#DC2626,#9F1239);color:#fff;text-decoration:none;border-radius:12px;font-size:16px;font-weight:800;box-shadow:0 6px 20px rgba(220,38,38,0.35);margin-bottom:16px">
+      Pay Invoice Now &rarr;
+    </a>
+    <p style="color:#94A3B8;font-size:12px;text-align:center;margin:0">Secure payment &middot; Takes 60 seconds</p>
+  </div>
+`, accent);
+}
+
+export function buildInviteHtml({ inviteeName, accountName, role, acceptUrl, logoUrl }) {
+  return emailBase(`
+  <div style="background:linear-gradient(135deg,#2563EB,#0D9488);padding:36px 40px">
+    ${logoUrl ? `<img src="${logoUrl}" alt="${accountName || 'Logo'}" style="height:44px;margin-bottom:16px;object-fit:contain;border-radius:8px;background:#fff;padding:6px 10px;display:block">` : ''}
+    <h1 style="color:#fff;margin:0 0 6px;font-size:26px;font-weight:800">You're Invited! &#127881;</h1>
+    <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px">Join ${accountName} on Revanew</p>
+  </div>
+  <div style="padding:36px 40px">
+    <p style="color:#334155;font-size:16px;margin:0 0 16px">Hi${inviteeName ? ` ${inviteeName}` : ''},</p>
+    <p style="color:#64748B;font-size:14px;margin:0 0 28px;line-height:1.6">
+      You've been invited to join <strong style="color:#0F172A">${accountName}</strong> on Revanew as a <strong style="color:#0F172A">${role || 'team member'}</strong>.
+    </p>
+    <div style="background:#F0FDF4;border:2px solid #BBF7D0;border-radius:14px;padding:20px 24px;margin:0 0 28px">
+      <p style="color:#15803D;font-size:13px;margin:0;font-weight:600">&#9989; What you get access to:</p>
+      <ul style="color:#166534;font-size:13px;margin:8px 0 0;padding-left:20px;line-height:1.8">
+        <li>Team workspace &amp; messaging</li>
+        <li>Quotes, invoices &amp; client management</li>
+        <li>Calendar &amp; job scheduling</li>
+      </ul>
+    </div>
+    <a href="${acceptUrl}" style="display:block;text-align:center;padding:16px 32px;background:linear-gradient(135deg,#2563EB,#0D9488);color:#fff;text-decoration:none;border-radius:12px;font-size:16px;font-weight:800;box-shadow:0 6px 20px rgba(37,99,235,0.35);margin-bottom:16px">
+      Accept Invitation &rarr;
+    </a>
+    <p style="color:#94A3B8;font-size:12px;text-align:center;margin:0">This invitation will expire in 7 days</p>
+  </div>
+`);
+}
+
+export function buildMentionHtml({ mentionedName, senderName, accountName, channelName, messageContent, workspaceUrl }) {
+  return emailBase(`
+  <div style="background:linear-gradient(135deg,#7C3AED,#2563EB);padding:36px 40px">
+    <h1 style="color:#fff;margin:0 0 6px;font-size:26px;font-weight:800">You were mentioned &#128172;</h1>
+    <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px">${accountName} &middot; #${channelName}</p>
+  </div>
+  <div style="padding:36px 40px">
+    <p style="color:#334155;font-size:16px;margin:0 0 20px">Hi ${mentionedName || 'there'},</p>
+    <p style="color:#64748B;font-size:14px;margin:0 0 20px"><strong style="color:#0F172A">${senderName}</strong> mentioned you in <strong style="color:#0F172A">#${channelName}</strong>:</p>
+    <div style="background:#F5F3FF;border-left:4px solid #7C3AED;border-radius:0 12px 12px 0;padding:16px 20px;margin:0 0 28px">
+      <p style="color:#4C1D95;font-size:14px;margin:0;line-height:1.6;font-style:italic">"${messageContent}"</p>
+    </div>
+    <a href="${workspaceUrl}" style="display:block;text-align:center;padding:16px 32px;background:linear-gradient(135deg,#7C3AED,#2563EB);color:#fff;text-decoration:none;border-radius:12px;font-size:16px;font-weight:800;box-shadow:0 6px 20px rgba(124,58,237,0.35)">
+      Reply in Workspace &rarr;
+    </a>
+  </div>
+`);
+}
