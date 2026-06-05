@@ -285,3 +285,44 @@ export function buildMentionHtml({ mentionedName, senderName, accountName, chann
   </div>
 `);
 }
+
+export function buildQuoteHtml({ clientName, agencyName, quoteNum, totalAmount, expiryDate, portalUrl, logoUrl, accentColor = '#2563EB', agencyPhone = '', agencyEmail = '', agencyAddress = '', lineItems = [], notes = '' }) {
+  const fmtMoney = n => '$' + parseFloat(n||0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = s => (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const itemsHtml = lineItems.length > 0 ? lineItems.map(item => `
+    <tr>
+      <td style="padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:14px;color:#374151;vertical-align:top">${fmt(item.name)}${item.description ? '<br><span style="font-size:12px;color:#94a3b8">'+fmt(item.description)+'</span>' : ''}</td>
+      <td style="padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:14px;text-align:right;color:${accentColor};font-weight:700;white-space:nowrap">${fmtMoney(item.setup_price || item.price || 0)}</td>
+    </tr>`).join('') : '';
+
+  const body = `
+  <div style="padding:36px 40px 28px;background:linear-gradient(135deg,${accentColor}10,${accentColor}04);border-bottom:3px solid ${accentColor}">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td>${logoUrl ? `<img src="${logoUrl}" alt="${fmt(agencyName)}" style="height:48px;object-fit:contain;border-radius:8px;background:white;padding:4px">` : `<div style="font-size:22px;font-weight:900;color:${accentColor}">${fmt(agencyName)}</div>`}</td>
+      <td style="text-align:right"><div style="font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:0.08em">QUOTE</div><div style="font-size:22px;font-weight:900;color:#0f172a">${fmt(quoteNum)}</div></td>
+    </tr></table>
+  </div>
+  <div style="padding:32px 40px">
+    <p style="margin:0 0 20px;font-size:16px;color:#374151;line-height:1.7">Hi <strong>${fmt(clientName || 'there')}</strong>,<br>Your quote is ready. Review the details below and click the button to approve or request changes.</p>
+    ${lineItems.length > 0 ? `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;background:#f8fafc;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0">
+      <tr style="background:${accentColor}10"><th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:${accentColor};text-transform:uppercase;letter-spacing:0.06em">Service</th><th style="padding:10px 16px;text-align:right;font-size:11px;font-weight:700;color:${accentColor};text-transform:uppercase;letter-spacing:0.06em">Price</th></tr>
+      <tr><td colspan="2" style="padding:0 16px">${itemsHtml}</td></tr>
+      <tr style="background:${accentColor}08"><td style="padding:12px 16px;font-size:16px;font-weight:800;color:#0f172a">Total</td><td style="padding:12px 16px;font-size:20px;font-weight:900;color:${accentColor};text-align:right">${fmtMoney(totalAmount)}</td></tr>
+    </table>` : `<div style="background:${accentColor}08;border-radius:12px;padding:24px;margin-bottom:24px;border:1px solid ${accentColor}20;text-align:center"><div style="font-size:13px;color:#64748b;margin-bottom:6px">Quote Total</div><div style="font-size:36px;font-weight:900;color:${accentColor}">${fmtMoney(totalAmount)}</div>${expiryDate ? `<div style="font-size:12px;color:#94a3b8;margin-top:6px">Valid until ${fmt(expiryDate)}</div>` : ''}</div>`}
+    ${notes ? `<div style="background:#fffbeb;border-radius:10px;padding:14px 18px;margin-bottom:24px;border-left:4px solid #f59e0b"><p style="margin:0;font-size:13px;color:#92400e;line-height:1.6">${fmt(notes)}</p></div>` : ''}
+    <div style="text-align:center;padding:24px 0">
+      <a href="${portalUrl}" style="display:inline-block;padding:15px 40px;background:linear-gradient(135deg,${accentColor},${accentColor}cc);color:#fff;font-size:15px;font-weight:700;text-decoration:none;border-radius:12px;box-shadow:0 6px 24px ${accentColor}40;letter-spacing:0.01em">
+        View & Approve Quote →
+      </a>
+    </div>
+    <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;text-align:center">Or paste this link: <a href="${portalUrl}" style="color:${accentColor}">${portalUrl}</a></p>
+  </div>
+  <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #e2e8f0">
+    <strong style="font-size:14px;color:#0f172a">${fmt(agencyName)}</strong><br>
+    <span style="font-size:12px;color:#64748b">${[agencyPhone, agencyEmail, agencyAddress].filter(Boolean).join(' · ')}</span>
+  </div>`;
+
+  return emailBase(body, accentColor);
+}

@@ -721,9 +721,23 @@ export async function migrateUserProfileSystem() {
       status TEXT DEFAULT 'active',
       created_at TIMESTAMPTZ DEFAULT NOW()
     )`,
-    // Logo blob storage (serves via /api/accounts/:id/logo-img)
+    // Logo blob storage
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS logo_data TEXT`,
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS logo_mime TEXT DEFAULT 'image/jpeg'`,
+    // App Settings persistence
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS email_from_name TEXT`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS email_signature TEXT`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS email_bcc TEXT`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS invoice_prefix TEXT DEFAULT 'INV'`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS quote_prefix TEXT DEFAULT 'Q'`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS default_payment_terms TEXT DEFAULT '30'`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS default_notes TEXT`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS auto_send_reminders INTEGER DEFAULT 1`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS reminder_days INTEGER DEFAULT 3`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS notif_invoice_paid INTEGER DEFAULT 1`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS notif_invoice_viewed INTEGER DEFAULT 1`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS notif_quote_accepted INTEGER DEFAULT 1`,
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS notif_overdue INTEGER DEFAULT 1`,
     // Custom fields system (new tables)
     `CREATE TABLE IF NOT EXISTS contact_custom_fields (
       id TEXT PRIMARY KEY, account_id TEXT NOT NULL, field_name TEXT NOT NULL,

@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAccount } from '../context/AccountContext';
+import PageHeader from '../components/PageHeader';
 import {
   Search, Plus, Filter, Star, Zap, Heart, TrendingUp, TrendingDown,
   Mail, Phone, Globe, MapPin, ChevronRight, ChevronDown, X, Check,
@@ -179,28 +180,24 @@ export default function Contacts() {
   return (
     <div style={{ padding: '0 0 32px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
 
-      {/* ── Header ── */}
-      <div style={{ padding: '24px 28px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.03em' }}>
-            Clients
-          </h1>
-          <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '4px 0 0' }}>
-            {contacts.length} total · {fmt(totalRevenue)} lifetime revenue
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+      <PageHeader path="/contacts"
+        stats={[
+          { label: 'Clients', value: contacts.length },
+          { label: 'Revenue', value: fmt(totalRevenue), color: '#6EE7B7' },
+          { label: 'Outstanding', value: fmt(totalOutstanding) },
+          { label: 'VIP', value: vips },
+        ]}
+        actions={<>
           <button onClick={handleScoreAll} disabled={scoringAll || !contacts.length}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, border: '1.5px solid var(--border)', background: 'transparent', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', fontFamily: 'inherit' }}>
-            <Brain size={13} style={{ color: accent }} />
-            {scoringAll ? 'Scoring…' : 'AI Score All'}
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,0.3)', background:'rgba(255,255,255,0.1)', cursor:'pointer', fontSize:12, fontWeight:700, color:'#fff', fontFamily:'inherit', backdropFilter:'blur(8px)' }}>
+            <Brain size={12} /> {scoringAll ? 'Scoring…' : 'AI Score'}
           </button>
           <button onClick={() => setShowNewContact(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10, border: 'none', background: accent, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', boxShadow: `0 4px 14px ${accent}40` }}>
-            <Plus size={15} /> New Client
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:10, border:'none', background:'rgba(255,255,255,0.95)', color:'#0D9488', cursor:'pointer', fontSize:13, fontWeight:800, fontFamily:'inherit' }}>
+            <Plus size={14} /> New Client
           </button>
-        </div>
-      </div>
+        </>}
+      />
 
       {/* ── Stats Bar ── */}
       <div style={{ padding: '16px 28px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>

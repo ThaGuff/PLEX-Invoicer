@@ -401,4 +401,63 @@ router.delete('/:id', requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── POST /api/quotes/:id/send-email — send HTML quote via Resend ─
+router.post('/:id/send-email', requireAuth, async (req, res) => {
+  try {
+    const { account_id, recipient_email, recipient_name, custom_message } = req.body;
+    if (!account_id || !recipient_email) return res.status(400).json({ error: 'account_id and recipient_email required' });
+
+    const [quote, account, items] = await Promise.all([
+      db.execute(`SELECT * FROM quotes WHERE id = ? AND account_id = ?`, [req.params.id, account_id]),
+      db.execute(`SELECT * FROM accounts WHERE id = ?`, [account_id]),
+      db.execute(`SELECT * FROM quote_items WHERE quote_id = ? AND is_included = 1 ORDER BY sort_order LIMIT 10`, [req.params.id]),
+    ]);
+    if (!quote.rows.length) return res.status(404).json({ error: 'Quote not found' });
+    const q = quote.rows[0];
+    const a = account.rows[0];
+    const lineItems = items.rows;
+
+    const { buildQuoteHtml } = await import('../utils/email.js');
+    const { sendEmail } = await import('../utils/email.js');
+
+    const portalUrl = `${process.env.APP_URL || 'https://revanew.io'}/portal/quote/${q.public_token}`;
+    const logoUrl = a.logo_url ? `${process.env.APP_URL || 'https://revanew.io'}${a.logo_url}` : null;
+
+    const html = buildQuoteHtml({
+      clientName: recipient_name || q.client_name || 'there',
+      agencyName: a.name,
+      quoteNum: q.number,
+      totalAmount: q.setup_total || 0,
+      portalUrl,
+      logoUrl,
+      accentColor: a.primary_color || '#2563EB',
+      agencyPhone: a.phone || '',
+      agencyEmail: a.email || '',
+      agencyAddress: a.business_address || '',
+      lineItems,
+      notes: custom_message || q.notes || '',
+    });
+
+    const fromName = a.email_from_name || a.name || 'Revanew';
+    const from = `${fromName} <invoices@revanew.io>`;
+
+    const result = await sendEmail({
+      to: recipient_email,
+      from,
+      subject: `Your Quote ${q.number} from ${a.name || 'us'} — ${portalUrl ? 'Ready to Review' : ''}`,
+      html,
+    });
+
+    // Update quote status to 'sent'
+    if (q.status === 'draft') {
+      await db.execute(`UPDATE quotes SET status = 'sent', sent_at = NOW() WHERE id = ?`, [q.id]);
+    }
+
+    res.json({ ok: true, messageId: result?.id });
+  } catch (e) {
+    console.error('send-email error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 export default router;

@@ -5,6 +5,7 @@
  */
 import React, { useState, useCallback, useEffect } from 'react';
 import { useAccount } from '../context/AccountContext';
+import PageHeader from '../components/PageHeader';
 import {
   User, Palette, Bell, FileText, Mail, Shield, CreditCard,
   Zap, Globe, Clock, ChevronRight, Check, Sun, Moon,
@@ -169,38 +170,57 @@ export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState('profile');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [settings, setSettings] = useState({
-    // Profile
+  const [settings, setSettings] = useState(() => ({
     name: account?.name || '',
     email: account?.email || '',
     phone: account?.phone || '',
     website: account?.website || '',
     address: account?.business_address || '',
     tagline: account?.company_tagline || '',
-    // Appearance
     primary_color: account?.primary_color || '#2563EB',
-    dark_mode: false,
-    // Templates
     invoice_theme: account?.default_template || 'classic',
-    // Notifications
-    notif_invoice_viewed: true,
-    notif_invoice_paid: true,
-    notif_quote_accepted: true,
-    notif_overdue: true,
+    notif_invoice_viewed: account?.notif_invoice_viewed !== 0,
+    notif_invoice_paid: account?.notif_invoice_paid !== 0,
+    notif_quote_accepted: account?.notif_quote_accepted !== 0,
+    notif_overdue: account?.notif_overdue !== 0,
     notif_email: true,
-    // Email
-    email_from_name: account?.name || '',
-    email_signature: '',
-    email_bcc: '',
-    // Defaults
-    default_payment_terms: '30',
+    email_from_name: account?.email_from_name || account?.name || '',
+    email_signature: account?.email_signature || '',
+    email_bcc: account?.email_bcc || '',
+    default_payment_terms: account?.default_payment_terms || '30',
     default_tax_rate: account?.default_tax_rate || '0',
-    default_notes: '',
-    invoice_prefix: 'INV',
-    quote_prefix: 'Q',
-    auto_send_reminders: true,
-    reminder_days: '3',
-  });
+    default_notes: account?.default_notes || '',
+    invoice_prefix: account?.invoice_prefix || 'INV',
+    quote_prefix: account?.quote_prefix || 'Q',
+    auto_send_reminders: account?.auto_send_reminders !== 0,
+    reminder_days: String(account?.reminder_days || '3'),
+  }));
+
+  // Sync when account loads
+  React.useEffect(() => {
+    if (!account) return;
+    setSettings(prev => ({
+      ...prev,
+      name: account.name || prev.name,
+      email: account.email || prev.email,
+      phone: account.phone || prev.phone,
+      website: account.website || prev.website,
+      address: account.business_address || prev.address,
+      tagline: account.company_tagline || prev.tagline,
+      primary_color: account.primary_color || prev.primary_color,
+      invoice_theme: account.default_template || prev.invoice_theme,
+      email_from_name: account.email_from_name || account.name || prev.email_from_name,
+      email_signature: account.email_signature || prev.email_signature,
+      email_bcc: account.email_bcc || prev.email_bcc,
+      default_payment_terms: account.default_payment_terms || prev.default_payment_terms,
+      default_tax_rate: account.default_tax_rate || prev.default_tax_rate,
+      default_notes: account.default_notes || prev.default_notes,
+      invoice_prefix: account.invoice_prefix || prev.invoice_prefix,
+      quote_prefix: account.quote_prefix || prev.quote_prefix,
+      auto_send_reminders: account.auto_send_reminders !== 0,
+      reminder_days: String(account.reminder_days || prev.reminder_days),
+    }));
+  }, [account?.id]);
 
   const set = (k, v) => setSettings(p => ({ ...p, [k]: v }));
 
@@ -217,6 +237,19 @@ export default function SettingsPage() {
         primary_color: settings.primary_color,
         default_template: settings.invoice_theme,
         default_tax_rate: parseFloat(settings.default_tax_rate) || 0,
+        email_from_name: settings.email_from_name,
+        email_signature: settings.email_signature,
+        email_bcc: settings.email_bcc,
+        invoice_prefix: settings.invoice_prefix,
+        quote_prefix: settings.quote_prefix,
+        default_payment_terms: settings.default_payment_terms,
+        default_notes: settings.default_notes,
+        auto_send_reminders: settings.auto_send_reminders ? 1 : 0,
+        reminder_days: parseInt(settings.reminder_days) || 3,
+        notif_invoice_paid: settings.notif_invoice_paid ? 1 : 0,
+        notif_invoice_viewed: settings.notif_invoice_viewed ? 1 : 0,
+        notif_quote_accepted: settings.notif_quote_accepted ? 1 : 0,
+        notif_overdue: settings.notif_overdue ? 1 : 0,
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);

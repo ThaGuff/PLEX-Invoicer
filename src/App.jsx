@@ -169,7 +169,7 @@ function Nav() {
   };
 
   const links = [
-    { to: '/',            label: 'Dashboard', icon: LayoutDashboard, color: '#0D9488' },
+    { to: '/dashboard',   label: 'Dashboard', icon: LayoutDashboard, color: '#0D9488' },
     { to: '/quotes',      label: 'Quotes',    icon: FileText,        color: '#2563EB' },
     { to: '/invoices',    label: 'Invoices',  icon: Receipt,         color: '#7C3AED' },
     { to: '/contacts',    label: 'Clients',   icon: Users,           color: '#0D9488' },
@@ -214,7 +214,7 @@ function Nav() {
       }}>
         {/* Logo */}
         <div style={{ padding: '18px 16px 12px', borderBottom: '1px solid rgba(255,255,255,0.08)', flexShrink:0 }}>
-          <NavLink to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none' }}>
+          <NavLink to="/dashboard" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none' }}>
             <img src="/logo-revanew.png" alt="Revanew" style={{ width:32, height:32, objectFit:'contain', borderRadius:8 }} />
             <span style={{ fontSize:17, fontWeight:800, color:'#ffffff', letterSpacing:'-0.04em' }}>Revanew</span>
           </NavLink>

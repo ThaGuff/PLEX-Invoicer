@@ -65,7 +65,17 @@ export default function WeeklyScheduleWidget({ accountId, accent = '#2563EB' }) 
 
   const fmtTime = (d) => {
     if (!d) return '';
-    return new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    // Handle "HH:MM" string format (calendar events) or ISO date string
+    if (typeof d === 'string' && /^\d{1,2}:\d{2}$/.test(d.trim())) {
+      const [h, m] = d.split(':').map(Number);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const hr = h % 12 || 12;
+      return `${hr}:${String(m).padStart(2,'0')} ${ampm}`;
+    }
+    // ISO date string
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return d;
+    return dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   };
 
   return (

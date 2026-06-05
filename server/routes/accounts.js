@@ -155,7 +155,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
     if (req.body.subscription_status && !VALID_STATUSES.includes(req.body.subscription_status)) {
       return res.status(400).json({ error: 'Invalid subscription_status' });
     }
-    const fields = ['name', 'email', 'phone', 'website', 'logo_initial', 'logo_url', 'primary_color', 'plan', 'subscription_status', 'trial_ends_at', 'default_tax_rate', 'tax_name', 'tax_number', 'business_address', 'city_state_zip', 'business_type', 'default_template', 'technician_name', 'license_number', 'company_tagline', 'onboarding_complete'];
+    const fields = ['name', 'email', 'phone', 'website', 'logo_initial', 'logo_url', 'primary_color', 'plan', 'subscription_status', 'trial_ends_at', 'default_tax_rate', 'tax_name', 'tax_number', 'business_address', 'city_state_zip', 'business_type', 'default_template', 'technician_name', 'license_number', 'company_tagline', 'onboarding_complete', 'email_from_name', 'email_signature', 'email_bcc', 'invoice_prefix', 'quote_prefix', 'default_payment_terms', 'default_notes', 'auto_send_reminders', 'reminder_days', 'notif_invoice_paid', 'notif_invoice_viewed', 'notif_quote_accepted', 'notif_overdue'];
     const updates = [];
     const vals = [];
     fields.forEach(f => {

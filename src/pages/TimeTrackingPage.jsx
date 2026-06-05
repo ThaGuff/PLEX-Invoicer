@@ -3,6 +3,7 @@
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAccount } from '../context/AccountContext';
+import PageHeader from '../components/PageHeader';
 import { useNavigate } from 'react-router-dom';
 import { Play, Square, Plus, Trash2, Clock, DollarSign, FileText, CheckCircle, X, ChevronDown } from 'lucide-react';
 

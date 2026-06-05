@@ -66,9 +66,10 @@ function LogoUploader({ accountId, currentLogoUrl, currentInitial, accentColor, 
         setPreview(dataUrl);
         const result = await api.accounts.uploadLogo(accountId, dataUrl);
         if (result?.error) throw new Error(result.error);
-        // Use server-returned logo_url (proper URL endpoint, not data: URL)
+        // Server returns /api/accounts/:id/logo-img as the clean URL
         const serverUrl = result?.logo_url || dataUrl;
-        setPreview(serverUrl); // Update preview to the clean URL
+        const cacheBusted = serverUrl.startsWith('/api/') ? serverUrl + '?t=' + Date.now() : serverUrl;
+        setPreview(cacheBusted);
         onUploaded(serverUrl);
       } catch (err) {
         console.error('Logo upload failed:', err);
@@ -583,13 +584,15 @@ export default function AccountSettings({ onClose }) {
               currentInitial={form.logo_initial || form.name?.[0]}
               accentColor={accent}
               onUploaded={async url => {
-                // url is now /api/accounts/:id/logo-img (a proper URL, not data:)
-                // Add cache-buster so browser re-fetches the new logo
-                const cacheBusted = url ? (url + '?t=' + Date.now()) : null;
+                // url is /api/accounts/:id/logo-img from server
+                const cacheBusted = url ? (url.split('?')[0] + '?t=' + Date.now()) : null;
                 setLogoUrl(cacheBusted);
-                // Refresh account context so logo propagates everywhere
+                // Force refresh account context so logo shows everywhere immediately
                 try {
-                  await refreshAccount(activeId);
+                  const refreshed = await refreshAccount(activeId);
+                  if (refreshed?.logo_url) {
+                    setLogoUrl(refreshed.logo_url + '?t=' + Date.now());
+                  }
                 } catch (e) { console.warn('Logo refresh failed:', e.message); }
               }}
             />

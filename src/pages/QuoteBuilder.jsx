@@ -419,6 +419,30 @@ export default function QuoteBuilder() {
     return cleanup;
   }, []);
 
+  const [showEmailModal, setShowEmailModal] = React.useState(false);
+  const [emailTo, setEmailTo] = React.useState('');
+  const [emailName, setEmailName] = React.useState('');
+  const [emailMsg, setEmailMsg] = React.useState('');
+  const [emailSending, setEmailSending] = React.useState(false);
+  const [emailSent, setEmailSent] = React.useState(false);
+
+  const handleSendEmail = async () => {
+    if (!emailTo.trim()) return;
+    setEmailSending(true);
+    try {
+      const r = await fetch(`/api/quotes/${editId}/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ account_id: account?.id, recipient_email: emailTo.trim(), recipient_name: emailName.trim(), custom_message: emailMsg.trim() }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Send failed');
+      setEmailSent(true);
+      setTimeout(() => { setShowEmailModal(false); setEmailSent(false); setEmailTo(''); setEmailName(''); setEmailMsg(''); }, 2500);
+    } catch(e) { alert('Failed to send: ' + e.message); }
+    setEmailSending(false);
+  };
+
   // Payment due date — defaults to 30 days from today, user can override
   const [dueUponReceipt, setDueUponReceipt] = useState(false);
   const [dueDate, setDueDate] = useState(() => {
@@ -1303,7 +1327,7 @@ export default function QuoteBuilder() {
                 className="btn-ghost w-full disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
                 <Download size={15} /> Export PDF
               </button>
-              <button onClick={() => openMailto(fullState)} disabled={selectedCount === 0}
+              <button onClick={() => setShowEmailModal(true)} disabled={selectedCount === 0}
                 className="btn-ghost w-full disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
                 <Mail size={15} /> Email quote
               </button>
