@@ -1,204 +1,425 @@
 /**
- * Analytics — DocSend-style quote intelligence dashboard.
- * Shows: view rates, time-to-accept, top services, acceptance rates, revenue forecast.
+ * AnalyticsPage — AI Business Intelligence Command Center
+ * Sections: Executive Dashboard, Business Health, AI Advisor,
+ *           Revenue Intelligence, Churn Risk, Workforce Intelligence
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAccount } from '../context/AccountContext';
-import { api } from '../utils/api';
-import {
-  TrendingUp, Eye, Clock, CheckCircle, FileText,
-  AlertCircle, BarChart2, RefreshCw, Zap, DollarSign,
-  ArrowUp, ArrowDown, Minus,
-} from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Users, AlertTriangle,
+         Brain, Target, Activity, BarChart3, RefreshCw, ChevronRight,
+         Zap, Shield, CheckCircle, XCircle, Clock } from 'lucide-react';
 
-const fmt  = n => '$' + Math.round(n||0).toLocaleString();
-const pct  = n => Math.round((n||0)*10)/10 + '%';
+const fmt$ = n => '$' + Math.round(parseFloat(n||0)).toLocaleString('en-US');
+const fmtPct = n => (n > 0 ? '+' : '') + n + '%';
 
-function MetricCard({ label, value, sub, icon: Icon, color, trend, delay=0 }) {
+function StatCard({ label, value, sub, color, icon: Icon, trend }) {
   return (
-    <div className="glow-card p-5 animate-fade-up" style={{ animationDelay:`${delay}ms` }}>
-      <div style={{ height:3, borderRadius:2, background:color, marginBottom:14 }}/>
-      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:6 }}>
-        <p style={{ fontSize:10, fontWeight:600, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.9px' }}>{label}</p>
-        <div style={{ width:28, height:28, borderRadius:8, background:color+'22', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <Icon size={13} style={{ color }} />
-        </div>
+    <div style={{ padding:'16px 18px', borderRadius:14, border:'1px solid var(--border)', background:'var(--bg-surface)', display:'flex', flexDirection:'column', gap:8 }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text-muted)' }}>{label}</span>
+        {Icon && <Icon size={16} style={{ color }} />}
       </div>
-      <p style={{ fontSize:28, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.03em', lineHeight:1 }}>{value}</p>
-      <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:6 }}>
-        {trend > 0 && <ArrowUp size={11} style={{ color:'#0D9488' }} />}
-        {trend < 0 && <ArrowDown size={11} style={{ color:'#ef4444' }} />}
-        {trend === 0 && <Minus size={11} style={{ color:'#94A3B8' }} />}
-        <p style={{ fontSize:11, color:'var(--text-muted)' }}>{sub}</p>
+      <div style={{ display:'flex', alignItems:'baseline', gap:8 }}>
+        <span style={{ fontSize:26, fontWeight:900, color:'var(--text-primary)', letterSpacing:'-0.04em' }}>{value}</span>
+        {trend !== undefined && (
+          <span style={{ fontSize:12, fontWeight:700, color: trend >= 0 ? '#059669' : '#DC2626', display:'flex', alignItems:'center', gap:2 }}>
+            {trend >= 0 ? <TrendingUp size={12}/> : <TrendingDown size={12}/>}
+            {fmtPct(trend)}
+          </span>
+        )}
       </div>
+      {sub && <span style={{ fontSize:12, color:'var(--text-muted)' }}>{sub}</span>}
     </div>
   );
 }
 
-function QuoteRow({ q }) {
-  const statusColor = { draft:'#94A3B8', sent:'#2563EB', viewed:'#D97706', accepted:'#0D9488', expired:'#ef4444' };
-  const s = q.status || 'draft';
+function HealthGauge({ score, label, color }) {
+  const r = 50, circ = 2 * Math.PI * r;
+  const offset = circ - (score / 100) * circ;
   return (
-    <div style={{ display:'flex', alignItems:'center', padding:'12px 16px', borderBottom:'0.5px solid var(--border-subtle)', gap:12 }}
-      onMouseEnter={e=>e.currentTarget.style.background='var(--bg-page)'}
-      onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-      <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          <span style={{ fontSize:12, fontWeight:700, color:statusColor[s]||'#64748B', fontFamily:'monospace' }}>{q.number}</span>
-          <span style={{ fontSize:9, fontWeight:700, color:statusColor[s], background:statusColor[s]+'18', padding:'2px 7px', borderRadius:20 }}>{s}</span>
-        </div>
-        <p style={{ fontSize:11, color:'var(--text-muted)', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{q.client_name||q.client_biz||'—'}</p>
+    <div style={{ textAlign:'center' }}>
+      <svg width={120} height={120} style={{ transform:'rotate(-90deg)' }}>
+        <circle cx={60} cy={60} r={r} fill="none" stroke="var(--border)" strokeWidth={10}/>
+        <circle cx={60} cy={60} r={r} fill="none" stroke={color} strokeWidth={10}
+          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+          style={{ transition:'stroke-dashoffset 1s ease' }}/>
+      </svg>
+      <div style={{ marginTop:-100, height:100, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
+        <span style={{ fontSize:28, fontWeight:900, color }}>{score}</span>
+        <span style={{ fontSize:11, color:'var(--text-muted)', fontWeight:600 }}>/100</span>
       </div>
-      <div style={{ display:'flex', alignItems:'center', gap:16, shrink:0, fontSize:11 }}>
-        <div style={{ textAlign:'center' }}>
-          <p style={{ fontWeight:700, color:'var(--text-primary)' }}>{q.view_count||0}</p>
-          <p style={{ color:'var(--text-muted)' }}>views</p>
-        </div>
-        <div style={{ textAlign:'center' }}>
-          <p style={{ fontWeight:700, color:'var(--text-primary)' }}>{q.time_to_view ? Math.round(q.time_to_view/3600)+'h' : '—'}</p>
-          <p style={{ color:'var(--text-muted)' }}>to view</p>
-        </div>
-        <div style={{ textAlign:'right' }}>
-          <p style={{ fontWeight:700, color:'var(--text-primary)', fontSize:13 }}>{'$'+Math.round(q.setup_total||0).toLocaleString()}</p>
-          <p style={{ color:'var(--text-muted)' }}>{new Date(q.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</p>
-        </div>
+      <p style={{ margin:'8px 0 0', fontSize:14, fontWeight:800, color }}>{label}</p>
+    </div>
+  );
+}
+
+function RevenueBar({ month, revenue, maxRevenue }) {
+  const pct = maxRevenue > 0 ? (revenue / maxRevenue) * 100 : 0;
+  const label = month.slice(5); // "MM"
+  const monthNames = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return (
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, flex:1 }}>
+      <span style={{ fontSize:11, color:'var(--text-muted)', fontWeight:600 }}>{fmt$(revenue)}</span>
+      <div style={{ width:'100%', background:'var(--bg-raised)', borderRadius:6, height:80, display:'flex', alignItems:'flex-end', overflow:'hidden' }}>
+        <div style={{ width:'100%', background:'linear-gradient(180deg, #2563EB, #0D9488)', borderRadius:6, height:`${pct}%`, transition:'height 0.8s ease', minHeight:4 }}/>
       </div>
+      <span style={{ fontSize:10, color:'var(--text-muted)', fontWeight:600 }}>{monthNames[parseInt(label)] || label}</span>
     </div>
   );
 }
 
 export default function AnalyticsPage() {
   const { account } = useAccount();
-  const [quotes,  setQuotes]  = useState([]);
+  const accent = account?.primary_color || '#2563EB';
+  const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
+  const h = { Authorization: `Bearer ${token}` };
+  const acctId = account?.id;
+
+  const [health, setHealth] = useState(null);
+  const [advisor, setAdvisor] = useState(null);
+  const [cashflow, setCashflow] = useState(null);
+  const [churnRisk, setChurnRisk] = useState([]);
+  const [workforce, setWorkforce] = useState(null);
+  const [execSummary, setExecSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-    if (!account?.id) return;
+    if (!acctId) return;
     setLoading(true);
     try {
-      const q = await api.quotes.list(account.id);
-      // API returns a plain array
-      setQuotes(Array.isArray(q) ? q : q?.quotes || []);
-    } catch(e) { console.error('Analytics load error:', e); }
+      const [h1, h2, h3, h4, h5, h6] = await Promise.all([
+        fetch(`/api/analytics/business-health?account_id=${acctId}`, { headers: h }).then(r => r.json()).catch(() => null),
+        fetch(`/api/analytics/ai-advisor?account_id=${acctId}`, { headers: h }).then(r => r.json()).catch(() => null),
+        fetch(`/api/analytics/predictive-cashflow?account_id=${acctId}`, { headers: h }).then(r => r.json()).catch(() => null),
+        fetch(`/api/analytics/churn-risk?account_id=${acctId}`, { headers: h }).then(r => r.json()).catch(() => []),
+        fetch(`/api/analytics/workforce-intelligence?account_id=${acctId}`, { headers: h }).then(r => r.json()).catch(() => null),
+        fetch(`/api/analytics/executive-summary?account_id=${acctId}`, { headers: h }).then(r => r.json()).catch(() => null),
+      ]);
+      setHealth(h1); setAdvisor(h2); setCashflow(h3);
+      setChurnRisk(Array.isArray(h4) ? h4 : []); setWorkforce(h5); setExecSummary(h6);
+    } catch(e) { console.error(e); }
     setLoading(false);
-  }, [account?.id]);
+  }, [acctId]);
 
   useEffect(() => { load(); }, [load]);
 
-  // Compute metrics from quotes
-  const total        = quotes.length;
-  const accepted     = quotes.filter(q => q.status==='accepted').length;
-  const viewed       = quotes.filter(q => q.view_count>0).length;
-  const totalRevenue = quotes.filter(q=>q.status==='accepted').reduce((s,q)=>s+(q.setup_total||0),0);
-  const acceptRate   = total > 0 ? (accepted/total*100) : 0;
-  const viewRate     = total > 0 ? (viewed/total*100) : 0;
-  const avgValue     = accepted > 0 ? totalRevenue/accepted : 0;
+  const handleRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
 
-  const metrics = [
-    { label:'Total quotes',     value: total,           sub:'all time',           icon: FileText,   color:'#7C3AED',    trend:0, delay:0   },
-    { label:'View rate',        value: pct(viewRate),   sub:'of quotes viewed',   icon: Eye,        color:'#2563EB',    trend:1, delay:50  },
-    { label:'Acceptance rate',  value: pct(acceptRate), sub:'of views accepted',  icon: CheckCircle,color:'#0D9488',    trend:1, delay:100 },
-    { label:'Revenue closed',   value: fmt(totalRevenue),sub:'from accepted quotes',icon:DollarSign, color:'#0D9488',   trend:1, delay:150 },
-    { label:'Avg deal value',   value: fmt(avgValue),   sub:'per accepted quote', icon: TrendingUp, color:'#2563EB',    trend:0, delay:200 },
-    { label:'Open pipeline',    value: fmt(quotes.filter(q=>q.status==='sent'||q.status==='viewed').reduce((s,q)=>s+(q.setup_total||0),0)), sub:'in pending quotes', icon: Zap, color:'#D97706', trend:0, delay:250 },
+  const TABS = [
+    { id:'overview', label:'Overview', icon:<BarChart3 size={13}/> },
+    { id:'advisor', label:'AI Advisor', icon:<Brain size={13}/> },
+    { id:'revenue', label:'Revenue', icon:<DollarSign size={13}/> },
+    { id:'customers', label:'Customers', icon:<Users size={13}/> },
+    { id:'workforce', label:'Workforce', icon:<Clock size={13}/> },
   ];
 
-  const topServices = {};
-  quotes.filter(q=>q.status==='accepted').forEach(q => {
-    (q.items||[]).forEach(i => {
-      const k = i.name;
-      if (!topServices[k]) topServices[k] = { count:0, revenue:0 };
-      topServices[k].count++;
-      topServices[k].revenue += (i.setup_price||0) + (i.monthly_price||0)*12;
-    });
-  });
-  const topList = Object.entries(topServices).sort((a,b)=>b[1].revenue-a[1].revenue).slice(0,5);
-
-  // Analytics shown for all plans
+  const maxRevenue = cashflow ? Math.max(...(cashflow.monthlyRevenue || []).map(m => m.revenue), 1) : 1;
+  const healthColor = health?.labelColor || accent;
 
   return (
-    <div style={{ maxWidth:1280, margin:'0 auto', padding:'24px 16px', width:'100%', boxSizing:'border-box', overflowX:'hidden' }}>
-      <div className="flex items-center justify-between mb-6 animate-fade-up">
-        <div>
-          <h1 style={{ fontSize:22, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.03em' }}>Analytics</h1>
-          <p style={{ fontSize:13, color:'var(--text-muted)', marginTop:4 }}>Quote intelligence & revenue insights</p>
-        </div>
-        <button onClick={load} className="btn-ghost flex items-center gap-2 text-sm">
-          <RefreshCw size={13} /> Refresh
-        </button>
-      </div>
-
-      {/* Metric cards */}
-      <div className="grid-auto-stack mb-6" style={{ gap:7 }}>
-        {metrics.map(m => <MetricCard key={m.label} {...m} />)}
-      </div>
-
-      {/* Main grid */}
-      <div style={{ display:'grid', gridTemplateColumns:'minmax(0, 1fr)', gap:12 }} className="animate-fade-up-delay-2 md:grid-cols-analytics">
-
-        {/* Quote funnel table */}
-        <div className="glow-card overflow-hidden">
-          <div style={{ padding:'14px 16px', borderBottom:'0.5px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <p style={{ fontSize:11, fontWeight:700, color:'var(--text-primary)', textTransform:'uppercase', letterSpacing:'0.9px' }}>Quote pipeline</p>
-            <span style={{ fontSize:11, color:'var(--text-muted)' }}>{total} total</span>
-          </div>
-          {loading ? (
-            <div style={{ padding:'40px 16px', textAlign:'center' }}>
-              <RefreshCw size={20} className="animate-spin" style={{ color:'var(--text-muted)', margin:'0 auto' }} />
-            </div>
-          ) : quotes.length === 0 ? (
-            <div style={{ padding:'40px 16px', textAlign:'center' }}>
-              <BarChart2 size={32} style={{ color:'var(--text-muted)', margin:'0 auto 12px' }} />
-              <p style={{ fontSize:13, color:'var(--text-muted)' }}>Send your first quote to start seeing analytics.</p>
-            </div>
-          ) : (
-            quotes.map(q => <QuoteRow key={q.id} q={q} />)
-          )}
-        </div>
-
-        {/* Right panel */}
-        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-
-          {/* Funnel vis */}
-          <div className="glow-card p-5">
-            <p style={{ fontSize:11, fontWeight:700, color:'var(--text-primary)', textTransform:'uppercase', letterSpacing:'0.9px', marginBottom:14 }}>Conversion funnel</p>
-            {[
-              { label:'Quotes sent',  value:total,    color:'#7C3AED' },
-              { label:'Viewed',       value:viewed,   color:'#2563EB' },
-              { label:'Accepted',     value:accepted, color:'#0D9488' },
-            ].map((row, i) => (
-              <div key={row.label} style={{ marginBottom:10 }}>
-                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
-                  <span style={{ fontSize:12, color:'var(--text-secondary)' }}>{row.label}</span>
-                  <span style={{ fontSize:12, fontWeight:700, color:'var(--text-primary)' }}>{row.value}</span>
-                </div>
-                <div style={{ height:8, borderRadius:4, background:'var(--bg-page)', overflow:'hidden' }}>
-                  <div style={{ height:'100%', borderRadius:4, background:row.color, width:`${total>0 ? (row.value/total*100) : 0}%`, transition:'width 0.6s ease' }} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Top services */}
-          {topList.length > 0 && (
-            <div className="glow-card overflow-hidden">
-              <div style={{ padding:'12px 16px', borderBottom:'0.5px solid var(--border)' }}>
-                <p style={{ fontSize:11, fontWeight:700, color:'var(--text-primary)', textTransform:'uppercase', letterSpacing:'0.9px' }}>Top services</p>
-              </div>
-              {topList.map(([name, data], i) => (
-                <div key={name} style={{ display:'flex', alignItems:'center', padding:'10px 16px', borderBottom:'0.5px solid var(--border-subtle)', gap:10 }}>
-                  <div style={{ width:22, height:22, borderRadius:6, background:'linear-gradient(135deg,#00E5C8,#4B7BFF)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:10, fontWeight:800, flexShrink:0 }}>{i+1}</div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ fontSize:12, fontWeight:600, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</p>
-                    <p style={{ fontSize:10, color:'var(--text-muted)' }}>{data.count} deals</p>
+    <div style={{ padding:'0 0 32px', fontFamily:"'Plus Jakarta Sans', sans-serif" }}>
+      {/* ── Gradient Header ── */}
+      <div style={{ padding:'20px 28px 22px', background:'linear-gradient(135deg, #8B5CF6 0%, #2563EB 100%)', position:'relative', overflow:'hidden', marginBottom:0 }}>
+        <div style={{ position:'absolute', inset:0, opacity:0.06, backgroundImage:'radial-gradient(circle at 30% 50%, #fff 1px, transparent 1px)', backgroundSize:'40px 40px', pointerEvents:'none' }}/>
+        <div style={{ position:'relative', zIndex:1, display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
+          <div>
+            <span style={{ fontSize:10, fontWeight:800, letterSpacing:'0.12em', color:'#C4B5FD', textTransform:'uppercase' }}>📊 BUSINESS INTELLIGENCE</span>
+            <h1 style={{ fontSize:'clamp(18px, 3vw, 26px)', fontWeight:900, color:'#fff', margin:'4px 0', letterSpacing:'-0.04em' }}>Analytics</h1>
+            <p style={{ fontSize:13, color:'rgba(255,255,255,0.7)', margin:0 }}>AI-powered advisor, revenue intelligence, and predictive insights</p>
+            {health && (
+              <div style={{ display:'flex', gap:12, marginTop:12, flexWrap:'wrap' }}>
+                {[
+                  { label:'Health', value:`${health.score}/100`, color:'#C4B5FD' },
+                  { label:'This Month', value:fmt$(health.revenue?.current), color:'#6EE7B7' },
+                  { label:'Outstanding', value:fmt$(health.collections?.outstanding), color:'#FCD34D' },
+                  { label:'Churn Risk', value:health.customers?.churnRisk, color:'#FCA5A5' },
+                ].map(({ label, value, color }) => (
+                  <div key={label} style={{ padding:'5px 12px', borderRadius:10, background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.15)' }}>
+                    <span style={{ fontSize:15, fontWeight:800, color }}>{value}</span>
+                    <span style={{ fontSize:11, color:'rgba(255,255,255,0.6)', marginLeft:6 }}>{label}</span>
                   </div>
-                  <p style={{ fontSize:12, fontWeight:700, color:'#0D9488', flexShrink:0 }}>{fmt(data.revenue)}</p>
+                ))}
+              </div>
+            )}
+          </div>
+          <button onClick={handleRefresh} disabled={refreshing}
+            style={{ padding:'8px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,0.3)', background:'rgba(255,255,255,0.1)', color:'#fff', cursor:'pointer', fontSize:12, fontWeight:700, fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
+            <RefreshCw size={12} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }}/> Refresh AI
+          </button>
+        </div>
+      </div>
+
+      {/* ── Tabs ── */}
+      <div style={{ padding:'0 28px', borderBottom:'1px solid var(--border)', display:'flex', gap:0, background:'var(--bg-surface)' }}>
+        {TABS.map(tab => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+            style={{ padding:'12px 16px', border:'none', background:'transparent', cursor:'pointer', fontSize:12, fontWeight:activeTab===tab.id?700:500, color:activeTab===tab.id?accent:'var(--text-muted)', borderBottom:`2px solid ${activeTab===tab.id?accent:'transparent'}`, display:'flex', alignItems:'center', gap:5, fontFamily:'inherit', transition:'all 0.15s' }}>
+            {tab.icon} {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ padding:'20px 28px' }}>
+        {loading ? (
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', padding:60 }}>
+            <div style={{ width:32, height:32, borderRadius:'50%', border:`3px solid ${accent}`, borderTopColor:'transparent', animation:'spin 0.8s linear infinite' }}/>
+          </div>
+        ) : (
+
+          /* ── OVERVIEW TAB ── */
+          activeTab === 'overview' && (
+            <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+              {/* Business Health Score */}
+              {health && (
+                <div style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:24, padding:24, borderRadius:16, border:`2px solid ${healthColor}30`, background:`${healthColor}06`, alignItems:'center' }}>
+                  <HealthGauge score={health.score} label={health.label} color={healthColor} />
+                  <div>
+                    <p style={{ margin:'0 0 12px', fontSize:14, fontWeight:800, color:'var(--text-primary)' }}>Business Health Score</p>
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(140px, 1fr))', gap:10 }}>
+                      {Object.entries(health.components || {}).map(([key, score]) => (
+                        <div key={key} style={{ padding:'8px 12px', borderRadius:10, background:'var(--bg-surface)', border:'1px solid var(--border)' }}>
+                          <div style={{ fontSize:10, color:'var(--text-muted)', fontWeight:600, textTransform:'capitalize', marginBottom:4 }}>
+                            {key.replace(/([A-Z])/g, ' $1').trim()}
+                          </div>
+                          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                            <div style={{ flex:1, height:4, borderRadius:2, background:'var(--border)', overflow:'hidden' }}>
+                              <div style={{ width:`${Math.min(score/20*100,100)}%`, height:'100%', background:score>=15?'#059669':score>=10?'#D97706':'#DC2626', transition:'width 0.8s ease' }}/>
+                            </div>
+                            <span style={{ fontSize:11, fontWeight:700, color:'var(--text-primary)' }}>{score}/20</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* KPI Grid */}
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))', gap:14 }}>
+                <StatCard label="This Month" value={fmt$(health?.revenue?.current)} sub={`Avg: ${fmt$(health?.revenue?.avg)}/mo`} color="#059669" icon={DollarSign} trend={health?.trend}/>
+                <StatCard label="YTD Revenue" value={fmt$(health?.revenue?.ytd)} color={accent} icon={TrendingUp}/>
+                <StatCard label="Outstanding" value={fmt$(health?.collections?.outstanding)} sub={health?.collections?.overdue > 0 ? `${fmt$(health.collections.overdue)} overdue` : 'None overdue ✓'} color={health?.collections?.overdue > 0 ? '#DC2626' : '#059669'} icon={AlertTriangle}/>
+                <StatCard label="Quote Accept Rate" value={`${health?.quotes?.acceptRate || 0}%`} color={accent} icon={CheckCircle}/>
+                <StatCard label="Customers" value={health?.customers?.total || 0} sub={`${health?.customers?.churnRisk || 0} at churn risk`} color="#7C3AED" icon={Users}/>
+                <StatCard label="Labor Margin" value={`${health?.labor?.margin || 0}%`} sub={`${health?.labor?.hours}h tracked`} color="#0D9488" icon={Activity}/>
+              </div>
+
+              {/* Revenue Chart */}
+              {cashflow?.monthlyRevenue && (
+                <div style={{ padding:20, borderRadius:14, border:'1px solid var(--border)', background:'var(--bg-surface)' }}>
+                  <p style={{ margin:'0 0 16px', fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--text-muted)' }}>6-Month Revenue Trend</p>
+                  <div style={{ display:'flex', gap:8, alignItems:'flex-end', height:120 }}>
+                    {cashflow.monthlyRevenue.map(m => (
+                      <RevenueBar key={m.month} month={m.month} revenue={m.revenue} maxRevenue={maxRevenue}/>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Executive Summary */}
+              {execSummary && (
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+                  {execSummary.risks?.length > 0 && (
+                    <div style={{ padding:16, borderRadius:12, border:'1px solid #DC262630', background:'#DC262606' }}>
+                      <p style={{ margin:'0 0 10px', fontSize:11, fontWeight:700, color:'#DC2626', textTransform:'uppercase', letterSpacing:'0.06em' }}>⚠️ Risks</p>
+                      {execSummary.risks.map((r, i) => (
+                        <div key={i} style={{ fontSize:13, color:'var(--text-secondary)', padding:'5px 0', borderBottom:'0.5px solid var(--border)' }}>{r.text}</div>
+                      ))}
+                    </div>
+                  )}
+                  {execSummary.opportunities?.length > 0 && (
+                    <div style={{ padding:16, borderRadius:12, border:'1px solid #05966930', background:'#05966906' }}>
+                      <p style={{ margin:'0 0 10px', fontSize:11, fontWeight:700, color:'#059669', textTransform:'uppercase', letterSpacing:'0.06em' }}>💡 Opportunities</p>
+                      {execSummary.opportunities.map((o, i) => (
+                        <div key={i} style={{ fontSize:13, color:'var(--text-secondary)', padding:'5px 0', borderBottom:'0.5px solid var(--border)' }}>{o.text}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        )}
+
+        {/* ── AI ADVISOR TAB ── */}
+        {!loading && activeTab === 'advisor' && advisor && (
+          <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+            {/* AI Narrative */}
+            <div style={{ padding:24, borderRadius:16, border:`1.5px solid ${accent}30`, background:`${accent}06` }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
+                <div style={{ width:36, height:36, borderRadius:10, background:accent, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <Brain size={18} style={{ color:'#fff' }}/>
+                </div>
+                <div>
+                  <p style={{ margin:0, fontSize:14, fontWeight:800, color:'var(--text-primary)' }}>AI Business Advisor</p>
+                  <p style={{ margin:0, fontSize:11, color:'var(--text-muted)' }}>Powered by GPT-4 · Updated just now</p>
+                </div>
+                <div style={{ marginLeft:'auto', padding:'4px 10px', borderRadius:8, background: advisor.revTrend >= 0 ? '#05966915' : '#DC262615', fontSize:12, fontWeight:700, color: advisor.revTrend >= 0 ? '#059669' : '#DC2626', display:'flex', alignItems:'center', gap:4 }}>
+                  {advisor.revTrend >= 0 ? <TrendingUp size={12}/> : <TrendingDown size={12}/>}
+                  {fmtPct(advisor.revTrend || 0)} vs last month
+                </div>
+              </div>
+              <p style={{ margin:0, fontSize:14, color:'var(--text-secondary)', lineHeight:1.8, fontStyle:'italic' }}>
+                "{advisor.narrative}"
+              </p>
+            </div>
+
+            {/* Recommendations */}
+            {advisor.recommendations?.length > 0 && (
+              <div>
+                <p style={{ margin:'0 0 12px', fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--text-muted)' }}>Recommended Actions</p>
+                {advisor.recommendations.map((rec, i) => (
+                  <div key={i} style={{ display:'flex', gap:14, padding:'14px 16px', borderRadius:12, border:`1px solid ${rec.priority==='high' ? '#DC262630' : '#D9770630'}`, background: rec.priority==='high' ? '#DC262606' : '#D9770606', marginBottom:10 }}>
+                    <div style={{ fontSize:24, flexShrink:0 }}>{rec.icon}</div>
+                    <div style={{ flex:1 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
+                        <span style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>{rec.title}</span>
+                        <span style={{ fontSize:10, padding:'2px 7px', borderRadius:5, background: rec.priority==='high' ? '#DC262615' : '#D9770615', color: rec.priority==='high' ? '#DC2626' : '#D97706', fontWeight:700 }}>{rec.priority}</span>
+                      </div>
+                      <p style={{ margin:0, fontSize:12, color:'var(--text-muted)', lineHeight:1.6 }}>{rec.desc}</p>
+                      {rec.impact > 0 && <p style={{ margin:'4px 0 0', fontSize:12, fontWeight:700, color:'#059669' }}>Est. impact: {fmt$(rec.impact)}</p>}
+                    </div>
+                    <ChevronRight size={16} style={{ color:'var(--text-muted)', flexShrink:0 }}/>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {advisor.recommendations?.length === 0 && (
+              <div style={{ textAlign:'center', padding:40 }}>
+                <CheckCircle size={40} style={{ color:'#059669', margin:'0 auto 12px', display:'block' }}/>
+                <p style={{ fontSize:16, fontWeight:700, color:'#059669', margin:'0 0 6px' }}>Business is on track!</p>
+                <p style={{ fontSize:13, color:'var(--text-muted)', margin:0 }}>No critical issues detected. Keep up the great work.</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── REVENUE TAB ── */}
+        {!loading && activeTab === 'revenue' && cashflow && (
+          <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))', gap:14 }}>
+              <StatCard label="Collected" value={fmt$(cashflow.collected)} color="#059669" icon={DollarSign}/>
+              <StatCard label="Outstanding" value={fmt$(cashflow.outstanding)} color="#D97706" icon={AlertTriangle}/>
+              <StatCard label="This Month" value={fmt$(cashflow.thisMonth)} color={accent} icon={TrendingUp}/>
+              <StatCard label="Accept Rate" value={`${cashflow.acceptRate}%`} color="#7C3AED" icon={Target}/>
+            </div>
+            {cashflow.leaks?.length > 0 && (
+              <div style={{ padding:20, borderRadius:14, border:'1.5px solid #DC262630', background:'#DC262606' }}>
+                <p style={{ margin:'0 0 14px', fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em', color:'#DC2626' }}>💰 Revenue Leaks Detected</p>
+                {cashflow.leaks.map((leak, i) => (
+                  <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 0', borderBottom:i < cashflow.leaks.length-1 ? '0.5px solid var(--border)' : 'none' }}>
+                    <span style={{ fontSize:13, color:'var(--text-secondary)' }}>{leak.desc}</span>
+                    <span style={{ fontSize:14, fontWeight:800, color:'#DC2626', flexShrink:0, marginLeft:12 }}>{fmt$(leak.amount)}</span>
+                  </div>
+                ))}
+                <div style={{ marginTop:12, paddingTop:12, borderTop:'1px solid #DC262630', display:'flex', justifyContent:'space-between' }}>
+                  <span style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>Total Estimated Leak</span>
+                  <span style={{ fontSize:16, fontWeight:900, color:'#DC2626' }}>{fmt$(cashflow.leaks.reduce((s,l)=>s+l.amount,0))}</span>
+                </div>
+              </div>
+            )}
+            {/* 12-week forecast */}
+            {cashflow.forecast && (
+              <div style={{ padding:20, borderRadius:14, border:'1px solid var(--border)', background:'var(--bg-surface)' }}>
+                <p style={{ margin:'0 0 16px', fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--text-muted)' }}>12-Week Revenue Forecast</p>
+                <div style={{ display:'flex', gap:4, alignItems:'flex-end', height:80 }}>
+                  {cashflow.forecast.map(w => {
+                    const max = Math.max(...cashflow.forecast.map(f => f.projected), 1);
+                    const pct = (w.projected / max) * 100;
+                    const opacity = w.type === 'near' ? 1 : w.type === 'mid' ? 0.7 : 0.4;
+                    return (
+                      <div key={w.week} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3 }} title={`Week ${w.week}: ${fmt$(w.projected)}`}>
+                        <div style={{ width:'100%', height:`${pct}%`, background:accent, borderRadius:4, minHeight:4, opacity }}/>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ display:'flex', gap:16, marginTop:8 }}>
+                  {[{label:'Weeks 1-4', op:1},{label:'Weeks 5-8', op:0.7},{label:'Weeks 9-12', op:0.4}].map(({label,op})=>(
+                    <div key={label} style={{ display:'flex', alignItems:'center', gap:5 }}>
+                      <div style={{ width:12, height:12, borderRadius:3, background:accent, opacity:op }}/>
+                      <span style={{ fontSize:11, color:'var(--text-muted)' }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── CUSTOMERS TAB ── */}
+        {!loading && activeTab === 'customers' && (
+          <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+            <div style={{ padding:16, borderRadius:14, border:'1px solid var(--border)', background:'var(--bg-surface)' }}>
+              <p style={{ margin:'0 0 14px', fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--text-muted)' }}>🚨 Churn Risk Customers</p>
+              {churnRisk.length === 0 ? (
+                <div style={{ textAlign:'center', padding:24 }}>
+                  <CheckCircle size={32} style={{ color:'#059669', margin:'0 auto 10px', display:'block' }}/>
+                  <p style={{ color:'var(--text-muted)', fontSize:13, margin:0 }}>No high-risk customers detected — great retention!</p>
+                </div>
+              ) : churnRisk.map(c => (
+                <div key={c.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderBottom:'0.5px solid var(--border)' }}>
+                  <div style={{ width:36, height:36, borderRadius:10, background: c.churnScore>70?'#DC262615':'#D9770615', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, fontWeight:900, color:c.churnScore>70?'#DC2626':'#D97706', flexShrink:0 }}>
+                    {(c.name||'?').charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <p style={{ margin:0, fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>{c.name || 'Unknown'}</p>
+                    <p style={{ margin:0, fontSize:11, color:'var(--text-muted)' }}>
+                      {c.daysSince}d inactive · {c.invoiceCount} invoices · {fmt$(c.totalRevenue)} lifetime
+                    </p>
+                  </div>
+                  <div style={{ textAlign:'right' }}>
+                    <div style={{ fontSize:16, fontWeight:900, color:c.churnScore>70?'#DC2626':'#D97706' }}>{c.churnScore}%</div>
+                    <div style={{ fontSize:10, color:'var(--text-muted)' }}>churn risk</div>
+                  </div>
+                  <a href={`/contacts`} style={{ padding:'5px 10px', borderRadius:8, border:'1px solid var(--border)', background:'var(--bg-raised)', color:'var(--text-muted)', textDecoration:'none', fontSize:11, fontWeight:600 }}>Contact →</a>
                 </div>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* ── WORKFORCE TAB ── */}
+        {!loading && activeTab === 'workforce' && workforce && (
+          <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(180px, 1fr))', gap:14 }}>
+              <StatCard label="Total Hours" value={`${workforce.totalHours}h`} color={accent} icon={Clock}/>
+              <StatCard label="Labor Revenue" value={fmt$(workforce.totalCost)} color="#059669" icon={DollarSign}/>
+              <StatCard label="Team Members" value={workforce.employees?.length || 0} color="#7C3AED" icon={Users}/>
+              <StatCard label="Projects" value={workforce.projects?.length || 0} color="#D97706" icon={Activity}/>
+            </div>
+            {/* Leaderboard */}
+            {workforce.employees?.length > 0 && (
+              <div style={{ padding:20, borderRadius:14, border:'1px solid var(--border)', background:'var(--bg-surface)' }}>
+                <p style={{ margin:'0 0 14px', fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--text-muted)' }}>🏆 Workforce Leaderboard</p>
+                {workforce.employees.slice(0, 10).map((emp, i) => (
+                  <div key={emp.name} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderBottom:i<workforce.employees.length-1?'0.5px solid var(--border)':'none' }}>
+                    <div style={{ width:28, height:28, borderRadius:8, background:i===0?'#D97706':i===1?'#94A3B8':i===2?'#B45309':'var(--bg-raised)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:900, color:i<3?'#fff':'var(--text-muted)', flexShrink:0 }}>
+                      {i+1}
+                    </div>
+                    <div style={{ flex:1 }}>
+                      <p style={{ margin:0, fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>{emp.name}</p>
+                      <p style={{ margin:0, fontSize:11, color:'var(--text-muted)' }}>{emp.hours}h · {emp.projects} project{emp.projects!==1?'s':''}</p>
+                    </div>
+                    <div style={{ textAlign:'right' }}>
+                      <p style={{ margin:0, fontSize:14, fontWeight:800, color:'#059669' }}>{fmt$(emp.cost)}</p>
+                      <p style={{ margin:0, fontSize:10, color:emp.classification==='Elite Performer'?'#D97706':emp.classification==='Strong Performer'?'#059669':'var(--text-muted)', fontWeight:600 }}>{emp.classification}</p>
+                    </div>
+                    <div style={{ width:48, textAlign:'center' }}>
+                      <div style={{ fontSize:16, fontWeight:900, color:accent }}>{emp.efficiencyScore}</div>
+                      <div style={{ fontSize:9, color:'var(--text-muted)' }}>score</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

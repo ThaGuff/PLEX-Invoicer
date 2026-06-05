@@ -331,7 +331,7 @@ function WeekView({ events, weekDays, accent, onEventClick, onSlotClick, today }
           return (
             <div key={d.toISOString()} style={{ padding:'8px 4px', textAlign:'center', background: isToday ? `${accent}10` : 'transparent' }}>
               <div style={{ fontSize:10, fontWeight:600, color:'var(--text-muted)' }}>{DAYS[d.getDay()]}</div>
-              <div style={{ fontSize:16, fontWeight: isToday ? 800 : 600, color: isToday ? accent : 'var(--text-primary)', width:28, height:28, borderRadius:'50%', background: isToday ? accent : 'transparent', color: isToday ? '#fff' : 'var(--text-primary)', display:'flex', alignItems:'center', justifyContent:'center', margin:'2px auto 0' }}>
+              <div style={{ fontSize:16, fontWeight: isToday ? 800 : 600, width:28, height:28, borderRadius:'50%', background: isToday ? accent : 'transparent', color: isToday ? '#fff' : 'var(--text-primary)', display:'flex', alignItems:'center', justifyContent:'center', margin:'2px auto 0' }}>
                 {d.getDate()}
               </div>
             </div>

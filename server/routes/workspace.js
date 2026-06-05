@@ -671,4 +671,51 @@ router.patch('/messages/:id', requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── GET /api/workspace/activity-feed ─────────────────────────────
+router.get('/activity-feed', requireAuth, async (req, res) => {
+  const { account_id, limit = 30 } = req.query;
+  if (!account_id) return res.status(400).json({ error: 'account_id required' });
+  try {
+    const [messages, invoices, quotes, contacts, events] = await Promise.all([
+      db.execute(`SELECT cm.*, c.name as channel_name FROM channel_messages cm LEFT JOIN channels c ON c.id = cm.channel_id WHERE cm.account_id = ? ORDER BY cm.created_at DESC LIMIT 10`, [account_id]),
+      db.execute(`SELECT * FROM invoices WHERE account_id = ? ORDER BY created_at DESC LIMIT 5`, [account_id]),
+      db.execute(`SELECT * FROM quotes WHERE account_id = ? ORDER BY created_at DESC LIMIT 5`, [account_id]),
+      db.execute(`SELECT * FROM contacts WHERE account_id = ? ORDER BY created_at DESC LIMIT 5`, [account_id]),
+      db.execute(`SELECT * FROM calendar_events WHERE account_id = ? ORDER BY created_at DESC LIMIT 5`, [account_id]).catch(() => ({ rows: [] })),
+    ]);
+
+    const feed = [
+      ...messages.rows.map(m => ({ type:'message', icon:'💬', title:`New message in #${m.channel_name || 'channel'}`, desc: m.content?.slice(0, 80) || '', time: m.created_at, color:'#7C3AED' })),
+      ...invoices.rows.filter(i => i.status === 'paid').map(i => ({ type:'payment', icon:'💰', title:`Invoice paid — $${parseFloat(i.amount_paid||0).toLocaleString()}`, desc: i.client_name, time: i.paid_at || i.created_at, color:'#059669' })),
+      ...invoices.rows.filter(i => i.status === 'generated').map(i => ({ type:'invoice', icon:'📄', title:`Invoice ${i.number} sent`, desc: i.client_name, time: i.created_at, color:'#2563EB' })),
+      ...quotes.rows.filter(q => q.status === 'accepted').map(q => ({ type:'quote', icon:'✅', title:`Quote ${q.number} accepted`, desc: q.client_name, time: q.created_at, color:'#059669' })),
+      ...quotes.rows.filter(q => q.status !== 'accepted').map(q => ({ type:'quote', icon:'📝', title:`Quote ${q.number} created`, desc: q.client_name, time: q.created_at, color:'#D97706' })),
+      ...contacts.rows.map(c => ({ type:'customer', icon:'👤', title:`New client added`, desc: c.name, time: c.created_at, color:'#0D9488' })),
+      ...events.rows.map(e => ({ type:'schedule', icon:'📅', title:`Job scheduled: ${e.title}`, desc: e.client_name || e.location || '', time: e.created_at, color:'#DC2626' })),
+    ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, parseInt(limit));
+
+    res.json(feed);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── GET /api/workspace/ai-summary ─────────────────────────────────
+router.get('/ai-summary', requireAuth, async (req, res) => {
+  const { account_id } = req.query;
+  if (!account_id) return res.status(400).json({ error: 'account_id required' });
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const [msgs, invoices, events] = await Promise.all([
+      db.execute(`SELECT COUNT(*) as cnt FROM channel_messages WHERE account_id = ? AND DATE(created_at) = ?`, [account_id, today]),
+      db.execute(`SELECT COUNT(*) as cnt FROM invoices WHERE account_id = ? AND status='paid' AND DATE(paid_at) = ?`, [account_id, today]),
+      db.execute(`SELECT COUNT(*) as cnt FROM calendar_events WHERE account_id = ? AND date = ?`, [account_id, today]).catch(() => ({ rows: [{ cnt: 0 }] })),
+    ]);
+    res.json({
+      today: { messages: msgs.rows[0]?.cnt || 0, invoicesPaid: invoices.rows[0]?.cnt || 0, jobsScheduled: events.rows[0]?.cnt || 0 },
+      recommendations: [
+        msgs.rows[0]?.cnt === 0 ? { text:'No team messages today — check in with your team', type:'engagement' } : null,
+      ].filter(Boolean),
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 export default router;
