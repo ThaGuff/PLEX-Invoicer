@@ -213,8 +213,7 @@ router.post('/convert', requireAuth, async (req, res) => {
     const entryDescriptions = entries.rows.map(e =>
       `${e.project_name}${e.description ? ': ' + e.description : ''} — ${Math.round(e.duration_minutes / 60 * 10) / 10}h @ $${e.hourly_rate}/hr`
     );
-    const invoiceNotes = notes || entryDescriptions.join('
-');
+    const invoiceNotes = notes || entryDescriptions.join(' | ');
 
     await db.execute(
       `INSERT INTO invoices (id, account_id, number, client_name, client_email, billing_mode,
