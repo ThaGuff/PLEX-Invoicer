@@ -188,7 +188,7 @@ export default function InvoicesList() {
                 <Brain size={13}/> AI Insights ({aiInsights.length})
               </button>
             )}
-            <button onClick={() => navigate('/invoices/new')}
+            <button onClick={() => navigate('/quotes/new')}
               style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', background:'rgba(255,255,255,0.95)', color:'#7C3AED', cursor:'pointer', fontSize:13, fontWeight:800, fontFamily:'inherit' }}>
               <Plus size={14}/> New Invoice
             </button>
@@ -270,7 +270,7 @@ export default function InvoicesList() {
                 <div style={{ padding:48, textAlign:'center' }}>
                   <DollarSign size={32} style={{ color:'var(--text-muted)', margin:'0 auto 10px', display:'block', opacity:0.3 }}/>
                   <p style={{ fontSize:14, fontWeight:600, color:'var(--text-primary)', margin:'0 0 4px' }}>No invoices found</p>
-                  <button onClick={() => navigate('/invoices/new')} style={{ marginTop:10, padding:'8px 18px', borderRadius:10, border:'none', background:accent, color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, fontFamily:'inherit' }}>Create First Invoice</button>
+                  <button onClick={() => navigate('/quotes/new')} style={{ marginTop:10, padding:'8px 18px', borderRadius:10, border:'none', background:accent, color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, fontFamily:'inherit' }}>Create First Invoice</button>
                 </div>
               ) : (
                 <div style={{ overflowX:'auto' }}>
