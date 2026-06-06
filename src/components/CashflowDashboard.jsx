@@ -58,14 +58,16 @@ export default function CashflowDashboard({ accountId, accent = '#13B5EA' }) {
   if (!data) return null;
 
   const { summary, weekly, predictions, client_profiles } = data;
+  if (!summary) return null;   // guard: API returned data but summary key missing
+
   const maxWeek = Math.max(...(weekly || []).map(w => w.amount), 1);
   const weeks12 = (weekly || []).slice(0, 12);
 
   const summaryCards = [
-    { label: 'Overdue now',   value: summary.overdue, color: '#ef4444' },
-    { label: 'Next 30 days',  value: summary.next_30,  color: accent },
-    { label: 'Next 60 days',  value: summary.next_60,  color: '#6366f1' },
-    { label: 'Next 90 days',  value: summary.next_90,  color: '#22c55e' },
+    { label: 'Overdue now',   value: summary.overdue   ?? 0, color: '#ef4444' },
+    { label: 'Next 30 days',  value: summary.next_30   ?? 0, color: accent },
+    { label: 'Next 60 days',  value: summary.next_60   ?? 0, color: '#6366f1' },
+    { label: 'Next 90 days',  value: summary.next_90   ?? 0, color: '#22c55e' },
   ];
 
   return (
@@ -79,7 +81,7 @@ export default function CashflowDashboard({ accountId, accent = '#13B5EA' }) {
           <div>
             <p className="text-sm font-bold text-ink leading-none">Predictive cash flow</p>
             <p className="text-xs text-ink-muted mt-0.5">
-              Based on avg {summary.global_dtp} days-to-pay · {predictions?.length || 0} outstanding
+              Based on avg {summary.global_dtp ?? 0} days-to-pay · {predictions?.length || 0} outstanding
             </p>
           </div>
         </div>

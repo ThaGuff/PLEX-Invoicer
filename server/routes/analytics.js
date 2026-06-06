@@ -135,7 +135,35 @@ router.get('/predictive-cashflow', requireAuth, async (req, res) => {
       leaks.push({ type: 'churn', amount: Math.round(potentialLoss), count: snap.churnRisk, desc: `${snap.churnRisk} customer${snap.churnRisk > 1 ? 's' : ''} not invoiced in 90+ days — est. $${Math.round(potentialLoss).toLocaleString()} at risk` });
     }
 
+    // Weekly forecast from monthly data (for CashflowDashboard compatibility)
+    const weekly = snap.last6Months.map((m, i) => ({
+      label: m.month.slice(5),
+      amount: m.revenue,
+      week: i + 1,
+    }));
+
+    // Build summary shape expected by CashflowDashboard component
+    const cashSummary = {
+      overdue: snap.overdueAmount,
+      next_30: snap.outstanding.filter(i => i.due_date && i.due_date <= new Date(Date.now() + 30*86400000).toISOString().split('T')[0]).reduce((s, i) => s + parseFloat(i.amount_due || 0), 0),
+      next_60: snap.outstanding.filter(i => i.due_date && i.due_date <= new Date(Date.now() + 60*86400000).toISOString().split('T')[0]).reduce((s, i) => s + parseFloat(i.amount_due || 0), 0),
+      next_90: snap.outstandingAmount,
+      global_dtp: Math.round(avgDaysToPay),
+    };
+
     res.json({
+      // Legacy shape for CashflowDashboard
+      summary: cashSummary,
+      weekly,
+      predictions: snap.outstanding.slice(0, 10).map(inv => ({
+        id: inv.id,
+        client_name: inv.client_name,
+        amount: parseFloat(inv.amount_due || 0),
+        due_date: inv.due_date,
+        days_to_pay: Math.round(avgDaysToPay),
+      })),
+      client_profiles: [],
+      // New shape for AnalyticsPage
       forecast, leaks,
       avgDaysToPay: Math.round(avgDaysToPay),
       monthlyRevenue: snap.last6Months,
