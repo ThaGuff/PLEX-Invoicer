@@ -158,6 +158,35 @@ export default function Dashboard() {
       {/* Main content grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 440px), 1fr))', gap: 12 }} className="animate-fade-up-delay-3">
 
+        {/* AI Executive Briefing */}
+        <div className="glow-card p-5" style={{ marginBottom: 16 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
+            <div style={{ width:32, height:32, borderRadius:10, background:`${accent}15`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <span style={{ fontSize:16 }}>🧠</span>
+            </div>
+            <div>
+              <p style={{ margin:0, fontSize:13, fontWeight:800, color:'var(--text-primary)' }}>AI Executive Briefing</p>
+              <p style={{ margin:0, fontSize:11, color:'var(--text-muted)' }}>Today's key insights and recommendations</p>
+            </div>
+            <a href="/analytics" style={{ marginLeft:'auto', fontSize:11, fontWeight:700, color:accent, textDecoration:'none', padding:'4px 10px', borderRadius:7, border:`1px solid ${accent}30`, background:`${accent}08` }}>Full Analytics →</a>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))', gap:10 }}>
+            {[
+              { icon:'💰', text:'Collections focus: send reminders to improve cash flow', action:'View Invoices', href:'/invoices', color:'#DC2626' },
+              { icon:'📊', text:'Open quotes need follow-up — engage before they go cold', action:'View Quotes', href:'/quotes', color:'#D97706' },
+              { icon:'📅', text:'Check schedule capacity for this week', action:'View Schedule', href:'/calendar', color:'#2563EB' },
+            ].map((item, i) => (
+              <div key={i} style={{ padding:'10px 12px', borderRadius:10, border:`1px solid ${item.color}20`, background:`${item.color}06`, display:'flex', gap:8, alignItems:'flex-start' }}>
+                <span style={{ fontSize:16 }}>{item.icon}</span>
+                <div style={{ flex:1 }}>
+                  <p style={{ margin:'0 0 5px', fontSize:12, color:'var(--text-secondary)', lineHeight:1.5 }}>{item.text}</p>
+                  <a href={item.href} style={{ fontSize:11, fontWeight:700, color:item.color, textDecoration:'none' }}>{item.action} →</a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Left column: Recent quotes + Outstanding invoices stacked */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 

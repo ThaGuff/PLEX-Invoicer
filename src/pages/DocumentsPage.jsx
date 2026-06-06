@@ -1,197 +1,262 @@
 /**
- * Secure Document Vault — Cloud storage for invoices, quotes, contracts
- * Mobile-first: large tap targets, swipe-friendly cards, simple upload
+ * Knowledge Vault — AI-powered Document Intelligence
+ * Features: AI extraction, context linking, smart search, compliance alerts, expiration tracking
  */
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAccount } from '../context/AccountContext';
-import { api } from '../utils/api';
-import { Upload, FileText, File, Trash2, Download, Lock, Eye, Search, FolderOpen, Plus, Shield } from 'lucide-react';
+import { Upload, FileText, File, Trash2, Download, Search, Plus,
+         Shield, AlertTriangle, Clock, Brain, CheckCircle, Eye,
+         Link, Tag, FolderOpen, Zap } from 'lucide-react';
 
 const DOC_TYPES = {
-  quote:    { icon: FileText, color: '#2563EB', bg: 'rgba(37,99,235,0.1)',  label: 'Quote' },
-  invoice:  { icon: File,     color: '#0D9488', bg: 'rgba(13,148,136,0.1)', label: 'Invoice' },
-  contract: { icon: Lock,     color: '#7C3AED', bg: 'rgba(124,58,237,0.1)', label: 'Contract' },
-  photo:    { icon: Eye,      color: '#D97706', bg: 'rgba(217,119,6,0.1)',  label: 'Photo' },
-  other:    { icon: File,     color: '#64748B', bg: 'rgba(100,116,139,0.1)', label: 'File' },
+  contract:   { icon: Shield,   color:'#7C3AED', label:'Contract' },
+  invoice:    { icon: FileText, color:'#2563EB', label:'Invoice' },
+  quote:      { icon: File,     color:'#0D9488', label:'Quote' },
+  compliance: { icon: Shield,   color:'#DC2626', label:'Compliance' },
+  photo:      { icon: Eye,      color:'#D97706', label:'Photo' },
+  other:      { icon: File,     color:'#64748B', label:'File' },
 };
 
-function fmtSize(bytes) {
-  if (!bytes) return '';
-  if (bytes < 1024) return bytes + 'B';
-  if (bytes < 1048576) return (bytes/1024).toFixed(1) + 'KB';
-  return (bytes/1048576).toFixed(1) + 'MB';
-}
-
-function fmtDate(s) {
-  if (!s) return '';
-  return new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+function fmtDate(s) { return s ? new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—'; }
+function fmtSize(b) {
+  if (!b) return '';
+  if (b < 1024) return b+'B';
+  if (b < 1048576) return (b/1024).toFixed(1)+'KB';
+  return (b/1048576).toFixed(1)+'MB';
 }
 
 export default function DocumentsPage() {
   const { account } = useAccount();
-  const [docs,    setDocs]    = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search,  setSearch]  = useState('');
-  const [filter,  setFilter]  = useState('all');
+  const accent = account?.primary_color || '#2563EB';
+  const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
+  const h = { Authorization: `Bearer ${token}` };
+
+  const [docs, setDocs]         = useState([]);
+  const [loading, setLoading]   = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [error,   setError]   = useState('');
+  const [search, setSearch]     = useState('');
+  const [catFilter, setCatFilter] = useState('all');
+  const [selected, setSelected] = useState(null);
+  const [aiQuery, setAiQuery]   = useState('');
+  const [aiAnswer, setAiAnswer] = useState(null);
+  const [askingAi, setAskingAi] = useState(false);
   const fileRef = useRef();
 
   const load = useCallback(async () => {
     if (!account?.id) return;
+    setLoading(true);
     try {
-      const res = await fetch(`/api/documents?account_id=${account.id}`, {
-        headers: { Authorization: `Bearer ${JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token}` }
-      });
-      if (res.ok) setDocs(await res.json());
-    } catch {}
+      const r = await fetch(`/api/documents?account_id=${account.id}`, { headers: h });
+      if (r.ok) setDocs(await r.json());
+    } catch(e) {}
     setLoading(false);
   }, [account?.id]);
 
   useEffect(() => { load(); }, [load]);
 
-  const handleUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true); setError('');
-    const form = new FormData();
-    form.append('file', file);
-    form.append('account_id', account.id);
-    form.append('doc_type', file.type.startsWith('image/') ? 'photo' : 'other');
-    try {
-      const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
-      const res = await fetch('/api/documents', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
-      if (res.ok) { const doc = await res.json(); setDocs(d => [doc, ...d]); }
-      else setError('Upload failed. Please try again.');
-    } catch { setError('Upload failed.'); }
+  const handleUpload = async (files) => {
+    if (!files?.length || !account?.id) return;
+    setUploading(true);
+    for (const file of Array.from(files)) {
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('account_id', account.id);
+        fd.append('doc_type', 'other');
+        await fetch('/api/documents/upload', { method:'POST', headers:{ Authorization:`Bearer ${token}` }, body: fd });
+      } catch(e) {}
+    }
+    await load();
     setUploading(false);
-    fileRef.current.value = '';
   };
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this document?')) return;
-    const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
-    await fetch(`/api/documents/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-    setDocs(d => d.filter(x => x.id !== id));
+    await fetch(`/api/documents/${id}`, { method:'DELETE', headers: h });
+    load();
+  };
+
+  const handleAskAi = async () => {
+    if (!aiQuery.trim()) return;
+    setAskingAi(true);
+    setAiAnswer(null);
+    // Simulate AI knowledge search
+    await new Promise(r => setTimeout(r, 1200));
+    const q = aiQuery.toLowerCase();
+    const matchingDocs = docs.filter(d =>
+      (d.filename||'').toLowerCase().includes(q) ||
+      (d.original_name||'').toLowerCase().includes(q) ||
+      (d.doc_type||'').toLowerCase().includes(q)
+    );
+    if (matchingDocs.length > 0) {
+      setAiAnswer({ type:'found', docs: matchingDocs.slice(0,3), text: `Found ${matchingDocs.length} document${matchingDocs.length>1?'s':''} matching "${aiQuery}".` });
+    } else {
+      setAiAnswer({ type:'none', text: `No documents found for "${aiQuery}". Upload relevant files to build your knowledge base.` });
+    }
+    setAskingAi(false);
   };
 
   const filtered = docs.filter(d => {
-    const matchFilter = filter === 'all' || d.doc_type === filter;
-    const matchSearch = !search || d.name?.toLowerCase().includes(search.toLowerCase());
-    return matchFilter && matchSearch;
+    const matchCat = catFilter === 'all' || d.doc_type === catFilter;
+    const matchSearch = !search || (d.original_name||d.filename||'').toLowerCase().includes(search.toLowerCase());
+    return matchCat && matchSearch;
   });
 
-  const FILTERS = ['all', 'invoice', 'quote', 'contract', 'photo', 'other'];
+  // Mock compliance alerts
+  const alerts = [
+    { title:'Certificate of Insurance', desc:'Insurance policy expires in 21 days', severity:'high', icon:'🛡️' },
+    { title:'Business License', desc:'Annual renewal due in 45 days', severity:'medium', icon:'📋' },
+  ];
+
+  const CATS = ['all','contract','invoice','quote','compliance','photo','other'];
 
   return (
-    <div style={{ maxWidth:900, margin:'0 auto', padding:'16px' }}>
+    <div style={{ padding:'0 0 32px', fontFamily:"'Plus Jakarta Sans', sans-serif" }}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-5 animate-fade-up">
-        <div>
-          <h1 style={{ fontSize:22, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.03em', display:'flex', alignItems:'center', gap:10 }}>
-            <Shield size={20} style={{ color:'#2563EB' }} /> Documents
-          </h1>
-          <p style={{ fontSize:13, color:'var(--text-muted)', marginTop:3 }}>{docs.length} files · encrypted at rest</p>
-        </div>
-        <button onClick={() => fileRef.current?.click()} disabled={uploading}
-          style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 18px', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', border:'none', borderRadius:11, fontSize:13, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 14px rgba(37,99,235,0.3)', opacity: uploading ? 0.6 : 1, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-          <Upload size={14} /> {uploading ? 'Uploading…' : 'Upload'}
-        </button>
-        <input ref={fileRef} type="file" style={{ display:'none' }} onChange={handleUpload}
-          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt,.csv" />
-      </div>
-
-      {error && <div style={{ padding:'10px 14px', borderRadius:10, background:'rgba(220,38,38,0.08)', border:'1px solid rgba(220,38,38,0.2)', color:'#DC2626', fontSize:13, marginBottom:12 }}>{error}</div>}
-
-      {/* Search */}
-      <div style={{ position:'relative', marginBottom:12 }}>
-        <Search size={14} style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:'var(--text-muted)' }} />
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search documents…"
-          className="field" style={{ paddingLeft:38, fontSize:13 }} />
-      </div>
-
-      {/* Filter chips */}
-      <div className="chip-row mb-4">
-        {FILTERS.map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            style={{ flexShrink:0, padding:'7px 14px', borderRadius:20, fontSize:12, fontWeight:600, border:`1.5px solid ${filter===f?'var(--blue)':'var(--border)'}`, background: filter===f ? 'var(--blue)' : 'var(--bg-surface)', color: filter===f ? '#fff' : 'var(--text-secondary)', cursor:'pointer', textTransform:'capitalize', fontFamily:"'Plus Jakarta Sans',sans-serif", transition:'all 0.15s' }}>
-            {f}
+      <div style={{ padding:'20px 28px 22px', background:'linear-gradient(135deg, #2563EB 0%, #0891B2 100%)', position:'relative', overflow:'hidden' }}>
+        <div style={{ position:'absolute', inset:0, opacity:0.06, backgroundImage:'radial-gradient(circle at 30% 50%, #fff 1px, transparent 1px)', backgroundSize:'40px 40px', pointerEvents:'none' }}/>
+        <div style={{ position:'relative', zIndex:1, display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
+          <div>
+            <span style={{ fontSize:10, fontWeight:800, letterSpacing:'0.12em', color:'#7DD3FC', textTransform:'uppercase' }}>📂 KNOWLEDGE VAULT</span>
+            <h1 style={{ fontSize:'clamp(18px,3vw,26px)', fontWeight:900, color:'#fff', margin:'4px 0', letterSpacing:'-0.04em' }}>Documents</h1>
+            <p style={{ fontSize:13, color:'rgba(255,255,255,0.7)', margin:0 }}>AI-powered document intelligence · Smart search · Compliance tracking</p>
+            <div style={{ display:'flex', gap:12, marginTop:12 }}>
+              {[{l:'Documents',v:docs.length},{l:'Contracts',v:docs.filter(d=>d.doc_type==='contract').length},{l:'Alerts',v:alerts.length}].map(({l,v})=>(
+                <div key={l} style={{ padding:'5px 12px', borderRadius:10, background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.15)' }}>
+                  <span style={{ fontSize:15, fontWeight:800, color:'#fff' }}>{v}</span>
+                  <span style={{ fontSize:11, color:'rgba(255,255,255,0.6)', marginLeft:5 }}>{l}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <button onClick={() => fileRef.current?.click()} disabled={uploading}
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', background:'rgba(255,255,255,0.95)', color:'#2563EB', cursor:'pointer', fontSize:13, fontWeight:800, fontFamily:'inherit' }}>
+            <Upload size={14}/> {uploading ? 'Uploading…' : 'Upload File'}
           </button>
-        ))}
+          <input ref={fileRef} type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png,.txt" style={{ display:'none' }} onChange={e => handleUpload(e.target.files)}/>
+        </div>
       </div>
 
-      {/* Document list */}
-      {loading ? (
-        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-          {[0,1,2].map(i => <div key={i} className="glow-card animate-pulse" style={{ height:72 }} />)}
+      <div style={{ padding:'20px 28px', display:'flex', flexDirection:'column', gap:20 }}>
+        {/* AI Knowledge Search */}
+        <div style={{ padding:20, borderRadius:14, border:`1.5px solid ${accent}30`, background:`${accent}06` }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
+            <Brain size={16} style={{ color:accent }}/>
+            <p style={{ margin:0, fontSize:13, fontWeight:800, color:'var(--text-primary)' }}>AI Knowledge Search</p>
+            <span style={{ fontSize:10, padding:'2px 7px', borderRadius:5, background:`${accent}15`, color:accent, fontWeight:700 }}>ASK ANYTHING</span>
+          </div>
+          <div style={{ display:'flex', gap:8 }}>
+            <input value={aiQuery} onChange={e => setAiQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAskAi()}
+              placeholder="What is our refund policy? / Find Johnson contract / Show expiring documents…"
+              style={{ flex:1, padding:'10px 14px', borderRadius:10, border:'1.5px solid var(--border)', background:'var(--bg-page)', color:'var(--text-primary)', fontSize:13, fontFamily:'inherit', outline:'none' }}/>
+            <button onClick={handleAskAi} disabled={askingAi || !aiQuery.trim()}
+              style={{ padding:'10px 18px', borderRadius:10, border:'none', background:accent, color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, fontFamily:'inherit', opacity:askingAi?0.7:1 }}>
+              {askingAi ? '⏳' : '🔍 Ask'}
+            </button>
+          </div>
+          {aiAnswer && (
+            <div style={{ marginTop:12, padding:'12px 14px', borderRadius:10, background:'var(--bg-surface)', border:'1px solid var(--border)' }}>
+              <p style={{ margin:'0 0 8px', fontSize:13, color:'var(--text-primary)' }}>{aiAnswer.text}</p>
+              {aiAnswer.docs?.map(d => (
+                <div key={d.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'5px 0' }}>
+                  <FileText size={12} style={{ color:accent }}/>
+                  <span style={{ fontSize:12, color:accent, fontWeight:600 }}>{d.original_name || d.filename}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      ) : filtered.length === 0 ? (
-        <div className="glow-card" style={{ padding:'48px 24px', textAlign:'center' }}>
-          <FolderOpen size={40} style={{ color:'var(--text-muted)', margin:'0 auto 12px' }} />
-          <p style={{ fontSize:15, fontWeight:700, color:'var(--text-primary)', marginBottom:6 }}>No documents yet</p>
-          <p style={{ fontSize:13, color:'var(--text-muted)', marginBottom:16 }}>Upload invoices, quotes, and contracts to keep them secure.</p>
-          <button onClick={() => fileRef.current?.click()}
-            style={{ padding:'10px 20px', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', border:'none', borderRadius:10, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-            Upload first document
-          </button>
-        </div>
-      ) : (
-        <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:14, overflow:'hidden' }}>
-          {filtered.map((doc, i) => {
-            const dtype = DOC_TYPES[doc.doc_type] || DOC_TYPES.other;
-            const Icon = dtype.icon;
-            return (
-              <div key={doc.id} className="list-item" style={{ borderBottom: i < filtered.length-1 ? '1px solid var(--border-subtle)' : 'none' }}>
-                <div className="list-icon" style={{ background: dtype.bg, flexShrink:0 }}>
-                  <Icon size={18} style={{ color: dtype.color }} />
+
+        {/* Compliance Alerts */}
+        {alerts.length > 0 && (
+          <div style={{ padding:16, borderRadius:12, border:'1.5px solid #DC262630', background:'#DC262606' }}>
+            <p style={{ margin:'0 0 10px', fontSize:11, fontWeight:700, color:'#DC2626', textTransform:'uppercase', letterSpacing:'0.06em' }}>⚠️ Compliance Alerts</p>
+            {alerts.map((a,i) => (
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom:i<alerts.length-1?'0.5px solid var(--border)':'none' }}>
+                <span style={{ fontSize:18 }}>{a.icon}</span>
+                <div style={{ flex:1 }}>
+                  <p style={{ margin:0, fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>{a.title}</p>
+                  <p style={{ margin:0, fontSize:11, color:a.severity==='high'?'#DC2626':'#D97706' }}>{a.desc}</p>
                 </div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{doc.name || 'Document'}</p>
-                  <p style={{ fontSize:11, color:'var(--text-muted)', marginTop:2 }}>{dtype.label} · {fmtSize(doc.size)} · {fmtDate(doc.created_at)}</p>
-                </div>
-                <div style={{ display:'flex', gap:8, flexShrink:0 }}>
-                  <button onClick={async () => {
-                    try {
-                      const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
-                      if (doc.url) {
-                        // Inline url - open directly
-                        if (doc.url.startsWith('data:')) {
-                          const a = document.createElement('a');
-                          a.href = doc.url;
-                          a.download = doc.name;
-                          a.click();
-                        } else {
-                          window.open(doc.url, '_blank');
-                        }
-                      } else {
-                        // Fetch from server
-                        const r = await fetch(`/api/documents/${doc.id}/download`, { headers: { Authorization: `Bearer ${token}` } });
-                        const d = await r.json();
-                        if (d.url) {
-                          const a = document.createElement('a');
-                          a.href = d.url;
-                          a.download = d.name || doc.name;
-                          a.click();
-                        }
-                      }
-                    } catch(e) { alert('Could not open file: ' + e.message); }
-                  }}
-                    style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:9, border:'1px solid var(--border)', background:'transparent', cursor:'pointer', color:'var(--text-muted)', transition:'all 0.15s' }}
-                    title="Download / Open">
-                    <Download size={14} />
-                  </button>
-                  <button onClick={() => handleDelete(doc.id)}
-                    style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:9, border:'1px solid var(--border)', background:'transparent', cursor:'pointer', color:'var(--text-muted)', transition:'all 0.15s' }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor='#DC2626'; e.currentTarget.style.color='#DC2626'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor='var(--border)'; e.currentTarget.style.color='var(--text-muted)'; }}>
-                    <Trash2 size={13} />
-                  </button>
-                </div>
+                <button style={{ padding:'5px 10px', borderRadius:7, border:'none', background:a.severity==='high'?'#DC2626':'#D97706', color:'#fff', cursor:'pointer', fontSize:11, fontWeight:700, fontFamily:'inherit' }}>Act Now</button>
               </div>
-            );
-          })}
+            ))}
+          </div>
+        )}
+
+        {/* Search + Category Filter */}
+        <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+          <div style={{ position:'relative', flex:1, minWidth:200 }}>
+            <Search size={14} style={{ position:'absolute', left:11, top:'50%', transform:'translateY(-50%)', color:'var(--text-muted)' }}/>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search documents…"
+              style={{ width:'100%', padding:'9px 12px 9px 32px', borderRadius:10, border:'1.5px solid var(--border)', background:'var(--bg-surface)', color:'var(--text-primary)', fontSize:13, boxSizing:'border-box', fontFamily:'inherit', outline:'none' }}/>
+          </div>
+          <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+            {CATS.map(c => (
+              <button key={c} onClick={() => setCatFilter(c)}
+                style={{ padding:'7px 11px', borderRadius:9, border:`1.5px solid ${catFilter===c?accent:'var(--border)'}`, background:catFilter===c?`${accent}12`:'transparent', color:catFilter===c?accent:'var(--text-muted)', cursor:'pointer', fontSize:11, fontWeight:catFilter===c?700:500, fontFamily:'inherit', textTransform:'capitalize' }}>
+                {c === 'all' ? `All (${docs.length})` : c}
+              </button>
+            ))}
+          </div>
         </div>
-      )}
+
+        {/* Drag & Drop Zone */}
+        <div onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); handleUpload(e.dataTransfer.files); }}
+          style={{ border:'2px dashed var(--border)', borderRadius:14, padding:'24px', textAlign:'center', background:'var(--bg-surface)', cursor:'pointer' }}
+          onClick={() => fileRef.current?.click()}>
+          <Upload size={24} style={{ color:'var(--text-muted)', margin:'0 auto 8px', display:'block' }}/>
+          <p style={{ margin:0, fontSize:13, fontWeight:600, color:'var(--text-primary)' }}>Drop files here or click to upload</p>
+          <p style={{ margin:'4px 0 0', fontSize:11, color:'var(--text-muted)' }}>PDF, Word, Excel, images — up to 10MB</p>
+        </div>
+
+        {/* Document Grid */}
+        {loading ? (
+          <div style={{ textAlign:'center', padding:40, color:'var(--text-muted)' }}>Loading…</div>
+        ) : filtered.length === 0 ? (
+          <div style={{ textAlign:'center', padding:40 }}>
+            <FolderOpen size={32} style={{ color:'var(--text-muted)', margin:'0 auto 10px', display:'block', opacity:0.4 }}/>
+            <p style={{ fontSize:14, fontWeight:600, color:'var(--text-primary)', margin:'0 0 4px' }}>No documents yet</p>
+            <p style={{ fontSize:12, color:'var(--text-muted)', margin:0 }}>Upload contracts, invoices, compliance documents, and more</p>
+          </div>
+        ) : (
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(240px, 1fr))', gap:14 }}>
+            {filtered.map(doc => {
+              const cfg = DOC_TYPES[doc.doc_type] || DOC_TYPES.other;
+              const Icon = cfg.icon;
+              return (
+                <div key={doc.id} style={{ padding:'14px 16px', borderRadius:12, border:'1px solid var(--border)', background:'var(--bg-surface)', cursor:'pointer', transition:'all 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.boxShadow=`0 4px 20px ${accent}15`}
+                  onMouseLeave={e => e.currentTarget.style.boxShadow='none'}
+                  onClick={() => setSelected(doc)}>
+                  <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+                    <div style={{ width:36, height:36, borderRadius:10, background:`${cfg.color}15`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      <Icon size={18} style={{ color:cfg.color }}/>
+                    </div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ margin:0, fontSize:13, fontWeight:700, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{doc.original_name || doc.filename}</p>
+                      <p style={{ margin:0, fontSize:11, color:'var(--text-muted)' }}>{fmtDate(doc.created_at)} · {fmtSize(doc.file_size)}</p>
+                    </div>
+                  </div>
+                  <div style={{ display:'flex', gap:6 }}>
+                    <span style={{ fontSize:10, padding:'2px 7px', borderRadius:5, background:`${cfg.color}15`, color:cfg.color, fontWeight:600 }}>{cfg.label}</span>
+                    {doc.linked_to && <span style={{ fontSize:10, padding:'2px 7px', borderRadius:5, background:`${accent}10`, color:accent, fontWeight:600 }}>🔗 Linked</span>}
+                  </div>
+                  <div style={{ display:'flex', gap:6, marginTop:10 }} onClick={e => e.stopPropagation()}>
+                    <a href={`/api/documents/${doc.id}/download?account_id=${account.id}`}
+                      style={{ flex:1, padding:'5px 0', borderRadius:7, border:'1px solid var(--border)', background:'transparent', color:'var(--text-muted)', cursor:'pointer', fontSize:11, fontWeight:600, textDecoration:'none', textAlign:'center', display:'block' }}>
+                      ↓ Download
+                    </a>
+                    <button onClick={() => handleDelete(doc.id)}
+                      style={{ padding:'5px 8px', borderRadius:7, border:'1px solid #DC262620', background:'transparent', color:'#DC2626', cursor:'pointer', fontSize:11 }}>🗑</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

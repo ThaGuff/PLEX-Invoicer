@@ -356,6 +356,21 @@ function AddSectionModal({ accent, accountId, onCreated, onClose }) {
 }
 
 // ── Main QuoteBuilder ─────────────────────────────────────────────
+// Calculate quote win probability based on various factors
+function calcWinProb(quote, clientHistory) {
+  let score = 65; // base
+  if (clientHistory?.accepted > 0) score += 10;
+  if (clientHistory?.total > 3) score += 5;
+  const amount = parseFloat(quote?.setup_total || 0);
+  if (amount < 500) score += 10;
+  if (amount > 5000) score -= 15;
+  if (amount > 2000) score -= 5;
+  const daysSinceSent = quote?.sent_at ? Math.floor((Date.now() - new Date(quote.sent_at)) / 86400000) : 0;
+  if (daysSinceSent > 7) score -= 10;
+  if (daysSinceSent > 14) score -= 15;
+  return Math.max(15, Math.min(97, score));
+}
+
 export default function QuoteBuilder() {
   const { account, activeId, addCustomSection, updateCustomSection, addCustomItem, refreshAccount } = useAccount();
   const accent = account?.primary_color || '#13B5EA';
