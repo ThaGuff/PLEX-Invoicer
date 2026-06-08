@@ -10,12 +10,12 @@ import { Brain, TrendingUp, AlertTriangle, Target, Zap, RefreshCw,
 import { useAccount } from '../context/AccountContext';
 import { api } from '../utils/api';
 
-const ACCENT = '#4B7BFF';
-const GRAD   = 'linear-gradient(135deg, #00E5C8, #4B7BFF, #7B4FE8)';
+const ACCENT = '#0D1A0D';
+const GRAD   = 'linear-gradient(135deg, #3DD68C, #0D1A0D, #3DD68C)';
 
 function fmt(n)    { return '$' + Math.round(n || 0).toLocaleString(); }
 function pct(n)    { return Math.round(n || 0) + '%'; }
-function risk(n)   { return n > 70 ? '#ef4444' : n > 40 ? '#f59e0b' : '#00E5C8'; }
+function risk(n)   { return n > 70 ? '#ef4444' : n > 40 ? '#64748B' : '#3DD68C'; }
 
 function InsightCard({ icon: Icon, label, value, sub, color = ACCENT, cta, onCta }) {
   return (
@@ -201,14 +201,14 @@ export default function AIInsightsPanel({ accountId }) {
                   label="Acceptance rate"
                   value={`${insights.accRate}%`}
                   sub={`${insights.accepted} of ${insights.total} quotes accepted`}
-                  color={insights.accRate > 50 ? '#00E5C8' : '#f59e0b'}
+                  color={insights.accRate > 50 ? '#3DD68C' : '#64748B'}
                 />
                 <InsightCard
                   icon={TrendingUp}
                   label="Next 30 days"
                   value={fmt(insights.predicted30)}
                   sub="Predicted inbound based on invoice pipeline"
-                  color="#4B7BFF"
+                  color="#0D1A0D"
                 />
                 <InsightCard
                   icon={AlertTriangle}
@@ -223,7 +223,7 @@ export default function AIInsightsPanel({ accountId }) {
                   label="Overdue pipeline"
                   value={fmt(insights.overdueTotal)}
                   sub={`${insights.overdueCount} invoices past due date`}
-                  color={insights.overdueTotal > 0 ? '#f59e0b' : '#00E5C8'}
+                  color={insights.overdueTotal > 0 ? '#64748B' : '#3DD68C'}
                   cta={insights.overdueCount > 0 ? 'Send reminders' : undefined}
                 />
               </div>
@@ -243,8 +243,8 @@ export default function AIInsightsPanel({ accountId }) {
 
               {/* High-probability closes */}
               {insights.highProbability > 0 && (
-                <div style={{ background: 'rgba(0,229,200,0.06)', border: '0.5px solid rgba(0,229,200,0.2)', borderRadius: '8px', padding: '10px 12px', marginBottom: '12px' }}>
-                  <p style={{ fontSize: '12px', fontWeight: 600, color: '#00E5C8', marginBottom: '2px' }}>
+                <div style={{ background: 'rgba(61,214,140,0.06)', border: '0.5px solid rgba(61,214,140,0.2)', borderRadius: '8px', padding: '10px 12px', marginBottom: '12px' }}>
+                  <p style={{ fontSize: '12px', fontWeight: 600, color: '#3DD68C', marginBottom: '2px' }}>
                     🔥 {insights.highProbability} quotes ready to close
                   </p>
                   <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
@@ -257,7 +257,7 @@ export default function AIInsightsPanel({ accountId }) {
               <div style={{ borderTop: '0.5px solid var(--border)', paddingTop: '12px' }}>
                 {aiSummary ? (
                   <div style={{ background: 'rgba(75,123,255,0.06)', border: '0.5px solid rgba(75,123,255,0.2)', borderRadius: '8px', padding: '12px' }}>
-                    <p style={{ fontSize: '10px', fontWeight: 700, color: '#4B7BFF', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <p style={{ fontSize: '10px', fontWeight: 700, color: '#0D1A0D', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Brain size={10} /> AI Analysis
                     </p>
                     <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{aiSummary}</p>
