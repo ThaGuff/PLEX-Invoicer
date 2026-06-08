@@ -12,9 +12,9 @@ import {
 } from 'lucide-react';
 
 // ─── Revanew brand colors ─────────────────────────────────────────
-const BRAND = '#2563EB';
-const TEAL  = '#0D9488';
-const GRAD  = 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)';
+const BRAND = '#3DD68C';
+const TEAL  = '#3DD68C';
+const GRAD  = '#0D1A0D';
 
 // ─── Navigation ───────────────────────────────────────────────────
 function Nav({ onLogin }) {
@@ -88,7 +88,7 @@ function Hero({ onLogin }) {
   return (
     <section style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f2d40 100%)',
+      background: '#0D1A0D',
       position: 'relative', overflow: 'hidden', padding: '100px 24px 60px',
     }}>
       {/* Animated gradient orbs */}
@@ -107,8 +107,8 @@ function Hero({ onLogin }) {
         <div>
           {/* Badge */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 20, background: 'rgba(37,99,235,0.15)', border: '1px solid rgba(37,99,235,0.3)', marginBottom: 24 }}>
-            <Zap size={12} style={{ color: '#60A5FA' }} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#60A5FA', letterSpacing: '0.05em' }}>AI-POWERED INVOICING</span>
+            <Zap size={12} style={{ color: '#3DD68C' }} />
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#3DD68C', letterSpacing: '0.05em' }}>AI-POWERED INVOICING</span>
           </div>
 
           <h1 style={{ fontSize: 'clamp(36px, 5vw, 58px)', fontWeight: 900, color: '#fff', margin: '0 0 20px', lineHeight: 1.1, letterSpacing: '-0.04em' }}>
@@ -125,11 +125,11 @@ function Hero({ onLogin }) {
           {/* CTA buttons */}
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 40 }}>
             <button onClick={onLogin}
-              style={{ padding: '14px 28px', borderRadius: 12, border: 'none', background: GRAD, color: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, fontFamily: "'Plus Jakarta Sans', sans-serif", display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 8px 30px rgba(37,99,235,0.4)' }}>
+              style={{ padding: '14px clamp(14px,4vw,28px)', borderRadius: 12, border: 'none', background: GRAD, color: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, fontFamily: "'Plus Jakarta Sans', sans-serif", display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 8px 30px rgba(37,99,235,0.4)' }}>
               Start Free — No Credit Card <ArrowRight size={16} />
             </button>
             <a href="#demo"
-              style={{ padding: '14px 24px', borderRadius: 12, border: '1.5px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: 15, fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+              style={{ padding: '14px clamp(12px,4vw,24px)', borderRadius: 12, border: '1.5px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: 15, fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
               <Play size={14} /> Watch Demo
             </a>
           </div>
@@ -137,7 +137,7 @@ function Hero({ onLogin }) {
           {/* Social proof */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="#F59E0B" style={{ color: '#F59E0B' }} />)}
+              {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="#64748B" style={{ color: '#64748B' }} />)}
             </div>
             <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>Trusted by 500+ service businesses</span>
             <div style={{ display: 'flex', gap: 6 }}>
@@ -181,13 +181,13 @@ function AppMockup() {
         {/* Dashboard preview */}
         <div style={{ padding: 16 }}>
           {/* Header bar */}
-          <div style={{ background: 'linear-gradient(135deg, rgba(37,99,235,0.12), rgba(13,148,136,0.08))', borderRadius: 10, padding: '12px 14px', marginBottom: 10, border: '1px solid rgba(37,99,235,0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: 'rgba(61,214,140,0.06)', borderRadius: 10, padding: '12px 14px', marginBottom: 10, border: '1px solid rgba(61,214,140,0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ fontSize: 10, color: '#60A5FA', fontWeight: 600 }}>☀️ GOOD MORNING, ALEX</div>
+              <div style={{ fontSize: 10, color: '#3DD68C', fontWeight: 600 }}>☀️ GOOD MORNING, ALEX</div>
               <div style={{ fontSize: 16, fontWeight: 800, color: '#fff' }}>Ridge Top Services</div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: '#60A5FA' }}>9:22 AM</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#3DD68C' }}>9:22 AM</div>
               <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>Thursday, June 4</div>
             </div>
           </div>
@@ -195,9 +195,9 @@ function AppMockup() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 10 }}>
             {[
               { label: 'COLLECTED', value: '$48,320', color: '#34D399' },
-              { label: 'OUTSTANDING', value: '$12,840', color: '#60A5FA' },
-              { label: 'THIS MONTH', value: '$18,500', color: '#A78BFA' },
-              { label: 'QUOTES', value: '24', color: '#F59E0B' },
+              { label: 'OUTSTANDING', value: '$12,840', color: '#3DD68C' },
+              { label: 'THIS MONTH', value: '$18,500', color: '#44EF6B' },
+              { label: 'QUOTES', value: '24', color: '#64748B' },
             ].map(({ label, value, color }) => (
               <div key={label} style={{ background: '#242B3D', borderRadius: 8, padding: '8px 10px', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: 3 }}>{label}</div>
@@ -214,10 +214,10 @@ function AppMockup() {
               { num: 'Q-0022', name: 'Metro Plumbing', amount: '$1,890', status: 'Draft' },
             ].map(({ num, name, amount, status }) => (
               <div key={num} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '0.5px solid rgba(255,255,255,0.05)' }}>
-                <span style={{ fontSize: 10, color: '#60A5FA', fontWeight: 600 }}>{num}</span>
+                <span style={{ fontSize: 10, color: '#3DD68C', fontWeight: 600 }}>{num}</span>
                 <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>{name}</span>
                 <span style={{ fontSize: 10, color: '#fff', fontWeight: 700 }}>{amount}</span>
-                <span style={{ fontSize: 8, padding: '2px 6px', borderRadius: 4, background: status === 'Accepted' ? 'rgba(34,197,94,0.3)' : status === 'Sent' ? 'rgba(37,99,235,0.3)' : 'rgba(100,116,139,0.3)', color: status === 'Accepted' ? '#34D399' : status === 'Sent' ? '#60A5FA' : 'rgba(255,255,255,0.6)' }}>{status}</span>
+                <span style={{ fontSize: 8, padding: '2px 6px', borderRadius: 4, background: status === 'Accepted' ? 'rgba(34,197,94,0.3)' : status === 'Sent' ? 'rgba(37,99,235,0.3)' : 'rgba(100,116,139,0.3)', color: status === 'Accepted' ? '#34D399' : status === 'Sent' ? '#3DD68C' : 'rgba(255,255,255,0.6)' }}>{status}</span>
               </div>
             ))}
           </div>
@@ -226,7 +226,7 @@ function AppMockup() {
 
       {/* Floating stats cards */}
       <div style={{ position: 'absolute', top: -20, right: -30, background: '#1e3a5f', border: '1px solid rgba(37,99,235,0.3)', borderRadius: 12, padding: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
-        <div style={{ fontSize: 10, color: '#60A5FA', fontWeight: 600 }}>AI Revenue Score</div>
+        <div style={{ fontSize: 10, color: '#3DD68C', fontWeight: 600 }}>AI Revenue Score</div>
         <div style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>92<span style={{ fontSize: 12, color: '#34D399' }}>/100 ↑</span></div>
       </div>
 
@@ -248,7 +248,7 @@ function StatsBar() {
     { value: '4.8★', label: 'Average Rating' },
   ];
   return (
-    <div style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', padding: '20px 24px' }}>
+    <div style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', padding: '20px clamp(12px,4vw,24px)' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: 24 }}>
         {stats.map(({ value, label }) => (
           <div key={label} style={{ textAlign: 'center' }}>
@@ -269,7 +269,7 @@ function HowItWorks() {
     { num: '03', icon: '💰', title: 'Get Paid', desc: 'Convert accepted quotes to invoices in one click. Clients pay via Stripe, ACH, or card. Overdue reminders send automatically. Cash lands in your bank.' },
   ];
   return (
-    <section id="how" style={{ padding: '80px 24px', background: '#fff' }}>
+    <section id="how" style={{ padding: '80px clamp(12px,4vw,24px)', background: '#fff' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 56 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: BRAND, textTransform: 'uppercase', letterSpacing: '0.1em' }}>HOW IT WORKS</span>
@@ -280,7 +280,7 @@ function HowItWorks() {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 32 }}>
           {steps.map(({ num, icon, title, desc }, i) => (
-            <div key={num} style={{ position: 'relative', padding: '32px 28px', borderRadius: 20, border: '1px solid #e2e8f0', background: '#fff', transition: 'all 0.2s' }}>
+            <div key={num} style={{ position: 'relative', padding: '32px clamp(14px,4vw,28px)', borderRadius: 20, border: '1px solid #e2e8f0', background: '#fff', transition: 'all 0.2s' }}>
               <div style={{ fontSize: 12, fontWeight: 800, color: BRAND, opacity: 0.4, letterSpacing: '0.08em', marginBottom: 16 }}>STEP {num}</div>
               <div style={{ fontSize: 40, marginBottom: 14 }}>{icon}</div>
               <h3 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: '0 0 10px' }}>{title}</h3>
@@ -299,18 +299,18 @@ function HowItWorks() {
 // ─── Features Grid ────────────────────────────────────────────────
 function Features() {
   const features = [
-    { icon: <Brain size={22} />, color: '#7C3AED', title: 'AI Revenue Intelligence', desc: 'Every client gets an AI revenue score, health score, and DNA classification (VIP, At-Risk, Repeat Buyer). Know exactly who to focus on.' },
+    { icon: <Brain size={22} />, color: '#3DD68C', title: 'AI Revenue Intelligence', desc: 'Every client gets an AI revenue score, health score, and DNA classification (VIP, At-Risk, Repeat Buyer). Know exactly who to focus on.' },
     { icon: <FileText size={22} />, color: BRAND, title: '15 Industry Templates', desc: 'HVAC, Electrical, Plumbing, Pressure Washing, Tree Service, IT, and 9 more. Services auto-load with standard labor rates and pricing.' },
     { icon: <Clock size={22} />, color: TEAL, title: 'Time Tracking', desc: 'Log hours per project. Track billable vs non-billable time. Convert timesheets directly into invoices with one click.' },
-    { icon: <BarChart3 size={22} />, color: '#D97706', title: 'Predictive Cash Flow', desc: 'AI-powered 12-week revenue forecast. See overdue risk scores, upcoming renewals, and recommended actions before problems happen.' },
-    { icon: <Users size={22} />, color: '#059669', title: 'Team Workspace', desc: 'Slack-style team chat with direct messages, channels, and @mentions. Assign jobs to technicians and track completion in real time.' },
+    { icon: <BarChart3 size={22} />, color: '#64748B', title: 'Predictive Cash Flow', desc: 'AI-powered 12-week revenue forecast. See overdue risk scores, upcoming renewals, and recommended actions before problems happen.' },
+    { icon: <Users size={22} />, color: '#3DD68C', title: 'Team Workspace', desc: 'Slack-style team chat with direct messages, channels, and @mentions. Assign jobs to technicians and track completion in real time.' },
     { icon: <Shield size={22} />, color: '#DC2626', title: 'Smart Collections', desc: 'Automated payment reminders, overdue detection, and late payment scoring. Never manually chase an invoice again.' },
     { icon: <Globe size={22} />, color: BRAND, title: 'Client Portal', desc: 'Every client gets a branded portal to view quotes, approve estimates, pay invoices, and download statements.' },
-    { icon: <Smartphone size={22} />, color: '#7C3AED', title: 'Mobile + PWA', desc: 'Install on iOS, Android, or desktop. Works offline with local draft saving. Full quote creation without internet.' },
+    { icon: <Smartphone size={22} />, color: '#3DD68C', title: 'Mobile + PWA', desc: 'Install on iOS, Android, or desktop. Works offline with local draft saving. Full quote creation without internet.' },
     { icon: <TrendingUp size={22} />, color: TEAL, title: 'Master Schedule', desc: 'Day, Week, Month, Timeline, and Team views. AI conflict detection, gap filling suggestions, and route optimization.' },
   ];
   return (
-    <section id="features" style={{ padding: '80px 24px', background: '#f8fafc' }}>
+    <section id="features" style={{ padding: '80px clamp(12px,4vw,24px)', background: '#f8fafc' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 56 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: BRAND, textTransform: 'uppercase', letterSpacing: '0.1em' }}>FEATURES</span>
@@ -354,7 +354,7 @@ function Comparison() {
     { feature: 'Customer Portal', revanew: true, zoho: true, quickbooks: true },
   ];
   return (
-    <section style={{ padding: '80px 24px', background: '#fff' }}>
+    <section style={{ padding: '80px clamp(12px,4vw,24px)', background: '#fff' }}>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: BRAND, textTransform: 'uppercase', letterSpacing: '0.1em' }}>COMPARISON</span>
@@ -376,7 +376,7 @@ function Comparison() {
               {[revanew, zoho, quickbooks].map((has, j) => (
                 <div key={j} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0' }}>
                   {has
-                    ? <CheckCircle size={18} style={{ color: '#059669' }} />
+                    ? <CheckCircle size={18} style={{ color: '#3DD68C' }} />
                     : <span style={{ fontSize: 18, color: '#cbd5e1' }}>—</span>
                   }
                 </div>
@@ -397,7 +397,7 @@ function Pricing({ onLogin }) {
       name: 'Starter',
       price: annual ? 15 : 19,
       desc: 'Perfect for solo operators and new businesses',
-      color: '#059669',
+      color: '#3DD68C',
       features: ['25 quotes & invoices/mo', 'PDF export', 'Client portal', 'Payment tracking', 'Basic reports', 'Mobile app'],
       cta: 'Start Free Trial',
     },
@@ -414,13 +414,13 @@ function Pricing({ onLogin }) {
       name: 'Agency',
       price: annual ? 79 : 99,
       desc: 'For agencies and multi-account operators',
-      color: '#7C3AED',
+      color: '#3DD68C',
       features: ['Everything in Pro', 'Unlimited team members', 'Unlimited sub-accounts', 'White-label (remove Revanew)', 'REST API access', 'Custom reports', 'Priority support', 'Advanced analytics', 'Multi-location support'],
       cta: 'Contact Sales',
     },
   ];
   return (
-    <section id="pricing" style={{ padding: '80px 24px', background: 'linear-gradient(180deg, #f8fafc 0%, #fff 100%)' }}>
+    <section id="pricing" style={{ padding: '80px clamp(12px,4vw,24px)', background: 'var(--bg-page)' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: BRAND, textTransform: 'uppercase', letterSpacing: '0.1em' }}>PRICING</span>
@@ -436,7 +436,7 @@ function Pricing({ onLogin }) {
               <div style={{ position: 'absolute', top: 3, left: annual ? 23 : 3, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
             </button>
             <span style={{ fontSize: 13, fontWeight: 600, color: annual ? '#0f172a' : '#94a3b8' }}>
-              Annual <span style={{ color: '#059669', fontSize: 11, fontWeight: 700 }}>Save 20%</span>
+              Annual <span style={{ color: '#3DD68C', fontSize: 11, fontWeight: 700 }}>Save 20%</span>
             </span>
           </div>
         </div>
@@ -465,7 +465,7 @@ function Pricing({ onLogin }) {
                 <div style={{ marginBottom: 24 }}>
                   <span style={{ fontSize: 42, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.04em' }}>${price}</span>
                   <span style={{ fontSize: 14, color: '#64748b' }}>/mo</span>
-                  {annual && <span style={{ fontSize: 11, color: '#059669', fontWeight: 700, marginLeft: 6 }}>billed annually</span>}
+                  {annual && <span style={{ fontSize: 11, color: '#3DD68C', fontWeight: 700, marginLeft: 6 }}>billed annually</span>}
                 </div>
                 <button onClick={onLogin}
                   style={{ width: '100%', padding: '12px', borderRadius: 12, border: popular ? 'none' : `1.5px solid ${color}`, background: popular ? GRAD : 'transparent', color: popular ? '#fff' : color, cursor: 'pointer', fontSize: 14, fontWeight: 700, fontFamily: "'Plus Jakarta Sans', sans-serif", marginBottom: 24, boxShadow: popular ? '0 4px 14px rgba(37,99,235,0.3)' : 'none' }}>
@@ -500,10 +500,10 @@ function Testimonials() {
     { name: 'Derek M.', company: 'PowerClean Pro', text: 'The "Due Upon Receipt" feature and automated reminders have improved our collection rate from 78% to 97%. Game changer for a small operation.', stars: 5, type: '💧 Pressure Washing' },
   ];
   return (
-    <section style={{ padding: '80px 24px', background: '#0f172a' }}>
+    <section style={{ padding: '80px clamp(12px,4vw,24px)', background: '#0f172a' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#60A5FA', textTransform: 'uppercase', letterSpacing: '0.1em' }}>TESTIMONIALS</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#3DD68C', textTransform: 'uppercase', letterSpacing: '0.1em' }}>TESTIMONIALS</span>
           <h2 style={{ fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 900, color: '#fff', margin: '10px 0', letterSpacing: '-0.03em' }}>
             Loved by service businesses
           </h2>
@@ -512,7 +512,7 @@ function Testimonials() {
           {testimonials.map(({ name, company, text, stars, type }) => (
             <div key={name} style={{ padding: 28, borderRadius: 16, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
               <div style={{ display: 'flex', gap: 3, marginBottom: 16 }}>
-                {[...Array(stars)].map((_, i) => <Star key={i} size={14} fill="#F59E0B" style={{ color: '#F59E0B' }} />)}
+                {[...Array(stars)].map((_, i) => <Star key={i} size={14} fill="#64748B" style={{ color: '#64748B' }} />)}
               </div>
               <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', lineHeight: 1.7, marginBottom: 20, fontStyle: 'italic' }}>"{text}"</p>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -520,7 +520,7 @@ function Testimonials() {
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{name}</div>
                   <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{company}</div>
                 </div>
-                <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 8, background: 'rgba(37,99,235,0.2)', color: '#60A5FA', fontWeight: 600 }}>{type}</span>
+                <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 8, background: 'rgba(37,99,235,0.2)', color: '#3DD68C', fontWeight: 600 }}>{type}</span>
               </div>
             </div>
           ))}
@@ -533,7 +533,7 @@ function Testimonials() {
 // ─── Final CTA ────────────────────────────────────────────────────
 function FinalCTA({ onLogin }) {
   return (
-    <section style={{ padding: '80px 24px', background: GRAD }}>
+    <section style={{ padding: '80px clamp(12px,4vw,24px)', background: GRAD }}>
       <div style={{ maxWidth: 700, margin: '0 auto', textAlign: 'center' }}>
         <div style={{ fontSize: 42, marginBottom: 16 }}>🚀</div>
         <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 900, color: '#fff', margin: '0 0 16px', letterSpacing: '-0.03em' }}>
@@ -582,7 +582,7 @@ function Footer() {
         </div>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <span style={{ fontSize: 12 }}>© 2026 Revanew · Quotes. Invoices. Get Paid.</span>
-          <span style={{ fontSize: 12 }}>Built for service businesses · Powered by AI · <a href="mailto:support@revanew.io" style={{ color: '#60A5FA', textDecoration: 'none' }}>support@revanew.io</a></span>
+          <span style={{ fontSize: 12 }}>Built for service businesses · Powered by AI · <a href="mailto:support@revanew.io" style={{ color: '#3DD68C', textDecoration: 'none' }}>support@revanew.io</a></span>
         </div>
       </div>
     </footer>
