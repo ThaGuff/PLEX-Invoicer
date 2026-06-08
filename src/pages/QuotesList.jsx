@@ -1,31 +1,39 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, FileText, Trash2, ArrowRight, RefreshCw, Eye, CheckCircle, Clock, Send, BarChart2, Receipt } from 'lucide-react';
 import { useAccount } from '../context/AccountContext';
 import { api } from '../utils/api';
 
-const STATUS = {
-  draft:     { bg:'#F1F5F9', color:'#64748B',  dot:'#94A3B8' },
-  sent:      { bg:'#EAF0FF', color:'#2B56CC',  dot:'#2563EB' },
-  viewed:    { bg:'#FEF3C7', color:'#92400E',  dot:'#D97706' },
-  accepted:  { bg:'#E0FBF7', color:'#0A7A6A',  dot:'#0D9488' },
-  cancelled: { bg:'#FEF2F2', color:'#991B1B',  dot:'#ef4444' },
+const STATUS_CONFIG = {
+  draft:    { label: 'Draft',    color: '#64748B', bg: '#F1F5F9' },
+  sent:     { label: 'Sent',     color: '#3DD68C', bg: '#F0FDF4' },
+  viewed:   { label: 'Viewed',   color: '#64748B', bg: '#F1F5F9' },
+  accepted: { label: 'Approved', color: '#3DD68C', bg: '#F0FDF4' },
+  invoiced: { label: 'Invoiced', color: '#3DD68C', bg: '#F0FDF4' },
+  cancelled:{ label: 'Cancelled',color: '#9CA3AF', bg: '#F9FAFB' },
 };
-
-const FILTER_ICONS = { all: FileText, draft: Clock, sent: Send, viewed: Eye, invoiced: Receipt, accepted: CheckCircle };
 
 function fmt(n) { return '$' + Math.round(n || 0).toLocaleString(); }
 function fmtDate(s) { if (!s) return '—'; try { return new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); } catch { return s; } }
 function daysAgo(s) { if (!s) return null; const d = Math.floor((Date.now() - new Date(s)) / 86400000); return d === 0 ? 'Today' : d === 1 ? 'Yesterday' : `${d}d ago`; }
 
+function StatusBadge({ status }) {
+  const s = (status || 'draft').toLowerCase();
+  const cfg = STATUS_CONFIG[s] || STATUS_CONFIG.draft;
+  return (
+    <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 5, background: cfg.bg, color: cfg.color, whiteSpace: 'nowrap' }}>
+      {cfg.label}
+    </span>
+  );
+}
+
 export default function QuotesList() {
   const { account } = useAccount();
-  const navigate    = useNavigate();
-  const [quotes,  setQuotes]  = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [search,     setSearch]     = useState('');
-  const [filter,     setFilter]     = useState('all');
-  const [converting, setConverting] = useState(null); // quote id being converted
+  const navigate = useNavigate();
+  const [quotes, setQuotes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [converting, setConverting] = useState(null);
 
   const load = useCallback(async () => {
     if (!account?.id) return;
@@ -46,23 +54,21 @@ export default function QuotesList() {
       await api.quotes.delete(id);
       setQuotes(q => q.filter(x => x.id !== id));
     } catch (err) {
-      alert('Failed to delete quote: ' + (err.message || 'Unknown error'));
+      alert('Failed to delete: ' + (err.message || 'Unknown error'));
     }
   };
 
   const handleConvert = async (id, e) => {
     e.stopPropagation();
-    if (converting) return; // prevent double-click
+    if (converting) return;
     if (!confirm('Convert this quote to an invoice?')) return;
     setConverting(id);
     try {
       const inv = await api.quotes.convert(id);
       if (!inv?.id) throw new Error('No invoice ID returned');
-      // Update local state to show 'invoiced' status immediately
       setQuotes(qs => qs.map(q => q.id === id ? { ...q, status: 'invoiced' } : q));
       navigate(`/invoices/${inv.id}`);
     } catch (err) {
-      console.error('Convert failed:', err.message);
       alert('Failed to create invoice. Please try again.');
     } finally {
       setConverting(null);
@@ -75,189 +81,142 @@ export default function QuotesList() {
     return matchSearch && matchFilter;
   });
 
-  // Stats summary
-  const total    = quotes.length;
+  const total = quotes.length;
   const accepted = quotes.filter(q => q.status === 'accepted').length;
-  const pending  = quotes.filter(q => ['sent','viewed'].includes(q.status)).length;
-  const revenue  = quotes.filter(q => q.status === 'accepted').reduce((s,q) => s+(q.setup_total||0), 0);
+  const pending = quotes.filter(q => ['sent', 'viewed'].includes(q.status)).length;
+  const pipelineValue = quotes.filter(q => ['draft','sent','viewed','accepted'].includes(q.status)).reduce((s, q) => s + (q.setup_total || 0), 0);
+
+  const FILTERS = [
+    { id: 'all', label: 'All', count: total },
+    { id: 'draft', label: 'Draft', count: quotes.filter(q => q.status === 'draft').length },
+    { id: 'sent', label: 'Sent', count: quotes.filter(q => q.status === 'sent').length },
+    { id: 'viewed', label: 'Viewed', count: quotes.filter(q => q.status === 'viewed').length },
+    { id: 'accepted', label: 'Approved', count: accepted },
+    { id: 'invoiced', label: 'Invoiced', count: quotes.filter(q => q.status === 'invoiced').length },
+  ];
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 16px', width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5 animate-fade-up" style={{ flexWrap:'wrap', gap:10 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>Quotes</h1>
-          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 3 }}>{total} total · {pending} pending</p>
-        </div>
+      {/* Action bar */}
+      <div style={{ padding: '10px clamp(14px,4vw,24px)', background: 'var(--bg-page)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
         <button onClick={() => navigate('/quotes/new')}
-          style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 20px', background:'linear-gradient(135deg,#00E5C8,#4B7BFF)', color:'#fff', border:'none', borderRadius:12, fontSize:13, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 14px rgba(75,123,255,0.35)', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-          <Plus size={15} /> New quote
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: '#0D1A0D', color: '#C8FF00', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New quote
         </button>
       </div>
 
-      {/* Stats row */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:8, marginBottom:16 }} className="animate-fade-up-delay-1">
-        {[
-          { label:'Total', value:total, color:'#7C3AED', bg:'linear-gradient(90deg,#7B4FE8,#4B7BFF)' },
-          { label:'Pending', value:pending, color:'#D97706', bg:'#D97706' },
-          { label:'Accepted', value:accepted, color:'#0D9488', bg:'linear-gradient(90deg,#00E5C8,#4B7BFF)' },
-          { label:'Revenue', value:fmt(revenue), color:'#0D9488', bg:'#0D9488' },
-        ].map(s => (
-          <div key={s.label} className="glow-card p-4">
-            <div style={{ height:2, borderRadius:1, background:s.bg, marginBottom:10 }} />
-            <p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.9px', marginBottom:4 }}>{s.label}</p>
-            <p style={{ fontSize:20, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.03em' }}>{s.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Search + filters */}
-      <div className="flex items-center gap-3 mb-4 flex-wrap animate-fade-up-delay-2">
-        <div className="relative" style={{ flex:'1', minWidth:200, maxWidth:320 }}>
-          <Search size={13} style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', color:'var(--text-muted)' }} />
-          <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search quotes, clients…" className="field"
-            style={{ paddingLeft:36, fontSize:13 }} />
-        </div>
-        <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
-          {['all','draft','sent','viewed','invoiced','accepted'].map(s => {
-            const Icon = FILTER_ICONS[s];
-            const st = STATUS[s];
-            const active = filter === s;
-            return (
-              <button key={s} onClick={() => setFilter(s)}
-                style={{
-                  display:'flex', alignItems:'center', gap:5,
-                  padding:'7px 12px', borderRadius:9, border:'none', cursor:'pointer',
-                  fontSize:11, fontWeight:active ? 700 : 500, textTransform:'capitalize',
-                  background: active ? (st?.bg || 'var(--navy)') : 'var(--bg-page)',
-                  color: active ? (st?.color || '#fff') : 'var(--text-muted)',
-                  boxShadow: active ? `0 2px 8px ${st?.dot || '#2563EB'}33` : 'none',
-                  transition:'all 0.15s', fontFamily:"'Plus Jakarta Sans',sans-serif",
-                }}>
-                {Icon && <Icon size={11} />}
-                {s}
-                <span style={{ fontSize:10, opacity:0.7, marginLeft:2 }}>
-                  ({s === 'all' ? quotes.length : quotes.filter(q=>q.status===s).length})
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Quote cards */}
-      {loading ? (
-        <div className="space-y-3">
-          {[0,1,2,3].map(i => (
-            <div key={i} className="glow-card p-5 animate-pulse" style={{ height:80 }}>
-              <div style={{ display:'flex', gap:16 }}>
-                <div style={{ width:40, height:40, borderRadius:10, background:'var(--border)' }} />
-                <div style={{ flex:1 }}>
-                  <div style={{ height:12, width:'30%', background:'var(--border)', borderRadius:4, marginBottom:8 }} />
-                  <div style={{ height:10, width:'60%', background:'var(--border)', borderRadius:4 }} />
-                </div>
-              </div>
+      {/* Stat cards */}
+      <div style={{ padding: 'clamp(12px,3vw,16px) clamp(14px,4vw,24px)', background: 'var(--bg-page)', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+          {[
+            { label: 'Total quotes', value: total, color: '#0D1A0D' },
+            { label: 'Pending response', value: pending, color: '#64748B' },
+            { label: 'Approved', value: accepted, color: '#3DD68C' },
+            { label: 'Pipeline value', value: fmt(pipelineValue), color: '#3DD68C' },
+          ].map(s => (
+            <div key={s.label} style={{ padding: '14px 16px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
+              <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{s.label}</p>
+              <p style={{ fontSize: 22, fontWeight: 900, color: s.color, letterSpacing: '-0.04em' }}>{s.value}</p>
             </div>
           ))}
         </div>
-      ) : filtered.length === 0 ? (
-        <div className="glow-card p-12 text-center">
-          <div style={{ width:56, height:56, borderRadius:16, background:'linear-gradient(135deg,#4B7BFF,#7B4FE8)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px', opacity:0.8 }}>
-            <FileText size={26} color="#fff" />
-          </div>
-          <p style={{ fontSize:15, fontWeight:700, color:'var(--text-primary)', marginBottom:6 }}>
-            {search || filter !== 'all' ? 'No quotes match your filters' : 'No quotes yet'}
-          </p>
-          <p style={{ fontSize:13, color:'var(--text-muted)', marginBottom:16 }}>
-            {search || filter !== 'all' ? 'Try adjusting your search or filter.' : 'Create your first quote to get started.'}
-          </p>
-          {!search && filter === 'all' && (
-            <button onClick={() => navigate('/quotes/new')}
-              style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 20px', background:'linear-gradient(135deg,#00E5C8,#4B7BFF)', color:'#fff', border:'none', borderRadius:10, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-              <Plus size={14} /> Create first quote
-            </button>
-          )}
+      </div>
+
+      {/* Search + filters */}
+      <div style={{ padding: '12px clamp(12px,4vw,24px)', background: 'var(--bg-page)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: 200, maxWidth: 360 }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Search quotes, clients…"
+            style={{ width: '100%', padding: '9px 12px 9px 32px', borderRadius: 9, border: '1.5px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)', fontSize: 13, boxSizing: 'border-box', fontFamily: "'Plus Jakarta Sans', sans-serif", outline: 'none' }}
+            onFocus={e => e.target.style.borderColor = '#3DD68C'}
+            onBlur={e => e.target.style.borderColor = 'var(--border)'} />
         </div>
-      ) : (
-        <div className="space-y-2 animate-fade-up-delay-3">
-          {filtered.map((q) => {
-            const st = STATUS[q.status] || STATUS.draft;
-            const isAccepted = q.status === 'accepted';
-            return (
-              <div key={q.id}
-                onClick={() => navigate(`/quotes/${q.id}`)}
-                className="glow-card"
-                style={{ padding:'14px 16px', cursor:'pointer', transition:'all 0.18s cubic-bezier(0.4,0,0.2,1)' }}
-                onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 8px 28px rgba(75,123,255,0.12)'; e.currentTarget.style.borderColor='#4B7BFF44'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='none'; e.currentTarget.style.borderColor='var(--border)'; }}>
-                <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {FILTERS.map(f => (
+            <button key={f.id} onClick={() => setFilter(f.id)}
+              style={{ padding: '7px 12px', borderRadius: 7, border: '1.5px solid', borderColor: filter === f.id ? 'var(--forest)' : 'var(--border)', background: filter === f.id ? 'var(--forest)' : 'var(--bg-surface)', color: filter === f.id ? '#fff' : 'var(--text-secondary)', cursor: 'pointer', fontSize: 12, fontWeight: filter === f.id ? 700 : 500, fontFamily: "'Plus Jakarta Sans', sans-serif", transition: 'all 0.12s' }}>
+              {f.label} {f.count > 0 && <span style={{ opacity: 0.7, fontSize: 11 }}>({f.count})</span>}
+            </button>
+          ))}
+        </div>
+      </div>
 
-                  {/* Status dot + number */}
-                  <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:90 }}>
-                    <div style={{ width:8, height:8, borderRadius:'50%', background:st.dot, flexShrink:0 }} />
-                    <span style={{ fontSize:11, fontWeight:700, color:st.color, fontFamily:'monospace', letterSpacing:'0.5px' }}>{q.number}</span>
-                  </div>
-
+      {/* Quotes list */}
+      <div style={{ flex: 1, padding: 'clamp(14px,3vw,20px) clamp(14px,4vw,24px)' }}>
+        {loading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} style={{ height: 72, borderRadius: 10, background: 'var(--bg-surface)', border: '1px solid var(--border)', animation: 'pulse 1.8s ease infinite' }} />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div style={{ padding: 60, textAlign: 'center', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 14 }}>
+            <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>
+              {search ? 'No quotes match your search' : 'No quotes yet'}
+            </p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>
+              {search ? 'Try a different search term.' : 'Create your first quote to get started.'}
+            </p>
+            {!search && (
+              <button onClick={() => navigate('/quotes/new')}
+                style={{ padding: '10px 20px', background: 'var(--forest)', color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                Create first quote
+              </button>
+            )}
+          </div>
+        ) : (
+          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+            {/* Table header */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 100px 90px 110px 120px', padding: '10px 20px', background: 'var(--bg-raised)', borderBottom: '1px solid var(--border)' }}>
+              {['CLIENT', 'QUOTE #', 'STATUS', 'DATE', 'VALUE', 'ACTIONS'].map(col => (
+                <span key={col} style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{col}</span>
+              ))}
+            </div>
+            {filtered.map((q, i) => {
+              const cfg = STATUS_CONFIG[q.status] || STATUS_CONFIG.draft;
+              const isConverting = converting === q.id;
+              return (
+                <div key={q.id}
+                  onClick={() => navigate(`/quotes/${q.id}`)}
+                  style={{ display: 'grid', gridTemplateColumns: '1fr 110px 100px 90px 110px 120px', padding: '14px 20px', borderBottom: i < filtered.length - 1 ? '1px solid var(--border-subtle)' : 'none', cursor: 'pointer', transition: 'background 0.1s', alignItems: 'center' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-raised)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                   {/* Client */}
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                      {q.client_name || q.client_biz || '—'}
-                    </p>
-                    {q.client_biz && q.client_name && (
-                      <p style={{ fontSize:11, color:'var(--text-muted)', marginTop:1 }}>{q.client_biz}</p>
-                    )}
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{q.client_name || q.client_biz || 'Unknown client'}</p>
+                    {q.client_biz && q.client_name && <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '1px 0 0' }}>{q.client_biz}</p>}
                   </div>
-
-                  {/* Status badge */}
-                  <span style={{ fontSize:9, fontWeight:700, padding:'3px 8px', borderRadius:20, background:st.bg, color:st.color, flexShrink:0, letterSpacing:'0.4px', textTransform:'uppercase' }}>
-                    {q.status}
-                  </span>
-
-                  {/* Views */}
-                  {q.view_count > 0 && (
-                    <div style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--text-muted)', flexShrink:0 }}>
-                      <Eye size={11} />{q.view_count}
-                    </div>
-                  )}
-
-                  {/* Amount */}
-                  <div style={{ textAlign:'right', flexShrink:0, minWidth:80 }}>
-                    <p style={{ fontSize:14, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.02em' }}>{fmt(q.setup_total)}</p>
-                    {q.monthly_total > 0 && (
-                      <p style={{ fontSize:10, color:'var(--text-muted)' }}>+{fmt(q.monthly_total)}/mo</p>
-                    )}
-                  </div>
-
+                  {/* Quote # */}
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#3DD68C', fontFamily: 'monospace' }}>{q.number || '—'}</span>
+                  {/* Status */}
+                  <StatusBadge status={q.status} />
                   {/* Date */}
-                  <div style={{ textAlign:'right', flexShrink:0, minWidth:60, display:'none' }} className="hidden md:block">
-                    <p style={{ fontSize:11, color:'var(--text-muted)' }}>{fmtDate(q.created_at)}</p>
-                    <p style={{ fontSize:10, color:'var(--text-muted)', opacity:0.6 }}>{daysAgo(q.created_at)}</p>
-                  </div>
-
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{daysAgo(q.created_at)}</span>
+                  {/* Value */}
+                  <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>{fmt(q.setup_total)}</span>
                   {/* Actions */}
-                  <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-                    {!isAccepted && q.status !== 'cancelled' && q.status !== 'invoiced' && (
-                      <button onClick={e => handleConvert(q.id, e)}
-                        disabled={!!converting}
-                        style={{ display:'flex', alignItems:'center', gap:5, fontSize:10, fontWeight:700, padding:'5px 10px', borderRadius:7, background: converting===q.id ? '#94A3B8' : 'linear-gradient(135deg,#2563EB,#7C3AED)', color:'#fff', border:'none', cursor: converting ? 'not-allowed' : 'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif", opacity: converting && converting!==q.id ? 0.5 : 1, transition:'all 0.15s' }}>
-                        {converting === q.id ? 'Creating…' : <><ArrowRight size={10} /> Invoice</>}
+                  <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
+                    {q.status === 'accepted' && (
+                      <button onClick={(e) => handleConvert(q.id, e)}
+                        disabled={isConverting}
+                        style={{ padding: '5px 10px', borderRadius: 7, border: 'none', background: '#3DD68C', color: '#fff', cursor: isConverting ? 'not-allowed' : 'pointer', fontSize: 11, fontWeight: 700, fontFamily: "'Plus Jakarta Sans', sans-serif", opacity: isConverting ? 0.6 : 1 }}>
+                        {isConverting ? '…' : '→ Invoice'}
                       </button>
                     )}
-                    <button onClick={e => handleDelete(q.id, e)}
-                      style={{ width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:7, border:'0.5px solid var(--border)', background:'transparent', cursor:'pointer', color:'var(--text-muted)', transition:'all 0.15s' }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor='#ef4444'; e.currentTarget.style.color='#ef4444'; e.currentTarget.style.background='rgba(239,68,68,0.06)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor='var(--border)'; e.currentTarget.style.color='var(--text-muted)'; e.currentTarget.style.background='transparent'; }}>
-                      <Trash2 size={12} />
+                    <button onClick={(e) => handleDelete(q.id, e)}
+                      style={{ padding: '5px 8px', borderRadius: 7, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      Del
                     </button>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
