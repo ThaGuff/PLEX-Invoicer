@@ -267,7 +267,7 @@ export default function Contacts() {
       )}
 
       {/* ── Table ── */}
-      <div style={{ margin: '0 28px', borderRadius: 16, border: '1px solid var(--border)', overflow: 'hidden', background: 'var(--bg-surface)' }}>
+      <div style={{ margin: 'clamp(0px,2vw,28px) clamp(14px,4vw,28px)', borderRadius: 16, border: '1px solid var(--border)', overflow: 'hidden', background: 'var(--bg-surface)' }}>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
@@ -327,7 +327,7 @@ export default function Contacts() {
                           {(c.name || '?').charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p style={{ margin: 0, fontWeight: 700, color: 'var(--text-primary)', fontSize: 13 }}>{c.name}</p>
+                          <p style={{ margin: 0, fontWeight: 700, color: 'var(--text-primary)', fontSize: 13, minWidth: 120 }}>{c.name}</p>
                           <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>{c.business || c.email || '—'}</p>
                         </div>
                       </div>
