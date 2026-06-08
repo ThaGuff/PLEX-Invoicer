@@ -5,7 +5,6 @@
  */
 import React, { useState, useCallback, useEffect } from 'react';
 import { useAccount } from '../context/AccountContext';
-import PageHeader from '../components/PageHeader';
 import {
   User, Palette, Bell, FileText, Mail, Shield, CreditCard,
   Zap, Globe, Clock, ChevronRight, Check, Sun, Moon,
@@ -27,7 +26,7 @@ const THEMES = [
         <div style={{ padding: '8px 10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
             <div>
-              <div style={{ height: 4, width: 40, background: '#1e293b', borderRadius: 2, marginBottom: 2 }} />
+              <div style={{ height: 4, width: 40, background: '#0D1A0D', borderRadius: 2, marginBottom: 2 }} />
               <div style={{ height: 3, width: 30, background: '#94a3b8', borderRadius: 2 }} />
             </div>
             <div style={{ textAlign: 'right' }}>
@@ -37,7 +36,7 @@ const THEMES = [
           </div>
           {[1,2,3].map(i => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', borderBottom: '0.5px solid #f1f5f9' }}>
-              <div style={{ height: 3, width: 50, background: i===1?'#1e293b':'#94a3b8', borderRadius: 2 }} />
+              <div style={{ height: 3, width: 50, background: i===1?'#0D1A0D':'#94a3b8', borderRadius: 2 }} />
               <div style={{ height: 3, width: 15, background: accent, borderRadius: 2 }} />
             </div>
           ))}
@@ -66,11 +65,11 @@ const THEMES = [
         <div style={{ padding: '8px 10px' }}>
           <div style={{ background: '#fff', borderRadius: 4, padding: '6px 8px', marginBottom: 6, border: '1px solid #e2e8f0' }}>
             <div style={{ height: 3, width: 30, background: '#94a3b8', borderRadius: 2, marginBottom: 4 }} />
-            <div style={{ height: 4, width: 45, background: '#1e293b', borderRadius: 2 }} />
+            <div style={{ height: 4, width: 45, background: '#0D1A0D', borderRadius: 2 }} />
           </div>
           {[1,2,3].map(i => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3, background: '#fff', borderRadius: 3, padding: '3px 6px', border: '1px solid #f1f5f9' }}>
-              <div style={{ height: 3, width: 40, background: i===1?'#1e293b':'#94a3b8', borderRadius: 2 }} />
+              <div style={{ height: 3, width: 40, background: i===1?'#0D1A0D':'#94a3b8', borderRadius: 2 }} />
               <div style={{ height: 3, width: 15, background: accent, borderRadius: 2 }} />
             </div>
           ))}
@@ -88,7 +87,7 @@ const THEMES = [
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
             <div style={{ width: 4, height: 20, background: accent, borderRadius: 2, marginRight: 6 }} />
             <div style={{ flex: 1 }}>
-              <div style={{ height: 5, width: 35, background: '#1e293b', borderRadius: 2, marginBottom: 2 }} />
+              <div style={{ height: 5, width: 35, background: '#0D1A0D', borderRadius: 2, marginBottom: 2 }} />
               <div style={{ height: 3, width: 25, background: '#94a3b8', borderRadius: 2 }} />
             </div>
             <div style={{ textAlign: 'right' }}>
@@ -98,7 +97,7 @@ const THEMES = [
           <div style={{ borderTop: '0.5px solid #e2e8f0', paddingTop: 8 }}>
             {[1,2,3].map(i => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                <div style={{ height: 3, width: 50, background: i===1?'#1e293b':'#94a3b8', borderRadius: 2 }} />
+                <div style={{ height: 3, width: 50, background: i===1?'#0D1A0D':'#94a3b8', borderRadius: 2 }} />
                 <div style={{ height: 3, width: 15, background: i===1?accent:'#94a3b8', borderRadius: 2 }} />
               </div>
             ))}
@@ -129,11 +128,11 @@ const THEMES = [
           <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
             <div style={{ flex: 1, padding: '4px 6px', background: accent + '15', borderRadius: 3, border: '1px solid ' + accent + '30' }}>
               <div style={{ height: 3, width: '80%', background: '#94a3b8', borderRadius: 2, marginBottom: 2 }} />
-              <div style={{ height: 4, width: '60%', background: '#1e293b', borderRadius: 2 }} />
+              <div style={{ height: 4, width: '60%', background: '#0D1A0D', borderRadius: 2 }} />
             </div>
             <div style={{ flex: 1, padding: '4px 6px', background: '#f8fafc', borderRadius: 3, border: '1px solid #e2e8f0' }}>
               <div style={{ height: 3, width: '80%', background: '#94a3b8', borderRadius: 2, marginBottom: 2 }} />
-              <div style={{ height: 4, width: '60%', background: '#1e293b', borderRadius: 2 }} />
+              <div style={{ height: 4, width: '60%', background: '#0D1A0D', borderRadius: 2 }} />
             </div>
           </div>
           {[1,2,3].map(i => (
@@ -163,7 +162,7 @@ const SECTIONS = [
 
 export default function SettingsPage() {
   const { account, updateAccount, activeId } = useAccount();
-  const accent = account?.primary_color || '#2563EB';
+  const accent = '#3DD68C';
   const token = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
   const h = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -177,7 +176,7 @@ export default function SettingsPage() {
     website: account?.website || '',
     address: account?.business_address || '',
     tagline: account?.company_tagline || '',
-    primary_color: account?.primary_color || '#2563EB',
+    primary_color: account?.primary_color || '#3DD68C',
     invoice_theme: account?.default_template || 'classic',
     notif_invoice_viewed: account?.notif_invoice_viewed !== 0,
     notif_invoice_paid: account?.notif_invoice_paid !== 0,
@@ -257,7 +256,7 @@ export default function SettingsPage() {
     setSaving(false);
   };
 
-  const COLORS = ['#2563EB','#0D9488','#7C3AED','#D97706','#DC2626','#059669','#0891B2','#DB2777','#EA580C','#1e293b'];
+  const COLORS = ['#3DD68C','#3DD68C','#3DD68C','#64748B','#DC2626','#3DD68C','#3DD68C','#3DD68C','#64748B','#0D1A0D'];
 
   return (
     <div style={{ display: 'flex', height: '100%', fontFamily: "'Plus Jakarta Sans', sans-serif", minHeight: 'calc(100vh - 64px)' }}>
@@ -283,7 +282,7 @@ export default function SettingsPage() {
             </h2>
           </div>
           <button onClick={handleSave} disabled={saving}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 10, border: 'none', background: saved ? '#059669' : accent, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', transition: 'background 0.2s' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 10, border: 'none', background: saved ? '#3DD68C' : accent, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', transition: 'background 0.2s' }}>
             {saving ? <RefreshCw size={13} style={{ animation: 'spin 0.8s linear infinite' }} /> : saved ? <Check size={13} /> : <Save size={13} />}
             {saving ? 'Saving…' : saved ? 'Saved!' : 'Save Changes'}
           </button>
@@ -493,14 +492,14 @@ export default function SettingsPage() {
                   <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Password</p>
                   <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>Signed in via Google OAuth — password managed by Google</p>
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8, background: '#05966915', color: '#059669' }}>Secure ✓</span>
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8, background: '#3DD68C15', color: '#3DD68C' }}>Secure ✓</span>
               </div>
               <div style={{ padding: '14px 18px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
                 <div>
                   <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Data Encryption</p>
                   <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>All data encrypted in transit (TLS) and at rest</p>
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8, background: '#05966915', color: '#059669' }}>Active ✓</span>
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8, background: '#3DD68C15', color: '#3DD68C' }}>Active ✓</span>
               </div>
             </Section>
             <Section title="Data & Privacy">
@@ -587,7 +586,7 @@ function ToggleField({ label, desc, checked, onChange, disabled }) {
         {desc && <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>{desc}</p>}
       </div>
       <button onClick={() => !disabled && onChange(!checked)} disabled={disabled}
-        style={{ width: 44, height: 24, borderRadius: 12, background: checked ? '#2563EB' : '#CBD5E1', border: 'none', cursor: disabled ? 'default' : 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0, opacity: disabled ? 0.5 : 1 }}>
+        style={{ width: 44, height: 24, borderRadius: 12, background: checked ? '#3DD68C' : '#CBD5E1', border: 'none', cursor: disabled ? 'default' : 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0, opacity: disabled ? 0.5 : 1 }}>
         <div style={{ position: 'absolute', top: 3, left: checked ? 23 : 3, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
       </button>
     </div>
