@@ -13,8 +13,8 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
         style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 12px', borderRadius:10, border:'1px solid var(--border)', background:'var(--bg-raised)', cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif", transition:'all 0.15s' }}
         onMouseEnter={e => e.currentTarget.style.borderColor='var(--blue)'}
         onMouseLeave={e => e.currentTarget.style.borderColor='var(--border)'}>
-        <div style={{ width:22, height:22, borderRadius:6, background:account?.primary_color||'linear-gradient(135deg,#3B6FE8,#6B3FD8)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:11, fontWeight:800, flexShrink:0 }}>
-          {(account?.logo_initial||account?.name?.[0]||'A').toUpperCase()}
+        <div style={{ width:22, height:22, borderRadius:6, overflow:'hidden', flexShrink:0, background:'#0D1A0D' }>
+          <img src='/logo-revanew.png' alt='R' style={width:22,height:22,objectFit:'cover'}/>
         </div>
         <span style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', maxWidth:110, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{account?.name}</span>
         <ChevronDown size={13} style={{ color:'var(--text-muted)', flexShrink:0 }} />
@@ -44,15 +44,15 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
                   style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', background:'transparent', border:'none', cursor:'pointer', textAlign:'left', transition:'background 0.12s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
                   onMouseEnter={e => e.currentTarget.style.background='var(--bg-page)'}
                   onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                  <div style={{ width:28, height:28, borderRadius:8, background:acc.primary_color||'linear-gradient(135deg,#3B6FE8,#6B3FD8)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:12, fontWeight:800, flexShrink:0 }}>
-                    {(acc.logo_initial||acc.name?.[0]||'A').toUpperCase()}
+                  <div style={{ width:28, height:28, borderRadius:8, overflow:'hidden', flexShrink:0, background:'#0D1A0D' }>
+                    <img src='/logo-revanew.png' alt='R' style={width:28,height:28,objectFit:'cover'}/>
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <p style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{acc.name}</p>
                     <p style={{ fontSize:11, color:'var(--text-muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginTop:1 }}>{acc.website||acc.email||''}</p>
                   </div>
                   {acc.id === account?.id && (
-                    <div style={{ width:18, height:18, borderRadius:'50%', background:'linear-gradient(135deg,#00C9B1,#3B6FE8)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <div style={{ width:18, height:18, borderRadius:'50%', background:'#0D1A0D', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                       <Check size={10} color="#fff" />
                     </div>
                   )}
