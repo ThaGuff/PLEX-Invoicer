@@ -12,7 +12,7 @@ function getGreeting() {
   return { word: 'Working late', emoji: '🌙' };
 }
 
-export default function DashboardHeader({ account, accent = '#2563EB' }) {
+export default function DashboardHeader({ account, accent = '#3DD68C' }) {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -39,17 +39,17 @@ export default function DashboardHeader({ account, accent = '#2563EB' }) {
     const b = parseInt(hex.slice(5,7),16);
     return `${r},${g},${b}`;
   };
-  const rgb = hexToRgb(accent.startsWith('#') ? accent : '#2563EB');
+  const rgb = hexToRgb(accent.startsWith('#') ? accent : '#3DD68C');
 
   return (
     <div style={{
       position: 'relative',
       borderRadius: 18,
       overflow: 'hidden',
-      background: `linear-gradient(135deg, rgba(${rgb},0.12) 0%, rgba(${rgb},0.04) 50%, rgba(${rgb},0.08) 100%)`,
+      background: 'var(--bg-surface)',
       border: `1px solid rgba(${rgb},0.2)`,
       backdropFilter: 'blur(12px)',
-      padding: '20px 24px',
+      padding: '20px clamp(12px,4vw,24px)',
     }}>
 
       {/* Subtle animated accent orb */}
