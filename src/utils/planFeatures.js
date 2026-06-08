@@ -90,9 +90,9 @@ export const PLAN_LIMITS = {
 export const PLAN_NAMES = { starter: 'Starter', pro: 'Pro', agency: 'Agency' };
 export const PLAN_PRICES = { starter: 19, pro: 49, agency: 99 };
 export const PLAN_COLORS = { 
-  starter: '#00E5C8', 
-  pro:     '#4B7BFF', 
-  agency:  '#7B4FE8',
+  starter: '#3DD68C', 
+  pro:     '#0D1A0D', 
+  agency:  '#3DD68C',
 };
 
 export function getPlanLimits(plan = 'starter') {
