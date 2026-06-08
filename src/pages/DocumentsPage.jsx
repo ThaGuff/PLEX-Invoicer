@@ -9,11 +9,11 @@ import { Upload, FileText, File, Trash2, Download, Search, Plus,
          Link, Tag, FolderOpen, Zap } from 'lucide-react';
 
 const DOC_TYPES = {
-  contract:   { icon: Shield,   color:'#7C3AED', label:'Contract' },
-  invoice:    { icon: FileText, color:'#2563EB', label:'Invoice' },
-  quote:      { icon: File,     color:'#0D9488', label:'Quote' },
+  contract:   { icon: Shield,   color:'#3DD68C', label:'Contract' },
+  invoice:    { icon: FileText, color:'#3DD68C', label:'Invoice' },
+  quote:      { icon: File,     color:'#3DD68C', label:'Quote' },
   compliance: { icon: Shield,   color:'#DC2626', label:'Compliance' },
-  photo:      { icon: Eye,      color:'#D97706', label:'Photo' },
+  photo:      { icon: Eye,      color:'#64748B', label:'Photo' },
   other:      { icon: File,     color:'#64748B', label:'File' },
 };
 
@@ -27,7 +27,7 @@ function fmtSize(b) {
 
 export default function DocumentsPage() {
   const { account } = useAccount();
-  const accent = account?.primary_color || '#2563EB';
+  const accent = '#3DD68C';
   const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
   const h = { Authorization: `Bearer ${token}` };
 
@@ -63,7 +63,8 @@ export default function DocumentsPage() {
         fd.append('file', file);
         fd.append('account_id', account.id);
         fd.append('doc_type', 'other');
-        await fetch('/api/documents/upload', { method:'POST', headers:{ Authorization:`Bearer ${token}` }, body: fd });
+        const uploadRes = await fetch('/api/documents', { method:'POST', headers:{ Authorization:`Bearer ${token}` }, body: fd });
+        if (!uploadRes.ok) { const err = await uploadRes.json().catch(()=>({error:'Upload failed'})); throw new Error(err.error || 'Upload failed'); }
       } catch(e) {}
     }
     await load();
@@ -113,31 +114,28 @@ export default function DocumentsPage() {
   return (
     <div style={{ padding:'0 0 32px', fontFamily:"'Plus Jakarta Sans', sans-serif" }}>
       {/* Header */}
-      <div style={{ padding:'20px 28px 22px', background:'linear-gradient(135deg, #2563EB 0%, #0891B2 100%)', position:'relative', overflow:'hidden' }}>
+      <div style={{ padding:'clamp(16px,3vw,20px) clamp(14px,4vw,28px)', background:'var(--bg-page)', borderBottom:'1px solid var(--border)' }}>
         <div style={{ position:'absolute', inset:0, opacity:0.06, backgroundImage:'radial-gradient(circle at 30% 50%, #fff 1px, transparent 1px)', backgroundSize:'40px 40px', pointerEvents:'none' }}/>
-        <div style={{ position:'relative', zIndex:1, display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
+        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
           <div>
-            <span style={{ fontSize:10, fontWeight:800, letterSpacing:'0.12em', color:'#7DD3FC', textTransform:'uppercase' }}>📂 KNOWLEDGE VAULT</span>
-            <h1 style={{ fontSize:'clamp(18px,3vw,26px)', fontWeight:900, color:'#fff', margin:'4px 0', letterSpacing:'-0.04em' }}>Documents</h1>
-            <p style={{ fontSize:13, color:'rgba(255,255,255,0.7)', margin:0 }}>AI-powered document intelligence · Smart search · Compliance tracking</p>
             <div style={{ display:'flex', gap:12, marginTop:12 }}>
               {[{l:'Documents',v:docs.length},{l:'Contracts',v:docs.filter(d=>d.doc_type==='contract').length},{l:'Alerts',v:alerts.length}].map(({l,v})=>(
-                <div key={l} style={{ padding:'5px 12px', borderRadius:10, background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.15)' }}>
-                  <span style={{ fontSize:15, fontWeight:800, color:'#fff' }}>{v}</span>
-                  <span style={{ fontSize:11, color:'rgba(255,255,255,0.6)', marginLeft:5 }}>{l}</span>
+                <div key={l} style={{ padding:'5px 12px', borderRadius:10, background:'var(--bg-surface)', border:'1px solid var(--border)' }}>
+                  <span style={{ fontSize:15, fontWeight:800, color:'var(--text-primary)' }}>{v}</span>
+                  <span style={{ fontSize:11, color:'var(--text-muted)', marginLeft:5 }}>{l}</span>
                 </div>
               ))}
             </div>
           </div>
           <button onClick={() => fileRef.current?.click()} disabled={uploading}
-            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', background:'rgba(255,255,255,0.95)', color:'#2563EB', cursor:'pointer', fontSize:13, fontWeight:800, fontFamily:'inherit' }}>
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', background:'#0D1A0D', color:'#C8FF00', cursor:'pointer', fontSize:13, fontWeight:800, fontFamily:'inherit' }}>
             <Upload size={14}/> {uploading ? 'Uploading…' : 'Upload File'}
           </button>
           <input ref={fileRef} type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png,.txt" style={{ display:'none' }} onChange={e => handleUpload(e.target.files)}/>
         </div>
       </div>
 
-      <div style={{ padding:'20px 28px', display:'flex', flexDirection:'column', gap:20 }}>
+      <div style={{ padding:'20px clamp(14px,4vw,28px)', display:'flex', flexDirection:'column', gap:20 }}>
         {/* AI Knowledge Search */}
         <div style={{ padding:20, borderRadius:14, border:`1.5px solid ${accent}30`, background:`${accent}06` }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
@@ -177,9 +175,9 @@ export default function DocumentsPage() {
                 <span style={{ fontSize:18 }}>{a.icon}</span>
                 <div style={{ flex:1 }}>
                   <p style={{ margin:0, fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>{a.title}</p>
-                  <p style={{ margin:0, fontSize:11, color:a.severity==='high'?'#DC2626':'#D97706' }}>{a.desc}</p>
+                  <p style={{ margin:0, fontSize:11, color:a.severity==='high'?'#DC2626':'#64748B' }}>{a.desc}</p>
                 </div>
-                <button style={{ padding:'5px 10px', borderRadius:7, border:'none', background:a.severity==='high'?'#DC2626':'#D97706', color:'#fff', cursor:'pointer', fontSize:11, fontWeight:700, fontFamily:'inherit' }}>Act Now</button>
+                <button style={{ padding:'5px 10px', borderRadius:7, border:'none', background:a.severity==='high'?'#DC2626':'#64748B', color:'#fff', cursor:'pointer', fontSize:11, fontWeight:700, fontFamily:'inherit' }}>Act Now</button>
               </div>
             ))}
           </div>
@@ -229,7 +227,7 @@ export default function DocumentsPage() {
                 <div key={doc.id} style={{ padding:'14px 16px', borderRadius:12, border:'1px solid var(--border)', background:'var(--bg-surface)', cursor:'pointer', transition:'all 0.15s' }}
                   onMouseEnter={e => e.currentTarget.style.boxShadow=`0 4px 20px ${accent}15`}
                   onMouseLeave={e => e.currentTarget.style.boxShadow='none'}
-                  onClick={() => setSelected(doc)}>
+                  onClick={() => setSelected(doc === selected ? null : doc)}>
                   <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
                     <div style={{ width:36, height:36, borderRadius:10, background:`${cfg.color}15`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                       <Icon size={18} style={{ color:cfg.color }}/>
@@ -244,10 +242,24 @@ export default function DocumentsPage() {
                     {doc.linked_to && <span style={{ fontSize:10, padding:'2px 7px', borderRadius:5, background:`${accent}10`, color:accent, fontWeight:600 }}>🔗 Linked</span>}
                   </div>
                   <div style={{ display:'flex', gap:6, marginTop:10 }} onClick={e => e.stopPropagation()}>
-                    <a href={`/api/documents/${doc.id}/download?account_id=${account.id}`}
-                      style={{ flex:1, padding:'5px 0', borderRadius:7, border:'1px solid var(--border)', background:'transparent', color:'var(--text-muted)', cursor:'pointer', fontSize:11, fontWeight:600, textDecoration:'none', textAlign:'center', display:'block' }}>
+                    <button onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          const r = await fetch(`/api/documents/${doc.id}/download`, { headers: h });
+                          if (!r.ok) { alert('Download failed'); return; }
+                          const data = await r.json();
+                          if (data.url) {
+                            // Data URL - create download link
+                            const a = document.createElement('a');
+                            a.href = data.url;
+                            a.download = data.name || doc.name || 'document';
+                            a.click();
+                          }
+                        } catch(e) { alert('Download failed: ' + e.message); }
+                      }}
+                      style={{ flex:1, padding:'5px 0', borderRadius:7, border:'1px solid var(--border)', background:'transparent', color:'var(--text-muted)', cursor:'pointer', fontSize:11, fontWeight:600, fontFamily:"'Plus Jakarta Sans', sans-serif", textAlign:'center', display:'block' }}>
                       ↓ Download
-                    </a>
+                    </button>
                     <button onClick={() => handleDelete(doc.id)}
                       style={{ padding:'5px 8px', borderRadius:7, border:'1px solid #DC262620', background:'transparent', color:'#DC2626', cursor:'pointer', fontSize:11 }}>🗑</button>
                   </div>
@@ -257,6 +269,54 @@ export default function DocumentsPage() {
           </div>
         )}
       </div>
+
+      {/* Document Preview Modal */}
+      {selected && (
+        <div style={{ position:'fixed', inset:0, zIndex:500, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}
+          onClick={() => setSelected(null)}>
+          <div style={{ background:'var(--bg-surface)', borderRadius:16, width:'100%', maxWidth:640, maxHeight:'85dvh', overflow:'hidden', display:'flex', flexDirection:'column' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ padding:'16px 20px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', gap:12 }}>
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={{ margin:0, fontSize:15, fontWeight:800, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{selected.name}</p>
+                <p style={{ margin:0, fontSize:11, color:'var(--text-muted)' }}>{fmtDate(selected.created_at)} · {selected.doc_type}</p>
+              </div>
+              <button onClick={() => setSelected(null)} style={{ width:32, height:32, borderRadius:8, border:'1px solid var(--border)', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, color:'var(--text-muted)' }}>✕</button>
+            </div>
+            <div style={{ flex:1, overflow:'auto', padding:20 }}>
+              {selected.url && selected.url.startsWith('data:image') ? (
+                <img src={selected.url} alt={selected.name} style={{ maxWidth:'100%', borderRadius:8 }} />
+              ) : selected.url && selected.url.startsWith('data:application/pdf') ? (
+                <iframe src={selected.url} style={{ width:'100%', height:500, border:'none', borderRadius:8 }} title={selected.name} />
+              ) : selected.url ? (
+                <div style={{ textAlign:'center', padding:40 }}>
+                  <FileText size={48} style={{ color:'var(--text-muted)', margin:'0 auto 16px', display:'block', opacity:0.4 }} />
+                  <p style={{ fontSize:14, color:'var(--text-primary)', fontWeight:600, marginBottom:12 }}>Preview not available for this file type</p>
+                  <p style={{ fontSize:12, color:'var(--text-muted)', margin:0 }}>{selected.name}</p>
+                </div>
+              ) : (
+                <div style={{ textAlign:'center', padding:40 }}>
+                  <p style={{ fontSize:13, color:'var(--text-muted)' }}>File content unavailable</p>
+                </div>
+              )}
+            </div>
+            <div style={{ padding:'12px 20px', borderTop:'1px solid var(--border)', display:'flex', gap:8 }}>
+              <button onClick={async () => {
+                try {
+                  const r = await fetch(`/api/documents/${selected.id}/download`, { headers: h });
+                  const data = await r.json();
+                  if (data.url) { const a = document.createElement('a'); a.href = data.url; a.download = data.name || selected.name; a.click(); }
+                } catch(e) { alert('Download failed'); }
+              }} style={{ flex:1, padding:'10px', borderRadius:9, border:'none', background:'#0D1A0D', color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, fontFamily:"'Plus Jakarta Sans', sans-serif" }}>
+                ↓ Download
+              </button>
+              <button onClick={() => { handleDelete(selected.id); setSelected(null); }} style={{ padding:'10px 16px', borderRadius:9, border:'1px solid #DC262630', background:'transparent', color:'#DC2626', cursor:'pointer', fontSize:13, fontWeight:600, fontFamily:"'Plus Jakarta Sans', sans-serif" }}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
