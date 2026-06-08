@@ -333,7 +333,7 @@ function Nav() {
               const locked = isLocked(l.to);
               return (
                 <button key={l.to}
-                  onClick={() => { setShowMobileMore(false); locked ? handleLockedClick(l) : navigate(l.to); }}
+                  onClick={() => { setShowMobileMore(false); locked ? handleLockedClick(l) : l.to === '/__business' ? window.dispatchEvent(new CustomEvent('revanew:settings')) : navigate(l.to); }}
                   style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: '12px 4px', borderRadius: 10, border: 'none', background: active ? 'rgba(200,255,0,0.08)' : 'transparent', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", opacity: locked ? 0.6 : 1 }}>
                   <div style={{ width: 36, height: 36, borderRadius: 10, background: active ? 'rgba(200,255,0,0.15)' : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <NavIcon size={16} route={l.to} color={active ? '#C8FF00' : 'rgba(255,255,255,0.65)'} />
@@ -342,14 +342,7 @@ function Nav() {
                 </button>
               );
             })}
-            {/* Settings */}
-            <button onClick={() => { setShowMobileMore(false); window.dispatchEvent(new CustomEvent('revanew:settings')); }}
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: '12px 4px', borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer' }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.65)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-              </div>
-              <span style={{ fontSize: 10.5, fontWeight: 500, color: 'rgba(255,255,255,0.65)' }}>Business</span>
-            </button>
+
             {/* Sign out */}
             <button onClick={() => { setShowMobileMore(false); signOut(); }}
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: '12px 4px', borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer' }}>
