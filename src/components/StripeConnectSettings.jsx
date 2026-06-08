@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { api } from '../utils/api';
 
-export default function StripeConnectSettings({ accountId, accent = '#13B5EA' }) {
+export default function StripeConnectSettings({ accountId, accent = '#3DD68C' }) {
   const [status, setStatus]   = useState(null);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState('');
@@ -89,10 +89,10 @@ export default function StripeConnectSettings({ accountId, accent = '#13B5EA' })
       )}
 
       {error === 'STRIPE_CLIENT_ID_MISSING' && (
-        <div className="border border-amber-200 rounded-xl overflow-hidden">
-          <div className="flex items-center gap-2 px-4 py-3 bg-amber-50">
-            <AlertCircle size={14} className="text-amber-500 shrink-0" />
-            <p className="text-sm font-semibold text-amber-800">One setup step needed</p>
+        <div className="border border-emerald-200 rounded-xl overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-3 bg-emerald-50">
+            <AlertCircle size={14} className="text-emerald-500 shrink-0" />
+            <p className="text-sm font-semibold text-emerald-800">One setup step needed</p>
           </div>
           <div className="px-4 py-4 space-y-3 text-sm text-ink">
             <p>To enable Stripe Connect, add <code className="bg-gray-100 px-1.5 py-0.5 rounded font-mono text-xs">STRIPE_CLIENT_ID</code> to Railway:</p>
@@ -105,7 +105,7 @@ export default function StripeConnectSettings({ accountId, accent = '#13B5EA' })
                 ['5', 'Add: STRIPE_CLIENT_ID = ca_xxxx...', null, null],
               ].map(([n, text, link, href]) => (
                 <li key={n} className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center shrink-0">{n}</span>
+                  <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center shrink-0">{n}</span>
                   <span>{text}{link && <> → <a href={href} target="_blank" rel="noreferrer" className="underline" style={{color:accent}}>{link}</a></>}</span>
                 </li>
               ))}
@@ -124,7 +124,7 @@ export default function StripeConnectSettings({ accountId, accent = '#13B5EA' })
         <div className="border rounded-xl overflow-hidden" style={{ borderColor: 'var(--border)' }}>
           {/* Green header */}
           <div className="flex items-center gap-3 px-4 py-3" style={{ background: '#f0fdf4', borderBottom: '0.5px solid #bbf7d0' }}>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#22c55e20' }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#3DD68C20' }}>
               <CheckCircle size={16} className="text-green-600" />
             </div>
             <div className="flex-1">
@@ -172,15 +172,15 @@ export default function StripeConnectSettings({ accountId, accent = '#13B5EA' })
       {isPending && (
         <div className="border rounded-xl p-4" style={{ borderColor: '#fbbf24', background: '#fffbeb' }}>
           <div className="flex items-center gap-3 mb-3">
-            <AlertCircle size={16} className="text-amber-500 shrink-0" />
+            <AlertCircle size={16} className="text-emerald-500 shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-amber-800">Setup incomplete</p>
-              <p className="text-xs text-amber-700">Your Stripe account is connected but not yet approved for charges. Complete your Stripe onboarding.</p>
+              <p className="text-sm font-semibold text-emerald-800">Setup incomplete</p>
+              <p className="text-xs text-emerald-700">Your Stripe account is connected but not yet approved for charges. Complete your Stripe onboarding.</p>
             </div>
           </div>
           <a href={status.dashboard_url} target="_blank" rel="noreferrer"
             className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg text-white"
-            style={{ background: '#f59e0b' }}>
+            style={{ background: '#64748B' }}>
             Complete Stripe onboarding <ExternalLink size={11} />
           </a>
         </div>
