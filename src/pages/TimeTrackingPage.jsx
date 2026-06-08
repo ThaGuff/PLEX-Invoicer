@@ -23,7 +23,6 @@ function StatCard({ label, value, sub, icon: Icon, color }) {
     <div style={{ padding:'14px 16px', borderRadius:12, background:'var(--bg-surface)', border:'1px solid var(--border)' }}>
       <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:6, color }}>
         {Icon && <Icon size={14}/>}
-        <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em' }}>{label}</span>
       </div>
       <p style={{ fontSize:20, fontWeight:800, color:'var(--text-primary)', margin:0 }}>{value}</p>
       {sub && <p style={{ fontSize:11, color:'var(--text-muted)', margin:'3px 0 0' }}>{sub}</p>}
@@ -170,9 +169,6 @@ export default function TimeTrackingPage() {
         <div style={{ position:'absolute', inset:0, opacity:0.06, backgroundImage:'radial-gradient(circle at 25% 50%, #fff 1px, transparent 1px)', backgroundSize:'40px 40px', pointerEvents:'none' }}/>
         <div style={{ position:'relative', zIndex:1, display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
           <div>
-            <span style={{ fontSize:10, fontWeight:800, letterSpacing:'0.12em', color:'#6EE7B7', textTransform:'uppercase' }}>⏱️ WORKFORCE INTELLIGENCE</span>
-            <h1 style={{ fontSize:'clamp(18px, 3vw, 26px)', fontWeight:900, color:'#fff', margin:'4px 0', letterSpacing:'-0.04em' }}>Time Tracking</h1>
-            <p style={{ fontSize:13, color:'rgba(255,255,255,0.7)', margin:0 }}>Labor cost tracking · Profitability analysis · Payroll readiness</p>
             {summary && (
               <div style={{ display:'flex', gap:12, marginTop:12, flexWrap:'wrap' }}>
                 {[
