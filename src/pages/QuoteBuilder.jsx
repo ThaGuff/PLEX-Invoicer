@@ -144,7 +144,7 @@ function CustomSection({ section, services, selected, included, prices, billingM
   return (
     <div style={{ background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:14, overflow:"hidden", marginBottom:12 }}>
       <button onClick={() => setOpen(o => !o)} className="section-trigger">
-        <div style={{ width:32, height:32, borderRadius:9, background:'linear-gradient(135deg,var(--blue),var(--purple))', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:'0 3px 10px rgba(59,111,232,0.25)' }}>
+        <div style={{ width:32, height:32, borderRadius:9, background:'linear-gradient(135deg,var(--blue),var(--forest))', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:'0 3px 10px rgba(61,214,140,0.2)' }}>
           <PlusCircle size={14} color="#fff" />
         </div>
         {editingLabel ? (
@@ -373,7 +373,7 @@ function calcWinProb(quote, clientHistory) {
 
 export default function QuoteBuilder() {
   const { account, activeId, addCustomSection, updateCustomSection, addCustomItem, refreshAccount } = useAccount();
-  const accent = account?.primary_color || '#13B5EA';
+  const accent = '#3DD68C';
   const navigate = useNavigate();
   const { id: editId } = useParams();
   const isNew = !editId || editId === 'new';
@@ -739,16 +739,10 @@ export default function QuoteBuilder() {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-xl font-bold text-ink">{isNew ? 'New quote' : 'Edit Quote'}</h1>
+          <h1 className="text-xl font-bold text-ink">{isNew ? 'New quote' : 'Edit quote'}</h1>
           <p className="text-sm text-ink-muted mt-0.5">Select services, configure billing, then save.</p>
         </div>
         <div className="flex gap-2 items-center">
-          {!isNew && (
-            <button onClick={() => navigate('/quotes/new')}
-              style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#00E5C8,#4B7BFF)', color:'#fff', cursor:'pointer', fontSize:12, fontWeight:700, fontFamily:"'Plus Jakarta Sans',sans-serif", boxShadow:'0 4px 14px rgba(75,123,255,0.3)' }}>
-              <Plus size={13} /> New Quote
-            </button>
-          )}
           {canUseFeature(account?.plan, 'ai_parse') ? (
             <AIInvoiceParser
               accountId={account?.id}
@@ -766,19 +760,21 @@ export default function QuoteBuilder() {
               className="btn-ghost flex items-center gap-1.5 text-sm opacity-70"
               title="Upgrade to Pro for AI parsing">
               <Bot size={14} /> AI parse
-              <span style={{ fontSize:'8px', fontWeight:700, background:'linear-gradient(135deg,#4B7BFF,#7B4FE8)', color:'#fff', padding:'1px 5px', borderRadius:'8px', marginLeft:'2px' }}>PRO</span>
+              <span style={{ fontSize:'8px', fontWeight:700, background:'linear-gradient(135deg,#0D1A0D,#3DD68C)', color:'#fff', padding:'1px 5px', borderRadius:'8px', marginLeft:'2px' }}>PRO</span>
             </button>
           )}
           {!isNew && (
             <button onClick={handleConvert}
-              className="btn-ghost flex items-center gap-1.5 text-sm">
-              <RefreshCw size={14} /> Convert to invoice
+              style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', background:'#0D1A0D', color:'#C8FF00', border:'1.5px solid #C8FF0040', borderRadius:9, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:"'Plus Jakarta Sans', sans-serif", flexShrink:0, transition:'all 0.15s' }}
+              onMouseEnter={e => { e.currentTarget.style.background='#162216'; e.currentTarget.style.borderColor='#C8FF0060'; }}
+              onMouseLeave={e => { e.currentTarget.style.background='#0D1A0D'; e.currentTarget.style.borderColor='#C8FF0040'; }}>
+              <RefreshCw size={13} /> Convert to invoice
             </button>
           )}
           <button onClick={handleSave}
             disabled={saving || selectedCount === 0}
             className="flex items-center gap-1.5 text-sm font-semibold text-white px-4 py-2 rounded-lg disabled:opacity-40 transition-all"
-            style={{ background: saveState === 'saved' ? '#22c55e' : accent }}>
+            style={{ background: saveState === 'saved' ? '#3DD68C' : accent }}>
             <Save size={14} /> {saveBtnLabel}
           </button>
         </div>
@@ -910,7 +906,7 @@ export default function QuoteBuilder() {
                       <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                       <p className="text-sm font-bold" style={{ color: QUOTE_TEMPLATES[selectedTemplate].color }}>{QUOTE_TEMPLATES[selectedTemplate].name}</p>
                       {account?.default_template === selectedTemplate && (
-                        <span style={{ fontSize:10, fontWeight:700, padding:'1px 6px', borderRadius:8, background:'#22c55e20', color:'#16a34a', border:'1px solid #22c55e40' }}>⭐ Your default</span>
+                        <span style={{ fontSize:10, fontWeight:700, padding:'1px 6px', borderRadius:8, background:'#3DD68C20', color:'#3DD68C', border:'1px solid #3DD68C40' }}>⭐ Your default</span>
                       )}
                     </div>
                       <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -1002,7 +998,7 @@ export default function QuoteBuilder() {
             )}
 
             {templateApplied && (
-              <div className="mt-3 p-3 rounded-lg text-sm font-semibold" style={{ background: 'rgba(34,197,94,0.1)', color: '#16a34a', border: '1px solid rgba(34,197,94,0.2)' }}>
+              <div className="mt-3 p-3 rounded-lg text-sm font-semibold" style={{ background: 'rgba(34,197,94,0.1)', color: '#3DD68C', border: '1px solid rgba(34,197,94,0.2)' }}>
                 ✅ Template loaded! Services added to your catalog below. Customize prices as needed.
               </div>
             )}
@@ -1031,12 +1027,12 @@ export default function QuoteBuilder() {
                 onClick={handleScan}
                 disabled={scanning || !scanUrl?.trim()}
                 className="px-4 py-2 rounded-lg text-white text-sm font-bold transition-all disabled:opacity-50"
-                style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}>
+                style={{ background: '#3DD68C' }}>
                 {scanning ? '⏳ Scanning…' : '🔍 Scan'}
               </button>
             </div>
             {scanResult && (
-              <div className="mt-2 p-2 rounded text-xs" style={{ background: 'rgba(34,197,94,0.08)', color: '#16a34a', border: '1px solid rgba(34,197,94,0.2)' }}>
+              <div className="mt-2 p-2 rounded text-xs" style={{ background: 'rgba(34,197,94,0.08)', color: '#3DD68C', border: '1px solid rgba(34,197,94,0.2)' }}>
                 ✅ {scanResult}
               </div>
             )}
@@ -1316,7 +1312,7 @@ export default function QuoteBuilder() {
               <button onClick={handleSave}
                 disabled={saving || selectedCount === 0}
                 className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-white py-2.5 rounded-lg disabled:opacity-40 transition-all"
-                style={{ background: saveState === 'saved' ? '#22c55e' : accent }}>
+                style={{ background: saveState === 'saved' ? '#3DD68C' : accent }}>
                 <Save size={15} /> {saveBtnLabel}
               </button>
               <button onClick={() => window.print()} disabled={selectedCount === 0}
