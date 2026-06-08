@@ -76,7 +76,7 @@ export default function UserProfileModal({ onClose }) {
         {/* Header */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:36, height:36, borderRadius:10, background:'linear-gradient(135deg,#2563EB,#7C3AED)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:16, fontWeight:800 }}>
+            <div style={{ width:36, height:36, borderRadius:10, background:'#3DD68C', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:16, fontWeight:800 }}>
               {(form.display_name || user?.email || 'U').charAt(0).toUpperCase()}
             </div>
             <div>
@@ -136,7 +136,7 @@ export default function UserProfileModal({ onClose }) {
             )}
 
             <button onClick={save} disabled={saving || saved}
-              style={{ padding:'12px 20px', borderRadius:12, border:'none', background: saved ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'linear-gradient(135deg,#2563EB,#7C3AED)', color:'#fff', cursor:'pointer', fontSize:14, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.2s' }}>
+              style={{ padding:'12px 20px', borderRadius:12, border:'none', background: saved ? '#3DD68C' : '#3DD68C', color:'#fff', cursor:'pointer', fontSize:14, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.2s' }}>
               {saved ? <><Check size={15}/> Saved!</> : saving ? 'Saving…' : <><Save size={15}/> Save Profile</>}
             </button>
           </div>
