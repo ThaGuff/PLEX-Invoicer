@@ -4,12 +4,12 @@ import { api } from '../utils/api';
 
 const STATUS_CONFIG = {
   draft:     { label: 'Draft',     color: '#9ca3af', icon: null },
-  sent:      { label: 'Sent',      color: '#13B5EA', icon: Send },
-  delivered: { label: 'Delivered', color: '#6366f1', icon: Mail },
-  opened:    { label: 'Email opened', color: '#f59e0b', icon: Mail },
-  viewed:    { label: 'Portal viewed', color: '#f97316', icon: Eye },
-  clicked:   { label: 'Pay clicked', color: '#22c55e', icon: MousePointer },
-  paid:      { label: 'Paid',      color: '#16a34a', icon: CheckCircle },
+  sent:      { label: 'Sent',      color: '#3DD68C', icon: Send },
+  delivered: { label: 'Delivered', color: '#3DD68C', icon: Mail },
+  opened:    { label: 'Email opened', color: '#64748B', icon: Mail },
+  viewed:    { label: 'Portal viewed', color: '#64748B', icon: Eye },
+  clicked:   { label: 'Pay clicked', color: '#3DD68C', icon: MousePointer },
+  paid:      { label: 'Paid',      color: '#3DD68C', icon: CheckCircle },
 };
 
 function fmtTime(iso) {
@@ -25,7 +25,7 @@ function fmtDuration(seconds) {
   return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
 }
 
-export default function EngagementTimeline({ invoiceId, accent = '#13B5EA', compact = false }) {
+export default function EngagementTimeline({ invoiceId, accent = '#3DD68C', compact = false }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -52,11 +52,11 @@ export default function EngagementTimeline({ invoiceId, accent = '#13B5EA', comp
   const cfg = STATUS_CONFIG[readStatus] || STATUS_CONFIG.sent;
 
   const milestones = [
-    { key: 'sent',        label: 'Sent',          ts: data.sent_at,        Icon: Send,          color: '#13B5EA' },
-    { key: 'opened',      label: 'Email opened',  ts: data.opened_at,      Icon: Mail,          color: '#f59e0b' },
-    { key: 'viewed',      label: 'Portal viewed', ts: data.first_viewed_at, Icon: Eye,           color: '#f97316' },
-    { key: 'clicked_pay', label: 'Pay clicked',   ts: data.clicked_pay_at, Icon: MousePointer,  color: '#22c55e' },
-    { key: 'paid',        label: 'Paid',          ts: data.paid_at,        Icon: CheckCircle,   color: '#16a34a' },
+    { key: 'sent',        label: 'Sent',          ts: data.sent_at,        Icon: Send,          color: '#3DD68C' },
+    { key: 'opened',      label: 'Email opened',  ts: data.opened_at,      Icon: Mail,          color: '#64748B' },
+    { key: 'viewed',      label: 'Portal viewed', ts: data.first_viewed_at, Icon: Eye,           color: '#64748B' },
+    { key: 'clicked_pay', label: 'Pay clicked',   ts: data.clicked_pay_at, Icon: MousePointer,  color: '#3DD68C' },
+    { key: 'paid',        label: 'Paid',          ts: data.paid_at,        Icon: CheckCircle,   color: '#3DD68C' },
   ].filter(m => m.ts);
 
   if (compact) {
