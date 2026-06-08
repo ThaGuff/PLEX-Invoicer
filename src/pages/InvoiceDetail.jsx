@@ -17,8 +17,8 @@ function getStatus(inv) {
 }
 
 const STATUS_COLORS = {
-  draft: '#7A7E85', sent: '#13B5EA', viewed: '#d97706',
-  paid: '#16a34a', overdue: '#dc2626', cancelled: '#7A7E85',
+  draft: '#7A7E85', sent: '#3DD68C', viewed: '#d97706',
+  paid: '#3DD68C', overdue: '#dc2626', cancelled: '#7A7E85',
 };
 
 const PAYMENT_METHOD_LABELS = {
@@ -30,7 +30,7 @@ export default function InvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { account } = useAccount();
-  const accent = account?.primary_color || '#13B5EA';
+  const accent = '#3DD68C';
 
   const [invoice, setInvoice]       = useState(null);
   const [items, setItems]           = useState([]);
@@ -166,12 +166,21 @@ Thank you!`);
                 Open tab ↗
               </a>
               <button onClick={() => setShowPreview(false)}
-                style={{padding:'8px 14px',background:'linear-gradient(135deg,var(--blue),var(--teal))',color:'#fff',border:'none',borderRadius:9,cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+                style={{padding:'8px 14px',background:'#0D1A0D',color:'#fff',border:'none',borderRadius:9,cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
                 ← Back
               </button>
             </div>
           </div>
-          <iframe src={publicUrl2} style={{flex:1,border:'none',width:'100%'}} title="Invoice Preview" />
+          {publicUrl2 ? (
+            <iframe src={publicUrl2} style={{flex:1,border:'none',width:'100%'}} title="Invoice Preview"
+              onError={() => alert('Preview unavailable — invoice may still be generating')} />
+          ) : (
+            <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:12,padding:40}}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="1.5" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <p style={{fontSize:14,fontWeight:600,color:'var(--text-primary)',margin:0}}>Preview not available</p>
+              <p style={{fontSize:12,color:'var(--text-muted)',margin:0,textAlign:'center'}}>Save and send the invoice first to generate a public preview link.</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -199,7 +208,7 @@ Thank you!`);
                 <div style={{display:'flex',gap:8}}>
                   <input readOnly value={publicUrl2} style={{flex:1,padding:'11px 12px',borderRadius:9,border:'1px solid var(--border)',background:'var(--bg-raised)',color:'var(--text-muted)',fontSize:12,fontFamily:'monospace',minWidth:0}} />
                   <button onClick={() => { navigator.clipboard.writeText(publicUrl2); }}
-                    style={{padding:'11px 14px',background:'linear-gradient(135deg,var(--blue),var(--teal))',color:'#fff',border:'none',borderRadius:9,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Plus Jakarta Sans',sans-serif",flexShrink:0}}>
+                    style={{padding:'11px 14px',background:'#0D1A0D',color:'#fff',border:'none',borderRadius:9,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Plus Jakarta Sans',sans-serif",flexShrink:0}}>
                     Copy
                   </button>
                 </div>
@@ -235,7 +244,7 @@ Thank you!`);
                   <textarea value={emailBody} onChange={e=>setEmailBody(e.target.value)} rows={5} className="field" style={{fontSize:13,resize:'vertical'}} />
                 </div>
                 <button onClick={() => { handleSendConfirm(); setShowSendModal(false); }} disabled={!emailTo.trim() || !!working}
-                  style={{width:'100%',padding:'14px',background:'linear-gradient(135deg,var(--blue),var(--teal))',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontWeight:800,cursor:'pointer',opacity:!emailTo.trim()||!!working?0.5:1,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+                  style={{width:'100%',padding:'14px',background:'#0D1A0D',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontWeight:800,cursor:'pointer',opacity:!emailTo.trim()||!!working?0.5:1,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
                   {working==='send' ? 'Sending…' : 'Send Invoice'}
                 </button>
               </div>
@@ -247,7 +256,7 @@ Thank you!`);
       {/* Main content / Toast */}
       {toast && (
         <div className="fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white max-w-sm"
-          style={{ background: toast.type === 'success' ? '#16a34a' : toast.type === 'warn' ? '#dc2626' : '#13B5EA' }}>
+          style={{ background: toast.type === 'success' ? '#3DD68C' : toast.type === 'warn' ? '#dc2626' : '#3DD68C' }}>
           {toast.msg}
         </div>
       )}
@@ -267,7 +276,7 @@ Thank you!`);
             <p className="text-sm text-ink-muted">
               {invoice.client_name}{invoice.client_biz ? ` · ${invoice.client_biz}` : ''}
               {invoice.payment_method && status === 'paid' &&
-                <span className="ml-2 text-xs px-1.5 py-0.5 rounded" style={{ background: '#f0fdf4', color: '#16a34a' }}>
+                <span className="ml-2 text-xs px-1.5 py-0.5 rounded" style={{ background: '#f0fdf4', color: '#3DD68C' }}>
                   via {PAYMENT_METHOD_LABELS[invoice.payment_method] || invoice.payment_method}
                 </span>
               }
@@ -409,7 +418,7 @@ Thank you!`);
                 <>
                   <button onClick={() => setShowMarkPaid(true)} disabled={!!working}
                     className="w-full flex items-center gap-2 text-sm font-semibold text-white py-2.5 px-4 rounded-lg disabled:opacity-50"
-                    style={{ background: '#16a34a' }}>
+                    style={{ background: '#3DD68C' }}>
                     <CheckCircle size={15} /> Mark as paid
                   </button>
                   <button onClick={handleSend} disabled={!!working}
@@ -456,7 +465,7 @@ Thank you!`);
                   <span>Sent</span><span>{new Date(invoice.sent_at).toLocaleDateString()}</span>
                 </div>}
                 {invoice.viewed_at && <div className="flex justify-between">
-                  <span className="text-amber-600 font-medium">Viewed by client</span>
+                  <span className="text-emerald-600 font-medium">Viewed by client</span>
                   <span>{new Date(invoice.viewed_at).toLocaleDateString()}</span>
                 </div>}
                 {invoice.paid_at && <div className="flex justify-between text-green-600 font-medium">
