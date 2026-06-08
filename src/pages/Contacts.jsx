@@ -6,7 +6,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAccount } from '../context/AccountContext';
-import PageHeader from '../components/PageHeader';
 import {
   Search, Plus, Filter, Star, Zap, Heart, TrendingUp, TrendingDown,
   Mail, Phone, Globe, MapPin, ChevronRight, ChevronDown, X, Check,
@@ -33,18 +32,18 @@ const fmtDaysAgo = s => {
 
 // DNA label → color/icon
 const DNA_CONFIG = {
-  'VIP':               { color: '#8B5CF6', bg: '#8B5CF615', icon: '👑' },
-  'Repeat Buyer':      { color: '#2563EB', bg: '#2563EB15', icon: '🔄' },
-  'High Margin Customer': { color: '#0D9488', bg: '#0D948815', icon: '💎' },
+  'VIP':               { color: '#3DD68C', bg: '#3DD68C15', icon: '👑' },
+  'Repeat Buyer':      { color: '#3DD68C', bg: '#3DD68C15', icon: '🔄' },
+  'High Margin Customer': { color: '#3DD68C', bg: '#3DD68C15', icon: '💎' },
   'At-Risk Customer':  { color: '#DC2626', bg: '#DC262615', icon: '⚠️' },
-  'Seasonal Customer': { color: '#D97706', bg: '#D9770615', icon: '🌊' },
-  'New Customer':      { color: '#059669', bg: '#05966915', icon: '🌱' },
+  'Seasonal Customer': { color: '#64748B', bg: '#64748B15', icon: '🌊' },
+  'New Customer':      { color: '#3DD68C', bg: '#3DD68C15', icon: '🌱' },
   'Price Sensitive':   { color: '#6B7280', bg: '#6B728015', icon: '💰' },
-  'Referral Source':   { color: '#7C3AED', bg: '#7C3AED15', icon: '📣' },
+  'Referral Source':   { color: '#3DD68C', bg: '#3DD68C15', icon: '📣' },
 };
 
 // Health score → color
-const healthColor = score => score >= 70 ? '#22c55e' : score >= 40 ? '#f59e0b' : '#ef4444';
+const healthColor = score => score >= 70 ? '#3DD68C' : score >= 40 ? '#64748B' : '#DC2626';
 const healthLabel = score => score >= 70 ? 'Healthy' : score >= 40 ? 'At Risk' : 'Critical';
 
 // ─────────────────────────────────────────────────
@@ -91,7 +90,7 @@ function DNABadge({ label, size = 'sm' }) {
 export default function Contacts() {
   const { account } = useAccount();
   const navigate = useNavigate();
-  const accent = account?.primary_color || '#2563EB';
+  const accent = '#3DD68C';
   const token = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
   const h = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -180,32 +179,28 @@ export default function Contacts() {
   return (
     <div style={{ padding: '0 0 32px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
 
-      <PageHeader path="/contacts"
-        stats={[
-          { label: 'Clients', value: contacts.length },
-          { label: 'Revenue', value: fmt(totalRevenue), color: '#6EE7B7' },
-          { label: 'Outstanding', value: fmt(totalOutstanding) },
-          { label: 'VIP', value: vips },
-        ]}
-        actions={<>
-          <button onClick={handleScoreAll} disabled={scoringAll || !contacts.length}
-            style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,0.3)', background:'rgba(255,255,255,0.1)', cursor:'pointer', fontSize:12, fontWeight:700, color:'#fff', fontFamily:'inherit', backdropFilter:'blur(8px)' }}>
-            <Brain size={12} /> {scoringAll ? 'Scoring…' : 'AI Score'}
+      {/* Action bar */}
+      <div style={{ padding: 'clamp(12px,2vw,14px) clamp(14px,4vw,28px)', background: 'var(--bg-page)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ flex: 1 }} />
+        {contacts.length > 0 && (
+          <button onClick={handleScoreAll} disabled={scoringAll}
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:10, border:'1px solid var(--border)', background:'var(--bg-surface)', color:'var(--text-muted)', cursor:'pointer', fontSize:12, fontWeight:700, fontFamily:'inherit' }}>
+            {scoringAll ? 'Scoring…' : 'AI Score'}
           </button>
-          <button onClick={() => setShowNewContact(true)}
-            style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:10, border:'none', background:'rgba(255,255,255,0.95)', color:'#0D9488', cursor:'pointer', fontSize:13, fontWeight:800, fontFamily:'inherit' }}>
-            <Plus size={14} /> New Client
-          </button>
-        </>}
-      />
+        )}
+        <button onClick={() => setShowNewContact(true)}
+          style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:10, border:'none', background:'#0D1A0D', color:'#C8FF00', cursor:'pointer', fontSize:13, fontWeight:800, fontFamily:'inherit' }}>
+          <Plus size={14} /> New Client
+        </button>
+      </div>
 
       {/* ── Stats Bar ── */}
-      <div style={{ padding: '16px 28px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+      <div style={{ padding: 'clamp(12px,3vw,16px) clamp(14px,4vw,28px)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
         {[
           { label: 'Total Clients', value: contacts.length, icon: <Users size={14} />, color: accent },
-          { label: 'Lifetime Revenue', value: fmt(totalRevenue), icon: <DollarSign size={14} />, color: '#059669' },
-          { label: 'Outstanding', value: fmt(totalOutstanding), icon: <Clock size={14} />, color: totalOutstanding > 0 ? '#D97706' : '#059669' },
-          { label: 'VIP Clients', value: vips, icon: <Award size={14} />, color: '#8B5CF6' },
+          { label: 'Lifetime Revenue', value: fmt(totalRevenue), icon: <DollarSign size={14} />, color: '#3DD68C' },
+          { label: 'Outstanding', value: fmt(totalOutstanding), icon: <Clock size={14} />, color: totalOutstanding > 0 ? '#64748B' : '#3DD68C' },
+          { label: 'VIP Clients', value: vips, icon: <Award size={14} />, color: '#3DD68C' },
           { label: 'At-Risk', value: atRisk, icon: <AlertTriangle size={14} />, color: atRisk > 0 ? '#DC2626' : '#6B7280' },
         ].map(({ label, value, icon, color }) => (
           <div key={label} style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
@@ -219,7 +214,7 @@ export default function Contacts() {
       </div>
 
       {/* ── Search + Filters ── */}
-      <div style={{ padding: '0 28px 12px', display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ padding: '0 clamp(14px,4vw,28px) 12px', display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
           <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input value={search} onChange={e => setSearch(e.target.value)}
@@ -340,7 +335,7 @@ export default function Contacts() {
                     <td style={{ padding: '12px 12px' }}>
                       <DNABadge label={c.ai_dna_label || 'New Customer'} />
                     </td>
-                    <td style={{ padding: '12px 12px', fontWeight: 700, color: parseFloat(c.lifetime_value) > 0 ? '#059669' : 'var(--text-muted)' }}>
+                    <td style={{ padding: '12px 12px', fontWeight: 700, color: parseFloat(c.lifetime_value) > 0 ? '#3DD68C' : 'var(--text-muted)' }}>
                       {fmt(c.lifetime_value)}
                     </td>
                     <td style={{ padding: '12px 12px' }}>
@@ -349,14 +344,14 @@ export default function Contacts() {
                         <span style={{ fontSize: 11, fontWeight: 600, color: healthColor(health) }}>{healthLabel(health)}</span>
                       </div>
                     </td>
-                    <td style={{ padding: '12px 12px', fontWeight: 600, color: parseFloat(c.outstanding_balance) > 0 ? '#D97706' : 'var(--text-muted)' }}>
+                    <td style={{ padding: '12px 12px', fontWeight: 600, color: parseFloat(c.outstanding_balance) > 0 ? '#64748B' : 'var(--text-muted)' }}>
                       {parseFloat(c.outstanding_balance) > 0 ? fmt(c.outstanding_balance) : '—'}
                     </td>
                     <td style={{ padding: '12px 12px', color: 'var(--text-muted)', fontSize: 12 }}>{fmtDate(c.last_invoice_date)}</td>
                     <td style={{ padding: '12px 12px', color: 'var(--text-muted)', fontSize: 12 }}>{fmtDaysAgo(c.last_activity_date)}</td>
                     <td style={{ padding: '12px 12px' }}>
                       {revenue > 0 ? (
-                        <ScoreRing score={revenue} color={revenue >= 70 ? '#059669' : revenue >= 40 ? '#D97706' : '#DC2626'} size={36} label="Revenue Score" />
+                        <ScoreRing score={revenue} color={revenue >= 70 ? '#3DD68C' : revenue >= 40 ? '#64748B' : '#DC2626'} size={36} label="Revenue Score" />
                       ) : (
                         <span style={{ fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic' }}>—</span>
                       )}
@@ -406,11 +401,11 @@ function NewContactModal({ accountId, token, h, accent, onClose, onSaved }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, backdropFilter: 'blur(4px)' }}>
       <div style={{ background: 'var(--bg-surface)', borderRadius: 18, width: '100%', maxWidth: 480, maxHeight: '90vh', overflow: 'auto', boxShadow: '0 32px 80px rgba(11,18,32,0.3)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ padding: '20px clamp(12px,4vw,24px)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--text-primary)' }}>New Client</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={18} /></button>
         </div>
-        <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ padding: '20px clamp(12px,4vw,24px)', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {[
             { k: 'name', label: 'Full Name *', ph: 'Jane Smith' },
             { k: 'business', label: 'Company', ph: 'Acme Corp' },
@@ -433,10 +428,10 @@ function NewContactModal({ accountId, token, h, accent, onClose, onSaved }) {
             </select>
           </div>
         </div>
-        <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        <div style={{ padding: '16px clamp(12px,4vw,24px)', borderTop: '1px solid var(--border)', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button onClick={onClose} style={{ padding: '9px 18px', borderRadius: 10, border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>Cancel</button>
           <button onClick={handleSave} disabled={saving || !form.name.trim()}
-            style={{ padding: '9px 20px', borderRadius: 10, border: 'none', background: accent, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: !form.name.trim() ? 0.5 : 1 }}>
+            style={{ padding: '9px 20px', borderRadius: 10, border: 'none', background: '#3DD68C', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: !form.name.trim() ? 0.5 : 1 }}>
             {saving ? 'Saving…' : 'Create Client'}
           </button>
         </div>
@@ -526,7 +521,7 @@ function ContactProfile({ contactId, onBack, accent, token, h, accountId }) {
   return (
     <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       {/* ── Profile Header ── */}
-      <div style={{ padding: '20px 28px', background: `linear-gradient(135deg, ${accent}10, ${accent}05)`, borderBottom: '1px solid var(--border)' }}>
+      <div style={{ padding: 'clamp(14px,3vw,20px) clamp(14px,4vw,28px)', background: '#0D1A0D', borderBottom: '1px solid var(--border)' }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, padding: 0, marginBottom: 16, fontFamily: 'inherit' }}>
           ← All Clients
         </button>
@@ -556,7 +551,7 @@ function ContactProfile({ contactId, onBack, accent, token, h, accountId }) {
           {/* Scores */}
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ textAlign: 'center' }}>
-              <ScoreRing score={revenue} color={revenue >= 70 ? '#059669' : revenue >= 40 ? '#D97706' : '#DC2626'} size={52} label="Revenue Score" />
+              <ScoreRing score={revenue} color={revenue >= 70 ? '#3DD68C' : revenue >= 40 ? '#64748B' : '#DC2626'} size={52} label="Revenue Score" />
               <p style={{ margin: '4px 0 0', fontSize: 10, fontWeight: 600, color: 'var(--text-muted)' }}>Revenue</p>
             </div>
             <div style={{ textAlign: 'center' }}>
@@ -572,7 +567,7 @@ function ContactProfile({ contactId, onBack, accent, token, h, accountId }) {
 
         {/* ── Opportunity Alert ── */}
         {opportunity && (
-          <div style={{ marginTop: 14, padding: '10px 14px', borderRadius: 10, background: opportunity.includes('⚠️') ? '#DC262610' : '#F59E0B10', border: `1px solid ${opportunity.includes('⚠️') ? '#DC262630' : '#F59E0B30'}`, fontSize: 12, fontWeight: 600, color: opportunity.includes('⚠️') ? '#DC2626' : '#92400E', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ marginTop: 14, padding: '10px 14px', borderRadius: 10, background: opportunity.includes('⚠️') ? '#DC262610' : '#64748B10', border: `1px solid ${opportunity.includes('⚠️') ? '#DC262630' : '#64748B30'}`, fontSize: 12, fontWeight: 600, color: opportunity.includes('⚠️') ? '#DC2626' : '#374151', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Target size={13} style={{ flexShrink: 0 }} />
             <span>{opportunity}</span>
           </div>
@@ -580,7 +575,7 @@ function ContactProfile({ contactId, onBack, accent, token, h, accountId }) {
       </div>
 
       {/* ── Tab Nav ── */}
-      <div style={{ padding: '0 28px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 0 }}>
+      <div style={{ padding: '0 clamp(14px,4vw,28px)', borderBottom: '1px solid var(--border)', display: 'flex', gap: 0 }}>
         {[
           { id: 'overview', label: 'Overview', icon: <BarChart3 size={13} /> },
           { id: 'timeline', label: 'Timeline', icon: <Clock size={13} /> },
@@ -595,7 +590,7 @@ function ContactProfile({ contactId, onBack, accent, token, h, accountId }) {
       </div>
 
       {/* ── Tab Content ── */}
-      <div style={{ padding: '20px 28px' }}>
+      <div style={{ padding: 'clamp(14px,3vw,20px) clamp(14px,4vw,28px)' }}>
 
         {/* OVERVIEW */}
         {activeTab === 'overview' && (
@@ -604,8 +599,8 @@ function ContactProfile({ contactId, onBack, accent, token, h, accountId }) {
             <div style={{ padding: 18, borderRadius: 14, border: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
               <p style={{ margin: '0 0 14px', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>Financial Summary</p>
               {[
-                { label: 'Lifetime Revenue', value: fmt(c.lifetime_value), color: '#059669', bold: true },
-                { label: 'Outstanding Balance', value: fmt(c.outstanding_balance), color: parseFloat(c.outstanding_balance) > 0 ? '#D97706' : 'var(--text-muted)' },
+                { label: 'Lifetime Revenue', value: fmt(c.lifetime_value), color: '#3DD68C', bold: true },
+                { label: 'Outstanding Balance', value: fmt(c.outstanding_balance), color: parseFloat(c.outstanding_balance) > 0 ? '#64748B' : 'var(--text-muted)' },
                 { label: 'Total Invoices', value: c.total_invoices || 0 },
                 { label: 'Paid Invoices', value: c.paid_invoices || 0 },
                 { label: 'Avg Invoice Size', value: fmt(c.avg_invoice || 0) },
@@ -670,7 +665,7 @@ function ContactProfile({ contactId, onBack, accent, token, h, accountId }) {
               </div>
               <div style={{ display: 'flex', gap: 16 }}>
                 <div style={{ textAlign: 'center' }}>
-                  <ScoreRing score={revenue} color={revenue >= 70 ? '#059669' : revenue >= 40 ? '#D97706' : '#DC2626'} size={56} label="Revenue Score" />
+                  <ScoreRing score={revenue} color={revenue >= 70 ? '#3DD68C' : revenue >= 40 ? '#64748B' : '#DC2626'} size={56} label="Revenue Score" />
                   <p style={{ margin: '4px 0 0', fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>Revenue Score</p>
                   <p style={{ margin: 0, fontSize: 10, color: 'var(--text-muted)' }}>
                     {revenue >= 80 ? 'High Growth Client' : revenue >= 60 ? 'Likely to Purchase Again' : revenue >= 40 ? 'Moderate' : 'Low Engagement'}
@@ -697,7 +692,7 @@ function ContactProfile({ contactId, onBack, accent, token, h, accountId }) {
                 <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>No activity yet</p>
               </div>
             ) : c.timeline.map((item, i) => {
-              const colors = { note: '#6B7280', quote: accent, invoice: '#059669', task: '#8B5CF6' };
+              const colors = { note: '#6B7280', quote: accent, invoice: '#3DD68C', task: '#3DD68C' };
               const icons  = { note: <MessageSquare size={12} />, quote: <FileText size={12} />, invoice: <DollarSign size={12} />, task: <CheckCircle size={12} /> };
               const color = colors[item.type] || '#6B7280';
               return (
@@ -735,7 +730,7 @@ function ContactProfile({ contactId, onBack, accent, token, h, accountId }) {
                 placeholder="Add a task or action item…"
                 style={{ flex: 1, padding: '9px 12px', borderRadius: 10, border: '1.5px solid var(--border)', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', fontFamily: 'inherit' }} />
               <button onClick={handleAddTask} disabled={!newTask.trim()}
-                style={{ padding: '9px 16px', borderRadius: 10, border: 'none', background: accent, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}>Add</button>
+                style={{ padding: '9px 16px', borderRadius: 10, border: 'none', background: '#3DD68C', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}>Add</button>
             </div>
             {tasks.length === 0 ? (
               <p style={{ color: 'var(--text-muted)', fontSize: 13, textAlign: 'center', padding: 24 }}>No tasks yet</p>
@@ -764,7 +759,7 @@ function ContactProfile({ contactId, onBack, accent, token, h, accountId }) {
               placeholder={`Add a ${noteType} log…`}
               style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box', marginBottom: 8 }} />
             <button onClick={handleAddNote} disabled={addingNote || !note.trim()}
-              style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: accent, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: !note.trim() ? 0.5 : 1 }}>
+              style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: '#3DD68C', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: !note.trim() ? 0.5 : 1 }}>
               {addingNote ? 'Saving…' : 'Add Note'}
             </button>
 
