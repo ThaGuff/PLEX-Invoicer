@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Shield, Clock, AlertTriangle, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const ACCENT = '#13B5EA';
+const ACCENT = '#3DD68C';
 const DARK   = '#1a1a1a';
 
 // ── 1-minute idle warning banner ─────────────────────────────────
@@ -10,7 +10,7 @@ export function IdleWarningBanner({ onStayActive }) {
   return (
     <div
       className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-3 text-white text-sm font-medium shadow-lg"
-      style={{ background: '#f59e0b' }}>
+      style={{ background: '#64748B' }}>
       <div className="flex items-center gap-2.5">
         <Clock size={16} className="shrink-0" />
         <span>You'll be signed out in 1 minute due to inactivity.</span>
