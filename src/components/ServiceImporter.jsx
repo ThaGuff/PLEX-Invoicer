@@ -23,7 +23,7 @@ function downloadTemplate() {
   a.click(); URL.revokeObjectURL(url);
 }
 
-export default function ServiceImporter({ accountId, accent = '#13B5EA', onImported }) {
+export default function ServiceImporter({ accountId, accent = '#3DD68C', onImported }) {
   const [open, setOpen]           = useState(false);
   const [rows, setRows]           = useState([]); // parsed rows
   const [errors, setErrors]       = useState([]);
@@ -184,7 +184,7 @@ export default function ServiceImporter({ accountId, accent = '#13B5EA', onImpor
                 <p className="text-xs text-ink-muted">Don't have a file yet?</p>
                 <button onClick={downloadTemplate}
                   className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-white"
-                  style={{ background: '#6366f1' }}>
+                  style={{ background: '#3DD68C' }}>
                   <Download size={12} /> Download template
                 </button>
               </div>
@@ -218,7 +218,7 @@ export default function ServiceImporter({ accountId, accent = '#13B5EA', onImpor
 
               {/* Errors */}
               {errors.length > 0 && (
-                <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 space-y-1">
+                <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 space-y-1">
                   {errors.map((e, i) => <p key={i} className="flex items-center gap-1.5"><AlertCircle size={11} />{e}</p>)}
                 </div>
               )}
