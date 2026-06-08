@@ -30,29 +30,56 @@ function StatusBadge({ status }) {
 }
 
 // Top search + action bar
-function TopBar({ onNewInvoice }) {
+function TopBar({ onSearch }) {
   const navigate = useNavigate();
   const { account } = useAccount();
-  const workspaceName = account?.company_name || 'PLEX Automation';
+  const [query, setQuery] = React.useState('');
+
+  const handleSearch = (e) => {
+    const val = e.target.value;
+    setQuery(val);
+    if (onSearch) onSearch(val);
+  };
+
+  const handleSearchKey = (e) => {
+    if (e.key === 'Enter' && query.trim()) {
+      // Navigate to most relevant section based on query
+      const q = query.toLowerCase();
+      if (q.includes('quote') || q.includes('proposal')) navigate('/quotes');
+      else if (q.includes('invoice') || q.includes('bill')) navigate('/invoices');
+      else if (q.includes('client') || q.includes('contact') || q.includes('customer')) navigate('/contacts');
+      else if (q.includes('doc') || q.includes('file')) navigate('/documents');
+      else navigate('/contacts');
+    }
+  };
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px clamp(12px,4vw,24px)', background: 'var(--bg-page)', borderBottom: '1px solid var(--border)' }}>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-surface)', border: '1.5px solid var(--border)', borderRadius: 9, padding: '9px 14px', maxWidth: 480, minWidth: 0 }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <span style={{ fontSize: 13, color: 'var(--text-muted)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Find clients, invoices, quotes, or documents</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px clamp(12px,4vw,20px)', background: 'var(--bg-page)', borderBottom: '1px solid var(--border)' }}>
+      {/* Search — fills available space */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-surface)', border: '1.5px solid var(--border)', borderRadius: 9, padding: '8px 12px', minWidth: 0 }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input
+          type="text"
+          value={query}
+          onChange={handleSearch}
+          onKeyDown={handleSearchKey}
+          placeholder="Search clients, invoices, quotes…"
+          style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: 'var(--text-primary)', fontFamily: "'Plus Jakarta Sans', sans-serif", width: '100%', minWidth: 0 }}
+        />
+        {query && (
+          <button onClick={() => { setQuery(''); if (onSearch) onSearch(''); }}
+            style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'flex', alignItems: 'center', flexShrink: 0, fontSize: 16, lineHeight: 1 }}>✕</button>
+        )}
       </div>
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px', background: 'var(--bg-surface)', border: '1.5px solid var(--border)', borderRadius: 9, cursor: 'pointer' }}
-          onClick={() => navigate('/workspace')}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{workspaceName}</span>
-        </div>
-        <button
-          onClick={() => navigate('/quotes/new')}
-          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', background: 'var(--forest)', color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-          onMouseEnter={e => e.currentTarget.style.background = '#1A2A1A'}
-          onMouseLeave={e => e.currentTarget.style.background = 'var(--forest)'}>
-          New quote
-        </button>
-      </div>
+      {/* New Quote button — desktop only shows text, mobile just shows + */}
+      <button
+        onClick={() => navigate('/quotes/new')}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: 'var(--forest)', color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", flexShrink: 0, whiteSpace: 'nowrap' }}
+        onMouseEnter={e => e.currentTarget.style.background = '#1A2A1A'}
+        onMouseLeave={e => e.currentTarget.style.background = 'var(--forest)'}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span className="hide-on-mobile">New quote</span>
+      </button>
     </div>
   );
 }
@@ -64,6 +91,24 @@ export default function Dashboard() {
   const [quotes, setQuotes] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Filter invoices/quotes based on search
+  const filteredInvoices = searchQuery
+    ? invoices.filter(inv =>
+        (inv.client_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (inv.invoice_number || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        String(inv.amount_due || '').includes(searchQuery)
+      )
+    : invoices;
+
+  const filteredQuotes = searchQuery
+    ? quotes.filter(q =>
+        (q.client_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (q.quote_number || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        String(q.setup_total || '').includes(searchQuery)
+      )
+    : quotes;
 
   useEffect(() => {
     if (!account?.id) return;
@@ -134,7 +179,7 @@ export default function Dashboard() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <TopBar />
+      <TopBar onSearch={setSearchQuery} />
 
       {/* Page content */}
       <div style={{ padding: 'clamp(16px,4vw,28px) clamp(14px,4vw,24px)', flex: 1 }}>
