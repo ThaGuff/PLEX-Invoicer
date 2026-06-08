@@ -274,7 +274,7 @@ export default function Dashboard() {
         <div className="animate-fade-up-delay-4" style={{ display:'flex', flexDirection:'column', gap:12 }}>
           {/* Weekly schedule & alerts — Pro+ only */}
           <DraggableWidget id="weekly-schedule" title="This Week" icon="📅" accent={accent}>
-            {canUseFeature(account?.plan, 'calendar')
+            {(!account?.plan || canUseFeature(account?.plan, 'calendar'))
               ? <WeeklyScheduleWidget accountId={account?.id} accent={accent} />
               : (
                 <div style={{ padding:24, textAlign:'center', background:'var(--bg-surface)' }}>
@@ -294,7 +294,7 @@ export default function Dashboard() {
 
           {/* Predictive cashflow */}
           <DraggableWidget id="cashflow" title="Cashflow Forecast" icon="💰" accent={accent}>
-            {canUseFeature(account?.plan, 'cashflow_dashboard')
+            {(!account?.plan || canUseFeature(account?.plan, 'cashflow_dashboard'))
               ? <CashflowDashboard accountId={account?.id} accent={accent} />
               : <PlanGate feature="cashflow_dashboard" />
             }

@@ -739,10 +739,16 @@ export default function QuoteBuilder() {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-xl font-bold text-ink">{isNew ? 'New quote' : 'Edit quote'}</h1>
+          <h1 className="text-xl font-bold text-ink">{isNew ? 'New quote' : 'Edit Quote'}</h1>
           <p className="text-sm text-ink-muted mt-0.5">Select services, configure billing, then save.</p>
         </div>
         <div className="flex gap-2 items-center">
+          {!isNew && (
+            <button onClick={() => navigate('/quotes/new')}
+              style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#00E5C8,#4B7BFF)', color:'#fff', cursor:'pointer', fontSize:12, fontWeight:700, fontFamily:"'Plus Jakarta Sans',sans-serif", boxShadow:'0 4px 14px rgba(75,123,255,0.3)' }}>
+              <Plus size={13} /> New Quote
+            </button>
+          )}
           {canUseFeature(account?.plan, 'ai_parse') ? (
             <AIInvoiceParser
               accountId={account?.id}

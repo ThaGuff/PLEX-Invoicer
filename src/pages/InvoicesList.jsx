@@ -235,7 +235,7 @@ export default function InvoicesList() {
 
       <div style={{ padding:'20px 28px' }}>
         {/* Stats row */}
-        <div style={{ display:'flex', gap:12, flexWrap:'wrap', marginBottom:20 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(180px, 1fr))', gap:12, marginBottom:20 }}>
           <StatCard label="Total Revenue" value={fmt$(totalRevenue)} color="#059669" icon={DollarSign}/>
           <StatCard label="Outstanding" value={fmt$(totalOutstanding)} sub={`${outstanding.length} invoices pending`} color="#D97706" icon={AlertTriangle}/>
           <StatCard label="Overdue" value={fmt$(totalOverdue)} sub={overdue.length > 0 ? `${overdue.length} need immediate action` : 'All current ✓'} color={totalOverdue > 0 ? '#DC2626' : '#059669'} icon={totalOverdue > 0 ? AlertTriangle : CheckCircle}/>

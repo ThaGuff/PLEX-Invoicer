@@ -152,7 +152,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* ── Tabs ── */}
-      <div style={{ padding:'0 28px', borderBottom:'1px solid var(--border)', display:'flex', gap:0, background:'var(--bg-surface)' }}>
+      <div style={{ padding:'0 28px', borderBottom:'1px solid var(--border)', display:'flex', gap:0, background:'var(--bg-surface)', overflowX:'auto' }}>
         {TABS.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
             style={{ padding:'12px 16px', border:'none', background:'transparent', cursor:'pointer', fontSize:12, fontWeight:activeTab===tab.id?700:500, color:activeTab===tab.id?accent:'var(--text-muted)', borderBottom:`2px solid ${activeTab===tab.id?accent:'transparent'}`, display:'flex', alignItems:'center', gap:5, fontFamily:'inherit', transition:'all 0.15s' }}>
