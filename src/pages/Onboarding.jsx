@@ -14,17 +14,17 @@ const LOGO_SVG = <img src="/logo-revanew.png" alt="Revanew" style={{ width:32, h
 
 const PLANS = [
   {
-    key: 'starter', name: 'Starter', price: 19, icon: Zap, color: '#0D9488',
+    key: 'starter', name: 'Starter', price: 19, icon: Zap, color: '#3DD68C',
     desc: 'For solo freelancers getting started.',
     features: ['10 quotes/month', '10 invoices/month', '1 account', 'Cash, Check, Zelle, Venmo', 'PDF export', '7-day free trial'],
   },
   {
-    key: 'pro', name: 'Pro', price: 49, icon: Star, color: '#2563EB', badge: 'Most popular',
+    key: 'pro', name: 'Pro', price: 49, icon: Star, color: '#3DD68C', badge: 'Most popular',
     desc: 'For growing service businesses.',
     features: ['100 quotes & invoices/month', '5 client accounts', 'All payment methods', 'Stripe card & ACH processing', 'Tax reporting + CSV export', 'AI quote parsing', 'Cash flow dashboard', '7-day free trial'],
   },
   {
-    key: 'agency', name: 'Agency', price: 99, icon: Building2, color: '#7C3AED',
+    key: 'agency', name: 'Agency', price: 99, icon: Building2, color: '#3DD68C',
     desc: 'For established agencies at scale.',
     features: ['Unlimited everything', 'Unlimited accounts', 'White-label portal', 'Priority support', 'API access', '7-day free trial'],
   },
@@ -127,10 +127,10 @@ export default function Onboarding() {
             <div style={{
               width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '12px', fontWeight: 700,
-              background: step >= s ? 'linear-gradient(135deg, #00E5C8, #4B7BFF)' : '#1A2640',
+              background: step >= s ? 'linear-gradient(135deg, #3DD68C, #0D1A0D)' : '#1A2640',
               color: step >= s ? '#fff' : '#3A5070',
             }}>{s}</div>
-            {s < 2 && <div style={{ width: '32px', height: '1px', background: step > s ? '#2563EB' : '#1A2640' }} />}
+            {s < 2 && <div style={{ width: '32px', height: '1px', background: step > s ? '#3DD68C' : '#1A2640' }} />}
           </React.Fragment>
         ))}
       </div>
@@ -143,7 +143,7 @@ export default function Onboarding() {
               Choose your plan
             </h1>
             <p style={{ fontSize: '14px', color: '#3A5070' }}>
-              All plans include a <strong style={{ color: '#0D9488' }}>7-day free trial</strong> — no charge until your trial ends.
+              All plans include a <strong style={{ color: '#3DD68C' }}>7-day free trial</strong> — no charge until your trial ends.
             </p>
           </div>
 
@@ -161,7 +161,7 @@ export default function Onboarding() {
                     position: 'relative',
                   }}>
                   {plan.badge && (
-                    <div style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(135deg, #4B7BFF, #7B4FE8)', borderRadius: '20px', padding: '3px 10px', fontSize: '10px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                    <div style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(135deg, #0D1A0D, #3DD68C)', borderRadius: '20px', padding: '3px 10px', fontSize: '10px', fontWeight: 700, whiteSpace: 'nowrap' }}>
                       ⭐ {plan.badge}
                     </div>
                   )}
@@ -195,11 +195,11 @@ export default function Onboarding() {
             })}
           </div>
 
-          {error && <p style={{ textAlign: 'center', color: '#FCA5A5', fontSize: '13px', marginBottom: '12px' }}>{error}</p>}
+          {error && <p style={{ textAlign: 'center', color: '#64748B', fontSize: '13px', marginBottom: '12px' }}>{error}</p>}
 
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <button onClick={handleSelectPlan} disabled={saving}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '13px 32px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #00E5C8, #4B7BFF, #7B4FE8)', color: '#fff', fontSize: '14px', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '13px 32px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #3DD68C, #0D1A0D, #3DD68C)', color: '#fff', fontSize: '14px', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               {saving ? 'Saving…' : `Start ${PLANS.find(p=>p.key===selectedPlan)?.name} trial`}
               {!saving && <ArrowRight size={16} />}
             </button>
@@ -231,7 +231,7 @@ export default function Onboarding() {
                   background: '#0D1526', cursor: 'pointer', textAlign: 'left', color: '#fff',
                   fontFamily: "'Plus Jakarta Sans', sans-serif", transition: 'all 0.15s',
                 }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = '#2563EB'}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#3DD68C'}
                 onMouseLeave={e => e.currentTarget.style.borderColor = pm.key === 'skip' ? '#1A2640' : '#1A2640'}>
                 <span style={{ fontSize: '22px', flexShrink: 0 }}>{pm.icon}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -252,7 +252,7 @@ export default function Onboarding() {
             </div>
           )}
 
-          {error && <p style={{ textAlign: 'center', color: '#FCA5A5', fontSize: '13px' }}>{error}</p>}
+          {error && <p style={{ textAlign: 'center', color: '#64748B', fontSize: '13px' }}>{error}</p>}
 
           <p style={{ textAlign: 'center', fontSize: '11px', color: '#2A3A55', marginTop: '12px' }}>
             All payments processed securely by Stripe. Revanew never stores card numbers.
