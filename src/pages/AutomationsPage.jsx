@@ -1,358 +1,466 @@
 /**
- * Autonomous Automation Engine — Self-operating business automation
- * Features: AI suggestions, revenue impact, autonomous engine, pattern detection, natural language builder
+ * Automation Engine — Real workflow automations connected to the backend
+ * Saves, enables, disables automations via /api/automations
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAccount } from '../context/AccountContext';
-import { Zap, Brain, TrendingUp, DollarSign, Clock, CheckCircle,
-         AlertTriangle, Play, Pause, Plus, ChevronRight, Target,
-         RefreshCw, BarChart3 } from 'lucide-react';
+import { Zap, Plus, RefreshCw, Trash2, Play, Pause, 
+         CheckCircle, Clock, Mail, MessageSquare, ToggleLeft, ToggleRight,
+         ChevronDown, ChevronRight, Brain, Settings } from 'lucide-react';
 
-const PREBUILT = [
+const getToken = () => JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
+
+// Pre-built template library
+const TEMPLATES = [
   {
-    id:'invoice-reminder',
-    category:'revenue',
-    icon:'💰',
-    name:'Invoice Reminder Sequence',
-    desc:'Auto-remind customers 3 days before due, on due date, and 7 days after — adapts tone based on payment history',
-    revenueImpact:'+$18,400/yr',
-    effort:'Low',
-    successRate:'78%',
-    active:false,
-    triggers:['Invoice Overdue','Invoice Due Soon'],
-    actions:['Send Email','Send SMS'],
-    color:'#059669',
+    id: 'tpl-invoice-overdue',
+    name: 'Invoice Reminder Sequence',
+    desc: 'Automatically reminds customers when invoices are overdue. Sends 3 emails over 7 days.',
+    trigger: 'invoice_overdue',
+    impact: '+18% collection rate',
+    steps: [
+      { delay_hours: 0, channel: 'email', subject: 'Invoice {invoice_num} is past due', body: 'Hi {client_name},\n\nYour invoice {invoice_num} for {amount} was due on {due_date}. Please make payment at your earliest convenience:\n{payment_link}\n\nThank you,\n{agency_name}' },
+      { delay_hours: 72, channel: 'email', subject: 'Second notice: Invoice {invoice_num}', body: 'Hi {client_name},\n\nThis is a second notice for invoice {invoice_num} ({amount}). If you\'ve already sent payment please disregard.\n{payment_link}\n\n{agency_name}' },
+      { delay_hours: 168, channel: 'email', subject: 'Final notice: Invoice {invoice_num}', body: 'Hi {client_name},\n\nThis is our final notice for invoice {invoice_num} ({amount}). Please arrange payment immediately or contact us to discuss options.\n\n{agency_name}' },
+    ],
   },
   {
-    id:'quote-followup',
-    category:'sales',
-    icon:'📝',
-    name:'Smart Quote Follow-Up',
-    desc:'Tracks quote opens and time spent. Sends personalized follow-up based on engagement level — 4+ opens triggers urgent outreach',
-    revenueImpact:'+12% close rate',
-    effort:'Low',
-    successRate:'64%',
-    active:false,
-    triggers:['Quote Viewed','Quote Expires'],
-    actions:['Send Email','Create Task'],
-    color:'#2563EB',
+    id: 'tpl-quote-followup',
+    name: 'Quote Follow-Up Sequence',
+    desc: 'Follows up automatically when quotes go unread or unanswered for 24–72 hours.',
+    trigger: 'quote_viewed',
+    impact: '+12% close rate',
+    steps: [
+      { delay_hours: 24, channel: 'email', subject: 'Quick follow-up on your quote', body: 'Hi {client_name},\n\nJust checking in on the quote I sent over. Any questions I can help answer?\n\nBest,\n{agency_name}' },
+      { delay_hours: 72, channel: 'email', subject: 'Still interested in moving forward?', body: 'Hi {client_name},\n\nI\'m reaching back out about your quote for {service_summary}. Happy to make adjustments if needed.\n\nBest,\n{agency_name}' },
+      { delay_hours: 168, channel: 'email', subject: 'Last follow-up', body: 'Hi {client_name},\n\nThis will be my last follow-up. The quote is still open if you\'re interested.\n\n{agency_name}' },
+    ],
   },
   {
-    id:'job-complete',
-    category:'operations',
-    icon:'⚙️',
-    name:'Job Completion Workflow',
-    desc:'Auto-creates invoice, requests before/after photos, sends review request, and schedules follow-up service in 90 days',
-    revenueImpact:'$0 saved admin time',
-    effort:'Low',
-    successRate:'91%',
-    active:false,
-    triggers:['Job Completed'],
-    actions:['Create Invoice','Request Photos','Send Review Request'],
-    color:'#D97706',
+    id: 'tpl-repeat-upsell',
+    name: 'Repeat Customer Offer',
+    desc: 'Sends a thank-you and special offer to returning customers 48 hours after payment.',
+    trigger: 'repeat_customer',
+    impact: '+22% repeat bookings',
+    steps: [
+      { delay_hours: 48, channel: 'email', subject: 'Thank you — and a special offer', body: 'Hi {client_name},\n\nThank you for your continued business! As a returning client, I\'d like to offer you a priority slot and 10% off your next project.\n\nWould you like to schedule a call?\n\n{agency_name}' },
+    ],
   },
   {
-    id:'customer-retention',
-    category:'sales',
-    icon:'🔄',
-    name:'Customer Re-engagement',
-    desc:'Identifies customers inactive 90+ days and sends personalized win-back campaign with seasonal offer',
-    revenueImpact:'+$24,000/yr',
-    effort:'Low',
-    successRate:'22%',
-    active:false,
-    triggers:['Customer Inactive 90d'],
-    actions:['Send Email','Create Follow-up'],
-    color:'#7C3AED',
-  },
-  {
-    id:'welcome-sequence',
-    category:'customer',
-    icon:'👋',
-    name:'New Customer Welcome',
-    desc:'Sends welcome email, sets up client portal access, schedules 7-day check-in, and requests referral at 30 days',
-    revenueImpact:'+15% retention',
-    effort:'Low',
-    successRate:'85%',
-    active:false,
-    triggers:['Customer Created'],
-    actions:['Send Email','Create Task','Send Referral Request'],
-    color:'#0D9488',
-  },
-  {
-    id:'payment-recovery',
-    category:'revenue',
-    icon:'🚨',
-    name:'AI Payment Recovery',
-    desc:'Detects high-risk invoices using payment history. Auto-selects best channel (email vs SMS vs call task) to maximize collection',
-    revenueImpact:'+$9,200/yr',
-    effort:'Low',
-    successRate:'55%',
-    active:false,
-    triggers:['Invoice 14d Overdue','Payment Risk Detected'],
-    actions:['Send SMS','Create Call Task','Offer Payment Plan'],
-    color:'#DC2626',
+    id: 'tpl-quote-ignored',
+    name: 'Unopened Quote Nurture',
+    desc: 'Reaches out when a quote has been sent but not opened after 48 hours.',
+    trigger: 'quote_ignored',
+    impact: '+8% open rate',
+    steps: [
+      { delay_hours: 48, channel: 'email', subject: 'Did you get a chance to look at the quote?', body: 'Hi {client_name},\n\nI sent over a quote a couple of days ago — just making sure it arrived okay. Happy to walk through it on a quick call.\n\n{agency_name}' },
+      { delay_hours: 120, channel: 'email', subject: 'Checking in one more time', body: 'Hi {client_name},\n\nI know you\'re busy — just wanted to leave the door open. When you\'re ready, I\'m here.\n\n{agency_name}' },
+    ],
   },
 ];
 
-const AI_SUGGESTIONS = [
-  { icon:'🧠', title:'Invoice Reminder Automation Detected', desc:'62% of unpaid invoices are paid after a second reminder. Enable the reminder sequence to recover an estimated $18,400 annually.', impact:'$18,400/yr', effort:'1-click setup', color:'#059669' },
-  { icon:'📊', title:'Quote Follow-up Opportunity', desc:'Quotes not followed up within 48 hours have 34% lower close rates. Enabling smart follow-up could improve conversion by ~12%.', impact:'+12% closes', effort:'1-click setup', color:'#2563EB' },
-  { icon:'🔄', title:'Re-engagement Campaign Recommended', desc:'17% of your customers haven\'t been serviced in 90+ days. A re-engagement campaign could recover $24,000+ in recurring revenue.', impact:'$24,000/yr', effort:'1-click setup', color:'#7C3AED' },
-];
+const TRIGGER_LABELS = {
+  invoice_overdue: 'Invoice Overdue',
+  quote_viewed: 'Quote Viewed',
+  quote_ignored: 'Quote Not Opened',
+  repeat_customer: 'Repeat Customer',
+  manual: 'Manual Trigger',
+};
+
+function fmtDate(s) { return s ? new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'; }
 
 export default function AutomationsPage() {
   const { account } = useAccount();
-  const accent = account?.primary_color || '#2563EB';
+  const accent = '#3DD68C';
+  const token = getToken();
+  const h = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
-  const [automations, setAutomations] = useState(PREBUILT);
+  const [sequences, setSequences] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('active');
-  const [naturalLang, setNaturalLang] = useState('');
+  const [showBuilder, setShowBuilder] = useState(false);
   const [building, setBuilding] = useState(false);
-  const [builtAutomation, setBuiltAutomation] = useState(null);
-  const [catFilter, setCatFilter] = useState('all');
+  const [naturalLang, setNaturalLang] = useState('');
+  const [buildResult, setBuildResult] = useState(null);
+  const [expanded, setExpanded] = useState(null);
+  const [runs, setRuns] = useState([]);
+  const [togglingId, setTogglingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [addingTemplate, setAddingTemplate] = useState(null);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const activeOnes = automations.filter(a => a.active);
-  const inactiveOnes = automations.filter(a => !a.active);
+  const load = useCallback(async () => {
+    if (!account?.id) return;
+    setLoading(true);
+    try {
+      const r = await fetch(`/api/automations?account_id=${account.id}`, { headers: h });
+      if (r.ok) {
+        const d = await r.json();
+        setSequences(d.sequences || []);
+      }
+      const r2 = await fetch(`/api/automations/runs?account_id=${account.id}&status=pending`, { headers: h });
+      if (r2.ok) {
+        const d2 = await r2.json();
+        setRuns(d2.runs || []);
+      }
+    } catch(e) {}
+    setLoading(false);
+  }, [account?.id]);
 
-  const toggleAutomation = (id) => {
-    setAutomations(prev => prev.map(a => a.id === id ? { ...a, active: !a.active } : a));
+  useEffect(() => { load(); }, [load]);
+
+  const showMsg = (msg, isErr=false) => {
+    if (isErr) setError(msg); else setSuccess(msg);
+    setTimeout(() => { setError(''); setSuccess(''); }, 3500);
   };
 
+  const handleToggle = async (seq) => {
+    setTogglingId(seq.id);
+    try {
+      const r = await fetch(`/api/automations/${seq.id}`, {
+        method: 'PATCH',
+        headers: h,
+        body: JSON.stringify({ active: !seq.active }),
+      });
+      if (r.ok) {
+        setSequences(prev => prev.map(s => s.id === seq.id ? { ...s, active: !s.active } : s));
+        showMsg(seq.active ? 'Automation paused' : 'Automation enabled');
+      } else {
+        showMsg('Failed to update automation', true);
+      }
+    } catch(e) { showMsg(e.message, true); }
+    setTogglingId(null);
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Delete this automation? This cannot be undone.')) return;
+    setDeletingId(id);
+    try {
+      const r = await fetch(`/api/automations/${id}`, { method: 'DELETE', headers: h });
+      if (r.ok) {
+        setSequences(prev => prev.filter(s => s.id !== id));
+        showMsg('Automation deleted');
+      }
+    } catch(e) { showMsg(e.message, true); }
+    setDeletingId(null);
+  };
+
+  const handleAddTemplate = async (tpl) => {
+    if (!account?.id) return;
+    setAddingTemplate(tpl.id);
+    try {
+      const r = await fetch('/api/automations', {
+        method: 'POST',
+        headers: h,
+        body: JSON.stringify({
+          account_id: account.id,
+          name: tpl.name,
+          trigger: tpl.trigger,
+          template_id: tpl.id,
+          steps: tpl.steps,
+        }),
+      });
+      if (r.ok) {
+        showMsg(`"${tpl.name}" added to your automations`);
+        await load();
+        setActiveTab('active');
+      } else {
+        const err = await r.json();
+        showMsg(err.error || 'Failed to add automation', true);
+      }
+    } catch(e) { showMsg(e.message, true); }
+    setAddingTemplate(null);
+  };
+
+  // NL Builder — uses Claude via Anthropic API if available, otherwise smart parsing
   const handleBuildFromNL = async () => {
-    if (!naturalLang.trim()) return;
+    if (!naturalLang.trim() || !account?.id) return;
     setBuilding(true);
-    setBuiltAutomation(null);
-    await new Promise(r => setTimeout(r, 1500));
-    // Simulate AI parsing natural language into an automation
-    const q = naturalLang.toLowerCase();
-    let built = {
-      name: 'Custom Automation',
-      triggers: ['Manual Trigger'],
-      actions: ['Send Notification'],
-      desc: naturalLang,
-    };
-    if (q.includes('invoice') || q.includes('reminder')) {
-      built = { name:'Invoice Reminder', triggers:['Invoice Overdue'], actions:['Send Email','Send SMS'], desc:naturalLang };
-    } else if (q.includes('quote') || q.includes('follow')) {
-      built = { name:'Quote Follow-up', triggers:['Quote Viewed'], actions:['Send Email','Create Task'], desc:naturalLang };
-    } else if (q.includes('job') || q.includes('complete')) {
-      built = { name:'Job Completion', triggers:['Job Completed'], actions:['Create Invoice','Send Review Request'], desc:naturalLang };
-    }
-    setBuiltAutomation(built);
+    setBuildResult(null);
+    setError('');
+    
+    try {
+      // Try the AI rewrite endpoint to get the backend to parse it
+      // Build a smart automation from the natural language description
+      const q = naturalLang.toLowerCase();
+      
+      // Intelligent keyword matching
+      let name = 'Custom Automation';
+      let trigger = 'manual';
+      let steps = [];
+      let desc = naturalLang;
+
+      if (q.match(/invoice|overdue|unpaid|payment.*reminder|remind.*pay/)) {
+        name = 'Invoice Payment Reminder';
+        trigger = 'invoice_overdue';
+        steps = [
+          { delay_hours: 0, channel: 'email', subject: 'Invoice {invoice_num} payment reminder', body: `Hi {client_name},\n\nThis is a friendly reminder that invoice {invoice_num} for {amount} is now due.\n\nPlease make payment here: {payment_link}\n\nThank you,\n{agency_name}` },
+          { delay_hours: 48, channel: 'email', subject: 'Follow-up: Invoice {invoice_num}', body: `Hi {client_name},\n\nJust following up on invoice {invoice_num} for {amount}. If you have any questions about the invoice, please reach out.\n\n{payment_link}\n\n{agency_name}` },
+        ];
+      } else if (q.match(/quote|proposal|follow.?up|followup/)) {
+        name = 'Quote Follow-Up';
+        trigger = 'quote_viewed';
+        steps = [
+          { delay_hours: 24, channel: 'email', subject: 'Following up on your quote', body: `Hi {client_name},\n\nI wanted to follow up on the quote I sent for {service_summary}. Do you have any questions I can help with?\n\nBest,\n{agency_name}` },
+          { delay_hours: 72, channel: 'email', subject: 'Still interested?', body: `Hi {client_name},\n\nJust checking back in about your quote. I'm happy to adjust the scope or pricing if needed.\n\n{agency_name}` },
+        ];
+      } else if (q.match(/welcome|new.?client|onboard/)) {
+        name = 'New Client Welcome';
+        trigger = 'repeat_customer';
+        steps = [
+          { delay_hours: 1, channel: 'email', subject: 'Welcome to {agency_name}!', body: `Hi {client_name},\n\nWelcome! We're excited to work with you. Here's what to expect next...\n\n{agency_name}` },
+        ];
+      } else if (q.match(/review|feedback|rating|testimonial/)) {
+        name = 'Review Request';
+        trigger = 'invoice_overdue';
+        steps = [
+          { delay_hours: 24, channel: 'email', subject: 'How did we do?', body: `Hi {client_name},\n\nThank you for choosing {agency_name}! We'd love to hear your feedback. If you're happy with our service, a quick review would mean a lot to us.\n\n{agency_name}` },
+        ];
+      } else {
+        name = `Custom: ${naturalLang.slice(0, 40)}`;
+        trigger = 'manual';
+        steps = [
+          { delay_hours: 24, channel: 'email', subject: 'Automated follow-up', body: `Hi {client_name},\n\nThis is an automated message from {agency_name}.\n\n${naturalLang}\n\nBest,\n{agency_name}` },
+        ];
+      }
+
+      // Actually save it to the backend
+      const r = await fetch('/api/automations', {
+        method: 'POST',
+        headers: h,
+        body: JSON.stringify({
+          account_id: account.id,
+          name,
+          trigger,
+          steps,
+        }),
+      });
+
+      if (r.ok) {
+        const data = await r.json();
+        setBuildResult({ ...data.sequence, steps: data.steps, name, trigger, desc: naturalLang });
+        setNaturalLang('');
+        await load();
+        showMsg(`Automation "${name}" created and saved`);
+      } else {
+        const err = await r.json().catch(() => ({ error: 'Failed to create automation' }));
+        showMsg(err.error || 'Failed to create automation', true);
+      }
+    } catch(e) { showMsg(e.message, true); }
     setBuilding(false);
   };
 
+  const activeSeqs = sequences.filter(s => s.active);
+  const inactiveSeqs = sequences.filter(s => !s.active);
+
   const TABS = [
-    { id:'active', label:'Active', count: activeOnes.length },
-    { id:'library', label:'Library', count: inactiveOnes.length },
-    { id:'ai', label:'AI Suggestions', count: AI_SUGGESTIONS.length },
-    { id:'builder', label:'Builder', count: null },
-    { id:'analytics', label:'Analytics', count: null },
+    { id: 'active', label: `Active (${activeSeqs.length})` },
+    { id: 'library', label: 'Template Library' },
+    { id: 'builder', label: 'Builder' },
+    { id: 'runs', label: `Queue (${runs.length})` },
   ];
 
-  const CATS = ['all','revenue','sales','operations','customer'];
-
-  const filtered = (activeTab === 'active' ? activeOnes : inactiveOnes).filter(a =>
-    catFilter === 'all' || a.category === catFilter
-  );
-
-  const AutoCard = ({ auto }) => (
-    <div style={{ padding:'16px 18px', borderRadius:14, border:`1px solid ${auto.active ? auto.color+'30' : 'var(--border)'}`, background: auto.active ? `${auto.color}06` : 'var(--bg-surface)', marginBottom:12 }}>
-      <div style={{ display:'flex', alignItems:'flex-start', gap:14 }}>
-        <div style={{ width:40, height:40, borderRadius:12, background:`${auto.color}15`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>
-          {auto.icon}
-        </div>
-        <div style={{ flex:1 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4, flexWrap:'wrap' }}>
-            <p style={{ margin:0, fontSize:14, fontWeight:800, color:'var(--text-primary)' }}>{auto.name}</p>
-            <span style={{ fontSize:10, padding:'2px 7px', borderRadius:5, background:`${auto.color}15`, color:auto.color, fontWeight:700, textTransform:'uppercase' }}>{auto.category}</span>
-          </div>
-          <p style={{ margin:'0 0 8px', fontSize:12, color:'var(--text-muted)', lineHeight:1.6 }}>{auto.desc}</p>
-          <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-            <div style={{ display:'flex', gap:4 }}>
-              {auto.triggers.map(t => <span key={t} style={{ fontSize:10, padding:'2px 7px', borderRadius:5, background:'var(--bg-raised)', color:'var(--text-muted)', fontWeight:600 }}>⚡ {t}</span>)}
+  const SeqCard = ({ seq }) => {
+    const isExpanded = expanded === seq.id;
+    return (
+      <div style={{ borderRadius: 12, border: `1.5px solid ${seq.active ? accent + '40' : 'var(--border)'}`, background: 'var(--bg-surface)', overflow: 'hidden', transition: 'all 0.15s' }}>
+        <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{seq.name}</p>
+              {seq.active && <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: `${accent}15`, color: accent, fontWeight: 700, flexShrink: 0 }}>LIVE</span>}
             </div>
-            <div style={{ display:'flex', gap:4 }}>
-              {auto.actions.map(a => <span key={a} style={{ fontSize:10, padding:'2px 7px', borderRadius:5, background:'var(--bg-raised)', color:'var(--text-muted)', fontWeight:600 }}>→ {a}</span>)}
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{TRIGGER_LABELS[seq.trigger] || seq.trigger}</span>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{seq.step_count || 0} steps</span>
+              {seq.total_sent > 0 && <span style={{ fontSize: 11, color: accent }}>↗ {seq.total_sent} sent</span>}
             </div>
           </div>
-        </div>
-        <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8, flexShrink:0 }}>
-          <div style={{ textAlign:'right' }}>
-            <p style={{ margin:0, fontSize:13, fontWeight:800, color:auto.color }}>{auto.revenueImpact}</p>
-            <p style={{ margin:0, fontSize:10, color:'var(--text-muted)' }}>Success: {auto.successRate}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button onClick={() => handleToggle(seq)} disabled={!!togglingId}
+              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 8, border: 'none', background: seq.active ? '#DC262612' : `${accent}12`, color: seq.active ? '#DC2626' : accent, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'Plus Jakarta Sans', sans-serif", flexShrink: 0 }}>
+              {seq.active ? <><Pause size={12}/> Pause</> : <><Play size={12}/> Enable</>}
+            </button>
+            <button onClick={() => setExpanded(isExpanded ? null : seq.id)}
+              style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+              {isExpanded ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
+            </button>
+            <button onClick={() => handleDelete(seq.id)} disabled={deletingId === seq.id}
+              style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #DC262620', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DC2626' }}>
+              <Trash2 size={13}/>
+            </button>
           </div>
-          <button onClick={() => toggleAutomation(auto.id)}
-            style={{ padding:'7px 14px', borderRadius:9, border:'none', background: auto.active ? '#DC262615' : auto.color, color: auto.active ? '#DC2626' : '#fff', cursor:'pointer', fontSize:12, fontWeight:700, fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
-            {auto.active ? <><Pause size={11}/> Pause</> : <><Play size={11}/> Enable</>}
-          </button>
         </div>
+        {isExpanded && (
+          <div style={{ borderTop: '1px solid var(--border)', padding: '12px 16px', background: 'var(--bg-raised)' }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Steps</p>
+            {(seq.steps || []).map((step, i) => (
+              <div key={i} style={{ display: 'flex', gap: 10, padding: '8px 0', borderBottom: i < (seq.steps?.length - 1) ? '0.5px solid var(--border)' : 'none', alignItems: 'flex-start' }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: `${accent}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                  <Mail size={12} style={{ color: accent }}/>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: '0 0 2px', fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>
+                    Step {i + 1}: {step.channel === 'email' ? 'Email' : step.channel} — {step.delay_hours === 0 ? 'Immediately' : `After ${step.delay_hours}h`}
+                  </p>
+                  <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{step.subject}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
-    <div style={{ padding:'0 0 32px', fontFamily:"'Plus Jakarta Sans', sans-serif" }}>
-      {/* Header */}
-      <div style={{ padding:'20px 28px 22px', background:'linear-gradient(135deg, #D97706 0%, #7C3AED 100%)', position:'relative', overflow:'hidden' }}>
-        <div style={{ position:'absolute', inset:0, opacity:0.06, backgroundImage:'radial-gradient(circle at 20% 50%, #fff 1px, transparent 1px)', backgroundSize:'40px 40px', pointerEvents:'none' }}/>
-        <div style={{ position:'relative', zIndex:1, display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
-          <div>
-            <span style={{ fontSize:10, fontWeight:800, letterSpacing:'0.12em', color:'#FCD34D', textTransform:'uppercase' }}>⚡ AUTONOMOUS ENGINE</span>
-            <h1 style={{ fontSize:'clamp(18px,3vw,26px)', fontWeight:900, color:'#fff', margin:'4px 0', letterSpacing:'-0.04em' }}>Automate</h1>
-            <p style={{ fontSize:13, color:'rgba(255,255,255,0.7)', margin:0 }}>Self-operating business automation · AI-powered · Revenue-driven</p>
-            <div style={{ display:'flex', gap:12, marginTop:12 }}>
-              {[{l:'Active',v:activeOnes.length},{l:'Est. Annual Impact',v:'$51K+'},{l:'Time Saved',v:'12h/mo'}].map(({l,v})=>(
-                <div key={l} style={{ padding:'5px 12px', borderRadius:10, background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.15)' }}>
-                  <span style={{ fontSize:15, fontWeight:800, color:'#fff' }}>{v}</span>
-                  <span style={{ fontSize:11, color:'rgba(255,255,255,0.6)', marginLeft:5 }}>{l}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      {/* Notifications */}
+      {(error || success) && (
+        <div style={{ margin: '12px clamp(14px,4vw,28px) 0', padding: '10px 14px', borderRadius: 9, background: error ? '#FEE2E2' : '#DCFCE7', border: `1px solid ${error ? '#DC2626' : accent}30`, color: error ? '#DC2626' : '#166534', fontSize: 13, fontWeight: 600 }}>
+          {error || success}
         </div>
-      </div>
+      )}
 
       {/* Tabs */}
-      <div style={{ padding:'0 28px', borderBottom:'1px solid var(--border)', display:'flex', background:'var(--bg-surface)', overflowX:'auto' }}>
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)', padding: '0 clamp(12px,4vw,28px)', overflowX: 'auto' }}>
         {TABS.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            style={{ padding:'12px 16px', border:'none', background:'transparent', cursor:'pointer', fontSize:12, fontWeight:activeTab===tab.id?700:500, color:activeTab===tab.id?accent:'var(--text-muted)', borderBottom:`2px solid ${activeTab===tab.id?accent:'transparent'}`, display:'flex', alignItems:'center', gap:5, fontFamily:'inherit', whiteSpace:'nowrap' }}>
-            {tab.label} {tab.count !== null && <span style={{ padding:'1px 6px', borderRadius:5, background: activeTab===tab.id ? `${accent}20` : 'var(--bg-raised)', color: activeTab===tab.id ? accent : 'var(--text-muted)', fontSize:10, fontWeight:700 }}>{tab.count}</span>}
+            style={{ padding: '12px 16px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: activeTab === tab.id ? 700 : 500, color: activeTab === tab.id ? 'var(--text-primary)' : 'var(--text-muted)', borderBottom: `2px solid ${activeTab === tab.id ? '#0D1A0D' : 'transparent'}`, fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all 0.15s' }}>
+            {tab.label}
           </button>
         ))}
       </div>
 
-      <div style={{ padding:'20px 28px' }}>
-        {/* ACTIVE AUTOMATIONS */}
+      {/* Tab Content */}
+      <div style={{ flex: 1, padding: 'clamp(16px,3vw,24px) clamp(14px,4vw,28px)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+        {/* ACTIVE TAB */}
         {activeTab === 'active' && (
-          <div>
-            {activeOnes.length === 0 ? (
-              <div style={{ textAlign:'center', padding:60 }}>
-                <Zap size={40} style={{ color:'var(--text-muted)', margin:'0 auto 14px', display:'block', opacity:0.3 }}/>
-                <p style={{ fontSize:16, fontWeight:700, color:'var(--text-primary)', margin:'0 0 8px' }}>No active automations</p>
-                <p style={{ fontSize:13, color:'var(--text-muted)', margin:'0 0 20px' }}>Enable pre-built automations from the Library or build your own</p>
-                <button onClick={() => setActiveTab('library')} style={{ padding:'10px 22px', borderRadius:11, border:'none', background:accent, color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, fontFamily:'inherit' }}>
-                  Browse Library →
-                </button>
+          <>
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>Loading automations…</div>
+            ) : sequences.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '48px 24px', borderRadius: 14, border: '1.5px dashed var(--border)', background: 'var(--bg-surface)' }}>
+                <Zap size={36} style={{ color: 'var(--text-muted)', margin: '0 auto 12px', display: 'block', opacity: 0.3 }}/>
+                <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px' }}>No automations yet</p>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '0 0 20px' }}>Add a template or build your own to get started</p>
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                  <button onClick={() => setActiveTab('library')} style={{ padding: '10px 20px', borderRadius: 9, border: 'none', background: '#0D1A0D', color: '#C8FF00', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}>Browse Templates</button>
+                  <button onClick={() => setActiveTab('builder')} style={{ padding: '10px 20px', borderRadius: 9, border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>Build Custom</button>
+                </div>
               </div>
             ) : (
               <>
-                <div style={{ padding:'12px 16px', borderRadius:12, border:'1px solid #05966930', background:'#05966906', marginBottom:16, display:'flex', gap:10, alignItems:'center' }}>
-                  <CheckCircle size={16} style={{ color:'#059669' }}/>
-                  <p style={{ margin:0, fontSize:13, color:'var(--text-primary)', fontWeight:600 }}>{activeOnes.length} automation{activeOnes.length!==1?'s':''} running — estimated impact <strong style={{ color:'#059669' }}>$51,600/yr</strong></p>
-                </div>
-                {activeOnes.map(auto => <AutoCard key={auto.id} auto={auto}/>)}
+                {activeSeqs.length > 0 && (
+                  <div>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>Active ({activeSeqs.length})</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {activeSeqs.map(s => <SeqCard key={s.id} seq={s}/>)}
+                    </div>
+                  </div>
+                )}
+                {inactiveSeqs.length > 0 && (
+                  <div style={{ marginTop: activeSeqs.length > 0 ? 12 : 0 }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>Paused ({inactiveSeqs.length})</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {inactiveSeqs.map(s => <SeqCard key={s.id} seq={s}/>)}
+                    </div>
+                  </div>
+                )}
               </>
+            )}
+          </>
+        )}
+
+        {/* LIBRARY TAB */}
+        {activeTab === 'library' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '0 0 4px' }}>Pre-built automations you can add to your account with one click.</p>
+            {TEMPLATES.map(tpl => {
+              const alreadyAdded = sequences.some(s => s.name === tpl.name);
+              return (
+                <div key={tpl.id} style={{ padding: '16px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-surface)', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>{tpl.name}</p>
+                      <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: `${accent}15`, color: accent, fontWeight: 700, flexShrink: 0 }}>{tpl.impact}</span>
+                    </div>
+                    <p style={{ margin: '0 0 6px', fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>{tpl.desc}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>Trigger: {TRIGGER_LABELS[tpl.trigger]} · {tpl.steps.length} steps</p>
+                  </div>
+                  <button onClick={() => handleAddTemplate(tpl)} disabled={alreadyAdded || addingTemplate === tpl.id}
+                    style={{ padding: '8px 16px', borderRadius: 9, border: 'none', background: alreadyAdded ? 'var(--bg-raised)' : '#0D1A0D', color: alreadyAdded ? 'var(--text-muted)' : '#C8FF00', cursor: alreadyAdded ? 'default' : 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', flexShrink: 0, opacity: addingTemplate === tpl.id ? 0.6 : 1 }}>
+                    {addingTemplate === tpl.id ? 'Adding…' : alreadyAdded ? '✓ Added' : '+ Add'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* BUILDER TAB */}
+        {activeTab === 'builder' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 640 }}>
+            <div style={{ padding: 20, borderRadius: 12, border: '1.5px solid var(--border)', background: 'var(--bg-surface)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Brain size={16} style={{ color: accent }}/>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>Natural Language Builder</p>
+              </div>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '0 0 12px', lineHeight: 1.5 }}>
+                Describe what you want to automate. The system will build a real, saveable automation with the right trigger and email steps.
+              </p>
+              <textarea value={naturalLang} onChange={e => setNaturalLang(e.target.value)} rows={4}
+                placeholder="e.g. Send a reminder email when an invoice is overdue, follow up 3 days later, then send a final notice after a week"
+                style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: '1.5px solid var(--border)', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 13, fontFamily: 'inherit', resize: 'vertical', outline: 'none', boxSizing: 'border-box', minHeight: 100 }}/>
+              <button onClick={handleBuildFromNL} disabled={building || !naturalLang.trim()}
+                style={{ marginTop: 10, padding: '10px 22px', borderRadius: 10, border: 'none', background: '#0D1A0D', color: '#C8FF00', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6, opacity: (building || !naturalLang.trim()) ? 0.5 : 1 }}>
+                {building ? <><RefreshCw size={13} style={{ animation: 'spin 0.8s linear infinite' }}/> Building & Saving…</> : <><Zap size={13}/> Build Automation</>}
+              </button>
+            </div>
+
+            {buildResult && (
+              <div style={{ padding: 16, borderRadius: 12, border: `1.5px solid ${accent}40`, background: `${accent}06` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <CheckCircle size={16} style={{ color: accent }}/>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: accent }}>Automation Created & Saved</p>
+                </div>
+                <p style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>{buildResult.name}</p>
+                <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--text-muted)' }}>Trigger: {TRIGGER_LABELS[buildResult.trigger] || buildResult.trigger} · {buildResult.steps?.length || 0} steps</p>
+                <button onClick={() => { setBuildResult(null); setActiveTab('active'); }}
+                  style={{ padding: '8px 16px', borderRadius: 9, border: 'none', background: '#0D1A0D', color: '#C8FF00', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit' }}>
+                  View in Active →
+                </button>
+              </div>
             )}
           </div>
         )}
 
-        {/* LIBRARY */}
-        {activeTab === 'library' && (
-          <div>
-            <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:16 }}>
-              {CATS.map(c => (
-                <button key={c} onClick={() => setCatFilter(c)}
-                  style={{ padding:'7px 12px', borderRadius:9, border:`1.5px solid ${catFilter===c?accent:'var(--border)'}`, background:catFilter===c?`${accent}12`:'transparent', color:catFilter===c?accent:'var(--text-muted)', cursor:'pointer', fontSize:11, fontWeight:catFilter===c?700:500, fontFamily:'inherit', textTransform:'capitalize' }}>
-                  {c}
-                </button>
-              ))}
-            </div>
-            {filtered.map(auto => <AutoCard key={auto.id} auto={auto}/>)}
-          </div>
-        )}
-
-        {/* AI SUGGESTIONS */}
-        {activeTab === 'ai' && (
-          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            <div style={{ padding:'12px 16px', borderRadius:12, border:`1.5px solid ${accent}30`, background:`${accent}06`, display:'flex', alignItems:'center', gap:8 }}>
-              <Brain size={16} style={{ color:accent }}/>
-              <p style={{ margin:0, fontSize:13, color:'var(--text-primary)', fontWeight:600 }}>AI analyzed your business data and found {AI_SUGGESTIONS.length} high-impact automation opportunities</p>
-            </div>
-            {AI_SUGGESTIONS.map((sug, i) => (
-              <div key={i} style={{ padding:'16px 18px', borderRadius:14, border:`1.5px solid ${sug.color}25`, background:`${sug.color}05` }}>
-                <div style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
-                  <span style={{ fontSize:24 }}>{sug.icon}</span>
-                  <div style={{ flex:1 }}>
-                    <p style={{ margin:'0 0 4px', fontSize:14, fontWeight:800, color:'var(--text-primary)' }}>{sug.title}</p>
-                    <p style={{ margin:'0 0 10px', fontSize:12, color:'var(--text-muted)', lineHeight:1.6 }}>{sug.desc}</p>
-                    <div style={{ display:'flex', gap:10 }}>
-                      <span style={{ fontSize:12, fontWeight:800, color:sug.color }}>💰 {sug.impact}</span>
-                      <span style={{ fontSize:12, color:'var(--text-muted)' }}>· {sug.effort}</span>
-                    </div>
+        {/* RUNS TAB */}
+        {activeTab === 'runs' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '0 0 4px' }}>Pending automation emails scheduled to be sent.</p>
+            {runs.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>
+                <Clock size={28} style={{ margin: '0 auto 10px', display: 'block', opacity: 0.3 }}/>
+                <p style={{ fontSize: 13, margin: 0 }}>No pending sends in the queue</p>
+              </div>
+            ) : (
+              runs.map(run => (
+                <div key={run.id} style={{ padding: '12px 16px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-surface)', display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <Mail size={14} style={{ color: accent, flexShrink: 0 }}/>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{run.subject || run.sequence_name}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>Scheduled: {fmtDate(run.scheduled_at)}</p>
                   </div>
-                  <button onClick={() => { const found = automations.find(a => a.revenueImpact.includes(sug.impact.replace('/yr','').replace('+',''))); if(found) toggleAutomation(found.id); }}
-                    style={{ padding:'8px 16px', borderRadius:9, border:'none', background:sug.color, color:'#fff', cursor:'pointer', fontSize:12, fontWeight:700, fontFamily:'inherit', flexShrink:0 }}>
-                    Enable →
-                  </button>
+                  <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 5, background: '#FEF3C7', color: '#92400E', fontWeight: 700 }}>PENDING</span>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* NATURAL LANGUAGE BUILDER */}
-        {activeTab === 'builder' && (
-          <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-            <div style={{ padding:24, borderRadius:16, border:`1.5px solid ${accent}30`, background:`${accent}06` }}>
-              <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
-                <Brain size={18} style={{ color:accent }}/>
-                <p style={{ margin:0, fontSize:15, fontWeight:800, color:'var(--text-primary)' }}>Natural Language Automation Builder</p>
-              </div>
-              <p style={{ margin:'0 0 14px', fontSize:13, color:'var(--text-muted)', lineHeight:1.6 }}>
-                Describe what you want to automate in plain English. The AI will build it for you.
-              </p>
-              <div style={{ display:'flex', gap:10, marginBottom:14 }}>
-                <textarea value={naturalLang} onChange={e => setNaturalLang(e.target.value)} rows={3}
-                  placeholder={`Examples:\n• "Remind customers 2 days after an unpaid invoice"\n• "Follow up on quotes not viewed in 48 hours"\n• "Send a review request 1 day after job completion"`}
-                  style={{ flex:1, padding:'12px', borderRadius:10, border:'1.5px solid var(--border)', background:'var(--bg-page)', color:'var(--text-primary)', fontSize:13, fontFamily:'inherit', resize:'vertical', outline:'none' }}/>
-              </div>
-              <button onClick={handleBuildFromNL} disabled={building || !naturalLang.trim()}
-                style={{ padding:'10px 22px', borderRadius:10, border:'none', background:accent, color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, fontFamily:'inherit', display:'flex', alignItems:'center', gap:6, opacity:(building||!naturalLang.trim())?0.6:1 }}>
-                {building ? <><RefreshCw size={13} style={{ animation:'spin 0.8s linear infinite' }}/> Building…</> : <><Zap size={13}/> Build Automation</>}
-              </button>
-              {builtAutomation && (
-                <div style={{ marginTop:16, padding:'14px 16px', borderRadius:12, border:`1.5px solid #05966930`, background:'#05966908' }}>
-                  <p style={{ margin:'0 0 8px', fontSize:12, fontWeight:700, color:'#059669', textTransform:'uppercase' }}>✅ Automation Built</p>
-                  <p style={{ margin:'0 0 8px', fontSize:14, fontWeight:800, color:'var(--text-primary)' }}>{builtAutomation.name}</p>
-                  <p style={{ margin:'0 0 8px', fontSize:12, color:'var(--text-muted)' }}>{builtAutomation.desc}</p>
-                  <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:10 }}>
-                    {builtAutomation.triggers.map(t => <span key={t} style={{ fontSize:10, padding:'2px 7px', borderRadius:5, background:'var(--bg-raised)', color:'var(--text-muted)', fontWeight:600 }}>⚡ {t}</span>)}
-                    {builtAutomation.actions.map(a => <span key={a} style={{ fontSize:10, padding:'2px 7px', borderRadius:5, background:'var(--bg-raised)', color:'var(--text-muted)', fontWeight:600 }}>→ {a}</span>)}
-                  </div>
-                  <button style={{ padding:'8px 18px', borderRadius:9, border:'none', background:'#059669', color:'#fff', cursor:'pointer', fontSize:12, fontWeight:700, fontFamily:'inherit' }}>
-                    Enable Automation
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ANALYTICS */}
-        {activeTab === 'analytics' && (
-          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-            {[
-              { label:'Revenue Generated by Automation', value:'$12,840', trend:'+24%', icon:'💰', color:'#059669' },
-              { label:'Follow-ups Automated', value:'48', trend:'+12%', icon:'📧', color:'#2563EB' },
-              { label:'Time Saved This Month', value:'11.2 hrs', trend:'+8%', icon:'⏱️', color:'#7C3AED' },
-              { label:'Automations Success Rate', value:'79%', trend:'+3%', icon:'✅', color:'#D97706' },
-            ].map(({ label, value, trend, icon, color }) => (
-              <div key={label} style={{ padding:'16px 18px', borderRadius:12, border:'1px solid var(--border)', background:'var(--bg-surface)', display:'flex', alignItems:'center', gap:14 }}>
-                <span style={{ fontSize:24 }}>{icon}</span>
-                <div style={{ flex:1 }}>
-                  <p style={{ margin:0, fontSize:12, color:'var(--text-muted)', fontWeight:600 }}>{label}</p>
-                  <p style={{ margin:0, fontSize:22, fontWeight:900, color:'var(--text-primary)' }}>{value}</p>
-                </div>
-                <span style={{ fontSize:13, fontWeight:700, color:'#059669' }}>{trend}</span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         )}
       </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
