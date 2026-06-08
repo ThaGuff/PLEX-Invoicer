@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Save, RefreshCw, CheckCircle, DollarSign, Clock, CreditCard } from 'lucide-react';
 import { api } from '../utils/api';
 
-export default function FeeRulesSettings({ accountId, accent = '#13B5EA' }) {
+export default function FeeRulesSettings({ accountId, accent = '#3DD68C' }) {
   const [rules, setRules]   = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved]   = useState(false);
@@ -116,7 +116,7 @@ export default function FeeRulesSettings({ accountId, accent = '#13B5EA' }) {
 
       <button onClick={save} disabled={saving}
         className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg text-white disabled:opacity-50"
-        style={{ background: saved ? '#22c55e' : accent }}>
+        style={{ background: saved ? '#3DD68C' : accent }}>
         {saved ? <><CheckCircle size={14}/>Saved!</> : saving ? <><RefreshCw size={14} className="animate-spin"/>Saving…</> : <><Save size={14}/>Save fee rules</>}
       </button>
     </div>
