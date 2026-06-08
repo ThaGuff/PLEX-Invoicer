@@ -24,7 +24,7 @@ const FEATURE_PLANS = {
 
 const PLAN_NAMES = { starter: 'Starter', pro: 'Pro', agency: 'Agency' };
 const PLAN_ICONS = { pro: Star, agency: Building2 };
-const PLAN_COLORS = { pro: '#7C3AED', agency: '#D97706' };
+const PLAN_COLORS = { pro: '#3DD68C', agency: '#64748B' };
 
 export default function PlanGate({ feature, children }) {
   const { account } = useAccount();
@@ -42,7 +42,7 @@ export default function PlanGate({ feature, children }) {
   if (hasAccess) return children;
 
   const PlanIcon = PLAN_ICONS[requiredPlan] || Zap;
-  const planColor = PLAN_COLORS[requiredPlan] || '#7C3AED';
+  const planColor = PLAN_COLORS[requiredPlan] || '#3DD68C';
 
   return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'60vh', padding:24, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
@@ -59,7 +59,7 @@ export default function PlanGate({ feature, children }) {
         </p>
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
           <button onClick={() => navigate('/billing')}
-            style={{ width:'100%', padding:'14px', background:`linear-gradient(135deg,${planColor},#2563EB)`, color:'#fff', border:'none', borderRadius:12, fontSize:15, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+            style={{ width:'100%', padding:'14px', background:'#3DD68C', color:'#fff', border:'none', borderRadius:12, fontSize:15, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
             <PlanIcon size={16} /> Upgrade to {PLAN_NAMES[requiredPlan]}
           </button>
           <button onClick={() => navigate(-1)}
