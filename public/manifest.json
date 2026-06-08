@@ -1,130 +1,51 @@
 {
-  "name": "Revanew \u2014 Quotes. Invoices. Get Paid.",
+  "name": "Revanew — Quotes. Invoices. Get Paid.",
   "short_name": "Revanew",
-  "description": "Send quotes, collect payments, and grow your service business with AI-powered automation.",
-  "start_url": "https://revanew.io/",
-  "scope": "https://revanew.io/",
+  "description": "Send quotes, collect payments, and run your service business from your phone. Built for contractors, cleaners, and service pros.",
+  "start_url": "/dashboard",
   "display": "standalone",
-  "display_override": [
-    "standalone",
-    "minimal-ui",
-    "browser"
-  ],
-  "orientation": "portrait-primary",
-  "theme_color": "#2563EB",
-  "background_color": "#F8FAFC",
-  "categories": [
-    "business",
-    "finance",
-    "productivity"
-  ],
+  "orientation": "portrait",
+  "theme_color": "#0D1A0D",
+  "background_color": "#EEEEE6",
+  "scope": "/",
   "lang": "en-US",
-  "dir": "ltr",
-  "icons": [
-    {
-      "src": "/icons/icon-72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-192-maskable.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/icons/icon-384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-512-maskable.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshots/mobile-dashboard.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Dashboard \u2014 revenue overview and quick actions"
-    },
-    {
-      "src": "/screenshots/mobile-quotes.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Quotes \u2014 create and manage client quotes"
-    }
-  ],
+  "categories": ["business", "finance", "productivity"],
+  "screenshots": [],
   "shortcuts": [
     {
-      "name": "New quote",
-      "short_name": "New quote",
-      "description": "Create a new client quote",
+      "name": "New Quote",
+      "short_name": "Quote",
+      "description": "Create a new quote",
       "url": "/quotes/new",
-      "icons": [
-        {
-          "src": "/icons/icon-96.png",
-          "sizes": "96x96"
-        }
-      ]
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }]
     },
     {
       "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "View revenue dashboard",
-      "url": "/",
-      "icons": [
-        {
-          "src": "/icons/icon-96.png",
-          "sizes": "96x96"
-        }
-      ]
+      "short_name": "Home",
+      "description": "View your dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Clients",
+      "short_name": "Clients",
+      "description": "View your clients",
+      "url": "/contacts",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }]
     }
   ],
+  "icons": [
+    { "src": "/icons/icon-72.png",  "sizes": "72x72",   "type": "image/png" },
+    { "src": "/icons/icon-96.png",  "sizes": "96x96",   "type": "image/png" },
+    { "src": "/icons/icon-128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "/icons/icon-144.png", "sizes": "144x144", "type": "image/png" },
+    { "src": "/icons/icon-152.png", "sizes": "152x152", "type": "image/png" },
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-384.png", "sizes": "384x384", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
   "related_applications": [],
-  "prefer_related_applications": false,
-  "id": "https://revanew.io/"
+  "prefer_related_applications": false
 }
