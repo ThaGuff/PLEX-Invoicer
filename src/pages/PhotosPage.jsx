@@ -99,7 +99,6 @@ export default function PhotosPage() {
         <div style={{ position:'relative', zIndex:1, display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
           <div>
             <span style={{ fontSize:10, fontWeight:800, letterSpacing:'0.12em', color:'#FED7AA', textTransform:'uppercase' }}>📸 VISUAL INTELLIGENCE</span>
-            <h1 style={{ fontSize:'clamp(18px,3vw,26px)', fontWeight:900, color:'#fff', margin:'4px 0', letterSpacing:'-0.04em' }}>Photos</h1>
             <p style={{ fontSize:13, color:'rgba(255,255,255,0.7)', margin:0 }}>AI photo analysis · Before & after · Property digital twin · Upsell detection</p>
             <div style={{ display:'flex', gap:12, marginTop:12 }}>
               {[{l:'Photos',v:photos.length},{l:'Job Sites',v:Object.keys(byJobSite).length},{l:'Upsell Value',v:`$${totalUpsellValue.toLocaleString()}`}].map(({l,v})=>(
