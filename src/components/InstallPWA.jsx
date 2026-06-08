@@ -66,7 +66,7 @@ export default function InstallPWA() {
   // Android/Chrome install banner
   if (canInstall) return (
     <div style={{ position:'fixed', bottom:'calc(80px + env(safe-area-inset-bottom))', left:12, right:12, zIndex:150, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:16, padding:'14px 16px', boxShadow:'0 8px 32px rgba(11,18,32,0.2)', display:'flex', alignItems:'center', gap:12, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-      <div style={{ width:40, height:40, borderRadius:11, background:'linear-gradient(135deg,#2563EB,#0D9488)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+      <div style={{ width:40, height:40, borderRadius:11, background:'#3DD68C', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
         <Smartphone size={20} color="#fff" />
       </div>
       <div style={{ flex:1, minWidth:0 }}>
@@ -75,7 +75,7 @@ export default function InstallPWA() {
       </div>
       <div style={{ display:'flex', gap:8, flexShrink:0 }}>
         <button onClick={handleInstall}
-          style={{ padding:'7px 14px', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', border:'none', borderRadius:8, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+          style={{ padding:'7px 14px', background:'#3DD68C', color:'#fff', border:'none', borderRadius:8, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
           Install
         </button>
         <button onClick={dismiss}
@@ -91,7 +91,7 @@ export default function InstallPWA() {
     <div style={{ position:'fixed', bottom:'calc(80px + env(safe-area-inset-bottom))', left:12, right:12, zIndex:150, background:'var(--bg-surface)', border:'1px solid var(--border)', borderRadius:16, padding:'16px', boxShadow:'0 8px 32px rgba(11,18,32,0.2)', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <div style={{ width:36, height:36, borderRadius:10, background:'linear-gradient(135deg,#2563EB,#0D9488)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div style={{ width:36, height:36, borderRadius:10, background:'#3DD68C', display:'flex', alignItems:'center', justifyContent:'center' }}>
             <Download size={17} color="#fff" />
           </div>
           <p style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)' }}>Install Revanew</p>
@@ -101,7 +101,7 @@ export default function InstallPWA() {
         </button>
       </div>
       <p style={{ fontSize:12, color:'var(--text-secondary)', lineHeight:1.6 }}>
-        Tap the <strong style={{ color:'#2563EB' }}>Share button</strong> <span style={{ fontSize:14 }}>⎙</span> at the bottom of Safari, then select <strong style={{ color:'#2563EB' }}>"Add to Home Screen"</strong> to install Revanew as an app.
+        Tap the <strong style={{ color:'#3DD68C' }}>Share button</strong> <span style={{ fontSize:14 }}>⎙</span> at the bottom of Safari, then select <strong style={{ color:'#3DD68C' }}>"Add to Home Screen"</strong> to install Revanew as an app.
       </p>
     </div>
   );
