@@ -4,8 +4,8 @@ import { useAccount } from '../context/AccountContext';
 import { scrapeWebsite } from '../utils/scraper';
 
 const PRESET_COLORS = [
-  '#13B5EA', '#6366f1', '#8b5cf6', '#ec4899',
-  '#f97316', '#22c55e', '#14b8a6', '#1d4ed8',
+  '#3DD68C', '#3DD68C', '#3DD68C', '#3DD68C',
+  '#64748B', '#3DD68C', '#14b8a6', '#0D1A0D',
   '#dc2626', '#d97706', '#1a1a1a', '#64748b',
 ];
 
@@ -18,7 +18,7 @@ export default function NewAccountModal({ onClose, onCreated }) {
   const [scannedSvcs, setScannedSvcs] = useState([]);
   const [form, setForm] = useState({
     name: '', email: '', phone: '', website: '',
-    primaryColor: '#13B5EA', logoInitial: '',
+    primaryColor: '#3DD68C', logoInitial: '',
   });
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
