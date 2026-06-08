@@ -102,7 +102,7 @@ export default function AIAssistant() {
           bottom: window.innerWidth < 768 ? 84 : 24,
           right: 16,
           width:48, height:48, borderRadius:'50%',
-          background:'linear-gradient(135deg,#7C3AED,#2563EB)',
+          background:'#0D1A0D',
           border:'none', cursor:'pointer', zIndex:200,
           display:'flex', alignItems:'center', justifyContent:'center',
           boxShadow:'0 8px 24px rgba(124,58,237,0.4)',
@@ -133,13 +133,13 @@ export default function AIAssistant() {
           animation:'fadeUp 0.2s ease both',
         }}>
           {/* Header */}
-          <div style={{ padding:'14px 16px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', gap:10, background:'linear-gradient(135deg,rgba(124,58,237,0.06),rgba(37,99,235,0.06))' }}>
-            <div style={{ width:34, height:34, borderRadius:10, background:'linear-gradient(135deg,#7C3AED,#2563EB)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+          <div style={{ padding:'14px 16px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', gap:10, background:'var(--bg-raised)' }}>
+            <div style={{ width:34, height:34, borderRadius:10, background:'#0D1A0D', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
               <Sparkles size={16} color="#fff"/>
             </div>
             <div style={{ flex:1 }}>
               <p style={{ fontSize:14, fontWeight:800, color:'var(--text-primary)', margin:0 }}>Revanew Assistant</p>
-              <p style={{ fontSize:11, color:'#0D9488', margin:0, fontWeight:600 }}>● Online — powered by Claude AI</p>
+              <p style={{ fontSize:11, color:'#3DD68C', margin:0, fontWeight:600 }}>● Online — powered by Claude AI</p>
             </div>
             <button onClick={() => setOpen(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:4 }}>
               <ChevronDown size={18}/>
@@ -152,7 +152,7 @@ export default function AIAssistant() {
               <div key={i} style={{ display:'flex', justifyContent: m.role==='user' ? 'flex-end' : 'flex-start' }}>
                 <div style={{
                   maxWidth:'82%', padding:'10px 13px', borderRadius: m.role==='user' ? '14px 14px 4px 14px' : '4px 14px 14px 14px',
-                  background: m.role==='user' ? 'linear-gradient(135deg,#7C3AED,#2563EB)' : 'var(--bg-raised)',
+                  background: m.role==='user' ? '#0D1A0D' : 'var(--bg-raised)',
                   border: m.role==='user' ? 'none' : '1px solid var(--border)',
                   fontSize:13, color: m.role==='user' ? '#fff' : 'var(--text-secondary)',
                   lineHeight:1.6, whiteSpace:'pre-wrap',
@@ -195,7 +195,7 @@ export default function AIAssistant() {
                 placeholder="Ask anything about Revanew…" rows={1} disabled={loading}
                 style={{ flex:1, background:'none', border:'none', outline:'none', color:'var(--text-primary)', fontSize:13, resize:'none', fontFamily:"'Plus Jakarta Sans',sans-serif", lineHeight:1.6, maxHeight:80 }}/>
               <button onClick={() => send()} disabled={!input.trim() || loading}
-                style={{ width:32, height:32, borderRadius:9, background:input.trim()?'linear-gradient(135deg,#7C3AED,#2563EB)':'var(--border)', border:'none', cursor:input.trim()?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                style={{ width:32, height:32, borderRadius:9, background:input.trim()?'#0D1A0D':'var(--border)', border:'none', cursor:input.trim()?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                 <Send size={13} color={input.trim()?"#fff":"var(--text-muted)"}/>
               </button>
             </div>
