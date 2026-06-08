@@ -643,12 +643,8 @@ export default function CalendarPage() {
 
   return (
     <div style={{ height:'100%', display:'flex', flexDirection:'column', fontFamily:"'Plus Jakarta Sans',sans-serif", padding:'0 24px 24px' }}>
-      {/* ── Header ── */}
-      <div style={{ padding:'20px 0 14px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:10 }}>
-        <div>
-          <h1 style={{ fontSize:22, fontWeight:800, color:'var(--text-primary)', margin:0, letterSpacing:'-0.03em' }}>Schedule</h1>
-          <p style={{ fontSize:12, color:'var(--text-muted)', margin:'4px 0 0' }}>Master Operations Calendar · {account?.name}</p>
-        </div>
+      {/* ── Action Bar ── */}
+      <div style={{ padding:'12px 0 14px', display:'flex', alignItems:'center', justifyContent:'flex-end', flexWrap:'wrap', gap:8 }}>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <GoogleCalendarSync accountId={account?.id} />
           <button onClick={() => setModal({ event:null, defaultDate:today })}
