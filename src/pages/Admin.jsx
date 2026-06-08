@@ -12,12 +12,12 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 
 const OWNER_EMAIL = 'guffey.ryan@gmail.com';
-const ACCENT = '#13B5EA';
+const ACCENT = '#3DD68C';
 const DARK   = '#1a1a1a';
 
 const PLANS = ['starter', 'pro', 'agency'];
-const PLAN_COLOR  = { agency:'#6366f1', pro: ACCENT, starter:'#22c55e', none:'#9ca3af', suspended:'#ef4444' };
-const STATUS_COLOR = { active:'#22c55e', trialing:'#f59e0b', cancelled:'#ef4444', suspended:'#ef4444', none:'#9ca3af' };
+const PLAN_COLOR  = { agency:'#3DD68C', pro: ACCENT, starter:'#3DD68C', none:'#9ca3af', suspended:'#ef4444' };
+const STATUS_COLOR = { active:'#3DD68C', trialing:'#64748B', cancelled:'#ef4444', suspended:'#ef4444', none:'#9ca3af' };
 
 function fmt(n)   { return '$' + Math.round(n||0).toLocaleString(); }
 function fmtDate(iso) {
@@ -69,7 +69,7 @@ function ActionBtn({ onClick, icon: Icon, label, variant = 'default', loading = 
     primary:   'text-white',
     success:   'text-white',
   };
-  const bg = variant === 'primary' ? ACCENT : variant === 'success' ? '#22c55e' : 'transparent';
+  const bg = variant === 'primary' ? ACCENT : variant === 'success' ? '#3DD68C' : 'transparent';
   return (
     <button onClick={onClick} disabled={disabled || loading}
       className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 ${styles[variant]}`}
@@ -110,13 +110,13 @@ function UserPanel({ user, onClose, onRefresh }) {
   const isSuspended = user.sub_status === 'suspended';
 
   const EVENT_LABELS = {
-    quote_created:   { label: 'Created quote',    color: '#13B5EA' },
-    invoice_created: { label: 'Created invoice',  color: '#6366f1' },
-    opened:          { label: 'Client opened email', color: '#f59e0b' },
-    viewed:          { label: 'Client viewed portal', color: '#f97316' },
-    clicked_pay:     { label: 'Client clicked pay',   color: '#22c55e' },
+    quote_created:   { label: 'Created quote',    color: '#3DD68C' },
+    invoice_created: { label: 'Created invoice',  color: '#3DD68C' },
+    opened:          { label: 'Client opened email', color: '#64748B' },
+    viewed:          { label: 'Client viewed portal', color: '#64748B' },
+    clicked_pay:     { label: 'Client clicked pay',   color: '#3DD68C' },
     heartbeat:       { label: 'Portal heartbeat', color: '#9ca3af' },
-    reminder_sent:   { label: 'Reminder sent',    color: '#8b5cf6' },
+    reminder_sent:   { label: 'Reminder sent',    color: '#3DD68C' },
   };
 
   return (
@@ -204,7 +204,7 @@ function UserPanel({ user, onClose, onRefresh }) {
                   <div key={k} className="flex items-center justify-between px-4 py-2.5">
                     <span className="text-xs text-ink-muted">{k}</span>
                     <div className="flex items-center gap-1">
-                      <span className={`text-xs font-medium ${v?.startsWith?.('No') ? 'text-amber-600' : 'text-ink'}`}>{v}</span>
+                      <span className={`text-xs font-medium ${v?.startsWith?.('No') ? 'text-emerald-600' : 'text-ink'}`}>{v}</span>
                       {copyable && v && <CopyBtn text={v} />}
                     </div>
                   </div>
@@ -250,10 +250,10 @@ function UserPanel({ user, onClose, onRefresh }) {
                 </div>
 
                 {magicLink && (
-                  <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                    <p className="text-xs font-semibold text-amber-700 mb-1">Login link (valid 1 hour — share securely)</p>
+                  <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                    <p className="text-xs font-semibold text-emerald-700 mb-1">Login link (valid 1 hour — share securely)</p>
                     <div className="flex items-center gap-2">
-                      <p className="text-xs text-amber-800 break-all flex-1 font-mono">{magicLink.slice(0, 60)}…</p>
+                      <p className="text-xs text-emerald-800 break-all flex-1 font-mono">{magicLink.slice(0, 60)}…</p>
                       <CopyBtn text={magicLink} />
                     </div>
                   </div>
@@ -485,7 +485,7 @@ function OnboardModal({ user, onClose, onSent }) {
           <button onClick={onClose} className="btn-ghost text-sm">Cancel</button>
           <button onClick={send} disabled={sending || done}
             className="flex items-center gap-2 text-sm font-bold px-5 py-2.5 rounded-xl text-white disabled:opacity-50"
-            style={{ background: done ? '#22c55e' : ACCENT }}>
+            style={{ background: done ? '#3DD68C' : ACCENT }}>
             {done ? <><CheckCircle size={14}/>Sent!</> : sending ? <><RefreshCw size={14} className="animate-spin"/>Sending…</> : <><Send size={14}/>Send welcome email</>}
           </button>
         </div>
@@ -521,7 +521,7 @@ function BroadcastModal({ userCount, onClose }) {
         <div className="p-6 space-y-4">
           {result ? (
             <div className="text-center py-6">
-              <CheckCircle size={32} className="mx-auto mb-3" style={{ color:'#22c55e' }}/>
+              <CheckCircle size={32} className="mx-auto mb-3" style={{ color:'#3DD68C' }}/>
               <p className="text-sm font-bold text-ink">Broadcast sent!</p>
               <p className="text-xs text-ink-muted mt-1">{result.sent} sent · {result.failed} failed</p>
               <button onClick={onClose} className="mt-4 btn-ghost text-sm">Close</button>
@@ -551,7 +551,7 @@ function BroadcastModal({ userCount, onClose }) {
 
 // ── Health indicator ──────────────────────────────────────────────
 function HealthDot({ ok }) {
-  return <div className="w-2 h-2 rounded-full" style={{ background: ok ? '#22c55e' : '#ef4444' }} />;
+  return <div className="w-2 h-2 rounded-full" style={{ background: ok ? '#3DD68C' : '#ef4444' }} />;
 }
 
 // ── Main Admin ────────────────────────────────────────────────────
@@ -627,7 +627,7 @@ export default function Admin() {
             <h1 className="text-xl font-bold text-ink leading-none">Admin Console</h1>
             <p className="text-xs text-ink-muted mt-0.5">
               Revanew · Owner view
-              {health && <span className={`ml-2 ${health.ok ? 'text-green-500' : 'text-amber-500'}`}>
+              {health && <span className={`ml-2 ${health.ok ? 'text-green-500' : 'text-emerald-500'}`}>
                 · {health.ok ? 'All systems go' : 'Check system health'}
               </span>}
             </p>
@@ -649,10 +649,10 @@ export default function Admin() {
       {metrics && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
           <StatCard label="Total users"    value={metrics.total_users}    icon={Users}     color={ACCENT}/>
-          <StatCard label="New this week"  value={metrics.new_this_week}  icon={TrendingUp} color="#6366f1"/>
-          <StatCard label="Accounts"       value={metrics.total_accounts} icon={Shield}    color="#8b5cf6"/>
-          <StatCard label="Quotes sent"    value={metrics.total_quotes}   icon={FileText}  color="#f97316"/>
-          <StatCard label="Invoices"       value={metrics.total_invoices} icon={Receipt}   color="#22c55e"/>
+          <StatCard label="New this week"  value={metrics.new_this_week}  icon={TrendingUp} color="#3DD68C"/>
+          <StatCard label="Accounts"       value={metrics.total_accounts} icon={Shield}    color="#3DD68C"/>
+          <StatCard label="Quotes sent"    value={metrics.total_quotes}   icon={FileText}  color="#64748B"/>
+          <StatCard label="Invoices"       value={metrics.total_invoices} icon={Receipt}   color="#3DD68C"/>
           <StatCard label="Revenue tracked" value={fmt(metrics.total_revenue)} icon={BarChart2} color="#14b8a6"/>
         </div>
       )}
@@ -714,14 +714,14 @@ export default function Admin() {
                           style={{ background:(STATUS_COLOR[u.sub_status]||'#9ca3af')+'15', color:STATUS_COLOR[u.sub_status]||'#9ca3af' }}>
                           {u.sub_status || 'none'}
                         </span>
-                        {!u.confirmed && <span className="text-xs text-amber-600 font-medium">⚠ unconfirmed</span>}
+                        {!u.confirmed && <span className="text-xs text-emerald-600 font-medium">⚠ unconfirmed</span>}
                       </div>
                     </div>
                     <div className="hidden md:flex items-center gap-4 text-xs text-ink-muted shrink-0">
                       <span>{u.quote_count}Q · {u.invoice_count}I</span>
                       {u.total_revenue > 0 && <span className="text-green-600 font-semibold">{fmt(u.total_revenue)}</span>}
                       {u.trial_ends_at && u.sub_status === 'trialing' && (
-                        <span className="text-amber-600">
+                        <span className="text-emerald-600">
                           Trial: {Math.max(0,Math.ceil((new Date(u.trial_ends_at)-Date.now())/86400000))}d left
                         </span>
                       )}
@@ -774,7 +774,7 @@ export default function Admin() {
                           <div className="flex items-center gap-2.5">
                             {s.logo_url
                               ? <img src={s.logo_url} alt="" className="w-7 h-7 rounded object-contain border" style={{ borderColor:'#E5E8EB' }}/>
-                              : <div className="w-7 h-7 rounded flex items-center justify-center text-white text-xs font-bold" style={{ background: s.primary_color||ACCENT }}>{(s.logo_initial||s.name?.[0]||'?').toUpperCase()}</div>
+                              : <div className="w-7 h-7 rounded overflow-hidden" style={{ background: '#0D1A0D' }}><img src="/logo-revanew.png" alt="R" style={{ width: 28, height: 28, objectFit: 'cover' }}/></div>
                             }
                             <div>
                               <p className="font-medium text-ink text-xs">{s.name}</p>
@@ -932,7 +932,7 @@ export default function Admin() {
                     <span className="text-sm text-ink flex-1">{label}</span>
                     <div className="flex items-center gap-1.5">
                       <HealthDot ok={health.checks[key]}/>
-                      <span className="text-xs" style={{ color: health.checks[key] ? '#22c55e' : '#ef4444' }}>
+                      <span className="text-xs" style={{ color: health.checks[key] ? '#3DD68C' : '#ef4444' }}>
                         {health.checks[key] ? 'OK' : 'Not configured'}
                       </span>
                     </div>
@@ -1011,7 +1011,7 @@ export default function Admin() {
                 if (r.ok) alert(`✅ Test email sent to ${email} via ${r.provider}!`);
                 else alert('❌ Email failed: ' + r.error + '\n\nFix: ' + (r.fix || 'Check Railway Variables'));
               }}
-              style={{ padding:'8px 16px', borderRadius:8, border:'none', background:'linear-gradient(135deg,#2563EB,#0D9488)', color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, whiteSpace:'nowrap' }}>
+              style={{ padding:'8px 16px', borderRadius:8, border:'none', background:'#3DD68C', color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, whiteSpace:'nowrap' }}>
               Send Test
             </button>
           </div>
