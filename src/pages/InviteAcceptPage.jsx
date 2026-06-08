@@ -89,12 +89,12 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
     }
   };
 
-  const accent = '#2563EB';
+  const accent = '#3DD68C';
 
   return (
     <div style={{
       minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'linear-gradient(135deg,#0F172A,#1a2744)', padding: 24, fontFamily: "'Plus Jakarta Sans',sans-serif",
+      background: '#0D1A0D', padding: 24, fontFamily: "'Plus Jakarta Sans',sans-serif",
     }}>
       <div style={{
         background: '#fff', borderRadius: 24, padding: '48px 40px', maxWidth: 440, width: '100%',
@@ -102,7 +102,7 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
       }}>
         {/* Logo */}
         <div style={{ marginBottom: 32 }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg,#2563EB,#0D9488)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: '#3DD68C', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
             <Users size={28} color="#fff" />
           </div>
           <div style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>Revanew</div>
@@ -131,9 +131,9 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
             <h2 style={{ color: '#0F172A', fontSize: 22, fontWeight: 800, margin: '0 0 12px' }}>
               You're invited to join
             </h2>
-            <div style={{ background: 'linear-gradient(135deg,#EFF6FF,#F0FDF4)', borderRadius: 14, padding: '20px 24px', marginBottom: 24, border: '1px solid #BFDBFE' }}>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#1E40AF', marginBottom: 4 }}>{accountName}</div>
-              <div style={{ fontSize: 13, color: '#3B82F6' }}>as a {role}</div>
+            <div style={{ background: 'var(--bg-surface)', borderRadius: 14, padding: '20px clamp(12px,4vw,24px)', marginBottom: 24, border: '1px solid #BBF7D0' }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#166534', marginBottom: 4 }}>{accountName}</div>
+              <div style={{ fontSize: 13, color: '#3DD68C' }}>as a {role}</div>
             </div>
             <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
               {email ? `This invite is for <strong>${email}</strong>. ` : ''}
@@ -143,7 +143,7 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
               localStorage.setItem('revanew_pending_invite', token);
               navigate(`/login?redirect=/invite/accept/${token}`);
             }} style={{
-              width: '100%', padding: '14px', background: 'linear-gradient(135deg,#2563EB,#0D9488)',
+              width: '100%', padding: '14px', background: '#3DD68C',
               color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}>
@@ -163,13 +163,13 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
 
         {status === 'success' && (
           <div>
-            <CheckCircle size={56} style={{ color: '#22C55E', margin: '0 auto 16px' }} />
+            <CheckCircle size={56} style={{ color: '#44EF6B', margin: '0 auto 16px' }} />
             <h2 style={{ color: '#0F172A', fontSize: 24, fontWeight: 800, margin: '0 0 12px' }}>Welcome to the team!</h2>
             <p style={{ color: '#64748B', fontSize: 15, marginBottom: 24 }}>
               You've joined <strong style={{ color: '#0F172A' }}>{message}</strong>. Redirecting you to the workspace…
             </p>
             <div style={{ height: 4, background: '#E2E8F0', borderRadius: 2, overflow: 'hidden' }}>
-              <div style={{ height: '100%', background: 'linear-gradient(90deg,#2563EB,#0D9488)', borderRadius: 2, animation: 'progress 2.5s linear' }} />
+              <div style={{ height: '100%', background: 'linear-gradient(90deg,#3DD68C,#3DD68C)', borderRadius: 2, animation: 'progress 2.5s linear' }} />
             </div>
           </div>
         )}
@@ -191,7 +191,7 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
             <h2 style={{ color: '#0F172A', fontSize: 22, fontWeight: 800, margin: '0 0 12px' }}>Invite not found</h2>
             <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>{message}</p>
             <button onClick={() => navigate('/login')} style={{
-              padding: '12px 24px', background: 'linear-gradient(135deg,#2563EB,#0D9488)', color: '#fff',
+              padding: '12px clamp(12px,4vw,24px)', background: '#3DD68C', color: '#fff',
               border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer',
             }}>
               Go to Revanew
