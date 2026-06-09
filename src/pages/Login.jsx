@@ -38,12 +38,12 @@ function AppIllustration() {
 
       {/* Main quote card */}
       <g filter="url(#shadow)">
-        <rect x="40" y="30" width="240" height="180" rx="16" fill="#1C2130"/>
-        <rect x="40" y="30" width="240" height="180" rx="16" stroke="#2E3A50" strokeWidth="1"/>
+        <rect x="40" y="30" width="240" height="180" rx="16" fill="#162116"/>
+        <rect x="40" y="30" width="240" height="180" rx="16" stroke="rgba(61,214,140,0.15)" strokeWidth="1"/>
       </g>
       {/* Card header bar */}
-      <rect x="40" y="30" width="240" height="44" rx="16" fill="#242B3D"/>
-      <rect x="40" y="58" width="240" height="16" fill="#242B3D"/>
+      <rect x="40" y="30" width="240" height="44" rx="16" fill="#1a2a1a"/>
+      <rect x="40" y="58" width="240" height="16" fill="#1a2a1a"/>
       {/* Header text placeholder */}
       <rect x="56" y="46" width="60" height="8" rx="4" fill="#3DD68C" opacity="0.7"/>
       <rect x="228" y="44" width="36" height="12" rx="6" fill="url(#il-btn)"/>
@@ -57,30 +57,30 @@ function AppIllustration() {
         </g>
       ))}
       {/* Divider */}
-      <line x1="56" y1="186" x2="264" y2="186" stroke="#2E3A50" strokeWidth="1"/>
+      <line x1="56" y1="186" x2="264" y2="186" stroke="rgba(61,214,140,0.15)" strokeWidth="1"/>
       {/* Total */}
       <rect x="56" y="194" width="50" height="7" rx="3.5" fill="#3DD68C" opacity="0.4"/>
       <rect x="216" y="192" width="48" height="10" rx="5" fill="url(#il-btn)"/>
 
       {/* Floating stat card 1 — Collected */}
       <g filter="url(#shadow)">
-        <rect x="210" y="150" width="160" height="76" rx="12" fill="#1C2130" stroke="#2E3A50" strokeWidth="1"/>
+        <rect x="210" y="150" width="160" height="76" rx="12" fill="#162116" stroke="rgba(61,214,140,0.15)" strokeWidth="1"/>
       </g>
       <rect x="210" y="150" width="160" height="4" rx="2" fill="url(#il-grad)" opacity="0.8"/>
       <rect x="224" y="165" width="40" height="6" rx="3" fill="#3DD68C" opacity="0.4"/>
       <rect x="224" y="178" width="65" height="16" rx="5" fill="none"/>
-      <text x="224" y="192" fontFamily="system-ui" fontWeight="800" fontSize="20" fill="#EDF2FF">$24,755</text>
+      <text x="224" y="192" fontFamily="system-ui" fontWeight="800" fontSize="20" fill="#FFFFFF">$24,755</text>
       <rect x="224" y="200" width="55" height="5" rx="2.5" fill="#2E3A50"/>
       <rect x="326" y="158" width="30" height="30" rx="9" fill="rgba(59,111,232,0.2)"/>
       <path d="M334 168 l7 0M334 173 l7 0M334 178 l4 0" stroke="#3DD68C" strokeWidth="2" strokeLinecap="round"/>
 
       {/* Floating notification */}
       <g filter="url(#shadow)">
-        <rect x="260" y="40" width="148" height="60" rx="12" fill="#1C2130" stroke="#2E3A50" strokeWidth="1"/>
+        <rect x="260" y="40" width="148" height="60" rx="12" fill="#162116" stroke="rgba(61,214,140,0.15)" strokeWidth="1"/>
       </g>
       <rect x="276" y="56" width="18" height="18" rx="9" fill="rgba(0,201,177,0.2)"/>
       <path d="M281 65 l3 3 l6-6" stroke="#3DD68C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <rect x="302" y="56" width="72" height="7" rx="3.5" fill="#EDF2FF" opacity="0.8"/>
+      <rect x="302" y="56" width="72" height="7" rx="3.5" fill="#FFFFFF" opacity="0.8"/>
       <rect x="302" y="68" width="55" height="5" rx="2.5" fill="#2E3A50"/>
 
       {/* Connection lines */}
@@ -89,23 +89,23 @@ function AppIllustration() {
 
       {/* Bottom mobile bar */}
       <g filter="url(#shadow)">
-        <rect x="100" y="256" width="220" height="58" rx="16" fill="#1C2130" stroke="#2E3A50" strokeWidth="1"/>
+        <rect x="100" y="256" width="220" height="58" rx="16" fill="#162116" stroke="rgba(61,214,140,0.15)" strokeWidth="1"/>
       </g>
       {/* Mobile nav dots */}
       {[0,1,2,3,4].map(i => (
         <g key={i}>
-          <rect x={120+i*40} y="269" width="20" height="20" rx="7" fill={i===1?"url(#il-btn)":"#242B3D"}/>
+          <rect x={120+i*40} y="269" width="20" height="20" rx="7" fill={i===1?"url(#il-btn)":"#1a2a1a"}/>
           <rect x={125+i*40} y="295" width="10" height="4" rx="2" fill={i===1?"#3DD68C":"#2E3A50"} opacity="0.6"/>
         </g>
       ))}
 
       {/* Floating badge */}
       <g filter="url(#shadow)">
-        <rect x="30" y="240" width="80" height="28" rx="14" fill="#1C2130" stroke="#2E3A50" strokeWidth="1"/>
+        <rect x="30" y="240" width="80" height="28" rx="14" fill="#162116" stroke="rgba(61,214,140,0.15)" strokeWidth="1"/>
       </g>
       <circle cx="48" cy="254" r="7" fill="rgba(0,201,177,0.2)"/>
       <circle cx="48" cy="254" r="4" fill="#3DD68C"/>
-      <rect x="60" y="249" width="36" height="5" rx="2.5" fill="#EDF2FF" opacity="0.7"/>
+      <rect x="60" y="249" width="36" height="5" rx="2.5" fill="#FFFFFF" opacity="0.7"/>
       <rect x="60" y="257" width="28" height="4" rx="2" fill="#2E3A50"/>
     </svg>
   );
@@ -188,31 +188,31 @@ export default function Login() {
   const F = { fontFamily:"'Plus Jakarta Sans',sans-serif" };
   const inputStyle = (focused) => ({
     width:'100%', padding:'11px 14px', borderRadius:10,
-    border: `1.5px solid ${focused ? '#3DD68C' : '#1E2E48'}`,
-    background:'#1C2130', color:'#EDF2FF', fontSize:14,
+    border: `1.5px solid ${focused ? '#3DD68C' : 'rgba(61,214,140,0.12)'}`,
+    background:'#162116', color:'#FFFFFF', fontSize:14,
     fontFamily:"'Plus Jakarta Sans',sans-serif", outline:'none',
     boxSizing:'border-box', transition:'border-color 0.15s',
   });
 
   return (
-    <div style={{ ...F, minHeight:'100dvh', background:'#0B1220', display:'flex', overflow:'hidden', maxWidth:'100vw' }}>
+    <div style={{ ...F, minHeight:'100dvh', background:'#0D1A0D', display:'flex', overflow:'hidden', maxWidth:'100vw' }}>
 
       {/* ── LEFT PANEL ────────────────────────────────────────────── */}
-      <div style={{ width:480, flexShrink:0, background:'#0F1628', borderRight:'1px solid #1E2E48', flexDirection:'column', padding:'40px 44px', minHeight:'100dvh', overflowY:'auto' }}
+      <div style={{ width:480, flexShrink:0, background:'#111e11', borderRight:'1px solid rgba(61,214,140,0.1)', flexDirection:'column', padding:'40px 44px', minHeight:'100dvh', overflowY:'auto' }}
         className="hidden lg:flex">
 
         {/* Logo */}
         <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:40 }}>
           <RevanewLogo size={44} />
           <div>
-            <p style={{ fontSize:20, fontWeight:800, color:'#EDF2FF', letterSpacing:'-0.5px', lineHeight:1 }}>Revanew</p>
-            <p style={{ fontSize:11, color:'#5E7494', fontWeight:500, marginTop:3 }}>Powered by PLEX Automation</p>
+            <p style={{ fontSize:20, fontWeight:800, color:'#FFFFFF', letterSpacing:'-0.5px', lineHeight:1 }}>Revanew</p>
+            <p style={{ fontSize:11, color:'rgba(255,255,255,0.45)', fontWeight:500, marginTop:3 }}>Powered by PLEX Automation</p>
           </div>
         </div>
 
         {/* Headline */}
         <div style={{ marginBottom:32 }}>
-          <h1 style={{ fontSize:32, fontWeight:800, color:'#EDF2FF', lineHeight:1.15, letterSpacing:'-0.04em', marginBottom:14 }}>
+          <h1 style={{ fontSize:32, fontWeight:800, color:'#FFFFFF', lineHeight:1.15, letterSpacing:'-0.04em', marginBottom:14 }}>
             Quotes. Invoices.{' '}
             <span style={{ background:'#3DD68C', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
               Get Paid.
@@ -241,12 +241,12 @@ export default function Login() {
         </div>
 
         {/* Footer */}
-        <div style={{ marginTop:'auto', paddingTop:20, borderTop:'1px solid #1E2E48' }}>
-          <p style={{ fontSize:11, color:'#3A4A5C', marginBottom:10 }}>© {new Date().getFullYear()} Revanew. Powered by PLEX Automation.</p>
+        <div style={{ marginTop:'auto', paddingTop:20, borderTop:'1px solid rgba(61,214,140,0.1)' }}>
+          <p style={{ fontSize:11, color:'rgba(255,255,255,0.3)', marginBottom:10 }}>© {new Date().getFullYear()} Revanew. Powered by PLEX Automation.</p>
           <div style={{ display:'flex', gap:20 }}>
             {[['Privacy policy','https://plexautomation.io/privacy'],['Terms','https://plexautomation.io/terms'],['Support','mailto:hello@plexautomation.io']].map(([l,h]) => (
               <a key={l} href={h} target="_blank" rel="noreferrer"
-                style={{ fontSize:11, color:'#3A4A5C', textDecoration:'none', fontWeight:500, transition:'color 0.15s' }}
+                style={{ fontSize:11, color:'rgba(255,255,255,0.3)', textDecoration:'none', fontWeight:500, transition:'color 0.15s' }}
                 onMouseEnter={e => e.target.style.color='#9AACCC'}
                 onMouseLeave={e => e.target.style.color='#3A4A5C'}>{l}</a>
             ))}
@@ -261,20 +261,20 @@ export default function Login() {
         <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:36 }} className="lg:hidden">
           <RevanewLogo size={40} />
           <div>
-            <p style={{ fontSize:18, fontWeight:800, color:'#EDF2FF', letterSpacing:'-0.5px', lineHeight:1 }}>Revanew</p>
-            <p style={{ fontSize:11, color:'#5E7494', fontWeight:500, marginTop:2 }}>Quotes. Invoices. Get Paid.</p>
+            <p style={{ fontSize:18, fontWeight:800, color:'#FFFFFF', letterSpacing:'-0.5px', lineHeight:1 }}>Revanew</p>
+            <p style={{ fontSize:11, color:'rgba(255,255,255,0.45)', fontWeight:500, marginTop:2 }}>Quotes. Invoices. Get Paid.</p>
           </div>
         </div>
 
         <div style={{ width:'100%', maxWidth:380 }}>
           {/* Heading */}
           <div style={{ marginBottom:28 }}>
-            <h2 style={{ fontSize:24, fontWeight:800, color:'#EDF2FF', letterSpacing:'-0.04em', marginBottom:6 }}>
+            <h2 style={{ fontSize:24, fontWeight:800, color:'#FFFFFF', letterSpacing:'-0.04em', marginBottom:6 }}>
               {mode==='login' && 'Welcome back'}
               {mode==='signup' && 'Create your account'}
               {mode==='reset' && 'Reset password'}
             </h2>
-            <p style={{ fontSize:14, color:'#5E7494', fontWeight:500 }}>
+            <p style={{ fontSize:14, color:'rgba(255,255,255,0.45)', fontWeight:500 }}>
               {mode==='login' && 'Sign in to your Revanew workspace'}
               {mode==='signup' && '7-day free trial — no credit card required'}
               {mode==='reset' && "Enter your email and we'll send a reset link"}
@@ -285,13 +285,13 @@ export default function Login() {
           {mode !== 'reset' && (
             <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:20 }}>
               {[
-                { label:'Continue with Google', icon:<GoogleIcon/>, action:()=>run('google',signInWithGoogle), key:'google', bg:'#1C2130' },
-                { label:'Continue with Apple',  icon:<AppleIcon/>,  action:()=>run('apple',signInWithApple),   key:'apple',  bg:'#242B3D' },
+                { label:'Continue with Google', icon:<GoogleIcon/>, action:()=>run('google',signInWithGoogle), key:'google', bg:'#162116' },
+                { label:'Continue with Apple',  icon:<AppleIcon/>,  action:()=>run('apple',signInWithApple),   key:'apple',  bg:'#1a2a1a' },
               ].map(btn => (
                 <button key={btn.key} onClick={btn.action} disabled={!!loading}
-                  style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'12px', borderRadius:10, border:'1.5px solid #1E2E48', background:btn.bg, color:'#EDF2FF', fontSize:13, fontWeight:600, cursor:'pointer', opacity:loading?0.5:1, transition:'all 0.15s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
+                  style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'12px', borderRadius:10, border:'1.5px solid rgba(61,214,140,0.12)', background:btn.bg, color:'#FFFFFF', fontSize:13, fontWeight:600, cursor:'pointer', opacity:loading?0.5:1, transition:'all 0.15s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
                   onMouseEnter={e => e.currentTarget.style.borderColor='#3DD68C'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor='#1E2E48'}>
+                  onMouseLeave={e => e.currentTarget.style.borderColor='rgba(61,214,140,0.12)'}>
                   {btn.icon} {loading===btn.key ? 'Redirecting…' : btn.label}
                 </button>
               ))}
@@ -300,9 +300,9 @@ export default function Login() {
 
           {mode !== 'reset' && (
             <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
-              <div style={{ flex:1, height:1, background:'#1E2E48' }} />
-              <span style={{ fontSize:11, color:'#3A4A5C', fontWeight:500, flexShrink:0 }}>or continue with email</span>
-              <div style={{ flex:1, height:1, background:'#1E2E48' }} />
+              <div style={{ flex:1, height:1, background:'rgba(61,214,140,0.12)' }} />
+              <span style={{ fontSize:11, color:'rgba(255,255,255,0.3)', fontWeight:500, flexShrink:0 }}>or continue with email</span>
+              <div style={{ flex:1, height:1, background:'rgba(61,214,140,0.12)' }} />
             </div>
           )}
 
@@ -310,25 +310,25 @@ export default function Login() {
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
             {mode === 'signup' && (
               <div>
-                <label style={{ fontSize:11, fontWeight:700, color:'#5E7494', textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:6 }}>Full name</label>
+                <label style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.45)', textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:6 }}>Full name</label>
                 <input value={fullName} onChange={e=>setName(e.target.value)} placeholder="Your full name" type="text" autoComplete="name"
                   style={inputStyle(false)}
-                  onFocus={e=>e.target.style.borderColor='#3DD68C'} onBlur={e=>e.target.style.borderColor='#1E2E48'} />
+                  onFocus={e=>e.target.style.borderColor='#3DD68C'} onBlur={e=>e.target.style.borderColor='rgba(61,214,140,0.12)'} />
               </div>
             )}
 
             <div>
-              <label style={{ fontSize:11, fontWeight:700, color:'#5E7494', textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:6 }}>Email</label>
+              <label style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.45)', textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:6 }}>Email</label>
               <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@yourbusiness.com" type="email" autoComplete="email"
                 onKeyDown={e=>e.key==='Enter'&&run('email',mode==='reset'?()=>resetPassword(email):mode==='signup'?()=>signUpWithEmail(email,password,fullName):()=>signInWithEmail(email,password))}
                 style={inputStyle(false)}
-                onFocus={e=>e.target.style.borderColor='#3DD68C'} onBlur={e=>e.target.style.borderColor='#1E2E48'} />
+                onFocus={e=>e.target.style.borderColor='#3DD68C'} onBlur={e=>e.target.style.borderColor='rgba(61,214,140,0.12)'} />
             </div>
 
             {mode !== 'reset' && (
               <div>
                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
-                  <label style={{ fontSize:11, fontWeight:700, color:'#5E7494', textTransform:'uppercase', letterSpacing:'0.8px' }}>Password</label>
+                  <label style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.45)', textTransform:'uppercase', letterSpacing:'0.8px' }}>Password</label>
                   {mode==='login' && (
                     <button onClick={()=>setMode('reset')} style={{ fontSize:11, fontWeight:600, color:'#3DD68C', background:'none', border:'none', cursor:'pointer', ...F }}>
                       Forgot password?
@@ -341,9 +341,9 @@ export default function Login() {
                     autoComplete={mode==='signup'?'new-password':'current-password'}
                     onKeyDown={e=>e.key==='Enter'&&run('email',mode==='signup'?()=>signUpWithEmail(email,password,fullName):()=>signInWithEmail(email,password))}
                     style={{ ...inputStyle(false), paddingRight:44 }}
-                    onFocus={e=>e.target.style.borderColor='#3DD68C'} onBlur={e=>e.target.style.borderColor='#1E2E48'} />
+                    onFocus={e=>e.target.style.borderColor='#3DD68C'} onBlur={e=>e.target.style.borderColor='rgba(61,214,140,0.12)'} />
                   <button type="button" onClick={()=>setShowPw(v=>!v)}
-                    style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', color:'#3A4A5C', background:'none', border:'none', cursor:'pointer', padding:2 }}>
+                    style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', color:'rgba(255,255,255,0.3)', background:'none', border:'none', cursor:'pointer', padding:2 }}>
                     {showPw?<EyeOff size={15}/>:<Eye size={15}/>}
                   </button>
                 </div>
@@ -371,7 +371,7 @@ export default function Login() {
           </div>
 
           {/* Mode switcher */}
-          <div style={{ marginTop:20, textAlign:'center', fontSize:14, color:'#5E7494' }}>
+          <div style={{ marginTop:20, textAlign:'center', fontSize:14, color:'rgba(255,255,255,0.45)' }}>
             {mode==='login' && <>No account?{' '}
               <button onClick={()=>{setMode('signup');setError('');setSuccess('');}}
                 style={{ fontWeight:700, color:'#3DD68C', background:'none', border:'none', cursor:'pointer', fontSize:14, ...F }}>
@@ -389,7 +389,7 @@ export default function Login() {
           </div>
 
           {mode==='signup' && (
-            <p style={{ marginTop:16, textAlign:'center', fontSize:11, color:'#3A4A5C', lineHeight:1.7 }}>
+            <p style={{ marginTop:16, textAlign:'center', fontSize:11, color:'rgba(255,255,255,0.3)', lineHeight:1.7 }}>
               By creating an account you agree to our{' '}
               <a href="https://plexautomation.io/terms" target="_blank" rel="noreferrer" style={{ color:'#3DD68C', fontWeight:600, textDecoration:'none' }}>Terms</a>
               {' '}and{' '}
@@ -402,7 +402,7 @@ export default function Login() {
           <div style={{ marginTop:28, display:'flex', justifyContent:'center', gap:20 }} className="lg:hidden">
             {[['Privacy','https://plexautomation.io/privacy'],['Terms','https://plexautomation.io/terms'],['Support','mailto:hello@plexautomation.io']].map(([l,h]) => (
               <a key={l} href={h} target="_blank" rel="noreferrer"
-                style={{ fontSize:11, color:'#3A4A5C', textDecoration:'none', fontWeight:500 }}>{l}</a>
+                style={{ fontSize:11, color:'rgba(255,255,255,0.3)', textDecoration:'none', fontWeight:500 }}>{l}</a>
             ))}
           </div>
         </div>

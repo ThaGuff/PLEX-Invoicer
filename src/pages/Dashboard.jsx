@@ -260,11 +260,12 @@ export default function Dashboard() {
                   <div key={inv.id}
                     onClick={() => navigate(`/invoices/${inv.id}`)}
                     style={{ display: 'grid', gridTemplateColumns: '1fr 110px 90px 120px 110px', gap: 0, padding: '13px 20px', borderBottom: i < invoices.length - 1 ? '1px solid var(--border-subtle)' : 'none', cursor: 'pointer', transition: 'background 0.1s' }}
+                    className="inv-table-row"
                     onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-raised)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{inv.client_name || '—'}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>{inv.description || inv.notes || ''}</div>
+                    <div style={{ minWidth: 0, overflow: 'hidden' }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{inv.client_name || '—'}</div>
+                      <div className="row-terms-text" style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{inv.description || inv.notes || ''}</div>
                     </div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', alignSelf: 'center' }}>{inv.number || '—'}</div>
                     <div style={{ alignSelf: 'center' }}><StatusBadge status={isOverdue ? 'overdue' : inv.status} /></div>
@@ -402,8 +403,10 @@ export default function Dashboard() {
           .dash-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 767px) {
-          .inv-table-row { grid-template-columns: 1fr 80px !important; }
-          .inv-table-row > :not(:first-child):not(:last-child) { display: none; }
+          .inv-table-row { grid-template-columns: 1fr 80px !important; overflow: hidden !important; }
+          .inv-table-row > :not(:first-child):not(:last-child) { display: none !important; }
+          .inv-table-row > :first-child { min-width: 0; overflow: hidden; }
+          .row-terms-text { display: none !important; }
         }
       `}</style>
     </div>

@@ -103,8 +103,12 @@ function UserPanel({ user, onClose, onRefresh }) {
       setToast(successMsg || 'Done');
       if (onRefresh) onRefresh();
       return r;
-    } catch (e) { setToast('Error: ' + e.message); }
-    setLoading('');
+    } catch (e) {
+      setToast('Error: ' + e.message);
+      return null;
+    } finally {
+      setLoading('');
+    }
   };
 
   const isSuspended = user.sub_status === 'suspended';
