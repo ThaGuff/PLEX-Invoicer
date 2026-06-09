@@ -22,7 +22,7 @@ const EXAMPLES = [
   'Charged Mike 3 hours troubleshooting at $120 per hour, and parts cost $340',
 ];
 
-export default function AIInvoiceParser({ accountId, onApply, accent = '#3DD68C' }) {
+export default function AIInvoiceParser({ accountId, onApply, accent = '#C8E20A' }) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const [parsing, setParsing] = useState(false);
@@ -190,7 +190,7 @@ export default function AIInvoiceParser({ accountId, onApply, accent = '#3DD68C'
             {result ? (
               <button onClick={apply}
                 className="flex items-center gap-2 text-sm font-bold px-5 py-2.5 rounded-xl text-white"
-                style={{ background: '#3DD68C' }}>
+                style={{ background: '#C8E20A' }}>
                 <CheckCircle size={14} /> Apply to quote
               </button>
             ) : (

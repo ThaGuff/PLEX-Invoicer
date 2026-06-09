@@ -19,7 +19,7 @@ function MiniBar({ amount, max, color }) {
   );
 }
 
-export default function CashflowDashboard({ accountId, accent = '#3DD68C' }) {
+export default function CashflowDashboard({ accountId, accent = '#C8E20A' }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
@@ -66,8 +66,8 @@ export default function CashflowDashboard({ accountId, accent = '#3DD68C' }) {
   const summaryCards = [
     { label: 'Overdue now',   value: summary.overdue   ?? 0, color: '#ef4444' },
     { label: 'Next 30 days',  value: summary.next_30   ?? 0, color: accent },
-    { label: 'Next 60 days',  value: summary.next_60   ?? 0, color: '#3DD68C' },
-    { label: 'Next 90 days',  value: summary.next_90   ?? 0, color: '#3DD68C' },
+    { label: 'Next 60 days',  value: summary.next_60   ?? 0, color: '#C8E20A' },
+    { label: 'Next 90 days',  value: summary.next_90   ?? 0, color: '#C8E20A' },
   ];
 
   return (
@@ -128,7 +128,7 @@ export default function CashflowDashboard({ accountId, accent = '#3DD68C' }) {
               <YAxis tick={{ fontSize: 10, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} tickFormatter={v => '$'+Math.round(v/1000)+'k'} />
               <Tooltip formatter={(v) => ['$'+Math.round(v).toLocaleString(), 'Predicted']} contentStyle={{ fontSize: 12, border: '1px solid var(--border)', background: 'var(--bg-surface)', borderRadius: 8 }} />
               <Bar dataKey="amount" radius={[4,4,0,0]}>
-                {weeks12.map((w, i) => <Cell key={i} fill={i === 0 ? '#ef4444' : i <= 2 ? accent : '#3DD68C'} />)}
+                {weeks12.map((w, i) => <Cell key={i} fill={i === 0 ? '#ef4444' : i <= 2 ? accent : '#C8E20A'} />)}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -149,7 +149,7 @@ export default function CashflowDashboard({ accountId, accent = '#3DD68C' }) {
             <RePieChart>
               <Pie data={weeks12.filter(w => w.amount > 0)} dataKey="amount" nameKey="label" cx="50%" cy="50%" outerRadius={80} label={({name, value}) => `${name}: $${Math.round(value).toLocaleString()}`} labelLine={false}>
                 {weeks12.filter(w => w.amount > 0).map((w, i) => (
-                  <Cell key={i} fill={[accent, '#3DD68C', '#3DD68C', '#64748B', '#ef4444', '#3DD68C', '#3DD68C', '#3DD68C', '#10b981', '#64748B', '#06b6d4', '#3DD68C'][i % 12]} />
+                  <Cell key={i} fill={[accent, '#C8E20A', '#C8E20A', '#64748B', '#ef4444', '#C8E20A', '#C8E20A', '#C8E20A', '#10b981', '#64748B', '#06b6d4', '#C8E20A'][i % 12]} />
                 ))}
               </Pie>
               <Tooltip formatter={(v) => '$'+Math.round(v).toLocaleString()} contentStyle={{ fontSize: 12, border: '1px solid var(--border)', background: 'var(--bg-surface)', borderRadius: 8 }} />
@@ -205,7 +205,7 @@ export default function CashflowDashboard({ accountId, accent = '#3DD68C' }) {
                     <div key={i} className="flex items-center gap-3 text-xs py-1">
                       <span className="flex-1 text-ink font-medium">{p.client}</span>
                       <span className="text-ink-muted">{p.payments} payment{p.payments !== 1 ? 's' : ''}</span>
-                      <span className="font-semibold" style={{ color: p.avg_dtp <= 7 ? '#3DD68C' : p.avg_dtp <= 30 ? accent : '#ef4444' }}>
+                      <span className="font-semibold" style={{ color: p.avg_dtp <= 7 ? '#C8E20A' : p.avg_dtp <= 30 ? accent : '#ef4444' }}>
                         avg {p.avg_dtp}d to pay
                       </span>
                     </div>

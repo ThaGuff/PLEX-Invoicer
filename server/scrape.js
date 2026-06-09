@@ -14,7 +14,7 @@ export async function scrapeWithOpenAI(url) {
   let pageText = '';
   try {
     const res = await fetch(normalized, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PLEXInvoicer/1.0)' },
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; InvoiceKingBot/1.0)' },
       signal: AbortSignal.timeout(10000),
     });
     if (res.ok) {

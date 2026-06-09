@@ -240,7 +240,7 @@ export async function initDB() {
   if (existing.rows.length === 0) {
     await db.execute(`
       INSERT INTO accounts (id, name, email, phone, website, logo_initial, primary_color, plan, subscription_status)
-      VALUES ('plex-master', 'PLEX Automation', '',
+      VALUES ('plex-master', 'Invoice King', '',
               '', '', 'P', '#13B5EA', 'agency', 'active')
     `);
   }

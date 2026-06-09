@@ -1,7 +1,7 @@
 {
-  "name": "plex-invoicer",
+  "name": "invoice-king",
   "version": "1.0.0",
-  "description": "PLEX Automation — Interactive Quote Builder & Invoicer",
+  "description": "Invoice King — Invoicing. Simplified. Own Your Cash Flow.",
   "private": true,
   "type": "module",
   "engines": {

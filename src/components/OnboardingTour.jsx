@@ -16,10 +16,10 @@ import { X, ChevronRight, Lightbulb } from 'lucide-react';
 
 const PAGE_TIPS = {
   '/dashboard': {
-    title: '👋 Welcome to Revanew!',
+    title: '👋 Welcome to Invoice King!',
     body: "Your command center. See live revenue stats, overdue alerts, and your weekly schedule at a glance. The cashflow forecast is on the right — switch between Bar, Line, and Pie charts. Drag widgets to rearrange them on desktop.",
     cta: 'Set up your business →',
-    ctaAction: () => window.dispatchEvent(new CustomEvent('revanew:settings')),
+    ctaAction: () => window.dispatchEvent(new CustomEvent('invoiceking:settings')),
     position: 'center',
   },
   '/quotes/new': {
@@ -84,7 +84,7 @@ const PAGE_TIPS = {
   },
 };
 
-const STORAGE_KEY = 'revanew_tour_seen_pages_v2';
+const STORAGE_KEY = 'invoiceking_tour_seen_pages_v2';
 
 function getSeenPages() {
   try { return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')); }
@@ -141,13 +141,13 @@ export default function OnboardingTour({ onDone }) {
         overflow: 'hidden',
       }}>
         {/* Accent bar */}
-        <div style={{ height: 3, background: '#3DD68C' }} />
+        <div style={{ height: 3, background: '#C8E20A' }} />
 
         <div style={{ padding: '16px 18px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Lightbulb size={13} style={{ color: '#3DD68C' }} />
+                <Lightbulb size={13} style={{ color: '#C8E20A' }} />
               </div>
               <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2 }}>
                 {tip.title}
@@ -165,12 +165,12 @@ export default function OnboardingTour({ onDone }) {
           <div style={{ display: 'flex', gap: 8 }}>
             {tip.cta && (
               <button onClick={() => { tip.ctaAction?.(); dismiss(); }}
-                style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: 'none', background: '#3DD68C', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: 'none', background: '#C8E20A', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: "'Inter', sans-serif" }}>
                 {tip.cta} <ChevronRight size={11} />
               </button>
             )}
             <button onClick={dismiss}
-              style={{ flex: tip.cta ? 0 : 1, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              style={{ flex: tip.cta ? 0 : 1, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>
               Got it
             </button>
           </div>

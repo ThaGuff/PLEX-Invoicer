@@ -10,12 +10,12 @@ import { Brain, TrendingUp, AlertTriangle, Target, Zap, RefreshCw,
 import { useAccount } from '../context/AccountContext';
 import { api } from '../utils/api';
 
-const ACCENT = '#0D1A0D';
-const GRAD   = 'linear-gradient(135deg, #3DD68C, #0D1A0D, #3DD68C)';
+const ACCENT = '#1A1A1A';
+const GRAD   = 'linear-gradient(135deg, #C8E20A, #1A1A1A, #C8E20A)';
 
 function fmt(n)    { return '$' + Math.round(n || 0).toLocaleString(); }
 function pct(n)    { return Math.round(n || 0) + '%'; }
-function risk(n)   { return n > 70 ? '#ef4444' : n > 40 ? '#64748B' : '#3DD68C'; }
+function risk(n)   { return n > 70 ? '#ef4444' : n > 40 ? '#64748B' : '#C8E20A'; }
 
 function InsightCard({ icon: Icon, label, value, sub, color = ACCENT, cta, onCta }) {
   return (
@@ -201,14 +201,14 @@ export default function AIInsightsPanel({ accountId }) {
                   label="Acceptance rate"
                   value={`${insights.accRate}%`}
                   sub={`${insights.accepted} of ${insights.total} quotes accepted`}
-                  color={insights.accRate > 50 ? '#3DD68C' : '#64748B'}
+                  color={insights.accRate > 50 ? '#C8E20A' : '#64748B'}
                 />
                 <InsightCard
                   icon={TrendingUp}
                   label="Next 30 days"
                   value={fmt(insights.predicted30)}
                   sub="Predicted inbound based on invoice pipeline"
-                  color="#0D1A0D"
+                  color="#1A1A1A"
                 />
                 <InsightCard
                   icon={AlertTriangle}
@@ -223,7 +223,7 @@ export default function AIInsightsPanel({ accountId }) {
                   label="Overdue pipeline"
                   value={fmt(insights.overdueTotal)}
                   sub={`${insights.overdueCount} invoices past due date`}
-                  color={insights.overdueTotal > 0 ? '#64748B' : '#3DD68C'}
+                  color={insights.overdueTotal > 0 ? '#64748B' : '#C8E20A'}
                   cta={insights.overdueCount > 0 ? 'Send reminders' : undefined}
                 />
               </div>
@@ -243,8 +243,8 @@ export default function AIInsightsPanel({ accountId }) {
 
               {/* High-probability closes */}
               {insights.highProbability > 0 && (
-                <div style={{ background: 'rgba(61,214,140,0.06)', border: '0.5px solid rgba(61,214,140,0.2)', borderRadius: '8px', padding: '10px 12px', marginBottom: '12px' }}>
-                  <p style={{ fontSize: '12px', fontWeight: 600, color: '#3DD68C', marginBottom: '2px' }}>
+                <div style={{ background: 'rgba(200,226,10,0.06)', border: '0.5px solid rgba(200,226,10,0.2)', borderRadius: '8px', padding: '10px 12px', marginBottom: '12px' }}>
+                  <p style={{ fontSize: '12px', fontWeight: 600, color: '#C8E20A', marginBottom: '2px' }}>
                     🔥 {insights.highProbability} quotes ready to close
                   </p>
                   <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
@@ -257,14 +257,14 @@ export default function AIInsightsPanel({ accountId }) {
               <div style={{ borderTop: '0.5px solid var(--border)', paddingTop: '12px' }}>
                 {aiSummary ? (
                   <div style={{ background: 'rgba(75,123,255,0.06)', border: '0.5px solid rgba(75,123,255,0.2)', borderRadius: '8px', padding: '12px' }}>
-                    <p style={{ fontSize: '10px', fontWeight: 700, color: '#0D1A0D', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <p style={{ fontSize: '10px', fontWeight: 700, color: '#1A1A1A', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Brain size={10} /> AI Analysis
                     </p>
                     <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{aiSummary}</p>
                   </div>
                 ) : (
                   <button onClick={generateAISummary} disabled={aiLoading}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', borderRadius: '8px', border: 'none', background: GRAD, color: '#fff', fontSize: '12px', fontWeight: 700, cursor: aiLoading ? 'not-allowed' : 'pointer', opacity: aiLoading ? 0.7 : 1, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', borderRadius: '8px', border: 'none', background: GRAD, color: '#fff', fontSize: '12px', fontWeight: 700, cursor: aiLoading ? 'not-allowed' : 'pointer', opacity: aiLoading ? 0.7 : 1, fontFamily: "'Inter', sans-serif" }}>
                     {aiLoading ? <><RefreshCw size={12} className="animate-spin" /> Generating analysis…</> : <><Brain size={12} /> Generate AI revenue analysis</>}
                   </button>
                 )}

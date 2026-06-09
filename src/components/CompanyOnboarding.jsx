@@ -34,7 +34,7 @@ function Field({ icon: Icon, label, k, placeholder, type = 'text', required = fa
     width: '100%', padding: '10px 12px 10px 36px', borderRadius: 10,
     border: '1.5px solid var(--border)', background: 'var(--bg-page)',
     color: 'var(--text-primary)', fontSize: 14, boxSizing: 'border-box',
-    outline: 'none', fontFamily: "'Plus Jakarta Sans', sans-serif",
+    outline: 'none', fontFamily: "'Inter', sans-serif",
     transition: 'border-color 0.15s',
   };
   const labelStyle = {
@@ -63,7 +63,7 @@ function Field({ icon: Icon, label, k, placeholder, type = 'text', required = fa
 export default function CompanyOnboarding({ onComplete }) {
   const { account, activeId, updateAccount } = useAccount();
   const token = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
-  const accent = '#3DD68C';
+  const accent = '#C8E20A';
 
   // Shared style for labels used directly in the component (not via Field component)
   const labelStyle = {
@@ -137,12 +137,12 @@ export default function CompanyOnboarding({ onComplete }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, backdropFilter: 'blur(8px)' }}>
-      <div style={{ background: 'var(--bg-surface)', borderRadius: 20, width: '100%', maxWidth: 560, maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 32px 80px rgba(11,18,32,0.3)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <div style={{ background: 'var(--bg-surface)', borderRadius: 20, width: '100%', maxWidth: 560, maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 32px 80px rgba(11,18,32,0.3)', fontFamily: "'Inter', sans-serif" }}>
 
         {/* Header */}
         <div style={{ padding: '24px clamp(14px,4vw,28px) 20px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#3DD68C', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#C8E20A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0 }}>
               <Building2 size={20} />
             </div>
             <div>
@@ -154,7 +154,7 @@ export default function CompanyOnboarding({ onComplete }) {
           </div>
           {/* Progress bar */}
           <div style={{ height: 4, background: 'var(--border)', borderRadius: 4 }}>
-            <div style={{ height: '100%', width: `${progress}%`, background: '#3DD68C', borderRadius: 4, transition: 'width 0.4s ease' }} />
+            <div style={{ height: '100%', width: `${progress}%`, background: '#C8E20A', borderRadius: 4, transition: 'width 0.4s ease' }} />
           </div>
         </div>
 
@@ -254,7 +254,7 @@ export default function CompanyOnboarding({ onComplete }) {
                       {form.business_address && <span>📍 {form.business_address}{form.city_state_zip ? `, ${form.city_state_zip}` : ''}</span>}
                       {form.license_number && <span style={{ marginLeft: 12 }}>🏆 Lic# {form.license_number}</span>}
                     </div>
-                    <span style={{ fontSize: 10, color: accent, fontWeight: 600 }}>Powered by Revanew.io</span>
+                    <span style={{ fontSize: 10, color: accent, fontWeight: 600 }}>Powered by Invoice King.io</span>
                   </div>
                 </div>
               </div>
@@ -289,13 +289,13 @@ export default function CompanyOnboarding({ onComplete }) {
               </div>
 
               {form.business_type && (
-                <div style={{ padding: '12px 16px', borderRadius: 10, background: '#3DD68C10', border: '1px solid #3DD68C30', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <CheckCircle size={16} style={{ color: '#3DD68C', flexShrink: 0 }} />
+                <div style={{ padding: '12px 16px', borderRadius: 10, background: '#C8E20A10', border: '1px solid #C8E20A30', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <CheckCircle size={16} style={{ color: '#C8E20A', flexShrink: 0 }} />
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: '#3DD68C', margin: 0 }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#C8E20A', margin: 0 }}>
                       {TEMPLATE_OPTIONS.find(t => t.id === form.business_type)?.icon} {TEMPLATE_OPTIONS.find(t => t.id === form.business_type)?.label} selected
                     </p>
-                    <p style={{ fontSize: 11, color: '#3DD68C', margin: '2px 0 0', opacity: 0.8 }}>
+                    <p style={{ fontSize: 11, color: '#C8E20A', margin: '2px 0 0', opacity: 0.8 }}>
                       Services will auto-load on every new quote — no manual setup needed
                     </p>
                   </div>
@@ -314,12 +314,12 @@ export default function CompanyOnboarding({ onComplete }) {
         <div style={{ padding: '16px clamp(14px,4vw,28px)', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, background: 'var(--bg-surface)' }}>
           {step > 1 ? (
             <button onClick={() => setStep(s => s - 1)}
-              style={{ padding: '10px 18px', borderRadius: 10, border: '1.5px solid var(--border)', background: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              style={{ padding: '10px 18px', borderRadius: 10, border: '1.5px solid var(--border)', background: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', fontFamily: "'Inter', sans-serif" }}>
               ← Back
             </button>
           ) : (
             <button onClick={() => onComplete?.()}
-              style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12, color: 'var(--text-muted)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12, color: 'var(--text-muted)', fontFamily: "'Inter', sans-serif" }}>
               Skip for now
             </button>
           )}
@@ -332,12 +332,12 @@ export default function CompanyOnboarding({ onComplete }) {
 
           {step < totalSteps ? (
             <button onClick={() => setStep(s => s + 1)} disabled={!form.name.trim()}
-              style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: '#3DD68C', color: '#fff', cursor: form.name.trim() ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'Plus Jakarta Sans', sans-serif", opacity: form.name.trim() ? 1 : 0.5 }}>
+              style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: '#C8E20A', color: '#fff', cursor: form.name.trim() ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'Inter', sans-serif", opacity: form.name.trim() ? 1 : 0.5 }}>
               Next <ChevronRight size={14} />
             </button>
           ) : (
             <button onClick={handleSave} disabled={saving}
-              style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: '#3DD68C', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: '#C8E20A', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'Inter', sans-serif" }}>
               {saving ? '⏳ Saving…' : <><CheckCircle size={14} /> Save & Get Started</>}
             </button>
           )}

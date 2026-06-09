@@ -1,5 +1,5 @@
 /**
- * Revanew Public Quote Portal — Apple checkout–level client experience.
+ * Invoice King Public Quote Portal — Apple checkout–level client experience.
  * Features: e-signature (draw + type), financing calculator,
  * Good/Better/Best package selection, section tracking, animated flow.
  */
@@ -12,17 +12,17 @@ import {
 } from 'lucide-react';
 import { api } from '../utils/api';
 
-const GRAD = 'linear-gradient(135deg, #3DD68C, #0D1A0D, #3DD68C)';
+const GRAD = 'linear-gradient(135deg, #C8E20A, #1A1A1A, #C8E20A)';
 const fmt  = n => '$' + Math.round(n || 0).toLocaleString();
 const fmt2 = n => '$' + Number(n || 0).toFixed(2);
 
 // ── Financing ──────────────────────────────────────────────────────
 const PLANS = [
-  { months: 0,  apr: 0,     label: 'Pay in full', provider: null,          color: '#3DD68C', badge: 'Best value'  },
-  { months: 3,  apr: 0,     label: '3 months',    provider: 'Revanew Pay', color: '#3DD68C', badge: '0% APR'      },
-  { months: 6,  apr: 0,     label: '6 months',    provider: 'Revanew Pay', color: '#0D1A0D', badge: '0% APR'      },
-  { months: 12, apr: 9.99,  label: '12 months',   provider: 'Wisetack',    color: '#0D1A0D', badge: '9.99% APR'   },
-  { months: 24, apr: 14.99, label: '24 months',   provider: 'Affirm',      color: '#3DD68C', badge: '14.99% APR'  },
+  { months: 0,  apr: 0,     label: 'Pay in full', provider: null,          color: '#C8E20A', badge: 'Best value'  },
+  { months: 3,  apr: 0,     label: '3 months',    provider: 'Invoice King Pay', color: '#C8E20A', badge: '0% APR'      },
+  { months: 6,  apr: 0,     label: '6 months',    provider: 'Invoice King Pay', color: '#1A1A1A', badge: '0% APR'      },
+  { months: 12, apr: 9.99,  label: '12 months',   provider: 'Wisetack',    color: '#1A1A1A', badge: '9.99% APR'   },
+  { months: 24, apr: 14.99, label: '24 months',   provider: 'Affirm',      color: '#C8E20A', badge: '14.99% APR'  },
 ];
 const calcMonthly = (p, months, apr) => {
   if (!months || p <= 0) return 0;
@@ -54,7 +54,7 @@ function SignatureCanvas({ onCapture }) {
         style={{ width:'100%', height:140, border:'1.5px solid #C8D4E8', borderRadius:10, cursor:'crosshair', touchAction:'none', background:'#FAFBFF', display:'block' }} />
       <div style={{ display:'flex', justifyContent:'space-between', marginTop:6 }}>
         <p style={{ fontSize:10, color:'#94A3B8' }}>Draw your signature above</p>
-        {hasDrawn && <button onClick={clear} style={{ fontSize:11, color:'#0D1A0D', background:'none', border:'none', cursor:'pointer', fontWeight:600 }}>Clear</button>}
+        {hasDrawn && <button onClick={clear} style={{ fontSize:11, color:'#1A1A1A', background:'none', border:'none', cursor:'pointer', fontWeight:600 }}>Clear</button>}
       </div>
     </div>
   );
@@ -91,15 +91,15 @@ function FinancingWidget({ total, onSelect, selected }) {
   const [open, setOpen] = useState(false);
   return (
     <div style={{ marginBottom:12 }}>
-      <button onClick={()=>setOpen(v=>!v)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', background:'linear-gradient(135deg,rgba(61,214,140,0.06),rgba(75,123,255,0.06))', border:'0.5px solid rgba(75,123,255,0.2)', borderRadius:12, cursor:'pointer' }}>
+      <button onClick={()=>setOpen(v=>!v)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', background:'linear-gradient(135deg,rgba(200,226,10,0.06),rgba(75,123,255,0.06))', border:'0.5px solid rgba(75,123,255,0.2)', borderRadius:12, cursor:'pointer' }}>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <Calculator size={18} style={{ color:'#0D1A0D' }}/>
+          <Calculator size={18} style={{ color:'#1A1A1A' }}/>
           <div style={{ textAlign:'left' }}>
             <p style={{ fontSize:13, fontWeight:700, color:'#080D1A' }}>{selected?.months>0 ? `Financing: ${fmt2(calcMonthly(total,selected.months,selected.apr))}/mo` : 'Financing options available'}</p>
             <p style={{ fontSize:11, color:'#64748B' }}>{selected?.provider ? `via ${selected.provider}` : 'Pay in installments · 0% options available'}</p>
           </div>
         </div>
-        <span style={{ fontSize:12, fontWeight:600, color:'#0D1A0D', display:'flex', alignItems:'center', gap:4 }}>{open ? <>Close <ChevronUp size={13}/></> : <>See plans <ChevronDown size={13}/></>}</span>
+        <span style={{ fontSize:12, fontWeight:600, color:'#1A1A1A', display:'flex', alignItems:'center', gap:4 }}>{open ? <>Close <ChevronUp size={13}/></> : <>See plans <ChevronDown size={13}/></>}</span>
       </button>
       {open && (
         <div style={{ marginTop:8, display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))', gap:8 }}>
@@ -108,7 +108,7 @@ function FinancingWidget({ total, onSelect, selected }) {
             const sel = selected?.months === plan.months;
             return (
               <button key={plan.months} onClick={()=>{ onSelect(plan); setOpen(false); }}
-                style={{ border: sel ? `1.5px solid ${plan.color}` : '0.5px solid #E2E8F0', borderRadius:10, padding:'12px 10px', background: sel ? plan.color+'10' : '#fff', cursor:'pointer', textAlign:'left', transition:'all 0.15s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+                style={{ border: sel ? `1.5px solid ${plan.color}` : '0.5px solid #E2E8F0', borderRadius:10, padding:'12px 10px', background: sel ? plan.color+'10' : '#fff', cursor:'pointer', textAlign:'left', transition:'all 0.15s', fontFamily:"'Inter',sans-serif" }}>
                 <p style={{ fontSize:10, fontWeight:700, color:plan.color, marginBottom:2 }}>{plan.badge}</p>
                 <p style={{ fontSize:15, fontWeight:800, color:'#080D1A' }}>{plan.months===0 ? fmt(total) : fmt2(mo)}</p>
                 <p style={{ fontSize:10, color:'#94A3B8', marginTop:1 }}>{plan.months===0 ? 'one time' : `× ${plan.months} mo`}</p>
@@ -123,9 +123,9 @@ function FinancingWidget({ total, onSelect, selected }) {
 }
 
 const PKG = {
-  good:   { icon: Zap,       color:'#3DD68C', label:'Good',   tagline:'Essentials' },
-  better: { icon: Star,      color:'#0D1A0D', label:'Better', tagline:'Most popular', badge:'⭐ Popular' },
-  best:   { icon: Building2, color:'#3DD68C', label:'Best',   tagline:'Full service' },
+  good:   { icon: Zap,       color:'#C8E20A', label:'Good',   tagline:'Essentials' },
+  better: { icon: Star,      color:'#1A1A1A', label:'Better', tagline:'Most popular', badge:'⭐ Popular' },
+  best:   { icon: Building2, color:'#C8E20A', label:'Best',   tagline:'Full service' },
 };
 
 const card = { background:'#fff', borderRadius:16, border:'0.5px solid #E2E8F0', marginBottom:12, overflow:'hidden' };
@@ -172,11 +172,11 @@ export default function PublicQuote() {
     setAccepting(false);
   };
 
-  const F = { minHeight:'100dvh', background:'#F0F4FA', fontFamily:"'Plus Jakarta Sans',sans-serif", color:'#080D1A' };
+  const F = { minHeight:'100dvh', background:'#F0F4FA', fontFamily:"'Inter',sans-serif", color:'#080D1A' };
 
   if (loading) return (
     <div style={{ ...F, display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <div style={{ width:40, height:40, borderRadius:'50%', border:'3px solid #E2E8F0', borderTopColor:'#0D1A0D', animation:'spin 0.8s linear infinite' }}/>
+      <div style={{ width:40, height:40, borderRadius:'50%', border:'3px solid #E2E8F0', borderTopColor:'#1A1A1A', animation:'spin 0.8s linear infinite' }}/>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
@@ -190,7 +190,7 @@ export default function PublicQuote() {
     </div>
   );
 
-  const accent = quote.primary_color || '#0D1A0D';
+  const accent = quote.primary_color || '#1A1A1A';
   const isExp  = quote.valid_days && new Date(quote.created_at) < new Date(Date.now() - quote.valid_days * 86400000);
   const grouped = {};
   (quote.items||[]).forEach(i => { const k = i.section_label||'Services'; if(!grouped[k]) grouped[k]=[]; grouped[k].push(i); });
@@ -220,7 +220,7 @@ export default function PublicQuote() {
             </div>
           ))}
         </div>
-        <p style={{ fontSize:11, color:'#94A3B8' }}>Powered by Revanew · PLEX Automation</p>
+        <p style={{ fontSize:11, color:'#94A3B8' }}>Powered by Invoice King · PLEX Automation</p>
       </div>
     </div>
   );
@@ -232,7 +232,7 @@ export default function PublicQuote() {
         <div style={{ maxWidth:680, margin:'0 auto', padding:'0 20px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
             <div style={{ width:34, height:34, borderRadius:9, background:accent, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:800, fontSize:14 }}>
-              <img src='/logo-revanew.png' alt='R' style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+              <img src='/logo-invoiceking.png' alt='R' style={{width:'100%',height:'100%',objectFit:'cover'}}/>
             </div>
             <div>
               <p style={{ fontSize:14, fontWeight:700, color:'#080D1A', lineHeight:1 }}>{quote.agency_name}</p>
@@ -242,10 +242,10 @@ export default function PublicQuote() {
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
             {['review','sign'].map((s,i) => (
               <React.Fragment key={s}>
-                <div style={{ width:26, height:26, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, background: step===s ? GRAD : (i===0&&step==='sign') ? '#3DD68C' : '#F1F5F9', color:(step===s||(i===0&&step==='sign')) ? '#fff' : '#94A3B8', transition:'all 0.3s' }}>
+                <div style={{ width:26, height:26, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, background: step===s ? GRAD : (i===0&&step==='sign') ? '#C8E20A' : '#F1F5F9', color:(step===s||(i===0&&step==='sign')) ? '#fff' : '#94A3B8', transition:'all 0.3s' }}>
                   {i===0&&step==='sign' ? <Check size={12}/> : i+1}
                 </div>
-                {i<1 && <div style={{ width:24, height:2, borderRadius:1, background:step==='sign' ? '#3DD68C' : '#E2E8F0', transition:'all 0.3s' }}/>}
+                {i<1 && <div style={{ width:24, height:2, borderRadius:1, background:step==='sign' ? '#C8E20A' : '#E2E8F0', transition:'all 0.3s' }}/>}
               </React.Fragment>
             ))}
           </div>
@@ -317,7 +317,7 @@ export default function PublicQuote() {
 
           {!isExp && (
             <button onClick={()=>setStep('sign')}
-              style={{ width:'100%', padding:'16px 20px', background:GRAD, color:'#fff', border:'none', borderRadius:14, fontSize:15, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:10, boxShadow:'0 8px 32px rgba(75,123,255,0.35)', letterSpacing:'-0.02em', fontFamily:"'Plus Jakarta Sans',sans-serif", marginBottom:12 }}>
+              style={{ width:'100%', padding:'16px 20px', background:GRAD, color:'#fff', border:'none', borderRadius:14, fontSize:15, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:10, boxShadow:'0 8px 32px rgba(75,123,255,0.35)', letterSpacing:'-0.02em', fontFamily:"'Inter',sans-serif", marginBottom:12 }}>
               Review & sign this quote <ArrowRight size={18}/>
             </button>
           )}
@@ -330,7 +330,7 @@ export default function PublicQuote() {
               <p style={{ fontSize:12, color:'#64748B' }}>{quote.number}</p>
               <p style={{ fontSize:20, fontWeight:800, color:'#080D1A', letterSpacing:'-0.03em' }}>{fmt(total)} due today</p>
             </div>
-            <button onClick={()=>setStep('review')} style={{ fontSize:12, fontWeight:600, color:'#0D1A0D', background:'none', border:'0.5px solid #E2E8F0', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>← Back</button>
+            <button onClick={()=>setStep('review')} style={{ fontSize:12, fontWeight:600, color:'#1A1A1A', background:'none', border:'0.5px solid #E2E8F0', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontFamily:"'Inter',sans-serif" }}>← Back</button>
           </div>
 
           <div style={{ ...card, padding:'24px 20px' }}>
@@ -345,14 +345,14 @@ export default function PublicQuote() {
             <div style={{ marginBottom:16 }}>
               <label style={{ fontSize:11, fontWeight:700, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:6 }}>Your full name *</label>
               <input value={sigName} onChange={e=>setSigName(e.target.value)} placeholder={quote.client_name||'Type your full name'}
-                style={{ width:'100%', padding:'11px 14px', borderRadius:10, border:'1.5px solid #E2E8F0', fontSize:14, fontFamily:"'Plus Jakarta Sans',sans-serif", color:'#080D1A', outline:'none', boxSizing:'border-box' }}
-                onFocus={e=>e.target.style.borderColor='#0D1A0D'} onBlur={e=>e.target.style.borderColor='#E2E8F0'}/>
+                style={{ width:'100%', padding:'11px 14px', borderRadius:10, border:'1.5px solid #E2E8F0', fontSize:14, fontFamily:"'Inter',sans-serif", color:'#080D1A', outline:'none', boxSizing:'border-box' }}
+                onFocus={e=>e.target.style.borderColor='#1A1A1A'} onBlur={e=>e.target.style.borderColor='#E2E8F0'}/>
             </div>
 
             <div style={{ display:'flex', gap:8, marginBottom:14 }}>
               {[{ k:'draw', l:'Draw', I:PenLine }, { k:'type', l:'Type', I:Type }].map(m => (
                 <button key={m.k} onClick={()=>setSigMode(m.k)}
-                  style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:7, padding:'9px 14px', borderRadius:9, border:sigMode===m.k ? '1.5px solid #0D1A0D' : '1px solid #E2E8F0', background:sigMode===m.k ? '#EAF0FF' : '#fff', fontSize:13, fontWeight:600, color:sigMode===m.k ? '#0D1A0D' : '#64748B', cursor:'pointer', transition:'all 0.15s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+                  style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:7, padding:'9px 14px', borderRadius:9, border:sigMode===m.k ? '1.5px solid #1A1A1A' : '1px solid #E2E8F0', background:sigMode===m.k ? '#EAF0FF' : '#fff', fontSize:13, fontWeight:600, color:sigMode===m.k ? '#1A1A1A' : '#64748B', cursor:'pointer', transition:'all 0.15s', fontFamily:"'Inter',sans-serif" }}>
                   <m.I size={14}/> {m.l}
                 </button>
               ))}
@@ -363,7 +363,7 @@ export default function PublicQuote() {
               : <div style={{ marginBottom:8 }}>
                   <input value={typedSig} onChange={e=>setTypedSig(e.target.value)} placeholder="Type your name as signature"
                     style={{ width:'100%', padding:14, borderRadius:10, border:'1.5px solid #E2E8F0', fontSize:22, fontFamily:'Georgia,serif', color:'#080D1A', outline:'none', background:'#FAFBFF', boxSizing:'border-box', letterSpacing:'0.02em' }}
-                    onFocus={e=>e.target.style.borderColor='#0D1A0D'} onBlur={e=>e.target.style.borderColor='#E2E8F0'}/>
+                    onFocus={e=>e.target.style.borderColor='#1A1A1A'} onBlur={e=>e.target.style.borderColor='#E2E8F0'}/>
                   <p style={{ fontSize:10, color:'#94A3B8', marginTop:4 }}>Typed signatures are legally equivalent to drawn signatures.</p>
                 </div>}
           </div>
@@ -372,14 +372,14 @@ export default function PublicQuote() {
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:16 }}>
             {[{ I:Shield, t:'SSL secured' }, { I:CheckCircle, t:'Legally binding' }, { I:CreditCard, t:'No card yet' }].map(s => (
               <div key={s.t} style={{ background:'#fff', border:'0.5px solid #E2E8F0', borderRadius:10, padding:'10px 8px', textAlign:'center' }}>
-                <s.I size={16} style={{ color:'#0D1A0D', margin:'0 auto 4px' }}/><p style={{ fontSize:10, fontWeight:600, color:'#64748B' }}>{s.t}</p>
+                <s.I size={16} style={{ color:'#1A1A1A', margin:'0 auto 4px' }}/><p style={{ fontSize:10, fontWeight:600, color:'#64748B' }}>{s.t}</p>
               </div>
             ))}
           </div>
 
           {financing?.months>0 && (
             <div style={{ background:'rgba(75,123,255,0.06)', border:'0.5px solid rgba(75,123,255,0.2)', borderRadius:12, padding:'12px 16px', marginBottom:16 }}>
-              <p style={{ fontSize:12, fontWeight:700, color:'#0D1A0D', marginBottom:2 }}>💳 Financing: {fmt2(calcMonthly(total,financing.months,financing.apr))}/mo × {financing.months} months</p>
+              <p style={{ fontSize:12, fontWeight:700, color:'#1A1A1A', marginBottom:2 }}>💳 Financing: {fmt2(calcMonthly(total,financing.months,financing.apr))}/mo × {financing.months} months</p>
               <p style={{ fontSize:11, color:'#64748B' }}>via {financing.provider} · {financing.badge} · Subject to approval</p>
             </div>
           )}
@@ -387,7 +387,7 @@ export default function PublicQuote() {
           {aceError && <div style={{ background:'rgba(239,68,68,0.08)', border:'0.5px solid rgba(239,68,68,0.3)', borderRadius:10, padding:'10px 14px', marginBottom:12 }}><p style={{ fontSize:13, color:'#ef4444', fontWeight:600 }}>{aceError}</p></div>}
 
           <button onClick={accept} disabled={accepting}
-            style={{ width:'100%', padding:'16px 20px', background:accepting ? '#9CA3AF' : GRAD, color:'#fff', border:'none', borderRadius:14, fontSize:15, fontWeight:800, cursor:accepting ? 'not-allowed' : 'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:10, boxShadow:accepting ? 'none' : '0 8px 32px rgba(75,123,255,0.35)', letterSpacing:'-0.02em', fontFamily:"'Plus Jakarta Sans',sans-serif", transition:'all 0.2s' }}>
+            style={{ width:'100%', padding:'16px 20px', background:accepting ? '#9CA3AF' : GRAD, color:'#fff', border:'none', borderRadius:14, fontSize:15, fontWeight:800, cursor:accepting ? 'not-allowed' : 'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:10, boxShadow:accepting ? 'none' : '0 8px 32px rgba(75,123,255,0.35)', letterSpacing:'-0.02em', fontFamily:"'Inter',sans-serif", transition:'all 0.2s' }}>
             {accepting
               ? <><div style={{ width:18, height:18, borderRadius:'50%', border:'2.5px solid rgba(255,255,255,0.4)', borderTopColor:'#fff', animation:'spin 0.7s linear infinite' }}/><style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>Accepting…</>
               : <><Sparkles size={17}/> Accept this quote — {fmt(total)} today</>}
@@ -396,7 +396,7 @@ export default function PublicQuote() {
         </>}
 
         <p style={{ textAlign:'center', fontSize:11, color:'#CBD5E1', marginTop:24 }}>
-          Powered by <strong style={{ color:'#94A3B8' }}>Revanew</strong> · PLEX Automation
+          Powered by <strong style={{ color:'#94A3B8' }}>Invoice King</strong> · PLEX Automation
         </p>
       </div>
     </div>

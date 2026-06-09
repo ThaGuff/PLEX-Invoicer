@@ -35,14 +35,14 @@ export default function PageHeader({ path, extra }) {
       flexShrink: 0,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-        <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#0D1A0D', flexShrink: 0 }} />
-        <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#1A1A1A', flexShrink: 0 }} />
+        <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: "'Inter', sans-serif" }}>
           {cfg.tag}
         </span>
       </div>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <h1 style={{ fontSize: 'clamp(20px,4vw,28px)', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 3px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h1 style={{ fontSize: 'clamp(20px,4vw,28px)', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 3px', fontFamily: "'Inter', sans-serif" }}>
             {cfg.title(name)}
           </h1>
           <p style={{ fontSize: 'clamp(11px,2vw,13px)', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

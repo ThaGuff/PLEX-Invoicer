@@ -7,13 +7,13 @@
 import React, { useState, useMemo } from 'react';
 import { Calculator, ChevronDown, ChevronUp, CreditCard, Info } from 'lucide-react';
 
-const GRAD = 'linear-gradient(135deg, #3DD68C, #0D1A0D, #3DD68C)';
+const GRAD = 'linear-gradient(135deg, #C8E20A, #1A1A1A, #C8E20A)';
 
 const FINANCING_OPTIONS = [
-  { months: 3,  apr: 0,     label: '3 months',  badge: '0% APR',    color: '#3DD68C', provider: 'Revanew Pay' },
-  { months: 6,  apr: 0,     label: '6 months',  badge: '0% APR',    color: '#3DD68C', provider: 'Revanew Pay' },
-  { months: 12, apr: 9.99,  label: '12 months', badge: '9.99% APR', color: '#0D1A0D', provider: 'Wisetack' },
-  { months: 24, apr: 14.99, label: '24 months', badge: '14.99% APR',color: '#3DD68C', provider: 'Affirm' },
+  { months: 3,  apr: 0,     label: '3 months',  badge: '0% APR',    color: '#C8E20A', provider: 'Invoice King Pay' },
+  { months: 6,  apr: 0,     label: '6 months',  badge: '0% APR',    color: '#C8E20A', provider: 'Invoice King Pay' },
+  { months: 12, apr: 9.99,  label: '12 months', badge: '9.99% APR', color: '#1A1A1A', provider: 'Wisetack' },
+  { months: 24, apr: 14.99, label: '24 months', badge: '14.99% APR',color: '#C8E20A', provider: 'Affirm' },
 ];
 
 function calcMonthly(principal, months, aprPct) {
@@ -52,7 +52,7 @@ export default function FinancingCalculator({ totalAmount = 0, onSelectFinancing
   if (!open) {
     return (
       <button onClick={() => setOpen(true)}
-        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '8px', border: '0.5px dashed #0D1A0D', background: 'rgba(75,123,255,0.04)', cursor: 'pointer', color: '#0D1A0D', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '8px', border: '0.5px dashed #1A1A1A', background: 'rgba(75,123,255,0.04)', cursor: 'pointer', color: '#1A1A1A', fontFamily: "'Inter', sans-serif" }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Calculator size={14} />
           <span style={{ fontSize: '12px', fontWeight: 600 }}>Add financing options to this quote</span>
@@ -93,13 +93,13 @@ export default function FinancingCalculator({ totalAmount = 0, onSelectFinancing
               <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontWeight: 600 }}>$</span>
               <input type="number" value={deposit} min={0} max={totalAmount} step={50}
                 onChange={e => setDeposit(parseFloat(e.target.value) || 0)}
-                style={{ width: '100%', padding: '7px 10px 7px 22px', border: '0.5px solid var(--border)', borderRadius: '7px', background: 'var(--bg-surface)', color: 'var(--text-primary)', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif", outline: 'none' }} />
+                style={{ width: '100%', padding: '7px 10px 7px 22px', border: '0.5px solid var(--border)', borderRadius: '7px', background: 'var(--bg-surface)', color: 'var(--text-primary)', fontSize: '13px', fontFamily: "'Inter', sans-serif", outline: 'none' }} />
             </div>
           </div>
         </div>
 
         {deposit > 0 && (
-          <div style={{ background: 'rgba(61,214,140,0.06)', border: '0.5px solid rgba(61,214,140,0.2)', borderRadius: '7px', padding: '8px 10px', marginBottom: '12px', fontSize: '11px', color: '#3DD68C', fontWeight: 600 }}>
+          <div style={{ background: 'rgba(200,226,10,0.06)', border: '0.5px solid rgba(200,226,10,0.2)', borderRadius: '7px', padding: '8px 10px', marginBottom: '12px', fontSize: '11px', color: '#C8E20A', fontWeight: 600 }}>
             Financed amount: {fmt(financed)} (after {fmt(deposit)} deposit)
           </div>
         )}
@@ -109,16 +109,16 @@ export default function FinancingCalculator({ totalAmount = 0, onSelectFinancing
           {/* Pay in full */}
           <button
             onClick={() => { setSelected(0); onSelectFinancing?.({ months: 0, monthly: totalAmount, totalCost: totalAmount, totalInterest: 0, deposit: 0, financed: totalAmount }); }}
-            style={{ padding: '10px', borderRadius: '8px', border: selected === 0 ? '1.5px solid #3DD68C' : '0.5px solid var(--border)', background: selected === 0 ? 'rgba(61,214,140,0.06)' : 'var(--bg-page)', cursor: 'pointer', textAlign: 'left', fontFamily: "'Plus Jakarta Sans', sans-serif', transition: 'all 0.15s'" }}>
+            style={{ padding: '10px', borderRadius: '8px', border: selected === 0 ? '1.5px solid #C8E20A' : '0.5px solid var(--border)', background: selected === 0 ? 'rgba(200,226,10,0.06)' : 'var(--bg-page)', cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter', sans-serif', transition: 'all 0.15s'" }}>
             <p style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '4px' }}>Pay in full</p>
-            <p style={{ fontSize: '18px', fontWeight: 800, color: selected === 0 ? '#3DD68C' : 'var(--text-primary)' }}>{fmt(totalAmount)}</p>
-            <p style={{ fontSize: '10px', color: '#3DD68C', fontWeight: 700, marginTop: '2px' }}>No interest ✓</p>
+            <p style={{ fontSize: '18px', fontWeight: 800, color: selected === 0 ? '#C8E20A' : 'var(--text-primary)' }}>{fmt(totalAmount)}</p>
+            <p style={{ fontSize: '10px', color: '#C8E20A', fontWeight: 700, marginTop: '2px' }}>No interest ✓</p>
           </button>
 
           {options.slice(0, 3).map(opt => (
             <button key={opt.months}
               onClick={() => handleSelect(opt)}
-              style={{ padding: '10px', borderRadius: '8px', border: selected === opt.months ? `1.5px solid ${opt.color}` : '0.5px solid var(--border)', background: selected === opt.months ? opt.color + '08' : 'var(--bg-page)', cursor: 'pointer', textAlign: 'left', fontFamily: "'Plus Jakarta Sans', sans-serif", transition: 'all 0.15s', position: 'relative' }}>
+              style={{ padding: '10px', borderRadius: '8px', border: selected === opt.months ? `1.5px solid ${opt.color}` : '0.5px solid var(--border)', background: selected === opt.months ? opt.color + '08' : 'var(--bg-page)', cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s', position: 'relative' }}>
               <div style={{ position: 'absolute', top: '6px', right: '6px', fontSize: '8px', fontWeight: 700, color: '#fff', background: opt.color, padding: '1px 5px', borderRadius: '10px' }}>
                 {opt.badge}
               </div>
@@ -136,7 +136,7 @@ export default function FinancingCalculator({ totalAmount = 0, onSelectFinancing
           const opt = options.find(o => o.months === selected);
           return opt ? (
             <div style={{ background: 'rgba(75,123,255,0.06)', border: '0.5px solid rgba(75,123,255,0.2)', borderRadius: '8px', padding: '10px 12px', marginBottom: '10px' }}>
-              <p style={{ fontSize: '11px', fontWeight: 700, color: '#0D1A0D', marginBottom: '6px' }}>Selected: {opt.label} plan via {opt.provider}</p>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#1A1A1A', marginBottom: '6px' }}>Selected: {opt.label} plan via {opt.provider}</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                 {[
                   { label: 'Monthly', value: fmt2(opt.monthly) },
@@ -156,7 +156,7 @@ export default function FinancingCalculator({ totalAmount = 0, onSelectFinancing
         {/* Disclaimer */}
         <div style={{ display: 'flex', gap: '6px', fontSize: '10px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
           <Info size={11} style={{ flexShrink: 0, marginTop: '1px' }} />
-          <span>Financing subject to client approval. Rates shown are indicative. Wisetack and Affirm require separate merchant enrollment. Revanew Pay plans are handled directly between you and your client.</span>
+          <span>Financing subject to client approval. Rates shown are indicative. Wisetack and Affirm require separate merchant enrollment. Invoice King Pay plans are handled directly between you and your client.</span>
         </div>
       </div>
     </div>

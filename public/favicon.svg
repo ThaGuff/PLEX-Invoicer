@@ -1,15 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="22" fill="#0D1A0D"/>
-  <!-- Vertical stroke -->
-  <rect x="24" y="19" width="10" height="62" rx="5" fill="#3DD68C"/>
-  <!-- Top arm of R bowl -->
-  <rect x="33" y="19" width="28" height="10" rx="5" fill="#3DD68C"/>
-  <!-- Bottom arm of R bowl / crossbar -->
-  <rect x="33" y="43" width="24" height="10" rx="5" fill="#3DD68C"/>
-  <!-- Right side of bowl (semicircle approximated as rect+circle) -->
-  <rect x="55" y="19" width="10" height="34" rx="5" fill="#3DD68C"/>
-  <!-- Leg diagonal — rotated rectangle approximated -->
-  <line x1="35" y1="51" x2="72" y2="81" stroke="#3DD68C" stroke-width="11" stroke-linecap="round"/>
-  <!-- Lime accent dot -->
-  <circle cx="72" cy="27" r="5" fill="#C8FF00"/>
+  <rect width="100" height="100" rx="22" fill="#1A1A1A"/>
+  <!-- Crown -->
+  <rect x="18" y="34" width="64" height="16" rx="4" fill="#C8E20A"/>
+  <rect x="23" y="15" width="14" height="35" rx="4" fill="#C8E20A"/>
+  <rect x="43" y="10" width="14" height="40" rx="4" fill="#C8E20A"/>
+  <rect x="63" y="15" width="14" height="35" rx="4" fill="#C8E20A"/>
+  <circle cx="30" cy="14" r="5" fill="#C8E20A"/>
+  <circle cx="50" cy="9"  r="5" fill="#C8E20A"/>
+  <circle cx="70" cy="14" r="5" fill="#C8E20A"/>
+  <!-- Document body -->
+  <rect x="20" y="46" width="60" height="44" rx="7" fill="white"/>
+  <!-- Fold corner -->
+  <polygon points="68,46 80,58 68,58" fill="#C8E20A"/>
+  <!-- Lines -->
+  <rect x="28" y="56" width="32" height="4" rx="2" fill="#C0C0C0"/>
+  <rect x="28" y="65" width="26" height="3" rx="1.5" fill="#C0C0C0"/>
+  <rect x="28" y="73" width="30" height="3" rx="1.5" fill="#C0C0C0"/>
+  <!-- Total lime bar -->
+  <rect x="28" y="80" width="35" height="4" rx="2" fill="#C8E20A"/>
 </svg>

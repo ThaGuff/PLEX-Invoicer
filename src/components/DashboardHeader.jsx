@@ -12,7 +12,7 @@ function getGreeting() {
   return { word: 'Working late', emoji: '🌙' };
 }
 
-export default function DashboardHeader({ account, accent = '#3DD68C' }) {
+export default function DashboardHeader({ account, accent = '#C8E20A' }) {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function DashboardHeader({ account, accent = '#3DD68C' }) {
     const b = parseInt(hex.slice(5,7),16);
     return `${r},${g},${b}`;
   };
-  const rgb = hexToRgb(accent.startsWith('#') ? accent : '#3DD68C');
+  const rgb = hexToRgb(accent.startsWith('#') ? accent : '#C8E20A');
 
   return (
     <div style={{
@@ -73,8 +73,8 @@ export default function DashboardHeader({ account, accent = '#3DD68C' }) {
             }} />
           ) : (
             <img
-              src="/logo-revanew.png"
-              alt="Revanew"
+              src="/logo-invoiceking.png"
+              alt="Invoice King"
               style={{
                 width: 44, height: 44, borderRadius: 12, flexShrink: 0,
                 objectFit: 'contain',
@@ -108,7 +108,7 @@ export default function DashboardHeader({ account, accent = '#3DD68C' }) {
             margin: 0, fontSize: 28, fontWeight: 800, letterSpacing: '-0.04em',
             color: `rgba(${rgb},0.9)`,
             fontVariantNumeric: 'tabular-nums',
-            fontFamily: "'Plus Jakarta Sans', ui-monospace, monospace",
+            fontFamily: "'Inter', ui-monospace, monospace",
             lineHeight: 1,
           }}>
             {timeStr.replace(':' + timeStr.split(':')[2], '')}{/* h:mm */}

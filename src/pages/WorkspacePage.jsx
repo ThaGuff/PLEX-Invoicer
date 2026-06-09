@@ -38,7 +38,7 @@ function Message({ msg, isOwn, myId, onReact, onReply, onDelete, onEdit, current
       {/* Avatar */}
       <div style={{
         width: 36, height: 36, borderRadius: 8, flexShrink: 0,
-        background: isOwn ? '#3DD68C' : '#3DD68C',
+        background: isOwn ? '#C8E20A' : '#C8E20A',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         color: '#fff', fontSize: 14, fontWeight: 800, marginTop: 2,
       }}>
@@ -95,7 +95,7 @@ function Message({ msg, isOwn, myId, onReact, onReply, onDelete, onEdit, current
                   const cleanMention = p.includes('@', 1) 
                     ? '@' + p.slice(1).split('@')[0] 
                     : p;
-                  return <strong key={j} style={{ color: 'var(--accent, #3DD68C)', fontWeight: 700 }}>{cleanMention}</strong>;
+                  return <strong key={j} style={{ color: 'var(--accent, #C8E20A)', fontWeight: 700 }}>{cleanMention}</strong>;
                 })}
                 {i < (msg.content || '').split('\n').length - 1 && '\n'}
               </span>
@@ -110,12 +110,12 @@ function Message({ msg, isOwn, myId, onReact, onReply, onDelete, onEdit, current
               value={editContent}
               onChange={e => onEditChange(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onEditSave(); } if (e.key === 'Escape') onEditCancel(); }}
-              style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #3DD68C', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 14, resize: 'none', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #C8E20A', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 14, resize: 'none', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
               rows={2}
               autoFocus
             />
             <div style={{ display: 'flex', gap: 6, fontSize: 11 }}>
-              <button onClick={onEditSave} style={{ padding: '4px 10px', borderRadius: 6, background: '#3DD68C', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 11 }}>Save</button>
+              <button onClick={onEditSave} style={{ padding: '4px 10px', borderRadius: 6, background: '#C8E20A', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 11 }}>Save</button>
               <button onClick={onEditCancel} style={{ padding: '4px 10px', borderRadius: 6, background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: 11 }}>Cancel (Esc)</button>
               <span style={{ color: 'var(--text-muted)', lineHeight: '24px' }}>· Enter to save, Shift+Enter for newline</span>
             </div>
@@ -129,7 +129,7 @@ function Message({ msg, isOwn, myId, onReact, onReply, onDelete, onEdit, current
               <button key={emoji} onClick={() => onReact(msg.id, emoji)}
                 style={{
                   padding: '2px 8px', borderRadius: 20, border: '1px solid var(--border)',
-                  background: users.includes(myId) ? 'rgba(61,214,140,0.08)' : 'var(--bg-raised)',
+                  background: users.includes(myId) ? 'rgba(200,226,10,0.08)' : 'var(--bg-raised)',
                   cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4,
                   color: 'var(--text-secondary)',
                 }}>
@@ -710,7 +710,7 @@ export default function WorkspacePage() {
   return (
     <div style={{
       display: 'flex', height: 'calc(100dvh - 68px)',
-      fontFamily: "'Plus Jakarta Sans', sans-serif",
+      fontFamily: "'Inter', sans-serif",
       background: 'var(--bg-page)', overflow: 'hidden',
       maxWidth: '100%', width: '100%',
     }}>
@@ -721,7 +721,7 @@ export default function WorkspacePage() {
         minWidth: showSidebar ? (isMobile ? '100%' : 260) : 0,
         display: (showSidebar || !isMobile) ? 'flex' : 'none',
         flexDirection: 'column',
-        background: '#0D1A0D',
+        background: '#1A1A1A',
         borderRight: '1px solid rgba(255,255,255,0.06)',
         overflow: 'hidden', transition: 'all 0.2s', flexShrink: 0,
         position: isMobile ? 'absolute' : 'relative',
@@ -773,7 +773,7 @@ export default function WorkspacePage() {
                   onKeyDown={e => { if (e.key === 'Enter') createChannel(); if (e.key === 'Escape') { setShowNewChannel(false); setNewChannelName(''); } }}
                   placeholder="channel-name" autoFocus
                   style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#fff', fontSize: 13 }} />
-                <button onClick={createChannel} style={{ background: '#3DD68C', border: 'none', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', color: '#fff' }}>
+                <button onClick={createChannel} style={{ background: '#C8E20A', border: 'none', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', color: '#fff' }}>
                   <Check size={14} />
                 </button>
               </div>
@@ -842,10 +842,10 @@ export default function WorkspacePage() {
           {/* Self */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px' }}>
             <div style={{ position: 'relative' }}>
-              <div style={{ width: 26, height: 26, borderRadius: 6, background: '#3DD68C', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 800 }}>
+              <div style={{ width: 26, height: 26, borderRadius: 6, background: '#C8E20A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 800 }}>
                 {myName.charAt(0).toUpperCase()}
               </div>
-              <div style={{ position: 'absolute', bottom: -2, right: -2, width: 9, height: 9, borderRadius: '50%', background: '#3DD68C', border: '2px solid #0F172A' }} title="Online" />
+              <div style={{ position: 'absolute', bottom: -2, right: -2, width: 9, height: 9, borderRadius: '50%', background: '#C8E20A', border: '2px solid #0F172A' }} title="Online" />
             </div>
             <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
               {myName} <span style={{ opacity: 0.4, fontSize: 10 }}>· you · online</span>
@@ -855,7 +855,7 @@ export default function WorkspacePage() {
           {activeMembersList.map(m => {
             const memberPresence = presence[m.user_id];
             const presenceStatus = memberPresence?.status || 'offline';
-            const presenceColor = presenceStatus === 'online' ? '#3DD68C' : presenceStatus === 'away' ? '#64748B' : '#6B7280';
+            const presenceColor = presenceStatus === 'online' ? '#C8E20A' : presenceStatus === 'away' ? '#64748B' : '#6B7280';
             const presenceLabel = presenceStatus === 'online' ? 'Online' : presenceStatus === 'away' ? 'Away' : 'Offline';
             const displayName = memberPresence?.display_name || m.email || m.invited_email || 'Member';
             return (
@@ -912,7 +912,7 @@ export default function WorkspacePage() {
 
         {/* User info at bottom */}
         <div style={{ padding: '12px 12px calc(8px + env(safe-area-inset-bottom))', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: '#3DD68C', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: '#C8E20A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>
             {myName.charAt(0).toUpperCase()}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -965,7 +965,7 @@ export default function WorkspacePage() {
               <Users size={17} />
             </button>
             <button onClick={() => setShowInvite(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--accent, #3DD68C)', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--accent, #C8E20A)', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
               <UserPlus size={13} /> Invite
             </button>
           </div>
@@ -1028,7 +1028,7 @@ export default function WorkspacePage() {
               }} style={{ display:'flex', alignItems:'center', gap:10, width:'100%', padding:'10px 14px', border:'none', background:'none', cursor:'pointer', textAlign:'left', color:'var(--text-primary)' }}
               onMouseEnter={e => e.currentTarget.style.background='var(--bg-raised)'}
               onMouseLeave={e => e.currentTarget.style.background='none'}>
-                <div style={{ width:28, height:28, borderRadius:7, background:'#3DD68C', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:12, fontWeight:800, flexShrink:0 }}>
+                <div style={{ width:28, height:28, borderRadius:7, background:'#C8E20A', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:12, fontWeight:800, flexShrink:0 }}>
                   {p.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -1138,7 +1138,7 @@ export default function WorkspacePage() {
                 flex: 1, background: 'none', border: 'none', outline: 'none',
                 color: 'var(--text-primary)', fontSize: 14, lineHeight: 1.5,
                 resize: 'none', maxHeight: 120, minHeight: 22,
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontFamily: "'Inter', sans-serif",
               }}
             />
             <button
@@ -1146,7 +1146,7 @@ export default function WorkspacePage() {
               disabled={!input.trim() || sending || !activeChannel}
               style={{
                 width: 36, height: 36, borderRadius: 10, border: 'none',
-                background: input.trim() && !sending && activeChannel ? '#3DD68C' : 'var(--border)',
+                background: input.trim() && !sending && activeChannel ? '#C8E20A' : 'var(--border)',
                 color: input.trim() && !sending && activeChannel ? '#fff' : 'var(--text-muted)',
                 cursor: input.trim() && !sending && activeChannel ? 'pointer' : 'not-allowed',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1187,11 +1187,11 @@ export default function WorkspacePage() {
               <option value="admin">Admin</option>
             </select>
             {inviteStatus && (
-              <div style={{ padding: '8px 12px', borderRadius: 8, background: inviteStatus.includes('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: inviteStatus.includes('✅') ? '#3DD68C' : '#dc2626', fontSize: 13, marginBottom: 12 }}>
+              <div style={{ padding: '8px 12px', borderRadius: 8, background: inviteStatus.includes('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: inviteStatus.includes('✅') ? '#C8E20A' : '#dc2626', fontSize: 13, marginBottom: 12 }}>
                 {inviteStatus}
               </div>
             )}
-            <button onClick={inviteMember} style={{ width: '100%', padding: '13px', background: '#3DD68C', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: 'pointer' }}>
+            <button onClick={inviteMember} style={{ width: '100%', padding: '13px', background: '#C8E20A', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: 'pointer' }}>
               Send Invitation
             </button>
 
@@ -1220,7 +1220,7 @@ export default function WorkspacePage() {
       {/* Live Operations Feed Panel */}
       {showActivityFeed && (
         <div style={{ position:'fixed', top:0, right:0, bottom:0, width:320, background:'var(--bg-surface)', borderLeft:'1px solid var(--border)', zIndex:300, display:'flex', flexDirection:'column', boxShadow:'-8px 0 32px rgba(0,0,0,0.18)' }}>
-          <div style={{ padding:'14px 18px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', background:'linear-gradient(135deg,#3DD68C10,#3DD68C08)' }}>
+          <div style={{ padding:'14px 18px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', background:'linear-gradient(135deg,#C8E20A10,#C8E20A08)' }}>
             <div>
               <p style={{ margin:0, fontSize:14, fontWeight:800, color:'var(--text-primary)' }}>⚡ Operations Feed</p>
               <p style={{ margin:'2px 0 0', fontSize:11, color:'var(--text-muted)' }}>Live business activity stream</p>
@@ -1248,7 +1248,7 @@ export default function WorkspacePage() {
             ))}
           </div>
           <div style={{ padding:'12px 14px', borderTop:'1px solid var(--border)', background:'var(--bg-raised)' }}>
-            <button onClick={loadActivityFeed} style={{ width:'100%', padding:'7px', borderRadius:9, border:'1px solid var(--border)', background:'var(--bg-surface)', color:'var(--text-muted)', cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+            <button onClick={loadActivityFeed} style={{ width:'100%', padding:'7px', borderRadius:9, border:'1px solid var(--border)', background:'var(--bg-surface)', color:'var(--text-muted)', cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:"'Inter',sans-serif" }}>
               ↻ Refresh Feed
             </button>
           </div>

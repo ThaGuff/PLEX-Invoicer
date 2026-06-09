@@ -1,4 +1,4 @@
-# Revanew — App Store & Play Store Publishing Guide
+# Invoice King — App Store & Play Store Publishing Guide
 
 Generated: May 22, 2026 | Powered by PLEX Automation
 
@@ -7,21 +7,21 @@ Generated: May 22, 2026 | Powered by PLEX Automation
 ## ✅ What's Already Live (test TODAY)
 
 Your app is already a **full Progressive Web App (PWA)**.
-Open https://revanew.io on your phone and:
+Open https://invoiceking.app on your phone and:
 
 ### Android (Chrome):
 1. Open the URL in Chrome
 2. Tap the **three dots menu** (top right)
 3. Tap **"Add to Home screen"**
 4. Tap **"Add"**
-5. The app installs with the Revanew icon — opens full-screen, no browser bar
+5. The app installs with the Invoice King icon — opens full-screen, no browser bar
 
 ### iPhone (Safari):
 1. Open the URL in **Safari** (must be Safari, not Chrome on iOS)
 2. Tap the **Share button** ⎙ at the bottom
 3. Scroll down and tap **"Add to Home Screen"**
 4. Tap **"Add"**
-5. Opens full-screen with Revanew icon on your home screen
+5. Opens full-screen with Invoice King icon on your home screen
 
 ---
 
@@ -32,13 +32,13 @@ Google accepts PWAs as real Play Store apps via **Trusted Web Activity (TWA)**.
 ### Requirements:
 - Google Play Developer account: **$25 one-time fee**
   → https://play.google.com/console/signup
-- A domain you control (revanew.io or custom domain)
-- Custom domain strongly recommended: e.g. **app.revanew.io**
+- A domain you control (invoiceking.app or custom domain)
+- Custom domain strongly recommended: e.g. **app.invoiceking.app**
 
 ### Steps:
 
 **Step 1 — Get a custom domain (recommended)**
-- Buy revanew.io or app.revanew.io from Namecheap or Cloudflare (~$12/yr)
+- Buy invoiceking.app or app.invoiceking.app from Namecheap or Cloudflare (~$12/yr)
 - Point it to your Railway app
 
 **Step 2 — Use PWABuilder to generate the Android app**
@@ -54,7 +54,7 @@ Update public/assetlinks.json with your real fingerprint:
 ```
 PLACEHOLDER_REPLACE_WITH_YOUR_SHA256_CERT → your actual SHA256
 ```
-Also update the package_name from `io.plexautomation.revanew` to whatever you choose.
+Also update the package_name from `io.plexautomation.invoiceking` to whatever you choose.
 
 **Step 4 — Upload to Play Console**
 1. Create new app at https://play.google.com/console
@@ -85,7 +85,7 @@ Apple requires more work. Two options:
 More features (push notifications, camera, biometrics, deep links):
 ```bash
 npm install @capacitor/core @capacitor/ios @capacitor/android
-npx cap init Revanew io.plexautomation.revanew
+npx cap init Invoice King io.plexautomation.invoiceking
 npx cap add ios
 npx cap add android
 npx cap sync
@@ -120,11 +120,11 @@ To send push notifications (invoice reminders, quote accepted alerts):
 
 ## 📊 App Store Listing Content (ready to use)
 
-**App name:** Revanew
-**Subtitle:** Quotes. Invoices. Get Paid.
+**App name:** Invoice King
+**Subtitle:** Invoicing. Simplified. Own Your Cash Flow.
 **Category:** Business / Finance
 **Description:**
-Revanew is the complete billing platform for service businesses. Send
+Invoice King is the complete billing platform for service businesses. Send
 professional quotes in under 60 seconds, collect e-signatures, accept
 deposits, and get paid faster with AI-powered payment reminders.
 

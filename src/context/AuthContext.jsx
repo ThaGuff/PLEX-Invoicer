@@ -121,16 +121,16 @@ export function AuthProvider({ children }) {
         const ageMs = Date.now() - createdAt.getTime();
         // New if account is less than 5 minutes old AND hasn't been to billing yet
         const isNew = ageMs < 5 * 60 * 1000;
-        const alreadyOnboarded = localStorage.getItem('revanew_onboarded') === '1';
-        const alreadyLoggedIn = localStorage.getItem('revanew_login_event') &&
-          (Date.now() - parseInt(localStorage.getItem('revanew_login_event'))) < 60 * 60 * 1000; // within 1 hour
+        const alreadyOnboarded = localStorage.getItem('invoiceking_onboarded') === '1';
+        const alreadyLoggedIn = localStorage.getItem('invoiceking_login_event') &&
+          (Date.now() - parseInt(localStorage.getItem('invoiceking_login_event'))) < 60 * 60 * 1000; // within 1 hour
         // Don't treat as new user if they were already active (e.g. Google Calendar OAuth refresh)
         if (isNew && !alreadyOnboarded && !alreadyLoggedIn) {
-          localStorage.setItem('revanew_new_user', '1');
-          localStorage.setItem('revanew_show_tour', '1');
+          localStorage.setItem('invoiceking_new_user', '1');
+          localStorage.setItem('invoiceking_show_tour', '1');
         }
         // Mark for trial upsell check on each login
-        localStorage.setItem('revanew_login_event', Date.now().toString());
+        localStorage.setItem('invoiceking_login_event', Date.now().toString());
       }
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         const wasExpired = sessionExpired;

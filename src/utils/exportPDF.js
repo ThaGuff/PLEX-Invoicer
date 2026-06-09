@@ -16,14 +16,14 @@ const MARGIN     = 32;
 function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
 
 function hexToRgb(hex) {
-  const c = (hex || '#3DD68C').replace('#', '');
+  const c = (hex || '#C8E20A').replace('#', '');
   return [parseInt(c.slice(0,2),16), parseInt(c.slice(2,4),16), parseInt(c.slice(4,6),16)];
 }
 
 function drawFooter(doc, W, H, agencyName, agencyWebsite, agencyEmail, agencyPhone, pageNum, totalPages, agencyAddress = '', agencyCityState = '', whiteLabelPlan = false) {
   doc.setFillColor(...WHITE);
   doc.rect(0, H - FOOTER_H, W, FOOTER_H, 'F');
-  const accent = hexToRgb(doc.__accentHex || '#3DD68C');
+  const accent = hexToRgb(doc.__accentHex || '#C8E20A');
   doc.setFillColor(...accent);
   doc.rect(0, H - FOOTER_H, W, 1.5, 'F');
   doc.setFont('helvetica', 'normal');
@@ -34,7 +34,7 @@ function drawFooter(doc, W, H, agencyName, agencyWebsite, agencyEmail, agencyPho
   if (!whiteLabelPlan) {
     doc.setFontSize(6.5);
     doc.setTextColor(190, 195, 200);
-    doc.text('Powered by Revanew.io', W / 2, H - FOOTER_H + 24, { align: 'center' });
+    doc.text('Powered by Invoice King.io', W / 2, H - FOOTER_H + 24, { align: 'center' });
   }
   if (totalPages > 1) {
     doc.text(`Page ${pageNum} of ${totalPages}`, W - MARGIN, H - FOOTER_H + 14, { align: 'right' });
@@ -75,7 +75,7 @@ export function exportPDF(state) {
     agencyTechnician = '',
     agencyTaxNum     = '',
     whiteLabelPlan   = false,
-    primaryColor     = '#3DD68C',
+    primaryColor     = '#C8E20A',
     agencyLogoUrl    = null,
     customSections   = [],
     customItems      = [],

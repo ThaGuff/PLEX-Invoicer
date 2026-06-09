@@ -51,13 +51,13 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.error) {
       return (
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#EEEEE6' }}>
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F5F5F5' }}>
           <div style={{ background: '#fff', borderRadius: 16, padding: '40px 48px', maxWidth: 480, textAlign: 'center', border: '1px solid #DEDDD5' }}>
-            <div style={{ width: 48, height: 48, borderRadius: 12, background: '#0D1A0D', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 22, fontWeight: 800, color: '#C8FF00' }}>R</div>
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0D1A0D', margin: '0 0 8px' }}>Something went wrong</h2>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: '#1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 22, fontWeight: 800, color: '#C8E20A' }}>R</div>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1A1A1A', margin: '0 0 8px' }}>Something went wrong</h2>
             <p style={{ fontSize: 14, color: '#7A8A7A', margin: '0 0 24px', lineHeight: 1.6 }}>{this.state.error?.message || 'An unexpected error occurred.'}</p>
             <button onClick={() => { this.setState({ error: null }); window.location.href = '/dashboard'; }}
-              style={{ background: '#0D1A0D', color: '#fff', border: 'none', borderRadius: 9, padding: '10px 24px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+              style={{ background: '#1A1A1A', color: '#fff', border: 'none', borderRadius: 9, padding: '10px 24px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
               Reload app
             </button>
           </div>
@@ -78,8 +78,8 @@ function RequireAuth({ children }) {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#EEEEE6' }}>
-      <div style={{ width: 28, height: 28, borderRadius: '50%', border: '2.5px solid #0D1A0D', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#F5F5F5' }}>
+      <div style={{ width: 28, height: 28, borderRadius: '50%', border: '2.5px solid #1A1A1A', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
     </div>
   );
   if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
@@ -178,30 +178,30 @@ function Nav() {
   const mobilePrimary = [workspaceLinks[0], workspaceLinks[1], workspaceLinks[2], workspaceLinks[3]];
 
   const userName = user?.user_metadata?.full_name || account?.name || 'Account';
-  const workspaceName = account?.company_name || 'PLEX Automation LLC';
+  const workspaceName = account?.company_name || 'Invoice King';
 
   const NavItem = ({ link }) => {
     const active = isActive(link.to);
     const locked = isLocked(link.to);
     return (
       <button
-        onClick={() => locked ? handleLockedClick(link) : link.to === '/__business' ? window.dispatchEvent(new CustomEvent('revanew:settings')) : navigate(link.to)}
+        onClick={() => locked ? handleLockedClick(link) : link.to === '/__business' ? window.dispatchEvent(new CustomEvent('invoiceking:settings')) : navigate(link.to)}
         style={{
           display: 'flex', alignItems: 'center', gap: 10,
           padding: '9px 12px 9px 16px',
           borderRadius: 8, border: 'none', cursor: 'pointer',
           width: '100%', textAlign: 'left',
           background: active ? 'rgba(255,255,255,0.09)' : 'transparent',
-          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           transition: 'background 0.12s',
           position: 'relative',
         }}
         onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
         onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}>
         {/* Active indicator bar */}
-        {active && <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 20, borderRadius: '0 2px 2px 0', background: '#C8FF00' }} />}
-        <span style={{ color: active ? '#C8FF00' : 'rgba(255,255,255,0.45)', flexShrink: 0 }}>
-          <NavIcon size={15} route={link.to} color={active ? '#C8FF00' : 'rgba(255,255,255,0.45)'} />
+        {active && <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 20, borderRadius: '0 2px 2px 0', background: '#C8E20A' }} />}
+        <span style={{ color: active ? '#C8E20A' : 'rgba(255,255,255,0.45)', flexShrink: 0 }}>
+          <NavIcon size={15} route={link.to} color={active ? '#C8E20A' : 'rgba(255,255,255,0.45)'} />
         </span>
         <span style={{ fontSize: 14, fontWeight: active ? 700 : 500, color: active ? '#FFFFFF' : 'rgba(255,255,255,0.72)', letterSpacing: '-0.01em', flex: 1 }}>
           {link.label}
@@ -215,25 +215,25 @@ function Nav() {
     <>
       {/* ── DESKTOP SIDEBAR ─────────────────────────────────────── */}
       <aside className="desktop-sidebar" style={{
-        background: '#0D1A0D',
+        background: '#1A1A1A',
         borderRight: 'none',
         flexDirection: 'column',
       }}>
         {/* Logo */}
         <div style={{ padding: '20px 16px 16px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 9, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0D1A0D' }}>
-              <img src="/logo-revanew.png?v=1781009199" alt="Revanew" style={{ width: 36, height: 36, objectFit: 'cover' }} />
+            <div style={{ width: 36, height: 36, borderRadius: 9, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1A1A1A' }}>
+              <img src="/logo-invoiceking.png?v=1781009199" alt="Invoice King" style={{ width: 36, height: 36, objectFit: 'cover' }} />
             </div>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.03em', lineHeight: 1.1 }}>Revanew</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.03em', lineHeight: 1.1 }}>Invoice King</div>
               <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.38)', fontWeight: 500, marginTop: 1 }}>Receivables OS</div>
             </div>
           </div>
           {trialActive && trialEnd && (
-            <div style={{ marginTop: 10, padding: '4px 10px', background: 'rgba(200,255,0,0.1)', border: '1px solid rgba(200,255,0,0.2)', borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#C8FF00' }} />
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#C8FF00' }}>
+            <div style={{ marginTop: 10, padding: '4px 10px', background: 'rgba(200,226,10,0.1)', border: '1px solid rgba(200,226,10,0.2)', borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#C8E20A' }} />
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#C8E20A' }}>
                 {Math.max(0, Math.ceil((trialEnd - new Date()) / 86400000))}d trial left
               </span>
             </div>
@@ -258,9 +258,9 @@ function Nav() {
         {/* Create Quote CTA */}
         <div style={{ padding: '0 12px 10px', flexShrink: 0 }}>
           <button onClick={() => navigate('/quotes/new')}
-            style={{ width: '100%', padding: '12px', background: '#C8FF00', color: '#0D1A0D', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.01em', transition: 'background 0.12s' }}
+            style={{ width: '100%', padding: '12px', background: '#C8E20A', color: '#1A1A1A', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.01em', transition: 'background 0.12s' }}
             onMouseEnter={e => e.currentTarget.style.background = '#B8EF00'}
-            onMouseLeave={e => e.currentTarget.style.background = '#C8FF00'}>
+            onMouseLeave={e => e.currentTarget.style.background = '#C8E20A'}>
             + New quote
           </button>
         </div>
@@ -273,8 +273,8 @@ function Nav() {
               style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, padding: '8px', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', transition: 'background 0.12s' }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <div style={{ width: 30, height: 30, borderRadius: 7, overflow: 'hidden', flexShrink: 0, background: '#1A2A1A', border: '1.5px solid rgba(200,255,0,0.2)' }}>
-                <img src="/logo-revanew.png?v=1781009199" alt="R" style={{ width: 30, height: 30, objectFit: 'cover' }} />
+              <div style={{ width: 30, height: 30, borderRadius: 7, overflow: 'hidden', flexShrink: 0, background: '#1A2A1A', border: '1.5px solid rgba(200,226,10,0.2)' }}>
+                <img src="/logo-invoiceking.png?v=1781009199" alt="R" style={{ width: 30, height: 30, objectFit: 'cover' }} />
               </div>
               <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                 <div style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName}</div>
@@ -299,7 +299,7 @@ function Nav() {
         position: 'fixed', bottom: 0, left: 0, right: 0,
         height: 'calc(58px + env(safe-area-inset-bottom))',
         paddingBottom: 'env(safe-area-inset-bottom)',
-        background: '#0D1A0D',
+        background: '#1A1A1A',
         borderTop: '1px solid rgba(255,255,255,0.08)',
         display: 'flex', alignItems: 'center',
         zIndex: 90,
@@ -310,10 +310,10 @@ function Nav() {
             <button key={l.to} onClick={() => navigate(l.to)}
               aria-label={l.label}
               style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: '8px 0', background: 'none', border: 'none', cursor: 'pointer' }}>
-              <div style={{ width: 26, height: 26, borderRadius: 7, background: active ? '#C8FF00' : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <NavIcon size={14} route={l.to} color={active ? '#0D1A0D' : 'rgba(255,255,255,0.6)'} />
+              <div style={{ width: 26, height: 26, borderRadius: 7, background: active ? '#C8E20A' : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <NavIcon size={14} route={l.to} color={active ? '#1A1A1A' : 'rgba(255,255,255,0.6)'} />
               </div>
-              <span style={{ fontSize: 9.5, fontWeight: active ? 700 : 500, color: active ? '#C8FF00' : 'rgba(255,255,255,0.45)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{l.label}</span>
+              <span style={{ fontSize: 9.5, fontWeight: active ? 700 : 500, color: active ? '#C8E20A' : 'rgba(255,255,255,0.45)', fontFamily: "'Inter', sans-serif" }}>{l.label}</span>
             </button>
           );
         })}
@@ -321,10 +321,10 @@ function Nav() {
           aria-label="More navigation options"
           aria-expanded={showMobileMore}
           style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: '8px 0', background: 'none', border: 'none', cursor: 'pointer' }}>
-          <div style={{ width: 22, height: 22, borderRadius: 6, background: showMobileMore ? '#C8FF00' : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="2" cy="6" r="1.2" fill={showMobileMore ? '#0D1A0D' : 'rgba(255,255,255,0.7)'}/><circle cx="6" cy="6" r="1.2" fill={showMobileMore ? '#0D1A0D' : 'rgba(255,255,255,0.7)'}/><circle cx="10" cy="6" r="1.2" fill={showMobileMore ? '#0D1A0D' : 'rgba(255,255,255,0.7)'}/></svg>
+          <div style={{ width: 22, height: 22, borderRadius: 6, background: showMobileMore ? '#C8E20A' : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="2" cy="6" r="1.2" fill={showMobileMore ? '#1A1A1A' : 'rgba(255,255,255,0.7)'}/><circle cx="6" cy="6" r="1.2" fill={showMobileMore ? '#1A1A1A' : 'rgba(255,255,255,0.7)'}/><circle cx="10" cy="6" r="1.2" fill={showMobileMore ? '#1A1A1A' : 'rgba(255,255,255,0.7)'}/></svg>
           </div>
-          <span style={{ fontSize: 9.5, fontWeight: showMobileMore ? 700 : 500, color: showMobileMore ? '#C8FF00' : 'rgba(255,255,255,0.45)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>More</span>
+          <span style={{ fontSize: 9.5, fontWeight: showMobileMore ? 700 : 500, color: showMobileMore ? '#C8E20A' : 'rgba(255,255,255,0.45)', fontFamily: "'Inter', sans-serif" }}>More</span>
         </button>
       </nav>
 
@@ -332,18 +332,18 @@ function Nav() {
       {showMobileMore && (
         <>
           <div style={{ position: 'fixed', inset: 0, zIndex: 109, background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowMobileMore(false)} />
-          <div style={{ position: 'fixed', bottom: 'calc(74px + env(safe-area-inset-bottom))', left: 12, right: 12, zIndex: 110, background: '#0D1A0D', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', padding: '12px 8px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
+          <div style={{ position: 'fixed', bottom: 'calc(74px + env(safe-area-inset-bottom))', left: 12, right: 12, zIndex: 110, background: '#1A1A1A', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', padding: '12px 8px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
             {[...workspaceLinks.slice(4), ...operationsLinks].map(l => {
               const active = isActive(l.to);
               const locked = isLocked(l.to);
               return (
                 <button key={l.to}
-                  onClick={() => { setShowMobileMore(false); locked ? handleLockedClick(l) : l.to === '/__business' ? window.dispatchEvent(new CustomEvent('revanew:settings')) : navigate(l.to); }}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: '12px 4px', borderRadius: 10, border: 'none', background: active ? 'rgba(200,255,0,0.08)' : 'transparent', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", opacity: locked ? 0.6 : 1 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: active ? 'rgba(200,255,0,0.15)' : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <NavIcon size={16} route={l.to} color={active ? '#C8FF00' : 'rgba(255,255,255,0.65)'} />
+                  onClick={() => { setShowMobileMore(false); locked ? handleLockedClick(l) : l.to === '/__business' ? window.dispatchEvent(new CustomEvent('invoiceking:settings')) : navigate(l.to); }}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: '12px 4px', borderRadius: 10, border: 'none', background: active ? 'rgba(200,226,10,0.08)' : 'transparent', cursor: 'pointer', fontFamily: "'Inter', sans-serif", opacity: locked ? 0.6 : 1 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: active ? 'rgba(200,226,10,0.15)' : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <NavIcon size={16} route={l.to} color={active ? '#C8E20A' : 'rgba(255,255,255,0.65)'} />
                   </div>
-                  <span style={{ fontSize: 10.5, fontWeight: active ? 700 : 500, color: active ? '#C8FF00' : 'rgba(255,255,255,0.65)' }}>{l.label}</span>
+                  <span style={{ fontSize: 10.5, fontWeight: active ? 700 : 500, color: active ? '#C8E20A' : 'rgba(255,255,255,0.65)' }}>{l.label}</span>
                 </button>
               );
             })}
@@ -395,39 +395,39 @@ function AppShell({ children }) {
 
   React.useEffect(() => {
     const handler = (e) => { try { navigate(e.detail); } catch {} };
-    window.addEventListener('revanew:navigate', handler);
+    window.addEventListener('invoiceking:navigate', handler);
     const settingsHandler = () => setShowSettings(true);
-    window.addEventListener('revanew:settings', settingsHandler);
-    return () => { window.removeEventListener('revanew:navigate', handler); window.removeEventListener('revanew:settings', settingsHandler); };
+    window.addEventListener('invoiceking:settings', settingsHandler);
+    return () => { window.removeEventListener('invoiceking:navigate', handler); window.removeEventListener('invoiceking:settings', settingsHandler); };
   }, [navigate]);
 
   React.useEffect(() => {
     if (!account || loading) return;
     const path = location.pathname;
     if (path.includes('/billing') || path.includes('/login') || path.includes('/portal') || path.includes('/auth/callback')) return;
-    const isNew = localStorage.getItem('revanew_new_user') === '1';
+    const isNew = localStorage.getItem('invoiceking_new_user') === '1';
     if (isNew) {
-      localStorage.removeItem('revanew_new_user');
-      localStorage.setItem('revanew_onboarded', '1');
-      const pendingInvite = localStorage.getItem('revanew_pending_invite');
-      if (pendingInvite) { localStorage.removeItem('revanew_pending_invite'); navigate(`/invite/accept/${pendingInvite}`); return; }
+      localStorage.removeItem('invoiceking_new_user');
+      localStorage.setItem('invoiceking_onboarded', '1');
+      const pendingInvite = localStorage.getItem('invoiceking_pending_invite');
+      if (pendingInvite) { localStorage.removeItem('invoiceking_pending_invite'); navigate(`/invite/accept/${pendingInvite}`); return; }
       navigate('/billing?welcome=1'); return;
     }
-    const pendingInvite = localStorage.getItem('revanew_pending_invite');
-    if (pendingInvite && path !== `/invite/accept/${pendingInvite}`) { localStorage.removeItem('revanew_pending_invite'); navigate(`/invite/accept/${pendingInvite}`); return; }
-    const shouldShowTour = localStorage.getItem('revanew_show_tour') === '1' && !localStorage.getItem('revanew_tour_done') && !path.includes('/billing');
+    const pendingInvite = localStorage.getItem('invoiceking_pending_invite');
+    if (pendingInvite && path !== `/invite/accept/${pendingInvite}`) { localStorage.removeItem('invoiceking_pending_invite'); navigate(`/invite/accept/${pendingInvite}`); return; }
+    const shouldShowTour = localStorage.getItem('invoiceking_show_tour') === '1' && !localStorage.getItem('invoiceking_tour_done') && !path.includes('/billing');
     setShowTour(shouldShowTour);
   }, [account, loading, location.pathname]);
 
   const [dark, setDark] = useDarkMode();
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#EEEEE6' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#F5F5F5' }}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 9, background: '#0D1A0D', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 18, fontWeight: 900, color: '#C8FF00' }}>R</span>
+        <div style={{ width: 36, height: 36, borderRadius: 9, background: '#1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: 18, fontWeight: 900, color: '#C8E20A' }}>R</span>
         </div>
-        <div style={{ width: 24, height: 24, borderRadius: '50%', border: '2.5px solid #0D1A0D', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
+        <div style={{ width: 24, height: 24, borderRadius: '50%', border: '2.5px solid #1A1A1A', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
       </div>
     </div>
   );
@@ -438,7 +438,7 @@ function AppShell({ children }) {
       <React.Suspense fallback={null}><InstallPWA /></React.Suspense>
       {showTour && (
         <React.Suspense fallback={null}>
-          <OnboardingTour onDone={() => { setShowTour(false); localStorage.removeItem('revanew_show_tour'); }} />
+          <OnboardingTour onDone={() => { setShowTour(false); localStorage.removeItem('invoiceking_show_tour'); }} />
         </React.Suspense>
       )}
       {showSettings && <AccountSettings onClose={() => setShowSettings(false)} />}
@@ -461,11 +461,11 @@ function AppShell({ children }) {
 }
 
 function useDarkMode() {
-  const [dark, setDark] = React.useState(() => localStorage.getItem('revanew_theme') === 'dark');
+  const [dark, setDark] = React.useState(() => localStorage.getItem('invoiceking_theme') === 'dark');
   React.useEffect(() => {
     const root = document.documentElement;
-    if (dark) { root.classList.add('dark'); localStorage.setItem('revanew_theme', 'dark'); }
-    else { root.classList.remove('dark'); localStorage.removeItem('revanew_theme'); }
+    if (dark) { root.classList.add('dark'); localStorage.setItem('invoiceking_theme', 'dark'); }
+    else { root.classList.remove('dark'); localStorage.removeItem('invoiceking_theme'); }
   }, [dark]);
   return [dark, setDark];
 }

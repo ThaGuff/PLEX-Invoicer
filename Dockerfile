@@ -1,4 +1,4 @@
-# ── PLEX Invoicer — Multi-stage Dockerfile ───────────────────────
+# ── Invoice King — Multi-stage Dockerfile ────────────────────────
 # Fixes all 7 Railway nixpacks security warnings:
 #   SecretsUsedInArgOrEnv → secrets are RUNTIME env vars, not build-time
 #   UndefinedVar $NIXPACKS_PATH → replaced by explicit Dockerfile

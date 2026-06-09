@@ -10,11 +10,11 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
     <div style={{ position:'relative' }}>
       {/* Trigger button */}
       <button onClick={() => setOpen(o => !o)}
-        style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 12px', borderRadius:10, border:'1px solid var(--border)', background:'var(--bg-raised)', cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif", transition:'all 0.15s' }}
+        style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 12px', borderRadius:10, border:'1px solid var(--border)', background:'var(--bg-raised)', cursor:'pointer', fontFamily:"'Inter',sans-serif", transition:'all 0.15s' }}
         onMouseEnter={e => e.currentTarget.style.borderColor='var(--blue)'}
         onMouseLeave={e => e.currentTarget.style.borderColor='var(--border)'}>
-        <div style={{ width:22, height:22, borderRadius:6, overflow:'hidden', flexShrink:0, background:'#0D1A0D' }>
-          <img src='/logo-revanew.png' alt='R' style={width:22,height:22,objectFit:'cover'}/>
+        <div style={{ width:22, height:22, borderRadius:6, overflow:'hidden', flexShrink:0, background:'#1A1A1A' }>
+          <img src='/logo-invoiceking.png' alt='R' style={width:22,height:22,objectFit:'cover'}/>
         </div>
         <span style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', maxWidth:110, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{account?.name}</span>
         <ChevronDown size={13} style={{ color:'var(--text-muted)', flexShrink:0 }} />
@@ -41,18 +41,18 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
               {accounts.map(acc => (
                 <button key={acc.id}
                   onClick={() => { switchAccount(acc.id); setOpen(false); }}
-                  style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', background:'transparent', border:'none', cursor:'pointer', textAlign:'left', transition:'background 0.12s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
+                  style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', background:'transparent', border:'none', cursor:'pointer', textAlign:'left', transition:'background 0.12s', fontFamily:"'Inter',sans-serif" }}
                   onMouseEnter={e => e.currentTarget.style.background='var(--bg-page)'}
                   onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                  <div style={{ width:28, height:28, borderRadius:8, overflow:'hidden', flexShrink:0, background:'#0D1A0D' }>
-                    <img src='/logo-revanew.png' alt='R' style={width:28,height:28,objectFit:'cover'}/>
+                  <div style={{ width:28, height:28, borderRadius:8, overflow:'hidden', flexShrink:0, background:'#1A1A1A' }>
+                    <img src='/logo-invoiceking.png' alt='R' style={width:28,height:28,objectFit:'cover'}/>
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <p style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{acc.name}</p>
                     <p style={{ fontSize:11, color:'var(--text-muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginTop:1 }}>{acc.website||acc.email||''}</p>
                   </div>
                   {acc.id === account?.id && (
-                    <div style={{ width:18, height:18, borderRadius:'50%', background:'#0D1A0D', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <div style={{ width:18, height:18, borderRadius:'50%', background:'#1A1A1A', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                       <Check size={10} color="#fff" />
                     </div>
                   )}
@@ -71,7 +71,7 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
             {/* Footer actions */}
             <div style={{ borderTop:'1px solid var(--border-subtle)' }}>
               <button onClick={() => { setOpen(false); onNewAccount(); }}
-                style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', background:'transparent', border:'none', cursor:'pointer', textAlign:'left', fontSize:13, fontWeight:600, color:'var(--blue)', transition:'background 0.12s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
+                style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', background:'transparent', border:'none', cursor:'pointer', textAlign:'left', fontSize:13, fontWeight:600, color:'var(--blue)', transition:'background 0.12s', fontFamily:"'Inter',sans-serif" }}
                 onMouseEnter={e => e.currentTarget.style.background='rgba(59,111,232,0.06)'}
                 onMouseLeave={e => e.currentTarget.style.background='transparent'}>
                 <div style={{ width:22, height:22, borderRadius:6, border:'1.5px dashed var(--blue)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
@@ -80,7 +80,7 @@ export default function AccountSwitcher({ onOpenSettings, onNewAccount }) {
                 Add account
               </button>
               <button onClick={() => { setOpen(false); onOpenSettings(); }}
-                style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', background:'transparent', border:'none', cursor:'pointer', textAlign:'left', fontSize:13, fontWeight:500, color:'var(--text-secondary)', transition:'background 0.12s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
+                style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', background:'transparent', border:'none', cursor:'pointer', textAlign:'left', fontSize:13, fontWeight:500, color:'var(--text-secondary)', transition:'background 0.12s', fontFamily:"'Inter',sans-serif" }}
                 onMouseEnter={e => e.currentTarget.style.background='var(--bg-page)'}
                 onMouseLeave={e => e.currentTarget.style.background='transparent'}>
                 <Settings size={14} style={{ color:'var(--text-muted)' }} />

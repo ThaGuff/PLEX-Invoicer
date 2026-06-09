@@ -1,9 +1,9 @@
 /**
- * Revanew Service Worker — Offline Mode
+ * Invoice King Service Worker — Offline Mode
  * Caches core app shell + API responses
  * Queues quote creation/edits when offline for sync when back online
  */
-const CACHE_VERSION = 'revanew-v6';
+const CACHE_VERSION = 'invoiceking-v1';
 const STATIC_CACHE  = `${CACHE_VERSION}-static`;
 const API_CACHE     = `${CACHE_VERSION}-api`;
 
@@ -13,7 +13,7 @@ const PRECACHE = [
   '/index.html',
   '/favicon.ico',
   '/favicon.svg',
-  '/logo-revanew.png',
+  '/logo-invoiceking.png',
   '/manifest.json',
 ];
 
@@ -26,7 +26,7 @@ const CACHE_API_PATTERNS = [
 ];
 
 // Queue for offline mutations (quote create/edit)
-const SYNC_QUEUE_NAME = 'revanew-offline-queue';
+const SYNC_QUEUE_NAME = 'invoiceking-offline-queue';
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
@@ -47,7 +47,7 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(request.url);
 
   // Skip non-GET non-same-origin requests (except our API)
-  if (url.origin !== self.location.origin && !url.hostname.includes('revanew.io')) return;
+  if (url.origin !== self.location.origin && !url.hostname.includes('invoiceking.app')) return;
 
   // For navigation requests — serve index.html from cache (SPA routing)
   if (request.mode === 'navigate') {

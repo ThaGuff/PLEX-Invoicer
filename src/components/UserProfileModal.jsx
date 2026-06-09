@@ -62,7 +62,7 @@ export default function UserProfileModal({ onClose }) {
     width: '100%', padding: '10px 12px', borderRadius: 10,
     border: '1px solid var(--border)', background: 'var(--bg-page)',
     color: 'var(--text-primary)', fontSize: 14, boxSizing: 'border-box',
-    outline: 'none', fontFamily: "'Plus Jakarta Sans', sans-serif",
+    outline: 'none', fontFamily: "'Inter', sans-serif",
   };
 
   const labelStyle = { fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6, display: 'block' };
@@ -70,13 +70,13 @@ export default function UserProfileModal({ onClose }) {
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(11,18,32,0.55)', zIndex:500, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}
       onClick={onClose}>
-      <div style={{ background:'var(--bg-surface)', borderRadius:20, padding:'28px 28px 32px', width:'100%', maxWidth:440, boxShadow:'0 24px 64px rgba(11,18,32,0.25)', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
+      <div style={{ background:'var(--bg-surface)', borderRadius:20, padding:'28px 28px 32px', width:'100%', maxWidth:440, boxShadow:'0 24px 64px rgba(11,18,32,0.25)', fontFamily:"'Inter',sans-serif" }}
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:36, height:36, borderRadius:10, background:'#3DD68C', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:16, fontWeight:800 }}>
+            <div style={{ width:36, height:36, borderRadius:10, background:'#C8E20A', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:16, fontWeight:800 }}>
               {(form.display_name || user?.email || 'U').charAt(0).toUpperCase()}
             </div>
             <div>
@@ -136,7 +136,7 @@ export default function UserProfileModal({ onClose }) {
             )}
 
             <button onClick={save} disabled={saving || saved}
-              style={{ padding:'12px 20px', borderRadius:12, border:'none', background: saved ? '#3DD68C' : '#3DD68C', color:'#fff', cursor:'pointer', fontSize:14, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.2s' }}>
+              style={{ padding:'12px 20px', borderRadius:12, border:'none', background: saved ? '#C8E20A' : '#C8E20A', color:'#fff', cursor:'pointer', fontSize:14, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.2s' }}>
               {saved ? <><Check size={15}/> Saved!</> : saving ? 'Saving…' : <><Save size={15}/> Save Profile</>}
             </button>
           </div>

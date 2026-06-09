@@ -242,23 +242,23 @@ router.post('/:id/send', requireAuth, async (req, res) => {
     if (!quote.client_email) return res.status(400).json({ error: 'No client email on this quote' });
     if (!isEmailConfigured()) return res.status(503).json({ error: 'Email not configured' });
 
-    const origin = process.env.APP_URL || 'https://revanew.io';
+    const origin = process.env.APP_URL || 'https://invoiceking.app';
     const portalUrl = `${origin}/portal/quote/${quote.public_token}`;
 
     await sendEmail({
       to: quote.client_email,
       type: 'invoice',
-      subject: `Quote ${quote.number} from ${quote.agency_name || 'Revanew'}`,
+      subject: `Quote ${quote.number} from ${quote.agency_name || 'Invoice King'}`,
       html: buildQuoteHtml({
         clientName: quote.client_name,
-        agencyName: quote.agency_name || 'Revanew',
+        agencyName: quote.agency_name || 'Invoice King',
         quoteNum: quote.number,
         amount: `$${Math.round(quote.amount_due || quote.setup_total || 0).toLocaleString()}`,
         expiryDate: quote.expiry_date,
         portalUrl,
         logoUrl: quote.agency_logo_url || null,
       }),
-      text: `Hi ${quote.client_name || 'there'},\n\nYour quote ${quote.number} is ready to review.\n\nView and sign: ${portalUrl}\n\n${quote.agency_name || 'Revanew'}`,
+      text: `Hi ${quote.client_name || 'there'},\n\nYour quote ${quote.number} is ready to review.\n\nView and sign: ${portalUrl}\n\n${quote.agency_name || 'Invoice King'}`,
     });
 
     await db.execute(
@@ -420,8 +420,8 @@ router.post('/:id/send-email', requireAuth, async (req, res) => {
     const { buildQuoteHtml } = await import('../utils/email.js');
     const { sendEmail } = await import('../utils/email.js');
 
-    const portalUrl = `${process.env.APP_URL || 'https://revanew.io'}/portal/quote/${q.public_token}`;
-    const logoUrl = a.logo_url ? `${process.env.APP_URL || 'https://revanew.io'}${a.logo_url}` : null;
+    const portalUrl = `${process.env.APP_URL || 'https://invoiceking.app'}/portal/quote/${q.public_token}`;
+    const logoUrl = a.logo_url ? `${process.env.APP_URL || 'https://invoiceking.app'}${a.logo_url}` : null;
 
     const html = buildQuoteHtml({
       clientName: recipient_name || q.client_name || 'there',
@@ -438,8 +438,8 @@ router.post('/:id/send-email', requireAuth, async (req, res) => {
       notes: custom_message || q.notes || '',
     });
 
-    const fromName = a.email_from_name || a.name || 'Revanew';
-    const from = `${fromName} <invoices@revanew.io>`;
+    const fromName = a.email_from_name || a.name || 'Invoice King';
+    const from = `${fromName} <invoices@invoiceking.app>`;
 
     const result = await sendEmail({
       to: recipient_email,

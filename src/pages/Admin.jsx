@@ -12,12 +12,12 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 
 const OWNER_EMAIL = 'guffey.ryan@gmail.com';
-const ACCENT = '#3DD68C';
+const ACCENT = '#C8E20A';
 const DARK   = '#1a1a1a';
 
 const PLANS = ['starter', 'pro', 'agency'];
-const PLAN_COLOR  = { agency:'#3DD68C', pro: ACCENT, starter:'#3DD68C', none:'#9ca3af', suspended:'#ef4444' };
-const STATUS_COLOR = { active:'#3DD68C', trialing:'#64748B', cancelled:'#ef4444', suspended:'#ef4444', none:'#9ca3af' };
+const PLAN_COLOR  = { agency:'#C8E20A', pro: ACCENT, starter:'#C8E20A', none:'#9ca3af', suspended:'#ef4444' };
+const STATUS_COLOR = { active:'#C8E20A', trialing:'#64748B', cancelled:'#ef4444', suspended:'#ef4444', none:'#9ca3af' };
 
 function fmt(n)   { return '$' + Math.round(n||0).toLocaleString(); }
 function fmtDate(iso) {
@@ -69,7 +69,7 @@ function ActionBtn({ onClick, icon: Icon, label, variant = 'default', loading = 
     primary:   'text-white',
     success:   'text-white',
   };
-  const bg = variant === 'primary' ? ACCENT : variant === 'success' ? '#3DD68C' : 'transparent';
+  const bg = variant === 'primary' ? ACCENT : variant === 'success' ? '#C8E20A' : 'transparent';
   return (
     <button onClick={onClick} disabled={disabled || loading}
       className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 ${styles[variant]}`}
@@ -114,13 +114,13 @@ function UserPanel({ user, onClose, onRefresh }) {
   const isSuspended = user.sub_status === 'suspended';
 
   const EVENT_LABELS = {
-    quote_created:   { label: 'Created quote',    color: '#3DD68C' },
-    invoice_created: { label: 'Created invoice',  color: '#3DD68C' },
+    quote_created:   { label: 'Created quote',    color: '#C8E20A' },
+    invoice_created: { label: 'Created invoice',  color: '#C8E20A' },
     opened:          { label: 'Client opened email', color: '#64748B' },
     viewed:          { label: 'Client viewed portal', color: '#64748B' },
-    clicked_pay:     { label: 'Client clicked pay',   color: '#3DD68C' },
+    clicked_pay:     { label: 'Client clicked pay',   color: '#C8E20A' },
     heartbeat:       { label: 'Portal heartbeat', color: '#9ca3af' },
-    reminder_sent:   { label: 'Reminder sent',    color: '#3DD68C' },
+    reminder_sent:   { label: 'Reminder sent',    color: '#C8E20A' },
   };
 
   return (
@@ -489,7 +489,7 @@ function OnboardModal({ user, onClose, onSent }) {
           <button onClick={onClose} className="btn-ghost text-sm">Cancel</button>
           <button onClick={send} disabled={sending || done}
             className="flex items-center gap-2 text-sm font-bold px-5 py-2.5 rounded-xl text-white disabled:opacity-50"
-            style={{ background: done ? '#3DD68C' : ACCENT }}>
+            style={{ background: done ? '#C8E20A' : ACCENT }}>
             {done ? <><CheckCircle size={14}/>Sent!</> : sending ? <><RefreshCw size={14} className="animate-spin"/>Sending…</> : <><Send size={14}/>Send welcome email</>}
           </button>
         </div>
@@ -525,7 +525,7 @@ function BroadcastModal({ userCount, onClose }) {
         <div className="p-6 space-y-4">
           {result ? (
             <div className="text-center py-6">
-              <CheckCircle size={32} className="mx-auto mb-3" style={{ color:'#3DD68C' }}/>
+              <CheckCircle size={32} className="mx-auto mb-3" style={{ color:'#C8E20A' }}/>
               <p className="text-sm font-bold text-ink">Broadcast sent!</p>
               <p className="text-xs text-ink-muted mt-1">{result.sent} sent · {result.failed} failed</p>
               <button onClick={onClose} className="mt-4 btn-ghost text-sm">Close</button>
@@ -555,7 +555,7 @@ function BroadcastModal({ userCount, onClose }) {
 
 // ── Health indicator ──────────────────────────────────────────────
 function HealthDot({ ok }) {
-  return <div className="w-2 h-2 rounded-full" style={{ background: ok ? '#3DD68C' : '#ef4444' }} />;
+  return <div className="w-2 h-2 rounded-full" style={{ background: ok ? '#C8E20A' : '#ef4444' }} />;
 }
 
 // ── Main Admin ────────────────────────────────────────────────────
@@ -630,7 +630,7 @@ export default function Admin() {
           <div>
             <h1 className="text-xl font-bold text-ink leading-none">Admin Console</h1>
             <p className="text-xs text-ink-muted mt-0.5">
-              Revanew · Owner view
+              Invoice King · Owner view
               {health && <span className={`ml-2 ${health.ok ? 'text-green-500' : 'text-emerald-500'}`}>
                 · {health.ok ? 'All systems go' : 'Check system health'}
               </span>}
@@ -653,10 +653,10 @@ export default function Admin() {
       {metrics && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
           <StatCard label="Total users"    value={metrics.total_users}    icon={Users}     color={ACCENT}/>
-          <StatCard label="New this week"  value={metrics.new_this_week}  icon={TrendingUp} color="#3DD68C"/>
-          <StatCard label="Accounts"       value={metrics.total_accounts} icon={Shield}    color="#3DD68C"/>
+          <StatCard label="New this week"  value={metrics.new_this_week}  icon={TrendingUp} color="#C8E20A"/>
+          <StatCard label="Accounts"       value={metrics.total_accounts} icon={Shield}    color="#C8E20A"/>
           <StatCard label="Quotes sent"    value={metrics.total_quotes}   icon={FileText}  color="#64748B"/>
-          <StatCard label="Invoices"       value={metrics.total_invoices} icon={Receipt}   color="#3DD68C"/>
+          <StatCard label="Invoices"       value={metrics.total_invoices} icon={Receipt}   color="#C8E20A"/>
           <StatCard label="Revenue tracked" value={fmt(metrics.total_revenue)} icon={BarChart2} color="#14b8a6"/>
         </div>
       )}
@@ -778,7 +778,7 @@ export default function Admin() {
                           <div className="flex items-center gap-2.5">
                             {s.logo_url
                               ? <img src={s.logo_url} alt="" className="w-7 h-7 rounded object-contain border" style={{ borderColor:'#E5E8EB' }}/>
-                              : <div className="w-7 h-7 rounded overflow-hidden" style={{ background: '#0D1A0D' }}><img src="/logo-revanew.png" alt="R" style={{ width: 28, height: 28, objectFit: 'cover' }}/></div>
+                              : <div className="w-7 h-7 rounded overflow-hidden" style={{ background: '#1A1A1A' }}><img src="/logo-invoiceking.png" alt="R" style={{ width: 28, height: 28, objectFit: 'cover' }}/></div>
                             }
                             <div>
                               <p className="font-medium text-ink text-xs">{s.name}</p>
@@ -906,8 +906,8 @@ export default function Admin() {
                   <div className="space-y-1 text-xs text-red-700 mb-3">
                     <p className="font-semibold">Fix in 5 minutes:</p>
                     <p>1. Go to <a href="https://turso.tech" target="_blank" className="underline font-semibold">turso.tech</a> → sign up free</p>
-                    <p>2. Create a database: <code className="bg-red-100 px-1 rounded">turso db create plex-invoicer</code></p>
-                    <p>3. Get URL + token: <code className="bg-red-100 px-1 rounded">turso db show plex-invoicer</code> and <code className="bg-red-100 px-1 rounded">turso db tokens create plex-invoicer</code></p>
+                    <p>2. Create a database: <code className="bg-red-100 px-1 rounded">turso db create invoice-king</code></p>
+                    <p>3. Get URL + token: <code className="bg-red-100 px-1 rounded">turso db show invoice-king</code> and <code className="bg-red-100 px-1 rounded">turso db tokens create invoice-king</code></p>
                     <p>4. Add to Railway: <code className="bg-red-100 px-1 rounded">TURSO_DATABASE_URL</code> and <code className="bg-red-100 px-1 rounded">TURSO_AUTH_TOKEN</code></p>
                     <p>5. Done — data persists forever across all future deploys</p>
                   </div>
@@ -936,7 +936,7 @@ export default function Admin() {
                     <span className="text-sm text-ink flex-1">{label}</span>
                     <div className="flex items-center gap-1.5">
                       <HealthDot ok={health.checks[key]}/>
-                      <span className="text-xs" style={{ color: health.checks[key] ? '#3DD68C' : '#ef4444' }}>
+                      <span className="text-xs" style={{ color: health.checks[key] ? '#C8E20A' : '#ef4444' }}>
                         {health.checks[key] ? 'OK' : 'Not configured'}
                       </span>
                     </div>
@@ -959,7 +959,7 @@ export default function Admin() {
             <p className="text-xs text-ink-muted mb-2">Users can point external systems at this URL to auto-create invoices:</p>
             <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2.5 border" style={{ borderColor:'#E5E8EB' }}>
               <code className="text-xs text-ink flex-1 break-all">
-                {(typeof window !== 'undefined' ? window.location.origin : 'https://plex-invoicer.up.railway.app')}/api/v1/integrations/webhook?account_id=ACC_ID
+                {(typeof window !== 'undefined' ? window.location.origin : 'https://invoice-king.up.railway.app')}/api/v1/integrations/webhook?account_id=ACC_ID
               </code>
               <CopyBtn text={`${window.location.origin}/api/v1/integrations/webhook?account_id=ACC_ID`}/>
             </div>
@@ -1015,7 +1015,7 @@ export default function Admin() {
                 if (r.ok) alert(`✅ Test email sent to ${email} via ${r.provider}!`);
                 else alert('❌ Email failed: ' + r.error + '\n\nFix: ' + (r.fix || 'Check Railway Variables'));
               }}
-              style={{ padding:'8px 16px', borderRadius:8, border:'none', background:'#3DD68C', color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, whiteSpace:'nowrap' }}>
+              style={{ padding:'8px 16px', borderRadius:8, border:'none', background:'#C8E20A', color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, whiteSpace:'nowrap' }}>
               Send Test
             </button>
           </div>

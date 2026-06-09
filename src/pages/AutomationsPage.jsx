@@ -71,7 +71,7 @@ function fmtDate(s) { return s ? new Date(s).toLocaleDateString('en-US', { month
 
 export default function AutomationsPage() {
   const { account } = useAccount();
-  const accent = '#3DD68C';
+  const accent = '#C8E20A';
   const token = getToken();
   const h = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -279,7 +279,7 @@ export default function AutomationsPage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button onClick={() => handleToggle(seq)} disabled={!!togglingId}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 8, border: 'none', background: seq.active ? '#DC262612' : `${accent}12`, color: seq.active ? '#DC2626' : accent, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'Plus Jakarta Sans', sans-serif", flexShrink: 0 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 8, border: 'none', background: seq.active ? '#DC262612' : `${accent}12`, color: seq.active ? '#DC2626' : accent, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'Inter', sans-serif", flexShrink: 0 }}>
               {seq.active ? <><Pause size={12}/> Pause</> : <><Play size={12}/> Enable</>}
             </button>
             <button onClick={() => setExpanded(isExpanded ? null : seq.id)}
@@ -315,7 +315,7 @@ export default function AutomationsPage() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', fontFamily: "'Inter', sans-serif" }}>
       {/* Notifications */}
       {(error || success) && (
         <div style={{ margin: '12px clamp(14px,4vw,28px) 0', padding: '10px 14px', borderRadius: 9, background: error ? '#FEE2E2' : '#DCFCE7', border: `1px solid ${error ? '#DC2626' : accent}30`, color: error ? '#DC2626' : '#166534', fontSize: 13, fontWeight: 600 }}>
@@ -327,7 +327,7 @@ export default function AutomationsPage() {
       <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)', padding: '0 clamp(12px,4vw,28px)', overflowX: 'auto' }}>
         {TABS.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            style={{ padding: '12px 16px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: activeTab === tab.id ? 700 : 500, color: activeTab === tab.id ? 'var(--text-primary)' : 'var(--text-muted)', borderBottom: `2px solid ${activeTab === tab.id ? '#0D1A0D' : 'transparent'}`, fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all 0.15s' }}>
+            style={{ padding: '12px 16px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: activeTab === tab.id ? 700 : 500, color: activeTab === tab.id ? 'var(--text-primary)' : 'var(--text-muted)', borderBottom: `2px solid ${activeTab === tab.id ? '#1A1A1A' : 'transparent'}`, fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all 0.15s' }}>
             {tab.label}
           </button>
         ))}
@@ -347,7 +347,7 @@ export default function AutomationsPage() {
                 <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px' }}>No automations yet</p>
                 <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '0 0 20px' }}>Add a template or build your own to get started</p>
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-                  <button onClick={() => setActiveTab('library')} style={{ padding: '10px 20px', borderRadius: 9, border: 'none', background: '#0D1A0D', color: '#C8FF00', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}>Browse Templates</button>
+                  <button onClick={() => setActiveTab('library')} style={{ padding: '10px 20px', borderRadius: 9, border: 'none', background: '#1A1A1A', color: '#C8E20A', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}>Browse Templates</button>
                   <button onClick={() => setActiveTab('builder')} style={{ padding: '10px 20px', borderRadius: 9, border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>Build Custom</button>
                 </div>
               </div>
@@ -391,7 +391,7 @@ export default function AutomationsPage() {
                     <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>Trigger: {TRIGGER_LABELS[tpl.trigger]} · {tpl.steps.length} steps</p>
                   </div>
                   <button onClick={() => handleAddTemplate(tpl)} disabled={alreadyAdded || addingTemplate === tpl.id}
-                    style={{ padding: '8px 16px', borderRadius: 9, border: 'none', background: alreadyAdded ? 'var(--bg-raised)' : '#0D1A0D', color: alreadyAdded ? 'var(--text-muted)' : '#C8FF00', cursor: alreadyAdded ? 'default' : 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', flexShrink: 0, opacity: addingTemplate === tpl.id ? 0.6 : 1 }}>
+                    style={{ padding: '8px 16px', borderRadius: 9, border: 'none', background: alreadyAdded ? 'var(--bg-raised)' : '#1A1A1A', color: alreadyAdded ? 'var(--text-muted)' : '#C8E20A', cursor: alreadyAdded ? 'default' : 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', flexShrink: 0, opacity: addingTemplate === tpl.id ? 0.6 : 1 }}>
                     {addingTemplate === tpl.id ? 'Adding…' : alreadyAdded ? '✓ Added' : '+ Add'}
                   </button>
                 </div>
@@ -415,7 +415,7 @@ export default function AutomationsPage() {
                 placeholder="e.g. Send a reminder email when an invoice is overdue, follow up 3 days later, then send a final notice after a week"
                 style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: '1.5px solid var(--border)', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 13, fontFamily: 'inherit', resize: 'vertical', outline: 'none', boxSizing: 'border-box', minHeight: 100 }}/>
               <button onClick={handleBuildFromNL} disabled={building || !naturalLang.trim()}
-                style={{ marginTop: 10, padding: '10px 22px', borderRadius: 10, border: 'none', background: '#0D1A0D', color: '#C8FF00', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6, opacity: (building || !naturalLang.trim()) ? 0.5 : 1 }}>
+                style={{ marginTop: 10, padding: '10px 22px', borderRadius: 10, border: 'none', background: '#1A1A1A', color: '#C8E20A', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6, opacity: (building || !naturalLang.trim()) ? 0.5 : 1 }}>
                 {building ? <><RefreshCw size={13} style={{ animation: 'spin 0.8s linear infinite' }}/> Building & Saving…</> : <><Zap size={13}/> Build Automation</>}
               </button>
             </div>
@@ -429,7 +429,7 @@ export default function AutomationsPage() {
                 <p style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>{buildResult.name}</p>
                 <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--text-muted)' }}>Trigger: {TRIGGER_LABELS[buildResult.trigger] || buildResult.trigger} · {buildResult.steps?.length || 0} steps</p>
                 <button onClick={() => { setBuildResult(null); setActiveTab('active'); }}
-                  style={{ padding: '8px 16px', borderRadius: 9, border: 'none', background: '#0D1A0D', color: '#C8FF00', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit' }}>
+                  style={{ padding: '8px 16px', borderRadius: 9, border: 'none', background: '#1A1A1A', color: '#C8E20A', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit' }}>
                   View in Active →
                 </button>
               </div>

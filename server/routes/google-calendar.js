@@ -3,7 +3,7 @@
  * Imports events from user's Google Calendar into the app's calendar
  *
  * Setup: Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Railway Variables
- * Add redirect URI: https://revanew.io/api/google-calendar/callback
+ * Add redirect URI: https://invoiceking.app/api/google-calendar/callback
  * in Google Cloud Console > APIs > Credentials > OAuth 2.0 Client
  */
 import { Router } from 'express';
@@ -13,7 +13,7 @@ import { requireAuth } from '../middleware/auth.js';
 const router = Router();
 
 const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
-const REDIRECT = (process.env.APP_URL || 'https://revanew.io') + '/api/google-calendar/callback';
+const REDIRECT = (process.env.APP_URL || 'https://invoiceking.app') + '/api/google-calendar/callback';
 
 // ── GET /api/google-calendar/auth-url ────────────────────────────
 router.get('/auth-url', requireAuth, (req, res) => {
@@ -31,7 +31,7 @@ router.get('/auth-url', requireAuth, (req, res) => {
 // ── GET /api/google-calendar/callback ────────────────────────────
 router.get('/callback', async (req, res) => {
   const { code, state, error } = req.query;
-  const APP_URL = process.env.APP_URL || 'https://revanew.io';
+  const APP_URL = process.env.APP_URL || 'https://invoiceking.app';
   if (error) return res.redirect(`${APP_URL}/calendar?error=google_denied`);
   if (!code) return res.redirect(`${APP_URL}/calendar?error=no_code`);
 

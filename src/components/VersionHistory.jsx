@@ -69,7 +69,7 @@ export default function VersionHistory({ invoiceId, onVersionCreated }) {
           <div className="flex gap-2">
             <button onClick={createVersion} disabled={!summary.trim() || creating}
               className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40"
-              style={{ background:'#3DD68C' }}>
+              style={{ background:'#C8E20A' }}>
               {creating ? 'Creating…' : 'Create version'}
             </button>
             <button onClick={() => setShowForm(false)} className="btn-ghost text-xs py-1.5 px-2">Cancel</button>
@@ -83,9 +83,9 @@ export default function VersionHistory({ invoiceId, onVersionCreated }) {
         <div className="space-y-2">
           {history.map((v, i) => (
             <div key={v.id} className={`flex items-start gap-3 p-3 rounded-xl border ${v.is_latest ? 'border-blue-200' : ''}`}
-              style={{ borderColor: v.is_latest ? '#3DD68C40' : '#E5E8EB', background: v.is_latest ? '#3DD68C08' : 'transparent' }}>
+              style={{ borderColor: v.is_latest ? '#C8E20A40' : '#E5E8EB', background: v.is_latest ? '#C8E20A08' : 'transparent' }}>
               <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                style={{ background: v.is_latest ? '#3DD68C' : '#9ca3af' }}>
+                style={{ background: v.is_latest ? '#C8E20A' : '#9ca3af' }}>
                 {v.version}
               </div>
               <div className="flex-1 min-w-0">

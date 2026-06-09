@@ -11,7 +11,7 @@ import { X, Zap, Clock, AlertTriangle, Gift, ArrowRight, RefreshCw } from 'lucid
 import { useSubscription } from '../hooks/useSubscription';
 import { useAccount } from '../context/AccountContext';
 
-const GRAD = '#3DD68C';
+const GRAD = '#C8E20A';
 
 function WinbackOffer({ onDismiss }) {
   const navigate   = useNavigate();
@@ -35,9 +35,9 @@ function WinbackOffer({ onDismiss }) {
   };
 
   return (
-    <div style={{ background: '#0D1A0D', borderBottom: '1px solid rgba(61,214,140,0.2)', padding: '0' }}>
+    <div style={{ background: '#1A1A1A', borderBottom: '1px solid rgba(200,226,10,0.2)', padding: '0' }}>
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#3DD68C', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#C8E20A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Gift size={17} color="#fff" />
         </div>
         <div style={{ flex: 1, minWidth: 200 }}>
@@ -45,12 +45,12 @@ function WinbackOffer({ onDismiss }) {
             We'd love to keep you — here's a special offer
           </p>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', lineHeight: 1.4 }}>
-            Your subscription was cancelled. Get <strong style={{ color: '#3DD68C' }}>30 extra days + 50% off your first month</strong> if you come back today.
+            Your subscription was cancelled. Get <strong style={{ color: '#C8E20A' }}>30 extra days + 50% off your first month</strong> if you come back today.
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <button onClick={claimOffer} disabled={loading}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', background: GRAD, color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 16px rgba(59,111,232,0.4)', opacity: loading ? 0.7 : 1, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', background: GRAD, color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 16px rgba(59,111,232,0.4)', opacity: loading ? 0.7 : 1, fontFamily: "'Inter', sans-serif" }}>
             {loading ? <RefreshCw size={13} style={{ animation: 'spin 0.7s linear infinite' }} /> : <Gift size={13} />}
             {loading ? 'Loading…' : 'Claim offer'}
           </button>
@@ -69,10 +69,10 @@ function TrialCountdown({ daysLeft, onDismiss }) {
   const isUrgent = daysLeft <= 1;
 
   const bgColor = isUrgent
-    ? '#0D1A0D'
-    : '#0D1A0D';
+    ? '#1A1A1A'
+    : '#1A1A1A';
   const borderColor = isUrgent ? 'rgba(239,68,68,0.4)' : 'rgba(59,111,232,0.3)';
-  const accentColor = isUrgent ? '#ef4444' : '#3DD68C';
+  const accentColor = isUrgent ? '#ef4444' : '#C8E20A';
 
   return (
     <div style={{ background: bgColor, borderBottom: `1px solid ${borderColor}` }}>
@@ -89,12 +89,12 @@ function TrialCountdown({ daysLeft, onDismiss }) {
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>
             {isUrgent
               ? 'Subscribe now to keep access to all your quotes, invoices, and data.'
-              : 'Upgrade to keep Revanew working after your trial ends.'}
+              : 'Upgrade to keep Invoice King working after your trial ends.'}
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <button onClick={() => navigate('/billing')}
-            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: GRAD, color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: `0 4px 14px ${accentColor}44`, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: GRAD, color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: `0 4px 14px ${accentColor}44`, fontFamily: "'Inter', sans-serif" }}>
             <Zap size={13} /> Subscribe now <ArrowRight size={12} />
           </button>
           <button onClick={onDismiss}
@@ -110,7 +110,7 @@ function TrialCountdown({ daysLeft, onDismiss }) {
 function ExpiredWall() {
   const navigate = useNavigate();
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(11,18,32,0.92)', backdropFilter: 'blur(8px)', fontFamily: "'Plus Jakarta Sans', sans-serif", padding: 20 }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(11,18,32,0.92)', backdropFilter: 'blur(8px)', fontFamily: "'Inter', sans-serif", padding: 20 }}>
       <div style={{ maxWidth: 440, width: '100%', textAlign: 'center' }}>
         <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg, #ef4444, #dc2626)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 8px 32px rgba(239,68,68,0.4)' }}>
           <Clock size={32} color="#fff" />
@@ -123,7 +123,7 @@ function ExpiredWall() {
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <button onClick={() => navigate('/billing')}
-            style={{ width: '100%', padding: '14px 20px', background: GRAD, color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 28px rgba(59,111,232,0.4)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            style={{ width: '100%', padding: '14px 20px', background: GRAD, color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 28px rgba(59,111,232,0.4)', fontFamily: "'Inter', sans-serif" }}>
             Choose a plan — from $19/month
           </button>
           <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>

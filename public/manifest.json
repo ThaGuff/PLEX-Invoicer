@@ -1,12 +1,12 @@
 {
-  "name": "Revanew \u2014 Quotes. Invoices. Get Paid.",
-  "short_name": "Revanew",
-  "description": "Send quotes, collect payments, and run your service business from your phone. Built for contractors, cleaners, and service pros.",
+  "name": "Invoice King \u2014 Invoicing. Simplified.",
+  "short_name": "Invoice King",
+  "description": "Professional invoicing and quoting for businesses that value simplicity, speed, and cash flow. Send invoices in seconds, get paid faster.",
   "start_url": "/dashboard",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#0D1A0D",
-  "background_color": "#EEEEE6",
+  "theme_color": "#1A1A1A",
+  "background_color": "#F5F5F5",
   "scope": "/",
   "lang": "en-US",
   "categories": [

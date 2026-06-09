@@ -1,7 +1,7 @@
 /**
- * LandingPage.jsx — Revanew.io
+ * LandingPage.jsx — InvoiceKing.app
  * Light, trustworthy, conversion-focused marketing page.
- * Brand palette mirrors the app: #0D1A0D sidebar dark, #3DD68C green, #C8FF00 lime CTA, #EEEEE6 cream.
+ * Brand palette mirrors the app: #1A1A1A sidebar dark, #C8E20A green, #C8E20A lime CTA, #F5F5F5 cream.
  */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -13,18 +13,18 @@ import {
 
 // ─── Design tokens ────────────────────────────────────────────────
 const C = {
-  forestDark: '#0D1A0D',
-  green:      '#3DD68C',
-  lime:       '#C8FF00',
-  cream:      '#EEEEE6',
+  forestDark: '#1A1A1A',
+  green:      '#C8E20A',
+  lime:       '#C8E20A',
+  cream:      '#F5F5F5',
   surface:    '#FFFFFF',
   border:     '#E2E8E2',
-  textPrimary:'#0D1A0D',
+  textPrimary:'#1A1A1A',
   textMuted:  '#5A7060',
   textLight:  '#8FA394',
 };
 
-const font = "'Plus Jakarta Sans', 'Inter', sans-serif";
+const font = "'Inter', sans-serif";
 
 // ─── Nav ──────────────────────────────────────────────────────────
 function Nav({ onLogin }) {
@@ -56,16 +56,18 @@ function Nav({ onLogin }) {
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 34, height: 34, borderRadius: 9, background: C.forestDark, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="18" height="20" viewBox="0 0 18 20" fill="none">
-              <rect x="2" y="1" width="3.2" height="18" rx="1.6" fill={C.green}/>
-              <rect x="5" y="1" width="7.5" height="2.8" rx="1.4" fill={C.green}/>
-              <rect x="5" y="8.6" width="6.5" height="2.8" rx="1.4" fill={C.green}/>
-              <rect x="10.5" y="1" width="2.8" height="10.5" rx="1.4" fill={C.green}/>
-              <line x1="6.5" y1="12" x2="16" y2="19.5" stroke={C.green} strokeWidth="3" strokeLinecap="round"/>
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <rect x="1" y="10" width="18" height="7" rx="2" fill={C.lime}/>
+              <rect x="3.5" y="4" width="3.5" height="9" rx="1.5" fill={C.lime}/>
+              <rect x="8.25" y="2" width="3.5" height="11" rx="1.5" fill={C.lime}/>
+              <rect x="13" y="4" width="3.5" height="9" rx="1.5" fill={C.lime}/>
+              <circle cx="5.25" cy="3.5" r="2" fill={C.lime}/>
+              <circle cx="10" cy="1.5" r="2" fill={C.lime}/>
+              <circle cx="14.75" cy="3.5" r="2" fill={C.lime}/>
             </svg>
           </div>
           <span style={{ fontSize: 18, fontWeight: 800, color: scrolled ? C.textPrimary : '#fff', letterSpacing: '-0.025em' }}>
-            Revanew
+            Invoice King
           </span>
         </div>
 
@@ -158,8 +160,8 @@ function Hero({ onLogin }) {
       {/* Subtle texture overlay */}
       <div style={{
         position: 'absolute', inset: 0, pointerEvents: 'none',
-        backgroundImage: `radial-gradient(circle at 20% 50%, rgba(61,214,140,0.07) 0%, transparent 55%),
-                          radial-gradient(circle at 80% 20%, rgba(200,255,0,0.05) 0%, transparent 45%)`,
+        backgroundImage: `radial-gradient(circle at 20% 50%, rgba(200,226,10,0.07) 0%, transparent 55%),
+                          radial-gradient(circle at 80% 20%, rgba(200,226,10,0.05) 0%, transparent 45%)`,
       }}/>
 
       <div style={{ maxWidth: 1100, width: '100%', display: 'flex', alignItems: 'center', gap: 60, position: 'relative', zIndex: 1 }} className="rln-hero-inner">
@@ -168,11 +170,11 @@ function Hero({ onLogin }) {
           {/* Trust badge */}
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 7,
-            background: 'rgba(61,214,140,0.12)', border: '1px solid rgba(61,214,140,0.25)',
+            background: 'rgba(200,226,10,0.12)', border: '1px solid rgba(200,226,10,0.25)',
             borderRadius: 100, padding: '5px 14px', marginBottom: 28,
           }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.green, flexShrink: 0 }}/>
-            <span style={{ fontSize: 12, fontWeight: 600, color: C.green, letterSpacing: '0.02em' }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.lime, flexShrink: 0 }}/>
+            <span style={{ fontSize: 12, fontWeight: 600, color: C.lime, letterSpacing: '0.02em' }}>
               Built for service businesses — quotes to cash in minutes
             </span>
           </div>
@@ -182,16 +184,16 @@ function Hero({ onLogin }) {
             color: '#fff', lineHeight: 1.08, letterSpacing: '-0.03em',
             margin: '0 0 20px',
           }}>
-            Send quotes.<br/>
-            Collect payments.<br/>
-            <span style={{ color: C.green }}>Run your business.</span>
+            Invoicing.<br/>
+            Simplified.<br/>
+            <span style={{ color: C.lime }}>Own Your Cash Flow.</span>
           </h1>
 
           <p style={{
             fontSize: 17, color: 'rgba(255,255,255,0.65)', lineHeight: 1.65,
             margin: '0 0 36px', maxWidth: 480, fontWeight: 400,
           }}>
-            Revanew is the invoicing and quoting platform built for contractors,
+            Invoice King is the invoicing and quoting platform built for contractors,
             cleaners, and service pros who work from their phone. Professional quotes
             in under 2 minutes, Stripe payments, and an AI assistant that helps you
             close faster.
@@ -203,11 +205,11 @@ function Hero({ onLogin }) {
               padding: '14px 28px', borderRadius: 11, border: 'none',
               background: C.lime, color: C.forestDark,
               fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: font,
-              boxShadow: '0 4px 20px rgba(200,255,0,0.3)',
+              boxShadow: '0 4px 20px rgba(200,226,10,0.3)',
               transition: 'transform 0.15s, box-shadow 0.15s',
             }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 28px rgba(200,255,0,0.4)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 20px rgba(200,255,0,0.3)'; }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 28px rgba(200,226,10,0.4)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 20px rgba(200,226,10,0.3)'; }}
             >
               Start free — no card needed <ArrowRight size={16}/>
             </button>
@@ -254,17 +256,17 @@ function Hero({ onLogin }) {
 function AppCard() {
   return (
     <div style={{
-      background: '#111e11', borderRadius: 20, overflow: 'hidden',
-      border: '1px solid rgba(61,214,140,0.15)',
+      background: '#1A1A1A', borderRadius: 20, overflow: 'hidden',
+      border: '1px solid rgba(200,226,10,0.15)',
       boxShadow: '0 32px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04)',
     }}>
       {/* Top bar */}
-      <div style={{ background: '#0D1A0D', padding: '12px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ background: '#1A1A1A', padding: '12px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }}/>
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.7)', fontFamily: font }}>Revanew</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.7)', fontFamily: font }}>Invoice King</span>
         </div>
-        <span style={{ fontSize: 11, color: C.green, fontWeight: 600, fontFamily: font }}>● Live</span>
+        <span style={{ fontSize: 11, color: C.lime, fontWeight: 600, fontFamily: font }}>● Live</span>
       </div>
 
       {/* Stats row */}
@@ -335,7 +337,7 @@ function TrustBar() {
       <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 40, flexWrap: 'wrap' }}>
         {items.map(({ icon: Icon, text }) => (
           <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' }}>
-            <Icon size={14} color={C.green} strokeWidth={2.5}/>
+            <Icon size={14} color={C.lime} strokeWidth={2.5}/>
             <span style={{ fontSize: 13, fontWeight: 600, color: C.textMuted }}>{text}</span>
           </div>
         ))}
@@ -371,7 +373,7 @@ function HowItWorks() {
     <section id="how" style={{ background: C.surface, padding: '88px 24px', fontFamily: font }}>
       <div style={{ maxWidth: 1000, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 56 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.green, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>How it works</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: C.lime, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>How it works</div>
           <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 900, color: C.textPrimary, letterSpacing: '-0.03em', margin: 0 }}>
             From estimate to payment in three steps
           </h2>
@@ -389,7 +391,7 @@ function HowItWorks() {
                   letterSpacing: '0.12em', textTransform: 'uppercase',
                   marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8
                 }}>
-                  <span style={{ width: 22, height: 22, borderRadius: '50%', background: accent === C.lime ? C.forestDark : 'rgba(61,214,140,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: accent, flexShrink: 0 }}>{num}</span>
+                  <span style={{ width: 22, height: 22, borderRadius: '50%', background: accent === C.lime ? C.forestDark : 'rgba(200,226,10,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: accent, flexShrink: 0 }}>{num}</span>
                   Step {num}
                 </div>
                 <h3 style={{ fontSize: 22, fontWeight: 800, color: C.textPrimary, margin: '0 0 12px', letterSpacing: '-0.02em' }}>{title}</h3>
@@ -422,7 +424,7 @@ function Features() {
     <section id="features" style={{ background: C.cream, padding: '88px 24px', fontFamily: font }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 56 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.green, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>Features</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: C.lime, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>Features</div>
           <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 900, color: C.textPrimary, letterSpacing: '-0.03em', margin: 0 }}>
             Everything your service business needs
           </h2>
@@ -438,8 +440,8 @@ function Features() {
               onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(13,26,13,0.08)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}
             >
-              <div style={{ width: 40, height: 40, borderRadius: 11, background: 'rgba(61,214,140,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                <Icon size={19} color={C.green} strokeWidth={2.2}/>
+              <div style={{ width: 40, height: 40, borderRadius: 11, background: 'rgba(200,226,10,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                <Icon size={19} color={C.lime} strokeWidth={2.2}/>
               </div>
               <h3 style={{ fontSize: 16, fontWeight: 800, color: C.textPrimary, margin: '0 0 8px', letterSpacing: '-0.015em' }}>{title}</h3>
               <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.6, margin: 0 }}>{body}</p>
@@ -516,7 +518,7 @@ function Pricing({ onLogin }) {
     <section id="pricing" style={{ background: C.surface, padding: '88px 24px', fontFamily: font }}>
       <div style={{ maxWidth: 1060, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 52 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.green, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>Pricing</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: C.lime, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>Pricing</div>
           <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 900, color: C.textPrimary, letterSpacing: '-0.03em', margin: '0 0 24px' }}>
             Simple pricing, no surprises
           </h2>
@@ -553,7 +555,7 @@ function Pricing({ onLogin }) {
                     <span style={{ fontSize: 16, fontWeight: 800, color: highlight ? '#fff' : C.textPrimary }}>{name}</span>
                     <span style={{
                       fontSize: 11, fontWeight: 700, borderRadius: 100, padding: '3px 10px',
-                      background: tagBg || (highlight ? 'rgba(61,214,140,0.15)' : C.cream),
+                      background: tagBg || (highlight ? 'rgba(200,226,10,0.15)' : C.cream),
                       color: tagColor,
                     }}>{tag}</span>
                   </div>
@@ -602,7 +604,7 @@ function Pricing({ onLogin }) {
 // ─── Testimonials ────────────────────────────────────────────────
 function Testimonials() {
   const reviews = [
-    { name: 'James Thornton', role: 'Owner, Thornton Pressure Wash', stars: 5, text: "I used to send quotes on paper. Now I send them from my truck in 90 seconds and get paid before I leave the driveway. Revanew paid for itself in the first week." },
+    { name: 'James Thornton', role: 'Owner, Thornton Pressure Wash', stars: 5, text: "I used to send quotes on paper. Now I send them from my truck in 90 seconds and get paid before I leave the driveway. Invoice King paid for itself in the first week." },
     { name: 'Maria Santos',   role: 'Owner, Santos Cleaning Co.',    stars: 5, text: "The client portal is a game changer. My customers can approve quotes and pay from their phone. I've cut my collections time from weeks to days." },
     { name: 'Derek Williams', role: 'HVAC Technician, DW Services',  stars: 5, text: "The AI quote assistant knows my service catalog better than I do. It suggests line items I always forget to add. Easily adding $200–$400 per job." },
   ];
@@ -611,9 +613,9 @@ function Testimonials() {
     <section style={{ background: C.cream, padding: '88px 24px', fontFamily: font }}>
       <div style={{ maxWidth: 1060, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 52 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.green, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>Testimonials</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: C.lime, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>Testimonials</div>
           <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 40px)', fontWeight: 900, color: C.textPrimary, letterSpacing: '-0.03em', margin: 0 }}>
-            Service pros love Revanew
+            Service pros love Invoice King
           </h2>
         </div>
 
@@ -643,10 +645,10 @@ function FinalCTA({ onLogin }) {
       <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
         <h2 style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', margin: '0 0 16px' }}>
           Your next invoice is<br/>
-          <span style={{ color: C.green }}>3 minutes away.</span>
+          <span style={{ color: C.lime }}>3 minutes away.</span>
         </h2>
         <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.55)', lineHeight: 1.65, margin: '0 0 36px' }}>
-          Join service businesses already using Revanew to quote faster,
+          Join service businesses already using Invoice King to quote faster,
           collect easier, and grow with confidence.
         </p>
         <button onClick={onLogin} style={{
@@ -654,7 +656,7 @@ function FinalCTA({ onLogin }) {
           padding: '15px 36px', borderRadius: 12, border: 'none',
           background: C.lime, color: C.forestDark,
           fontSize: 16, fontWeight: 800, cursor: 'pointer', fontFamily: font,
-          boxShadow: '0 4px 24px rgba(200,255,0,0.3)',
+          boxShadow: '0 4px 24px rgba(200,226,10,0.3)',
         }}>
           Get started free <ArrowRight size={17}/>
         </button>
@@ -687,7 +689,7 @@ function Footer() {
     ]},
     { heading: 'Support', links: [
       { label: 'Help center', href: '#' },
-      { label: 'Contact',     href: 'mailto:support@revanew.io' },
+      { label: 'Contact',     href: 'mailto:support@invoiceking.app' },
       { label: 'Status',      href: '#' },
       { label: 'Community',   href: '#' },
     ]},
@@ -700,16 +702,16 @@ function Footer() {
           {/* Brand */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 14 }}>
-              <div style={{ width: 30, height: 30, borderRadius: 8, background: C.forestDark, border: '1px solid rgba(61,214,140,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: C.forestDark, border: '1px solid rgba(200,226,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="15" height="17" viewBox="0 0 18 20" fill="none">
-                  <rect x="2" y="1" width="3.2" height="18" rx="1.6" fill={C.green}/>
-                  <rect x="5" y="1" width="7.5" height="2.8" rx="1.4" fill={C.green}/>
-                  <rect x="5" y="8.6" width="6.5" height="2.8" rx="1.4" fill={C.green}/>
-                  <rect x="10.5" y="1" width="2.8" height="10.5" rx="1.4" fill={C.green}/>
-                  <line x1="6.5" y1="12" x2="16" y2="19.5" stroke={C.green} strokeWidth="3" strokeLinecap="round"/>
+                  <rect x="2" y="1" width="3.2" height="18" rx="1.6" fill={C.lime}/>
+                  <rect x="5" y="1" width="7.5" height="2.8" rx="1.4" fill={C.lime}/>
+                  <rect x="5" y="8.6" width="6.5" height="2.8" rx="1.4" fill={C.lime}/>
+                  <rect x="10.5" y="1" width="2.8" height="10.5" rx="1.4" fill={C.lime}/>
+                  <line x1="6.5" y1="12" x2="16" y2="19.5" stroke={C.lime} strokeWidth="3" strokeLinecap="round"/>
                 </svg>
               </div>
-              <span style={{ fontSize: 16, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>Revanew</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>Invoice King</span>
             </div>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', lineHeight: 1.6, margin: 0 }}>
               Quotes. Invoices.<br/>Get Paid.
@@ -737,9 +739,9 @@ function Footer() {
 
         <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 24 }}/>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>© 2026 Revanew. All rights reserved.</span>
+          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>© 2026 Invoice King. All rights reserved.</span>
           <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>
-            <a href="mailto:support@revanew.io" style={{ color: C.green, textDecoration: 'none' }}>support@revanew.io</a>
+            <a href="mailto:support@invoiceking.app" style={{ color: C.lime, textDecoration: 'none' }}>support@invoiceking.app</a>
           </span>
         </div>
       </div>

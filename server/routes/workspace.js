@@ -116,7 +116,7 @@ router.post('/channels/:channelId/messages', requireAuth, async (req, res) => {
         const acct = await db.execute(`SELECT name, logo_url, primary_color FROM accounts WHERE id = ?`, [account_id]);
         const accountName = acct.rows[0]?.name || 'Your Team';
 
-        const appUrl = process.env.APP_URL || 'https://revanew.io';
+        const appUrl = process.env.APP_URL || 'https://invoiceking.app';
         const workspaceUrl = `${appUrl}/workspace`;
 
         for (const mention of mentions) {
@@ -156,7 +156,7 @@ router.post('/channels/:channelId/messages', requireAuth, async (req, res) => {
       const pushPayload = JSON.stringify({
         title: `${cleanSender} in #${req.params.channelId}`,
         body: cleanContent.slice(0, 100),
-        url: `${process.env.APP_URL || 'https://revanew.io'}/workspace`,
+        url: `${process.env.APP_URL || 'https://invoiceking.app'}/workspace`,
         tag: `workspace-${account_id}`,
       });
       db.execute(
@@ -313,7 +313,7 @@ router.post('/invite', requireAuth, async (req, res) => {
     }
 
     // Send invite email with accept/decline links
-    const appUrl = process.env.APP_URL || 'https://revanew.io';
+    const appUrl = process.env.APP_URL || 'https://invoiceking.app';
     const acceptUrl = `${appUrl}/invite/accept/${inviteToken}`;
     const declineUrl = `${appUrl}/invite/decline/${inviteToken}`;
     const senderName = req.user.user_metadata?.full_name || req.user.email?.split('@')[0] || 'A team member';
@@ -322,7 +322,7 @@ router.post('/invite', requireAuth, async (req, res) => {
       await sendEmail({
         to: email,
         type: 'invite',
-        subject: `${senderName} invited you to join ${account.name} on Revanew`,
+        subject: `${senderName} invited you to join ${account.name} on Invoice King`,
         html: buildInviteHtml({
           inviteeName: email.split('@')[0],
           accountName: account.name,
@@ -355,12 +355,12 @@ router.get('/accept/:token', async (req, res) => {
     
     if (!invite.rows.length) {
       // Redirect to app with error
-      return res.redirect(`${process.env.APP_URL || 'https://revanew.io'}/invite/error?reason=invalid`);
+      return res.redirect(`${process.env.APP_URL || 'https://invoiceking.app'}/invite/error?reason=invalid`);
     }
     
     const inv = invite.rows[0];
     // Redirect to the app's invite acceptance page with the token
-    res.redirect(`${process.env.APP_URL || 'https://revanew.io'}/invite/accept/${req.params.token}?account=${encodeURIComponent(inv.account_name)}&email=${encodeURIComponent(inv.invited_email)}&role=${inv.role}`);
+    res.redirect(`${process.env.APP_URL || 'https://invoiceking.app'}/invite/accept/${req.params.token}?account=${encodeURIComponent(inv.account_name)}&email=${encodeURIComponent(inv.invited_email)}&role=${inv.role}`);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -405,7 +405,7 @@ router.post('/accept/:token', requireAuth, async (req, res) => {
     );
     
     // Notify the account owner that invite was accepted
-    const appUrl = process.env.APP_URL || 'https://revanew.io';
+    const appUrl = process.env.APP_URL || 'https://invoiceking.app';
     const accepterName = req.user.user_metadata?.full_name || req.user.email?.split('@')[0] || 'Team member';
     
     // Find owner email + account info
@@ -455,7 +455,7 @@ router.post('/accept/:token', requireAuth, async (req, res) => {
           <a href="${appUrl}/workspace" style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,#2563EB,#0D9488);color:#fff;text-decoration:none;border-radius:10px;font-weight:700">
             Open Team Workspace →
           </a>
-          <p style="color:#94A3B8;font-size:12px;margin-top:20px">Powered by Revanew</p>
+          <p style="color:#94A3B8;font-size:12px;margin-top:20px">Powered by Invoice King</p>
         </div>`,
       }).catch(e => console.warn('[Workspace] Accept notify email failed:', e.message));
     }
@@ -495,7 +495,7 @@ router.post('/decline/:token', async (req, res) => {
            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
           [`notif-${uuid()}`, ownerRec.owner_id, inv.account_id, 'invite_declined',
            `Invite declined`, `${declinerName} declined the invitation to ${inv.account_name}.`,
-           `${process.env.APP_URL || 'https://revanew.io'}/workspace`]
+           `${process.env.APP_URL || 'https://invoiceking.app'}/workspace`]
         );
       } catch {}
     }
@@ -570,16 +570,16 @@ router.post('/members/:memberId/resend', requireAuth, async (req, res) => {
     );
     if (!member.rows.length) return res.status(404).json({ error: 'Pending invite not found' });
     const m = member.rows[0];
-    const appUrl = process.env.APP_URL || 'https://revanew.io';
+    const appUrl = process.env.APP_URL || 'https://invoiceking.app';
     const { sendEmail } = await import('../utils/email.js');
     await sendEmail({
       to: m.invited_email,
-      subject: `Reminder: You've been invited to ${m.account_name} on Revanew`,
+      subject: `Reminder: You've been invited to ${m.account_name} on Invoice King`,
       html: `<div style="font-family:sans-serif;max-width:600px;margin:32px auto;padding:32px;background:#fff;border-radius:16px;border:1px solid #e2e8f0">
         <h2 style="margin:0 0 16px;color:#0f172a">Invitation reminder 🔔</h2>
-        <p style="color:#334155">You were invited to join <strong>${m.account_name}</strong> on Revanew as a <strong>${m.role}</strong>.</p>
+        <p style="color:#334155">You were invited to join <strong>${m.account_name}</strong> on Invoice King as a <strong>${m.role}</strong>.</p>
         <a href="${appUrl}" style="display:inline-block;margin-top:20px;padding:12px 24px;background:linear-gradient(135deg,#2563EB,#0D9488);color:#fff;text-decoration:none;border-radius:10px;font-weight:700">Accept Invitation →</a>
-        <p style="margin-top:20px;color:#94a3b8;font-size:12px">Powered by Revanew</p>
+        <p style="margin-top:20px;color:#94a3b8;font-size:12px">Powered by Invoice King</p>
       </div>`,
     });
     res.json({ ok: true, message: `Invite resent to ${m.invited_email}` });
@@ -612,7 +612,7 @@ router.post('/upload', requireAuth, async (req, res) => {
     );
     
     // Return the attachment URL (served by our API)
-    const appUrl = process.env.APP_URL || 'https://revanew.io';
+    const appUrl = process.env.APP_URL || 'https://invoiceking.app';
     res.json({ ok: true, id: attachId, url: `${appUrl}/api/workspace/attachment/${attachId}`, name: file_name, type: file_type });
   } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
 });

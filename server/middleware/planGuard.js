@@ -61,7 +61,7 @@ export const PLAN_LIMITS = {
     documents:           true,
     photos:              true,
     workspace:           true,
-    white_label:         true,     // Remove Revanew branding
+    white_label:         true,     // Remove Invoice King branding
     api_access:          true,     // REST API key access
     custom_reports:      true,     // Advanced analytics & exports
     priority_support:    true,     // Priority support queue

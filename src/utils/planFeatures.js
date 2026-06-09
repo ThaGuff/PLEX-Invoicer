@@ -1,5 +1,5 @@
 /**
- * Revanew Plan Feature Definitions
+ * Invoice King Plan Feature Definitions
  * Powered by PLEX Automation
  * 
  * Feature gating is enforced on the frontend (UX) AND server (API).
@@ -73,7 +73,7 @@ export const PLAN_LIMITS = {
     documents:           true,
     photos:              true,
     workspace:           true,
-    white_label:         true,     // Remove Revanew branding
+    white_label:         true,     // Remove Invoice King branding
     api_access:          true,     // REST API access
     custom_reports:      true,     // Advanced analytics
     priority_support:    true,
@@ -90,9 +90,9 @@ export const PLAN_LIMITS = {
 export const PLAN_NAMES = { starter: 'Starter', pro: 'Pro', agency: 'Agency' };
 export const PLAN_PRICES = { starter: 19, pro: 49, agency: 99 };
 export const PLAN_COLORS = { 
-  starter: '#3DD68C', 
-  pro:     '#0D1A0D', 
-  agency:  '#3DD68C',
+  starter: '#C8E20A', 
+  pro:     '#1A1A1A', 
+  agency:  '#C8E20A',
 };
 
 export function getPlanLimits(plan = 'starter') {

@@ -4,9 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, ArrowRight, CheckCircle, Shield, Zap, BarChart2 } from 'lucide-react';
 
 /* ── Brand Logo ─────────────────────────────────────────────────── */
-function RevanewLogo({ size = 40 }) {
+function InvoiceKingLogo({ size = 40 }) {
   return (
-    <img src="/logo-revanew.png" alt="Revanew" style={{ width:36, height:36, objectFit:"contain", borderRadius:9 }} />
+    <img src="/logo-invoiceking.png" alt="Invoice King" style={{ width:36, height:36, objectFit:"contain", borderRadius:9 }} />
   );
 }
 
@@ -15,18 +15,18 @@ function AppIllustration() {
   return (
     <svg viewBox="0 0 420 340" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width:'100%', maxWidth:420, height:'auto' }}>
       <defs>
-        <linearGradient id="il-g1" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#3DD68C" stopOpacity="0.15"/>
-          <stop offset="100%" stopColor="#3DD68C" stopOpacity="0.08"/>
+        <linearGradient id="ik-g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#C8E20A" stopOpacity="0.15"/>
+          <stop offset="100%" stopColor="#C8E20A" stopOpacity="0.08"/>
         </linearGradient>
-        <linearGradient id="il-grad" x1="0" y1="0" x2="420" y2="340" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#3DD68C"/>
-          <stop offset="50%" stopColor="#3DD68C"/>
-          <stop offset="100%" stopColor="#3DD68C"/>
+        <linearGradient id="ik-grad" x1="0" y1="0" x2="420" y2="340" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#C8E20A"/>
+          <stop offset="50%" stopColor="#C8E20A"/>
+          <stop offset="100%" stopColor="#C8E20A"/>
         </linearGradient>
-        <linearGradient id="il-btn" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#3DD68C"/>
-          <stop offset="100%" stopColor="#3DD68C"/>
+        <linearGradient id="ik-btn" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#C8E20A"/>
+          <stop offset="100%" stopColor="#C8E20A"/>
         </linearGradient>
         <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
           <feDropShadow dx="0" dy="8" stdDeviation="12" floodColor="#000" floodOpacity="0.25"/>
@@ -34,77 +34,77 @@ function AppIllustration() {
       </defs>
 
       {/* Background glow */}
-      <ellipse cx="210" cy="170" rx="200" ry="140" fill="url(#il-g1)"/>
+      <ellipse cx="210" cy="170" rx="200" ry="140" fill="url(#ik-g1)"/>
 
       {/* Main quote card */}
       <g filter="url(#shadow)">
-        <rect x="40" y="30" width="240" height="180" rx="16" fill="#162116"/>
-        <rect x="40" y="30" width="240" height="180" rx="16" stroke="rgba(61,214,140,0.15)" strokeWidth="1"/>
+        <rect x="40" y="30" width="240" height="180" rx="16" fill="#222222"/>
+        <rect x="40" y="30" width="240" height="180" rx="16" stroke="rgba(200,226,10,0.15)" strokeWidth="1"/>
       </g>
       {/* Card header bar */}
-      <rect x="40" y="30" width="240" height="44" rx="16" fill="#1a2a1a"/>
-      <rect x="40" y="58" width="240" height="16" fill="#1a2a1a"/>
+      <rect x="40" y="30" width="240" height="44" rx="16" fill="#2A2A2A"/>
+      <rect x="40" y="58" width="240" height="16" fill="#2A2A2A"/>
       {/* Header text placeholder */}
-      <rect x="56" y="46" width="60" height="8" rx="4" fill="#3DD68C" opacity="0.7"/>
-      <rect x="228" y="44" width="36" height="12" rx="6" fill="url(#il-btn)"/>
+      <rect x="56" y="46" width="60" height="8" rx="4" fill="#C8E20A" opacity="0.7"/>
+      <rect x="228" y="44" width="36" height="12" rx="6" fill="url(#ik-btn)"/>
       {/* Service rows */}
       {[0,1,2].map(i => (
         <g key={i}>
-          <rect x="56" y={90+i*30} width="10" height="10" rx="3" fill={i===0?"url(#il-grad)":"#2E3A50"} stroke={i===0?"none":"#3DD68C"} strokeWidth="1.5"/>
+          <rect x="56" y={90+i*30} width="10" height="10" rx="3" fill={i===0?"url(#ik-grad)":"#2E3A50"} stroke={i===0?"none":"#C8E20A"} strokeWidth="1.5"/>
           {i===0 && <path d={`M${58} ${96}l3 3l5-5`} stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>}
           <rect x="72" y={92+i*30} width={80+i*15} height="6" rx="3" fill="#2E3A50"/>
-          <rect x={230-i*8} y={92+i*30} width={28+i*5} height="6" rx="3" fill={i===0?"url(#il-btn)":"#2E3A50"} opacity="0.8"/>
+          <rect x={230-i*8} y={92+i*30} width={28+i*5} height="6" rx="3" fill={i===0?"url(#ik-btn)":"#2E3A50"} opacity="0.8"/>
         </g>
       ))}
       {/* Divider */}
-      <line x1="56" y1="186" x2="264" y2="186" stroke="rgba(61,214,140,0.15)" strokeWidth="1"/>
+      <line x1="56" y1="186" x2="264" y2="186" stroke="rgba(200,226,10,0.15)" strokeWidth="1"/>
       {/* Total */}
-      <rect x="56" y="194" width="50" height="7" rx="3.5" fill="#3DD68C" opacity="0.4"/>
-      <rect x="216" y="192" width="48" height="10" rx="5" fill="url(#il-btn)"/>
+      <rect x="56" y="194" width="50" height="7" rx="3.5" fill="#C8E20A" opacity="0.4"/>
+      <rect x="216" y="192" width="48" height="10" rx="5" fill="url(#ik-btn)"/>
 
       {/* Floating stat card 1 — Collected */}
       <g filter="url(#shadow)">
-        <rect x="210" y="150" width="160" height="76" rx="12" fill="#162116" stroke="rgba(61,214,140,0.15)" strokeWidth="1"/>
+        <rect x="210" y="150" width="160" height="76" rx="12" fill="#222222" stroke="rgba(200,226,10,0.15)" strokeWidth="1"/>
       </g>
-      <rect x="210" y="150" width="160" height="4" rx="2" fill="url(#il-grad)" opacity="0.8"/>
-      <rect x="224" y="165" width="40" height="6" rx="3" fill="#3DD68C" opacity="0.4"/>
+      <rect x="210" y="150" width="160" height="4" rx="2" fill="url(#ik-grad)" opacity="0.8"/>
+      <rect x="224" y="165" width="40" height="6" rx="3" fill="#C8E20A" opacity="0.4"/>
       <rect x="224" y="178" width="65" height="16" rx="5" fill="none"/>
       <text x="224" y="192" fontFamily="system-ui" fontWeight="800" fontSize="20" fill="#FFFFFF">$24,755</text>
       <rect x="224" y="200" width="55" height="5" rx="2.5" fill="#2E3A50"/>
-      <rect x="326" y="158" width="30" height="30" rx="9" fill="rgba(59,111,232,0.2)"/>
-      <path d="M334 168 l7 0M334 173 l7 0M334 178 l4 0" stroke="#3DD68C" strokeWidth="2" strokeLinecap="round"/>
+      <rect x="326" y="158" width="30" height="30" rx="9" fill="rgba(200,226,10,0.2)"/>
+      <path d="M334 168 l7 0M334 173 l7 0M334 178 l4 0" stroke="#C8E20A" strokeWidth="2" strokeLinecap="round"/>
 
       {/* Floating notification */}
       <g filter="url(#shadow)">
-        <rect x="260" y="40" width="148" height="60" rx="12" fill="#162116" stroke="rgba(61,214,140,0.15)" strokeWidth="1"/>
+        <rect x="260" y="40" width="148" height="60" rx="12" fill="#222222" stroke="rgba(200,226,10,0.15)" strokeWidth="1"/>
       </g>
       <rect x="276" y="56" width="18" height="18" rx="9" fill="rgba(0,201,177,0.2)"/>
-      <path d="M281 65 l3 3 l6-6" stroke="#3DD68C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M281 65 l3 3 l6-6" stroke="#C8E20A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       <rect x="302" y="56" width="72" height="7" rx="3.5" fill="#FFFFFF" opacity="0.8"/>
       <rect x="302" y="68" width="55" height="5" rx="2.5" fill="#2E3A50"/>
 
       {/* Connection lines */}
-      <path d="M 284 108 Q 290 140 285 150" stroke="url(#il-grad)" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.5"/>
-      <path d="M 280 210 Q 310 230 260 230" stroke="url(#il-grad)" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.5"/>
+      <path d="M 284 108 Q 290 140 285 150" stroke="url(#ik-grad)" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.5"/>
+      <path d="M 280 210 Q 310 230 260 230" stroke="url(#ik-grad)" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.5"/>
 
       {/* Bottom mobile bar */}
       <g filter="url(#shadow)">
-        <rect x="100" y="256" width="220" height="58" rx="16" fill="#162116" stroke="rgba(61,214,140,0.15)" strokeWidth="1"/>
+        <rect x="100" y="256" width="220" height="58" rx="16" fill="#222222" stroke="rgba(200,226,10,0.15)" strokeWidth="1"/>
       </g>
       {/* Mobile nav dots */}
       {[0,1,2,3,4].map(i => (
         <g key={i}>
-          <rect x={120+i*40} y="269" width="20" height="20" rx="7" fill={i===1?"url(#il-btn)":"#1a2a1a"}/>
-          <rect x={125+i*40} y="295" width="10" height="4" rx="2" fill={i===1?"#3DD68C":"#2E3A50"} opacity="0.6"/>
+          <rect x={120+i*40} y="269" width="20" height="20" rx="7" fill={i===1?"url(#ik-btn)":"#2A2A2A"}/>
+          <rect x={125+i*40} y="295" width="10" height="4" rx="2" fill={i===1?"#C8E20A":"#2E3A50"} opacity="0.6"/>
         </g>
       ))}
 
       {/* Floating badge */}
       <g filter="url(#shadow)">
-        <rect x="30" y="240" width="80" height="28" rx="14" fill="#162116" stroke="rgba(61,214,140,0.15)" strokeWidth="1"/>
+        <rect x="30" y="240" width="80" height="28" rx="14" fill="#222222" stroke="rgba(200,226,10,0.15)" strokeWidth="1"/>
       </g>
       <circle cx="48" cy="254" r="7" fill="rgba(0,201,177,0.2)"/>
-      <circle cx="48" cy="254" r="4" fill="#3DD68C"/>
+      <circle cx="48" cy="254" r="4" fill="#C8E20A"/>
       <rect x="60" y="249" width="36" height="5" rx="2.5" fill="#FFFFFF" opacity="0.7"/>
       <rect x="60" y="257" width="28" height="4" rx="2" fill="#2E3A50"/>
     </svg>
@@ -169,7 +169,7 @@ export default function Login() {
       if (mode === 'reset') {
         setSuccess('Reset link sent — check your email.');
       } else if (mode === 'signup') {
-        localStorage.setItem('revanew_new_user', '1');
+        localStorage.setItem('invoiceking_new_user', '1');
         navigate('/billing?welcome=1');
       } else {
         navigate('/dashboard');
@@ -185,27 +185,27 @@ export default function Login() {
     return null;
   }
 
-  const F = { fontFamily:"'Plus Jakarta Sans',sans-serif" };
+  const F = { fontFamily:"'Inter',sans-serif" };
   const inputStyle = (focused) => ({
     width:'100%', padding:'11px 14px', borderRadius:10,
-    border: `1.5px solid ${focused ? '#3DD68C' : 'rgba(61,214,140,0.12)'}`,
-    background:'#162116', color:'#FFFFFF', fontSize:14,
-    fontFamily:"'Plus Jakarta Sans',sans-serif", outline:'none',
+    border: `1.5px solid ${focused ? '#C8E20A' : 'rgba(200,226,10,0.12)'}`,
+    background:'#222222', color:'#FFFFFF', fontSize:14,
+    fontFamily:"'Inter',sans-serif", outline:'none',
     boxSizing:'border-box', transition:'border-color 0.15s',
   });
 
   return (
-    <div style={{ ...F, minHeight:'100dvh', background:'#0D1A0D', display:'flex', overflow:'hidden', maxWidth:'100vw' }}>
+    <div style={{ ...F, minHeight:'100dvh', background:'#1A1A1A', display:'flex', overflow:'hidden', maxWidth:'100vw' }}>
 
       {/* ── LEFT PANEL ────────────────────────────────────────────── */}
-      <div style={{ width:480, flexShrink:0, background:'#111e11', borderRight:'1px solid rgba(61,214,140,0.1)', flexDirection:'column', padding:'40px 44px', minHeight:'100dvh', overflowY:'auto' }}
+      <div style={{ width:480, flexShrink:0, background:'#1A1A1A', borderRight:'1px solid rgba(200,226,10,0.1)', flexDirection:'column', padding:'40px 44px', minHeight:'100dvh', overflowY:'auto' }}
         className="hidden lg:flex">
 
         {/* Logo */}
         <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:40 }}>
-          <RevanewLogo size={44} />
+          <InvoiceKingLogo size={44} />
           <div>
-            <p style={{ fontSize:20, fontWeight:800, color:'#FFFFFF', letterSpacing:'-0.5px', lineHeight:1 }}>Revanew</p>
+            <p style={{ fontSize:20, fontWeight:800, color:'#FFFFFF', letterSpacing:'-0.5px', lineHeight:1 }}>Invoice King</p>
             <p style={{ fontSize:11, color:'rgba(255,255,255,0.45)', fontWeight:500, marginTop:3 }}>Powered by PLEX Automation</p>
           </div>
         </div>
@@ -214,7 +214,7 @@ export default function Login() {
         <div style={{ marginBottom:32 }}>
           <h1 style={{ fontSize:32, fontWeight:800, color:'#FFFFFF', lineHeight:1.15, letterSpacing:'-0.04em', marginBottom:14 }}>
             Quotes. Invoices.{' '}
-            <span style={{ background:'#3DD68C', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
+            <span style={{ background:'#C8E20A', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
               Get Paid.
             </span>
           </h1>
@@ -232,8 +232,8 @@ export default function Login() {
         <div style={{ display:'flex', flexDirection:'column', gap:12, marginBottom:32 }}>
           {FEATURES.map(({ icon: Icon, text }) => (
             <div key={text} style={{ display:'flex', alignItems:'center', gap:12 }}>
-              <div style={{ width:30, height:30, borderRadius:8, background:'linear-gradient(135deg,rgba(0,201,177,0.15),rgba(59,111,232,0.15))', border:'1px solid rgba(59,111,232,0.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                <Icon size={14} style={{ color:'#3DD68C' }} />
+              <div style={{ width:30, height:30, borderRadius:8, background:'linear-gradient(135deg,rgba(200,226,10,0.15),rgba(200,226,10,0.15))', border:'1px solid rgba(200,226,10,0.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <Icon size={14} style={{ color:'#C8E20A' }} />
               </div>
               <span style={{ fontSize:13, color:'#9AACCC', lineHeight:1.5 }}>{text}</span>
             </div>
@@ -241,8 +241,8 @@ export default function Login() {
         </div>
 
         {/* Footer */}
-        <div style={{ marginTop:'auto', paddingTop:20, borderTop:'1px solid rgba(61,214,140,0.1)' }}>
-          <p style={{ fontSize:11, color:'rgba(255,255,255,0.3)', marginBottom:10 }}>© {new Date().getFullYear()} Revanew. Powered by PLEX Automation.</p>
+        <div style={{ marginTop:'auto', paddingTop:20, borderTop:'1px solid rgba(200,226,10,0.1)' }}>
+          <p style={{ fontSize:11, color:'rgba(255,255,255,0.3)', marginBottom:10 }}>© {new Date().getFullYear()} Invoice King. Powered by PLEX Automation.</p>
           <div style={{ display:'flex', gap:20 }}>
             {[['Privacy policy','https://plexautomation.io/privacy'],['Terms','https://plexautomation.io/terms'],['Support','mailto:hello@plexautomation.io']].map(([l,h]) => (
               <a key={l} href={h} target="_blank" rel="noreferrer"
@@ -259,10 +259,10 @@ export default function Login() {
 
         {/* Mobile logo */}
         <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:36 }} className="lg:hidden">
-          <RevanewLogo size={40} />
+          <InvoiceKingLogo size={40} />
           <div>
-            <p style={{ fontSize:18, fontWeight:800, color:'#FFFFFF', letterSpacing:'-0.5px', lineHeight:1 }}>Revanew</p>
-            <p style={{ fontSize:11, color:'rgba(255,255,255,0.45)', fontWeight:500, marginTop:2 }}>Quotes. Invoices. Get Paid.</p>
+            <p style={{ fontSize:18, fontWeight:800, color:'#FFFFFF', letterSpacing:'-0.5px', lineHeight:1 }}>Invoice King</p>
+            <p style={{ fontSize:11, color:'rgba(255,255,255,0.45)', fontWeight:500, marginTop:2 }}>Invoicing. Simplified. Own Your Cash Flow.</p>
           </div>
         </div>
 
@@ -275,7 +275,7 @@ export default function Login() {
               {mode==='reset' && 'Reset password'}
             </h2>
             <p style={{ fontSize:14, color:'rgba(255,255,255,0.45)', fontWeight:500 }}>
-              {mode==='login' && 'Sign in to your Revanew workspace'}
+              {mode==='login' && 'Sign in to your Invoice King workspace'}
               {mode==='signup' && '7-day free trial — no credit card required'}
               {mode==='reset' && "Enter your email and we'll send a reset link"}
             </p>
@@ -285,13 +285,13 @@ export default function Login() {
           {mode !== 'reset' && (
             <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:20 }}>
               {[
-                { label:'Continue with Google', icon:<GoogleIcon/>, action:()=>run('google',signInWithGoogle), key:'google', bg:'#162116' },
-                { label:'Continue with Apple',  icon:<AppleIcon/>,  action:()=>run('apple',signInWithApple),   key:'apple',  bg:'#1a2a1a' },
+                { label:'Continue with Google', icon:<GoogleIcon/>, action:()=>run('google',signInWithGoogle), key:'google', bg:'#222222' },
+                { label:'Continue with Apple',  icon:<AppleIcon/>,  action:()=>run('apple',signInWithApple),   key:'apple',  bg:'#2A2A2A' },
               ].map(btn => (
                 <button key={btn.key} onClick={btn.action} disabled={!!loading}
-                  style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'12px', borderRadius:10, border:'1.5px solid rgba(61,214,140,0.12)', background:btn.bg, color:'#FFFFFF', fontSize:13, fontWeight:600, cursor:'pointer', opacity:loading?0.5:1, transition:'all 0.15s', fontFamily:"'Plus Jakarta Sans',sans-serif" }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor='#3DD68C'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor='rgba(61,214,140,0.12)'}>
+                  style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'12px', borderRadius:10, border:'1.5px solid rgba(200,226,10,0.12)', background:btn.bg, color:'#FFFFFF', fontSize:13, fontWeight:600, cursor:'pointer', opacity:loading?0.5:1, transition:'all 0.15s', fontFamily:"'Inter',sans-serif" }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor='#C8E20A'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor='rgba(200,226,10,0.12)'}>
                   {btn.icon} {loading===btn.key ? 'Redirecting…' : btn.label}
                 </button>
               ))}
@@ -300,9 +300,9 @@ export default function Login() {
 
           {mode !== 'reset' && (
             <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
-              <div style={{ flex:1, height:1, background:'rgba(61,214,140,0.12)' }} />
+              <div style={{ flex:1, height:1, background:'rgba(200,226,10,0.12)' }} />
               <span style={{ fontSize:11, color:'rgba(255,255,255,0.3)', fontWeight:500, flexShrink:0 }}>or continue with email</span>
-              <div style={{ flex:1, height:1, background:'rgba(61,214,140,0.12)' }} />
+              <div style={{ flex:1, height:1, background:'rgba(200,226,10,0.12)' }} />
             </div>
           )}
 
@@ -313,7 +313,7 @@ export default function Login() {
                 <label style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.45)', textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:6 }}>Full name</label>
                 <input value={fullName} onChange={e=>setName(e.target.value)} placeholder="Your full name" type="text" autoComplete="name"
                   style={inputStyle(false)}
-                  onFocus={e=>e.target.style.borderColor='#3DD68C'} onBlur={e=>e.target.style.borderColor='rgba(61,214,140,0.12)'} />
+                  onFocus={e=>e.target.style.borderColor='#C8E20A'} onBlur={e=>e.target.style.borderColor='rgba(200,226,10,0.12)'} />
               </div>
             )}
 
@@ -322,7 +322,7 @@ export default function Login() {
               <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@yourbusiness.com" type="email" autoComplete="email"
                 onKeyDown={e=>e.key==='Enter'&&run('email',mode==='reset'?()=>resetPassword(email):mode==='signup'?()=>signUpWithEmail(email,password,fullName):()=>signInWithEmail(email,password))}
                 style={inputStyle(false)}
-                onFocus={e=>e.target.style.borderColor='#3DD68C'} onBlur={e=>e.target.style.borderColor='rgba(61,214,140,0.12)'} />
+                onFocus={e=>e.target.style.borderColor='#C8E20A'} onBlur={e=>e.target.style.borderColor='rgba(200,226,10,0.12)'} />
             </div>
 
             {mode !== 'reset' && (
@@ -330,7 +330,7 @@ export default function Login() {
                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
                   <label style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.45)', textTransform:'uppercase', letterSpacing:'0.8px' }}>Password</label>
                   {mode==='login' && (
-                    <button onClick={()=>setMode('reset')} style={{ fontSize:11, fontWeight:600, color:'#3DD68C', background:'none', border:'none', cursor:'pointer', ...F }}>
+                    <button onClick={()=>setMode('reset')} style={{ fontSize:11, fontWeight:600, color:'#C8E20A', background:'none', border:'none', cursor:'pointer', ...F }}>
                       Forgot password?
                     </button>
                   )}
@@ -341,7 +341,7 @@ export default function Login() {
                     autoComplete={mode==='signup'?'new-password':'current-password'}
                     onKeyDown={e=>e.key==='Enter'&&run('email',mode==='signup'?()=>signUpWithEmail(email,password,fullName):()=>signInWithEmail(email,password))}
                     style={{ ...inputStyle(false), paddingRight:44 }}
-                    onFocus={e=>e.target.style.borderColor='#3DD68C'} onBlur={e=>e.target.style.borderColor='rgba(61,214,140,0.12)'} />
+                    onFocus={e=>e.target.style.borderColor='#C8E20A'} onBlur={e=>e.target.style.borderColor='rgba(200,226,10,0.12)'} />
                   <button type="button" onClick={()=>setShowPw(v=>!v)}
                     style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', color:'rgba(255,255,255,0.3)', background:'none', border:'none', cursor:'pointer', padding:2 }}>
                     {showPw?<EyeOff size={15}/>:<Eye size={15}/>}
@@ -356,15 +356,15 @@ export default function Login() {
               </div>
             )}
             {success && (
-              <div style={{ padding:'10px 14px', borderRadius:10, fontSize:13, color:'#3DD68C', background:'rgba(0,201,177,0.08)', border:'1px solid rgba(0,201,177,0.2)', display:'flex', alignItems:'center', gap:8 }}>
-                <CheckCircle size={14} style={{ color:'#3DD68C', flexShrink:0 }} /> {success}
+              <div style={{ padding:'10px 14px', borderRadius:10, fontSize:13, color:'#C8E20A', background:'rgba(200,226,10,0.08)', border:'1px solid rgba(0,201,177,0.2)', display:'flex', alignItems:'center', gap:8 }}>
+                <CheckCircle size={14} style={{ color:'#C8E20A', flexShrink:0 }} /> {success}
               </div>
             )}
 
             <button
               onClick={() => run('email', mode==='reset'?()=>resetPassword(email):mode==='signup'?()=>signUpWithEmail(email,password,fullName):()=>signInWithEmail(email,password))}
               disabled={!!loading||!email||(mode!=='reset'&&!password)}
-              aria-label='Sign in to Revanew' style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'13px', borderRadius:11, border:'none', background:'#3DD68C', color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', opacity:(loading||!email||(mode!=='reset'&&!password))?0.45:1, transition:'all 0.15s', boxShadow:'0 6px 20px rgba(59,111,232,0.4)', ...F }}>
+              aria-label='Sign in to Invoice King' style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'13px', borderRadius:11, border:'none', background:'#C8E20A', color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', opacity:(loading||!email||(mode!=='reset'&&!password))?0.45:1, transition:'all 0.15s', boxShadow:'0 6px 20px rgba(200,226,10,0.35)', ...F }}>
               {loading==='email'?'Please wait…':mode==='reset'?'Send reset link':mode==='signup'?'Create account':'Sign in'}
               {!loading && <ArrowRight size={15}/>}
             </button>
@@ -374,16 +374,16 @@ export default function Login() {
           <div style={{ marginTop:20, textAlign:'center', fontSize:14, color:'rgba(255,255,255,0.45)' }}>
             {mode==='login' && <>No account?{' '}
               <button onClick={()=>{setMode('signup');setError('');setSuccess('');}}
-                style={{ fontWeight:700, color:'#3DD68C', background:'none', border:'none', cursor:'pointer', fontSize:14, ...F }}>
+                style={{ fontWeight:700, color:'#C8E20A', background:'none', border:'none', cursor:'pointer', fontSize:14, ...F }}>
                 Sign up free
               </button></>}
             {mode==='signup' && <>Already have an account?{' '}
               <button onClick={()=>{setMode('login');setError('');setSuccess('');}}
-                style={{ fontWeight:700, color:'#3DD68C', background:'none', border:'none', cursor:'pointer', fontSize:14, ...F }}>
+                style={{ fontWeight:700, color:'#C8E20A', background:'none', border:'none', cursor:'pointer', fontSize:14, ...F }}>
                 Sign in
               </button></>}
             {mode==='reset' && <button onClick={()=>{setMode('login');setError('');setSuccess('');}}
-              style={{ fontWeight:700, color:'#3DD68C', background:'none', border:'none', cursor:'pointer', fontSize:14, ...F }}>
+              style={{ fontWeight:700, color:'#C8E20A', background:'none', border:'none', cursor:'pointer', fontSize:14, ...F }}>
               ← Back to sign in
             </button>}
           </div>
@@ -391,10 +391,10 @@ export default function Login() {
           {mode==='signup' && (
             <p style={{ marginTop:16, textAlign:'center', fontSize:11, color:'rgba(255,255,255,0.3)', lineHeight:1.7 }}>
               By creating an account you agree to our{' '}
-              <a href="/terms" style={{ color:'#3DD68C', fontWeight:600, textDecoration:'none' }}>Terms</a>
+              <a href="/terms" style={{ color:'#C8E20A', fontWeight:600, textDecoration:'none' }}>Terms</a>
               {' '}and{' '}
-              <a href="/privacy" style={{ color:'#3DD68C', fontWeight:600, textDecoration:'none' }}>Privacy policy</a>.
-              <br/>Revanew is powered by PLEX Automation.
+              <a href="/privacy" style={{ color:'#C8E20A', fontWeight:600, textDecoration:'none' }}>Privacy policy</a>.
+              <br/>Invoice King is powered by PLEX Automation.
             </p>
           )}
 

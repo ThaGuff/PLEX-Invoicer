@@ -46,9 +46,9 @@ export default function OfflineBanner() {
       position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)',
       zIndex: 9999, display: 'flex', alignItems: 'center', gap: 10,
       padding: '10px 16px', borderRadius: 12,
-      background: justSynced ? '#3DD68C' : online ? '#0D1A0D' : '#0D1A0D',
+      background: justSynced ? '#C8E20A' : online ? '#1A1A1A' : '#1A1A1A',
       color: '#fff', boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-      fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, fontWeight: 600,
+      fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600,
       transition: 'all 0.3s ease',
       maxWidth: 'calc(100vw - 32px)',
     }}>

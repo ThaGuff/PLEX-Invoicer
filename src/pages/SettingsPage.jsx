@@ -26,7 +26,7 @@ const THEMES = [
         <div style={{ padding: '8px 10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
             <div>
-              <div style={{ height: 4, width: 40, background: '#0D1A0D', borderRadius: 2, marginBottom: 2 }} />
+              <div style={{ height: 4, width: 40, background: '#1A1A1A', borderRadius: 2, marginBottom: 2 }} />
               <div style={{ height: 3, width: 30, background: '#94a3b8', borderRadius: 2 }} />
             </div>
             <div style={{ textAlign: 'right' }}>
@@ -36,7 +36,7 @@ const THEMES = [
           </div>
           {[1,2,3].map(i => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', borderBottom: '0.5px solid #f1f5f9' }}>
-              <div style={{ height: 3, width: 50, background: i===1?'#0D1A0D':'#94a3b8', borderRadius: 2 }} />
+              <div style={{ height: 3, width: 50, background: i===1?'#1A1A1A':'#94a3b8', borderRadius: 2 }} />
               <div style={{ height: 3, width: 15, background: accent, borderRadius: 2 }} />
             </div>
           ))}
@@ -65,11 +65,11 @@ const THEMES = [
         <div style={{ padding: '8px 10px' }}>
           <div style={{ background: '#fff', borderRadius: 4, padding: '6px 8px', marginBottom: 6, border: '1px solid #e2e8f0' }}>
             <div style={{ height: 3, width: 30, background: '#94a3b8', borderRadius: 2, marginBottom: 4 }} />
-            <div style={{ height: 4, width: 45, background: '#0D1A0D', borderRadius: 2 }} />
+            <div style={{ height: 4, width: 45, background: '#1A1A1A', borderRadius: 2 }} />
           </div>
           {[1,2,3].map(i => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3, background: '#fff', borderRadius: 3, padding: '3px 6px', border: '1px solid #f1f5f9' }}>
-              <div style={{ height: 3, width: 40, background: i===1?'#0D1A0D':'#94a3b8', borderRadius: 2 }} />
+              <div style={{ height: 3, width: 40, background: i===1?'#1A1A1A':'#94a3b8', borderRadius: 2 }} />
               <div style={{ height: 3, width: 15, background: accent, borderRadius: 2 }} />
             </div>
           ))}
@@ -87,7 +87,7 @@ const THEMES = [
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
             <div style={{ width: 4, height: 20, background: accent, borderRadius: 2, marginRight: 6 }} />
             <div style={{ flex: 1 }}>
-              <div style={{ height: 5, width: 35, background: '#0D1A0D', borderRadius: 2, marginBottom: 2 }} />
+              <div style={{ height: 5, width: 35, background: '#1A1A1A', borderRadius: 2, marginBottom: 2 }} />
               <div style={{ height: 3, width: 25, background: '#94a3b8', borderRadius: 2 }} />
             </div>
             <div style={{ textAlign: 'right' }}>
@@ -97,7 +97,7 @@ const THEMES = [
           <div style={{ borderTop: '0.5px solid #e2e8f0', paddingTop: 8 }}>
             {[1,2,3].map(i => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                <div style={{ height: 3, width: 50, background: i===1?'#0D1A0D':'#94a3b8', borderRadius: 2 }} />
+                <div style={{ height: 3, width: 50, background: i===1?'#1A1A1A':'#94a3b8', borderRadius: 2 }} />
                 <div style={{ height: 3, width: 15, background: i===1?accent:'#94a3b8', borderRadius: 2 }} />
               </div>
             ))}
@@ -128,11 +128,11 @@ const THEMES = [
           <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
             <div style={{ flex: 1, padding: '4px 6px', background: accent + '15', borderRadius: 3, border: '1px solid ' + accent + '30' }}>
               <div style={{ height: 3, width: '80%', background: '#94a3b8', borderRadius: 2, marginBottom: 2 }} />
-              <div style={{ height: 4, width: '60%', background: '#0D1A0D', borderRadius: 2 }} />
+              <div style={{ height: 4, width: '60%', background: '#1A1A1A', borderRadius: 2 }} />
             </div>
             <div style={{ flex: 1, padding: '4px 6px', background: '#f8fafc', borderRadius: 3, border: '1px solid #e2e8f0' }}>
               <div style={{ height: 3, width: '80%', background: '#94a3b8', borderRadius: 2, marginBottom: 2 }} />
-              <div style={{ height: 4, width: '60%', background: '#0D1A0D', borderRadius: 2 }} />
+              <div style={{ height: 4, width: '60%', background: '#1A1A1A', borderRadius: 2 }} />
             </div>
           </div>
           {[1,2,3].map(i => (
@@ -162,7 +162,7 @@ const SECTIONS = [
 
 export default function SettingsPage() {
   const { account, updateAccount, activeId } = useAccount();
-  const accent = '#3DD68C';
+  const accent = '#C8E20A';
   const token = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
   const h = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -176,7 +176,7 @@ export default function SettingsPage() {
     website: account?.website || '',
     address: account?.business_address || '',
     tagline: account?.company_tagline || '',
-    primary_color: account?.primary_color || '#3DD68C',
+    primary_color: account?.primary_color || '#C8E20A',
     invoice_theme: account?.default_template || 'classic',
     notif_invoice_viewed: account?.notif_invoice_viewed !== 0,
     notif_invoice_paid: account?.notif_invoice_paid !== 0,
@@ -256,10 +256,10 @@ export default function SettingsPage() {
     setSaving(false);
   };
 
-  const COLORS = ['#3DD68C','#3DD68C','#3DD68C','#64748B','#DC2626','#3DD68C','#3DD68C','#3DD68C','#64748B','#0D1A0D'];
+  const COLORS = ['#C8E20A','#C8E20A','#C8E20A','#64748B','#DC2626','#C8E20A','#C8E20A','#C8E20A','#64748B','#1A1A1A'];
 
   return (
-    <div style={{ display: 'flex', height: '100%', fontFamily: "'Plus Jakarta Sans', sans-serif", minHeight: 'calc(100vh - 64px)' }}>
+    <div style={{ display: 'flex', height: '100%', fontFamily: "'Inter', sans-serif", minHeight: 'calc(100vh - 64px)' }}>
       {/* ── Sidebar ── */}
       <div style={{ width: 220, flexShrink: 0, borderRight: '1px solid var(--border)', padding: '20px 0', background: 'var(--bg-surface)', overflowY: 'auto' }}>
         <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', padding: '0 16px', marginBottom: 8 }}>Settings</p>
@@ -282,7 +282,7 @@ export default function SettingsPage() {
             </h2>
           </div>
           <button onClick={handleSave} disabled={saving}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 10, border: 'none', background: saved ? '#3DD68C' : accent, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', transition: 'background 0.2s' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 10, border: 'none', background: saved ? '#C8E20A' : accent, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', transition: 'background 0.2s' }}>
             {saving ? <RefreshCw size={13} style={{ animation: 'spin 0.8s linear infinite' }} /> : saved ? <Check size={13} /> : <Save size={13} />}
             {saving ? 'Saving…' : saved ? 'Saved!' : 'Save Changes'}
           </button>
@@ -374,7 +374,7 @@ export default function SettingsPage() {
             </Section>
             <Section title="PDF Options">
               <Grid2>
-                <ToggleField label="Show 'Powered by Revanew'" desc="Show Revanew branding in PDF footer" checked={account?.plan !== 'agency'} disabled={account?.plan === 'agency'} onChange={() => {}} />
+                <ToggleField label="Show 'Powered by Invoice King'" desc="Show Invoice King branding in PDF footer" checked={account?.plan !== 'agency'} disabled={account?.plan === 'agency'} onChange={() => {}} />
                 <ToggleField label="Include company logo" desc="Print your logo on every PDF" checked={true} onChange={() => {}} />
                 <ToggleField label="Show payment terms" desc="Display payment due date and terms" checked={true} onChange={() => {}} />
                 <ToggleField label="Show tax breakdown" desc="Show tax rate and amount separately" checked={true} onChange={() => {}} />
@@ -464,7 +464,7 @@ export default function SettingsPage() {
               { name: 'Stripe', icon: '💳', desc: 'Accept card payments, ACH, Apple Pay & Google Pay', status: 'Connect in Business Settings', color: '#635BFF' },
               { name: 'Google Calendar', icon: '📅', desc: 'Sync jobs and appointments with your Google Calendar', status: 'Connect in Schedule', color: '#4285F4' },
               { name: 'QuickBooks', icon: '📊', desc: 'Export invoices and expenses to QuickBooks Online', status: 'Coming Soon', color: '#2CA01C' },
-              { name: 'Zapier', icon: '⚡', desc: 'Connect Revanew to 5,000+ apps via Zapier automation', status: 'Coming Soon', color: '#FF4A00' },
+              { name: 'Zapier', icon: '⚡', desc: 'Connect Invoice King to 5,000+ apps via Zapier automation', status: 'Coming Soon', color: '#FF4A00' },
               { name: 'Twilio SMS', icon: '📱', desc: 'Send automated SMS reminders to clients', status: 'Coming Soon', color: '#F22F46' },
             ].map(({ name, icon, desc, status, color }) => (
               <div key={name} style={{ padding: '14px 18px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-surface)', display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -492,14 +492,14 @@ export default function SettingsPage() {
                   <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Password</p>
                   <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>Signed in via Google OAuth — password managed by Google</p>
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8, background: '#3DD68C15', color: '#3DD68C' }}>Secure ✓</span>
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8, background: '#C8E20A15', color: '#C8E20A' }}>Secure ✓</span>
               </div>
               <div style={{ padding: '14px 18px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
                 <div>
                   <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Data Encryption</p>
                   <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>All data encrypted in transit (TLS) and at rest</p>
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8, background: '#3DD68C15', color: '#3DD68C' }}>Active ✓</span>
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8, background: '#C8E20A15', color: '#C8E20A' }}>Active ✓</span>
               </div>
             </Section>
             <Section title="Data & Privacy">
@@ -586,7 +586,7 @@ function ToggleField({ label, desc, checked, onChange, disabled }) {
         {desc && <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>{desc}</p>}
       </div>
       <button onClick={() => !disabled && onChange(!checked)} disabled={disabled}
-        style={{ width: 44, height: 24, borderRadius: 12, background: checked ? '#3DD68C' : '#CBD5E1', border: 'none', cursor: disabled ? 'default' : 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0, opacity: disabled ? 0.5 : 1 }}>
+        style={{ width: 44, height: 24, borderRadius: 12, background: checked ? '#C8E20A' : '#CBD5E1', border: 'none', cursor: disabled ? 'default' : 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0, opacity: disabled ? 0.5 : 1 }}>
         <div style={{ position: 'absolute', top: 3, left: checked ? 23 : 3, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
       </button>
     </div>

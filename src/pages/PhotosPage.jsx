@@ -92,7 +92,7 @@ export default function PhotosPage() {
   const TYPES = ['all','before','after','job','damage','equipment'];
 
   return (
-    <div style={{ padding:'0 0 32px', fontFamily:"'Plus Jakarta Sans', sans-serif" }}>
+    <div style={{ padding:'0 0 32px', fontFamily:"'Inter', sans-serif" }}>
       {/* Header */}
       <div style={{ padding:'20px 28px 22px', background:'linear-gradient(135deg, #D97706 0%, #EA580C 100%)', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, opacity:0.06, backgroundImage:'radial-gradient(circle at 30% 50%, #fff 1px, transparent 1px)', backgroundSize:'40px 40px', pointerEvents:'none' }}/>

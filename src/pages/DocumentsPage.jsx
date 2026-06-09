@@ -9,9 +9,9 @@ import { Upload, FileText, File, Trash2, Download, Search, Plus,
          Link, Tag, FolderOpen, Zap } from 'lucide-react';
 
 const DOC_TYPES = {
-  contract:   { icon: Shield,   color:'#3DD68C', label:'Contract' },
-  invoice:    { icon: FileText, color:'#3DD68C', label:'Invoice' },
-  quote:      { icon: File,     color:'#3DD68C', label:'Quote' },
+  contract:   { icon: Shield,   color:'#C8E20A', label:'Contract' },
+  invoice:    { icon: FileText, color:'#C8E20A', label:'Invoice' },
+  quote:      { icon: File,     color:'#C8E20A', label:'Quote' },
   compliance: { icon: Shield,   color:'#DC2626', label:'Compliance' },
   photo:      { icon: Eye,      color:'#64748B', label:'Photo' },
   other:      { icon: File,     color:'#64748B', label:'File' },
@@ -27,7 +27,7 @@ function fmtSize(b) {
 
 export default function DocumentsPage() {
   const { account } = useAccount();
-  const accent = '#3DD68C';
+  const accent = '#C8E20A';
   const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
   const h = { Authorization: `Bearer ${token}` };
 
@@ -112,7 +112,7 @@ export default function DocumentsPage() {
   const CATS = ['all','contract','invoice','quote','compliance','photo','other'];
 
   return (
-    <div style={{ padding:'0 0 32px', fontFamily:"'Plus Jakarta Sans', sans-serif" }}>
+    <div style={{ padding:'0 0 32px', fontFamily:"'Inter', sans-serif" }}>
       {/* Header */}
       <div style={{ padding:'clamp(16px,3vw,20px) clamp(14px,4vw,28px)', background:'var(--bg-page)', borderBottom:'1px solid var(--border)' }}>
         <div style={{ position:'absolute', inset:0, opacity:0.06, backgroundImage:'radial-gradient(circle at 30% 50%, #fff 1px, transparent 1px)', backgroundSize:'40px 40px', pointerEvents:'none' }}/>
@@ -128,7 +128,7 @@ export default function DocumentsPage() {
             </div>
           </div>
           <button onClick={() => fileRef.current?.click()} disabled={uploading}
-            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', background:'#0D1A0D', color:'#C8FF00', cursor:'pointer', fontSize:13, fontWeight:800, fontFamily:'inherit' }}>
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', background:'#1A1A1A', color:'#C8E20A', cursor:'pointer', fontSize:13, fontWeight:800, fontFamily:'inherit' }}>
             <Upload size={14}/> {uploading ? 'Uploading…' : 'Upload File'}
           </button>
           <input ref={fileRef} type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png,.txt" style={{ display:'none' }} onChange={e => handleUpload(e.target.files)}/>
@@ -257,7 +257,7 @@ export default function DocumentsPage() {
                           }
                         } catch(e) { alert('Download failed: ' + e.message); }
                       }}
-                      style={{ flex:1, padding:'5px 0', borderRadius:7, border:'1px solid var(--border)', background:'transparent', color:'var(--text-muted)', cursor:'pointer', fontSize:11, fontWeight:600, fontFamily:"'Plus Jakarta Sans', sans-serif", textAlign:'center', display:'block' }}>
+                      style={{ flex:1, padding:'5px 0', borderRadius:7, border:'1px solid var(--border)', background:'transparent', color:'var(--text-muted)', cursor:'pointer', fontSize:11, fontWeight:600, fontFamily:"'Inter', sans-serif", textAlign:'center', display:'block' }}>
                       ↓ Download
                     </button>
                     <button onClick={() => handleDelete(doc.id)}
@@ -307,10 +307,10 @@ export default function DocumentsPage() {
                   const data = await r.json();
                   if (data.url) { const a = document.createElement('a'); a.href = data.url; a.download = data.name || selected.name; a.click(); }
                 } catch(e) { alert('Download failed'); }
-              }} style={{ flex:1, padding:'10px', borderRadius:9, border:'none', background:'#0D1A0D', color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, fontFamily:"'Plus Jakarta Sans', sans-serif" }}>
+              }} style={{ flex:1, padding:'10px', borderRadius:9, border:'none', background:'#1A1A1A', color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, fontFamily:"'Inter', sans-serif" }}>
                 ↓ Download
               </button>
-              <button onClick={() => { handleDelete(selected.id); setSelected(null); }} style={{ padding:'10px 16px', borderRadius:9, border:'1px solid #DC262630', background:'transparent', color:'#DC2626', cursor:'pointer', fontSize:13, fontWeight:600, fontFamily:"'Plus Jakarta Sans', sans-serif" }}>
+              <button onClick={() => { handleDelete(selected.id); setSelected(null); }} style={{ padding:'10px 16px', borderRadius:9, border:'1px solid #DC262630', background:'transparent', color:'#DC2626', cursor:'pointer', fontSize:13, fontWeight:600, fontFamily:"'Inter', sans-serif" }}>
                 Delete
               </button>
             </div>

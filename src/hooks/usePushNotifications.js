@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount } from '../context/AccountContext';
 
-const STORAGE_KEY = 'revanew_push_sub';
+const STORAGE_KEY = 'invoiceking_push_sub';
 
 export function usePushNotifications() {
   const { account } = useAccount();

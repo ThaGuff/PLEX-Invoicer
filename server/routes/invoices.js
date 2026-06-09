@@ -147,7 +147,7 @@ router.post('/:id/payment-link', requireAuth, async (req, res) => {
     const amountCents = Math.round((invoice.amount_due || 0) * 100);
     if (amountCents < 50) return res.status(400).json({ error: 'Amount too low (min $0.50)' });
 
-    const origin = process.env.APP_URL || 'https://revanew.io';
+    const origin = process.env.APP_URL || 'https://invoiceking.app';
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(stripeKey);
 
@@ -224,15 +224,15 @@ router.post('/:id/send', requireAuth, async (req, res) => {
 
     if (invoice.client_email && isEmailConfigured()) {
       try {
-        const origin = process.env.APP_URL || 'https://revanew.io';
+        const origin = process.env.APP_URL || 'https://invoiceking.app';
         const portalUrl = `${origin}/portal/invoice/${invoice.public_token}`;
         await sendEmail({
           to: invoice.client_email,
           type: 'invoice',
-          subject: `Invoice ${invoice.number} from ${invoice.agency_name || 'Revanew'}`,
+          subject: `Invoice ${invoice.number} from ${invoice.agency_name || 'Invoice King'}`,
           html: buildInvoiceHtml({
             clientName: invoice.client_name,
-            agencyName: invoice.agency_name || 'Revanew',
+            agencyName: invoice.agency_name || 'Invoice King',
             invoiceNum: invoice.number,
             amount: `$${Math.round(invoice.amount_due||0).toLocaleString()}`,
             dueDate: invoice.due_date,
@@ -246,7 +246,7 @@ Your invoice ${invoice.number} for $${Math.round(invoice.amount_due||0).toLocale
 
 View and pay: ${portalUrl}
 
-${invoice.agency_name||'Revanew'}`,
+${invoice.agency_name||'Invoice King'}`,
         });
         email_sent = true;
       } catch (emailErr) {
@@ -336,8 +336,8 @@ router.post('/:id/remind', requireAuth, async (req, res) => {
     if (!invoice.client_email) return res.status(400).json({ error: 'Invoice has no client email' });
 
     const accResult = await db.execute('SELECT name FROM accounts WHERE id = ?', [invoice.account_id]);
-    const agencyName = accResult.rows[0]?.name || 'Revanew';
-    const origin = process.env.APP_URL || 'https://revanew.io';
+    const agencyName = accResult.rows[0]?.name || 'Invoice King';
+    const origin = process.env.APP_URL || 'https://invoiceking.app';
     const portalUrl = `${origin}/portal/invoice/${invoice.public_token}`;
 
     await sendEmail({

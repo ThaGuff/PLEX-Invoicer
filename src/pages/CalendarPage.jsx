@@ -162,7 +162,7 @@ function EventModal({ event, onClose, onSave, onDelete, defaultDate, accent }) {
 
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(11,18,32,0.6)', zIndex:500, display:'flex', alignItems:'center', justifyContent:'center', padding:16, backdropFilter:'blur(4px)' }} onClick={onClose}>
-      <div style={{ background:'var(--bg-surface)', borderRadius:18, width:'100%', maxWidth:560, maxHeight:'92vh', overflow:'auto', boxShadow:'0 32px 80px rgba(11,18,32,0.25)', fontFamily:"'Plus Jakarta Sans',sans-serif" }} onClick={e=>e.stopPropagation()}>
+      <div style={{ background:'var(--bg-surface)', borderRadius:18, width:'100%', maxWidth:560, maxHeight:'92vh', overflow:'auto', boxShadow:'0 32px 80px rgba(11,18,32,0.25)', fontFamily:"'Inter',sans-serif" }} onClick={e=>e.stopPropagation()}>
         {/* Header */}
         <div style={{ padding:'18px 22px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, background:'var(--bg-surface)', zIndex:1 }}>
           <h3 style={{ margin:0, fontSize:16, fontWeight:800, color:'var(--text-primary)' }}>{event?.id ? 'Edit Event' : '+ New Event'}</h3>
@@ -642,7 +642,7 @@ export default function CalendarPage() {
   ];
 
   return (
-    <div style={{ height:'100%', display:'flex', flexDirection:'column', fontFamily:"'Plus Jakarta Sans',sans-serif", padding:'0 24px 24px' }}>
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', fontFamily:"'Inter',sans-serif", padding:'0 24px 24px' }}>
       {/* ── Action Bar ── */}
       <div style={{ padding:'12px 0 14px', display:'flex', alignItems:'center', justifyContent:'flex-end', flexWrap:'wrap', gap:8 }}>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>

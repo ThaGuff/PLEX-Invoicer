@@ -3,7 +3,7 @@
  * Stores quotes locally when no internet, syncs when back online
  */
 
-const DB_NAME = 'revanew-offline';
+const DB_NAME = 'invoiceking-offline';
 const DB_VERSION = 1;
 const STORE_DRAFTS = 'offline_drafts';
 const STORE_QUEUE  = 'sync_queue';

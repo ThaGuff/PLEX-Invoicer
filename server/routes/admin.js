@@ -217,8 +217,8 @@ router.post('/onboard', async (req, res) => {
 
   const displayName    = name || email.split('@')[0];
   const businessName   = business_name || 'your business';
-  const loginUrl       = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
-  const supportEmail   = process.env.PLEX_OWNER_EMAIL || process.env.PLEX_OWNER_EMAIL || 'admin@revanew.io';
+  const loginUrl       = process.env.APP_URL || 'https://invoice-king.up.railway.app';
+  const supportEmail   = process.env.PLEX_OWNER_EMAIL || process.env.PLEX_OWNER_EMAIL || 'admin@invoiceking.app';
   const supportPhone = process.env.SUPPORT_PHONE || '';
 
   // Generate welcome PDF
@@ -257,14 +257,14 @@ router.post('/onboard', async (req, res) => {
 <div class="wrap">
   <div class="header">
     <div class="logo">P</div>
-    <p class="brand">Revanew</p>
+    <p class="brand">Invoice King</p>
     <p class="tagline">Quote · Invoice · Get Paid</p>
   </div>
   <div class="body">
     <h1>Welcome, ${displayName}! 👋</h1>
-    <p>Your <strong>Revanew</strong> account for <strong>${businessName}</strong> is ready. This is the fastest way to send professional quotes, convert them to invoices, and get paid — built specifically for service businesses.</p>
+    <p>Your <strong>Invoice King</strong> account for <strong>${businessName}</strong> is ready. This is the fastest way to send professional quotes, convert them to invoices, and get paid — built specifically for service businesses.</p>
     ${custom_message ? `<div class="custom-msg">${custom_message}</div>` : ''}
-    <a href="${loginUrl}" class="cta">Sign in to Revanew →</a>
+    <a href="${loginUrl}" class="cta">Sign in to Invoice King →</a>
     <div class="steps">
       <h3>Get started in 3 steps</h3>
       <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Set up your account</strong> — Upload your logo, add your brand color, and build your service catalog in Account Settings.</div></div>
@@ -276,8 +276,8 @@ router.post('/onboard', async (req, res) => {
     <p style="font-size:13px;color:#9ca3af;">Your welcome guide is attached as a PDF — print it out or save it for quick reference.</p>
   </div>
   <div class="footer">
-    <p>You're receiving this because you signed up for Revanew.<br>
-    <a href="${loginUrl}">Log in</a> · <a href="mailto:${supportEmail}">Contact support</a> · Revanew · Birmingham, AL</p>
+    <p>You're receiving this because you signed up for Invoice King.<br>
+    <a href="${loginUrl}">Log in</a> · <a href="mailto:${supportEmail}">Contact support</a> · Invoice King · Birmingham, AL</p>
   </div>
 </div>
 </body></html>`;
@@ -291,7 +291,7 @@ router.post('/onboard', async (req, res) => {
 
     await sendEmail({
       to:      email,
-      subject: `Welcome to Revanew, ${displayName}!`,
+      subject: `Welcome to Invoice King, ${displayName}!`,
       html,
       attachments,
     });
@@ -324,8 +324,8 @@ router.post('/broadcast', async (req, res) => {
       u.email && u.email !== (process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com')
     );
 
-    const loginUrl    = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
-    const supportEmail = process.env.PLEX_OWNER_EMAIL || process.env.PLEX_OWNER_EMAIL || 'admin@revanew.io';
+    const loginUrl    = process.env.APP_URL || 'https://invoice-king.up.railway.app';
+    const supportEmail = process.env.PLEX_OWNER_EMAIL || process.env.PLEX_OWNER_EMAIL || 'admin@invoiceking.app';
 
     const html = `
 <!DOCTYPE html><html><head><meta charset="utf-8"><style>
@@ -341,14 +341,14 @@ router.post('/broadcast', async (req, res) => {
   .footer a { color:#13B5EA; text-decoration:none; }
 </style></head><body>
 <div class="wrap">
-  <div class="header"><p class="brand">Revanew</p></div>
+  <div class="header"><p class="brand">Invoice King</p></div>
   <div class="body">
     <h1>${subject}</h1>
     <p>${message.replace(/\n/g, '<br>')}</p>
-    <a href="${loginUrl}" class="cta">Open Revanew →</a>
+    <a href="${loginUrl}" class="cta">Open Invoice King →</a>
   </div>
   <div class="footer">
-    <a href="${loginUrl}">Log in</a> · <a href="mailto:${supportEmail}">Contact support</a> · Revanew
+    <a href="${loginUrl}">Log in</a> · <a href="mailto:${supportEmail}">Contact support</a> · Invoice King
   </div>
 </div></body></html>`;
 
@@ -390,11 +390,11 @@ async function generateWelcomePDF({ displayName, businessName, loginUrl, support
 
   // Brand name
   doc.setFontSize(18);
-  doc.text('Revanew', M + 58, 40);
+  doc.text('Invoice King', M + 58, 40);
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...BLUE);
-  doc.text('Revanew — Welcome Guide', M + 58, 58);
+  doc.text('Invoice King — Welcome Guide', M + 58, 58);
 
   // Title
   doc.setTextColor(...DARK);
@@ -555,7 +555,7 @@ router.post('/user/:id/reset-password', async (req, res) => {
   try {
     const { data: user } = await sb.auth.admin.getUserById(req.params.id);
     if (!user?.user?.email) return res.status(404).json({ error: 'User not found' });
-    const appUrl = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
+    const appUrl = process.env.APP_URL || 'https://invoice-king.up.railway.app';
     const { error } = await sb.auth.resetPasswordForEmail(user.user.email, {
       redirectTo: `${appUrl}/reset-password`,
     });
@@ -711,7 +711,7 @@ router.post('/user/:id/magic-link', async (req, res) => {
   try {
     const { data: u } = await sb.auth.admin.getUserById(req.params.id);
     if (!u?.user?.email) return res.status(404).json({ error: 'User not found' });
-    const appUrl = process.env.APP_URL || 'https://plex-invoicer.up.railway.app';
+    const appUrl = process.env.APP_URL || 'https://invoice-king.up.railway.app';
     const { data, error } = await sb.auth.admin.generateLink({
       type: 'magiclink',
       email: u.user.email,
@@ -876,16 +876,16 @@ router.post('/test-email', async (req, res) => {
       return res.status(503).json({
         error: 'Email not configured',
         fix: 'Add RESEND_API_KEY (recommended) or SMTP_HOST+SMTP_USER+SMTP_PASS to Railway Variables',
-        resend_setup: 'Get free API key at https://resend.com, verify revanew.io domain, set RESEND_FROM=invoices@revanew.io',
+        resend_setup: 'Get free API key at https://resend.com, verify invoiceking.app domain, set RESEND_FROM=invoices@invoiceking.app',
       });
     }
     
     const result = await sendEmail({
       to,
-      subject: '✅ Revanew Email Test — Working!',
+      subject: '✅ Invoice King Email Test — Working!',
       html: `<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:500px;margin:32px auto;padding:24px;background:#fff;border-radius:12px;border:1px solid #e2e8f0">
         <h2 style="color:#2563EB;margin:0 0 16px">✅ Email is working!</h2>
-        <p style="color:#334155">Your Revanew email configuration is working correctly.</p>
+        <p style="color:#334155">Your Invoice King email configuration is working correctly.</p>
         <p style="color:#64748B;font-size:13px">Sent at: ${new Date().toISOString()}</p>
         <p style="color:#64748B;font-size:13px">Provider: ${process.env.RESEND_API_KEY ? 'Resend' : 'SMTP'}</p>
         <p style="color:#64748B;font-size:13px">From: ${process.env.RESEND_FROM || process.env.SMTP_FROM || process.env.SMTP_USER || 'not set'}</p>
@@ -898,9 +898,9 @@ router.post('/test-email', async (req, res) => {
       ok: false,
       error: e.message,
       provider: process.env.RESEND_API_KEY ? 'resend' : 'smtp',
-      resend_from: process.env.RESEND_FROM || 'not set — set RESEND_FROM=invoices@revanew.io',
+      resend_from: process.env.RESEND_FROM || 'not set — set RESEND_FROM=invoices@invoiceking.app',
       fix: process.env.RESEND_API_KEY
-        ? 'Verify revanew.io at https://resend.com/domains and set RESEND_FROM=invoices@revanew.io in Railway'
+        ? 'Verify invoiceking.app at https://resend.com/domains and set RESEND_FROM=invoices@invoiceking.app in Railway'
         : 'Check SMTP_HOST, SMTP_USER, SMTP_PASS in Railway Variables',
     });
   }

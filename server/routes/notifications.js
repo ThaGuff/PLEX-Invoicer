@@ -18,7 +18,7 @@ async function getWebPush() {
 
   const publicKey  = process.env.VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
-  const email      = process.env.VAPID_EMAIL || process.env.SMTP_FROM || 'admin@revanew.io';
+  const email      = process.env.VAPID_EMAIL || process.env.SMTP_FROM || 'admin@invoiceking.app';
 
   if (publicKey && privateKey) {
     webpush.setVapidDetails(`mailto:${email}`, publicKey, privateKey);
@@ -86,7 +86,7 @@ router.post('/send', requireAuth, async (req, res) => {
       : `SELECT * FROM push_subscriptions WHERE account_id = ?`;
     const subs = await db.execute(query, [user_id || account_id]);
 
-    const payload = JSON.stringify({ title, body: body || '', url: url || '/', tag: tag || 'revanew' });
+    const payload = JSON.stringify({ title, body: body || '', url: url || '/', tag: tag || 'invoiceking' });
     const results = { sent: 0, failed: 0, expired: 0 };
 
     for (const sub of subs.rows) {

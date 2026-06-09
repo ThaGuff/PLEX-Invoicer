@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { api } from '../utils/api';
 
-export default function StripeConnectSettings({ accountId, accent = '#3DD68C' }) {
+export default function StripeConnectSettings({ accountId, accent = '#C8E20A' }) {
   const [status, setStatus]   = useState(null);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState('');
@@ -124,7 +124,7 @@ export default function StripeConnectSettings({ accountId, accent = '#3DD68C' })
         <div className="border rounded-xl overflow-hidden" style={{ borderColor: 'var(--border)' }}>
           {/* Green header */}
           <div className="flex items-center gap-3 px-4 py-3" style={{ background: '#f0fdf4', borderBottom: '0.5px solid #bbf7d0' }}>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#3DD68C20' }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#C8E20A20' }}>
               <CheckCircle size={16} className="text-green-600" />
             </div>
             <div className="flex-1">
@@ -243,7 +243,7 @@ export default function StripeConnectSettings({ accountId, accent = '#3DD68C' })
             )}
           </div>
           <p className="text-xs text-ink-muted mb-3">
-            A percentage taken from each payment as a platform fee to Revanew. Set to 0 for no fee.
+            A percentage taken from each payment as a platform fee to Invoice King. Set to 0 for no fee.
           </p>
           {feeEdit ? (
             <div className="flex items-center gap-2">

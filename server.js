@@ -212,7 +212,7 @@ app.use((req, res, next) => {
 // ── CORS ─────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
   process.env.APP_URL,
-  'https://revanew.io',
+  'https://invoiceking.app',
   'http://localhost:4173',
   'http://localhost:5173',
 ].filter(Boolean);
@@ -456,12 +456,12 @@ app.post('/api/billing/create-checkout', requireAuth, async (req, res) => {
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   if (!stripeKey) return res.status(503).json({ error: 'Stripe not configured. Set STRIPE_SECRET_KEY.' });
   const { plan = 'pro', winback = false } = req.body;
-  const origin = process.env.APP_URL || 'https://revanew.io';
+  const origin = process.env.APP_URL || 'https://invoiceking.app';
 
   // Plan config — uses STRIPE_PRICE_* env vars if set (real Stripe price IDs),
   // otherwise creates a one-time price dynamically for trial/checkout
   const PLAN_AMOUNTS = { starter: 1900, pro: 4900, agency: 9900 }; // cents/month
-  const PLAN_NAMES   = { starter: 'Revanew Starter', pro: 'Revanew Pro', agency: 'Revanew Agency' };
+  const PLAN_NAMES   = { starter: 'Invoice King Starter', pro: 'Invoice King Pro', agency: 'Invoice King Agency' };
   const { annual = false } = req.body;
   const PLAN_ENV_MONTHLY = {
     starter: process.env.STRIPE_STARTER_MONTHLY_PRICE || process.env.STRIPE_PRICE_STARTER,
@@ -543,7 +543,7 @@ app.post('/api/billing/create-checkout', requireAuth, async (req, res) => {
           coupon: await (async () => {
             const coupon = await stripe.coupons.create({
               percent_off: 50, duration: 'once',
-              name: 'Revanew Welcome Back — 50% off',
+              name: 'Invoice King Welcome Back — 50% off',
               max_redemptions: 1,
             });
             return coupon.id;
@@ -590,7 +590,7 @@ app.post('/api/billing/portal', requireAuth, async (req, res) => {
     }
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(stripeKey);
-    const origin = process.env.APP_URL || 'https://revanew.io';
+    const origin = process.env.APP_URL || 'https://invoiceking.app';
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${origin}/dashboard`,
@@ -617,7 +617,7 @@ app.post('/api/ai/insights-summary', requireAuth, async (req, res) => {
   if (!apiKey) return res.json({ summary: 'Connect your OpenAI key in Railway variables to enable AI analysis.' });
   const { insights } = req.body;
   try {
-    const prompt = `You are a business revenue advisor for a service business using Revanew. 
+    const prompt = `You are a business revenue advisor for a service business using Invoice King. 
 Analyze this data and give 2-3 actionable insights in 80 words max. Be direct, specific, and encouraging.
 
 Data:
@@ -901,7 +901,7 @@ initDBWithRetry().then(async () => {
           const htmlBody = '<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px">' +
             '<p>' + body.split('\n').join('<br>') + '</p>' +
             '<hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0">' +
-            '<p style="color:#94a3b8;font-size:11px">Powered by Revanew · <a href="#" style="color:#94a3b8">Unsubscribe</a></p></div>';
+            '<p style="color:#94a3b8;font-size:11px">Powered by Invoice King · <a href="#" style="color:#94a3b8">Unsubscribe</a></p></div>';
           await sendEmail({ to: run.client_email, subject, text: body, html: htmlBody });
           await db.execute(`UPDATE automation_runs SET status = 'sent', sent_at = ? WHERE id = ?`, [new Date().toISOString(), run.id]);
           console.log(`✅ Automation run ${run.id} sent to ${run.client_email}`);
@@ -924,7 +924,7 @@ initDBWithRetry().then(async () => {
       const { sendEmail, isEmailConfigured } = await import('./server/utils/email.js');
       const { db: trialDb } = await import('./server/db/schema.js');
       if (!isEmailConfigured()) return;
-      const APP_URL = process.env.APP_URL || 'https://revanew.io';
+      const APP_URL = process.env.APP_URL || 'https://invoiceking.app';
       const expiring = await trialDb.execute(
         `SELECT id, name, email, trial_ends_at FROM accounts
          WHERE subscription_status = 'trialing'
@@ -938,12 +938,12 @@ initDBWithRetry().then(async () => {
         const daysLeft = Math.max(0, Math.ceil((new Date(acct.trial_ends_at) - new Date()) / 86400000));
         await sendEmail({
           to: acct.email,
-          subject: `⏰ ${daysLeft === 0 ? 'Your Revanew trial ends today' : daysLeft + ' days left in your Revanew trial'}`,
-          text: `Your Revanew trial ends in ${daysLeft} day(s). Subscribe at ${APP_URL}/billing`,
+          subject: `⏰ ${daysLeft === 0 ? 'Your Invoice King trial ends today' : daysLeft + ' days left in your Invoice King trial'}`,
+          text: `Your Invoice King trial ends in ${daysLeft} day(s). Subscribe at ${APP_URL}/billing`,
           html: `<div style="font-family:sans-serif;max-width:600px;margin:32px auto;padding:32px;background:#fff;border-radius:16px;border:1px solid #e2e8f0">
             <h2 style="margin:0 0 16px;color:#0f172a">⏰ Your trial ${daysLeft === 0 ? 'ends today' : 'is ending soon'}</h2>
             <p style="color:#334155">You have <strong>${daysLeft} day${daysLeft===1?'':'s'}</strong> left. Subscribe now to keep all your data and access.</p>
-            <a href="${APP_URL}/billing" style="display:inline-block;margin-top:16px;padding:12px 24px;background:linear-gradient(135deg,#2563EB,#0D9488);color:#fff;text-decoration:none;border-radius:10px;font-weight:700">
+            <a href="${APP_URL}/billing" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#1A1A1A;color:#fff;text-decoration:none;border-radius:10px;font-weight:700">
               Choose a plan →
             </a></div>`
         }).catch(e => console.warn('[Trial reminder] Email failed:', e.message));

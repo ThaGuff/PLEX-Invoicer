@@ -17,8 +17,8 @@ function getStatus(inv) {
 }
 
 const STATUS_COLORS = {
-  draft: '#7A7E85', sent: '#3DD68C', viewed: '#d97706',
-  paid: '#3DD68C', overdue: '#dc2626', cancelled: '#7A7E85',
+  draft: '#7A7E85', sent: '#C8E20A', viewed: '#d97706',
+  paid: '#C8E20A', overdue: '#dc2626', cancelled: '#7A7E85',
 };
 
 const PAYMENT_METHOD_LABELS = {
@@ -30,7 +30,7 @@ export default function InvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { account } = useAccount();
-  const accent = '#3DD68C';
+  const accent = '#C8E20A';
 
   const [invoice, setInvoice]       = useState(null);
   const [items, setItems]           = useState([]);
@@ -54,7 +54,7 @@ export default function InvoiceDetail() {
         setInvoice(data);
         setItems(data.items || []);
         setEmailTo(data.client_email || '');
-        setEmailSubject(`Invoice ${data.number} — ${data.agency_name || 'Revanew'}`);
+        setEmailSubject(`Invoice ${data.number} — ${data.agency_name || 'Invoice King'}`);
         const link = `${window.location.origin}/portal/invoice/${data.public_token}`;
         setEmailBody(`Hi ${data.client_name || 'there'},
 
@@ -154,7 +154,7 @@ Thank you!`);
     <>
       {/* Issue 2: In-app preview modal */}
       {showPreview && (
-        <div style={{position:'fixed',inset:0,zIndex:500,background:'rgba(11,18,32,0.7)',backdropFilter:'blur(4px)',display:'flex',flexDirection:'column',fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+        <div style={{position:'fixed',inset:0,zIndex:500,background:'rgba(11,18,32,0.7)',backdropFilter:'blur(4px)',display:'flex',flexDirection:'column',fontFamily:"'Inter',sans-serif"}}>
           <div style={{background:'var(--bg-surface)',borderBottom:'1px solid var(--border)',padding:'12px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0,gap:12}}>
             <div>
               <p style={{fontSize:14,fontWeight:700,color:'var(--text-primary)'}}>Invoice Preview</p>
@@ -166,7 +166,7 @@ Thank you!`);
                 Open tab ↗
               </a>
               <button onClick={() => setShowPreview(false)}
-                style={{padding:'8px 14px',background:'#0D1A0D',color:'#fff',border:'none',borderRadius:9,cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+                style={{padding:'8px 14px',background:'#1A1A1A',color:'#fff',border:'none',borderRadius:9,cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif"}}>
                 ← Back
               </button>
             </div>
@@ -186,7 +186,7 @@ Thank you!`);
 
       {/* Issue 3: Send email modal with 3 modes */}
       {showSendModal && (
-        <div style={{position:'fixed',inset:0,zIndex:500,background:'rgba(11,18,32,0.5)',backdropFilter:'blur(4px)',display:'flex',alignItems:'flex-end',fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+        <div style={{position:'fixed',inset:0,zIndex:500,background:'rgba(11,18,32,0.5)',backdropFilter:'blur(4px)',display:'flex',alignItems:'flex-end',fontFamily:"'Inter',sans-serif"}}>
           <div style={{background:'var(--bg-surface)',borderRadius:'20px 20px 0 0',padding:'20px 20px calc(20px + env(safe-area-inset-bottom))',width:'100%',maxHeight:'92dvh',overflowY:'auto',boxSizing:'border-box'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
               <h3 style={{fontSize:18,fontWeight:800,color:'var(--text-primary)'}}>Send Invoice</h3>
@@ -196,7 +196,7 @@ Thank you!`);
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:6,marginBottom:18}}>
               {[['smtp','📧 Built-in'],['external','🔗 Copy Link'],['gmail','📨 Gmail']].map(([mode,label]) => (
                 <button key={mode} onClick={() => setSendMode(mode)}
-                  style={{padding:'10px 6px',borderRadius:10,border:`2px solid ${sendMode===mode?'var(--blue)':'var(--border)'}`,background:sendMode===mode?'rgba(37,99,235,0.08)':'transparent',color:sendMode===mode?'var(--blue)':'var(--text-secondary)',fontSize:12,fontWeight:sendMode===mode?700:500,cursor:'pointer',transition:'all 0.15s',fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+                  style={{padding:'10px 6px',borderRadius:10,border:`2px solid ${sendMode===mode?'var(--blue)':'var(--border)'}`,background:sendMode===mode?'rgba(37,99,235,0.08)':'transparent',color:sendMode===mode?'var(--blue)':'var(--text-secondary)',fontSize:12,fontWeight:sendMode===mode?700:500,cursor:'pointer',transition:'all 0.15s',fontFamily:"'Inter',sans-serif"}}>
                   {label}
                 </button>
               ))}
@@ -208,7 +208,7 @@ Thank you!`);
                 <div style={{display:'flex',gap:8}}>
                   <input readOnly value={publicUrl2} style={{flex:1,padding:'11px 12px',borderRadius:9,border:'1px solid var(--border)',background:'var(--bg-raised)',color:'var(--text-muted)',fontSize:12,fontFamily:'monospace',minWidth:0}} />
                   <button onClick={() => { navigator.clipboard.writeText(publicUrl2); }}
-                    style={{padding:'11px 14px',background:'#0D1A0D',color:'#fff',border:'none',borderRadius:9,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Plus Jakarta Sans',sans-serif",flexShrink:0}}>
+                    style={{padding:'11px 14px',background:'#1A1A1A',color:'#fff',border:'none',borderRadius:9,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Inter',sans-serif",flexShrink:0}}>
                     Copy
                   </button>
                 </div>
@@ -222,7 +222,7 @@ Thank you!`);
                 <a href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(emailTo)}&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`}
                   target="_blank" rel="noreferrer"
                   onClick={() => setShowSendModal(false)}
-                  style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10,padding:'14px',background:'#EA4335',color:'#fff',borderRadius:12,textDecoration:'none',fontSize:15,fontWeight:700,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+                  style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10,padding:'14px',background:'#EA4335',color:'#fff',borderRadius:12,textDecoration:'none',fontSize:15,fontWeight:700,fontFamily:"'Inter',sans-serif"}}>
                   ✉ Open in Gmail ↗
                 </a>
                 <p style={{fontSize:11,color:'var(--text-muted)',marginTop:8}}>Opens Gmail in your browser with recipient, subject, and message pre-filled. Review and send from your Gmail.</p>
@@ -244,7 +244,7 @@ Thank you!`);
                   <textarea value={emailBody} onChange={e=>setEmailBody(e.target.value)} rows={5} className="field" style={{fontSize:13,resize:'vertical'}} />
                 </div>
                 <button onClick={() => { handleSendConfirm(); setShowSendModal(false); }} disabled={!emailTo.trim() || !!working}
-                  style={{width:'100%',padding:'14px',background:'#0D1A0D',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontWeight:800,cursor:'pointer',opacity:!emailTo.trim()||!!working?0.5:1,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+                  style={{width:'100%',padding:'14px',background:'#1A1A1A',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontWeight:800,cursor:'pointer',opacity:!emailTo.trim()||!!working?0.5:1,fontFamily:"'Inter',sans-serif"}}>
                   {working==='send' ? 'Sending…' : 'Send Invoice'}
                 </button>
               </div>
@@ -256,7 +256,7 @@ Thank you!`);
       {/* Main content / Toast */}
       {toast && (
         <div className="fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white max-w-sm"
-          style={{ background: toast.type === 'success' ? '#3DD68C' : toast.type === 'warn' ? '#dc2626' : '#3DD68C' }}>
+          style={{ background: toast.type === 'success' ? '#C8E20A' : toast.type === 'warn' ? '#dc2626' : '#C8E20A' }}>
           {toast.msg}
         </div>
       )}
@@ -276,7 +276,7 @@ Thank you!`);
             <p className="text-sm text-ink-muted">
               {invoice.client_name}{invoice.client_biz ? ` · ${invoice.client_biz}` : ''}
               {invoice.payment_method && status === 'paid' &&
-                <span className="ml-2 text-xs px-1.5 py-0.5 rounded" style={{ background: '#f0fdf4', color: '#3DD68C' }}>
+                <span className="ml-2 text-xs px-1.5 py-0.5 rounded" style={{ background: '#f0fdf4', color: '#C8E20A' }}>
                   via {PAYMENT_METHOD_LABELS[invoice.payment_method] || invoice.payment_method}
                 </span>
               }
@@ -418,7 +418,7 @@ Thank you!`);
                 <>
                   <button onClick={() => setShowMarkPaid(true)} disabled={!!working}
                     className="w-full flex items-center gap-2 text-sm font-semibold text-white py-2.5 px-4 rounded-lg disabled:opacity-50"
-                    style={{ background: '#3DD68C' }}>
+                    style={{ background: '#C8E20A' }}>
                     <CheckCircle size={15} /> Mark as paid
                   </button>
                   <button onClick={handleSend} disabled={!!working}

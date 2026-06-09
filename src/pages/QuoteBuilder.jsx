@@ -144,7 +144,7 @@ function CustomSection({ section, services, selected, included, prices, billingM
   return (
     <div style={{ background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:14, overflow:"hidden", marginBottom:12 }}>
       <button onClick={() => setOpen(o => !o)} className="section-trigger">
-        <div style={{ width:32, height:32, borderRadius:9, background:'linear-gradient(135deg,var(--blue),var(--forest))', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:'0 3px 10px rgba(61,214,140,0.2)' }}>
+        <div style={{ width:32, height:32, borderRadius:9, background:'linear-gradient(135deg,var(--blue),var(--forest))', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:'0 3px 10px rgba(200,226,10,0.2)' }}>
           <PlusCircle size={14} color="#fff" />
         </div>
         {editingLabel ? (
@@ -373,7 +373,7 @@ function calcWinProb(quote, clientHistory) {
 
 export default function QuoteBuilder() {
   const { account, activeId, addCustomSection, updateCustomSection, addCustomItem, refreshAccount } = useAccount();
-  const accent = '#3DD68C';
+  const accent = '#C8E20A';
   const navigate = useNavigate();
   const { id: editId } = useParams();
   const isNew = !editId || editId === 'new';
@@ -597,7 +597,7 @@ export default function QuoteBuilder() {
   };
 
   const fullState = {
-    agencyName:       account?.name             || 'Revanew',
+    agencyName:       account?.name             || 'Invoice King',
     agencyEmail:      account?.email            || '',
     agencyPhone:      account?.phone            || '',
     agencyWebsite:    account?.website          || '',
@@ -760,21 +760,21 @@ export default function QuoteBuilder() {
               className="btn-ghost flex items-center gap-1.5 text-sm opacity-70"
               title="Upgrade to Pro for AI parsing">
               <Bot size={14} /> AI parse
-              <span style={{ fontSize:'8px', fontWeight:700, background:'linear-gradient(135deg,#0D1A0D,#3DD68C)', color:'#fff', padding:'1px 5px', borderRadius:'8px', marginLeft:'2px' }}>PRO</span>
+              <span style={{ fontSize:'8px', fontWeight:700, background:'linear-gradient(135deg,#1A1A1A,#C8E20A)', color:'#fff', padding:'1px 5px', borderRadius:'8px', marginLeft:'2px' }}>PRO</span>
             </button>
           )}
           {!isNew && (
             <button onClick={handleConvert}
-              style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', background:'#0D1A0D', color:'#C8FF00', border:'1.5px solid #C8FF0040', borderRadius:9, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:"'Plus Jakarta Sans', sans-serif", flexShrink:0, transition:'all 0.15s' }}
-              onMouseEnter={e => { e.currentTarget.style.background='#162216'; e.currentTarget.style.borderColor='#C8FF0060'; }}
-              onMouseLeave={e => { e.currentTarget.style.background='#0D1A0D'; e.currentTarget.style.borderColor='#C8FF0040'; }}>
+              style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', background:'#1A1A1A', color:'#C8E20A', border:'1.5px solid #C8E20A40', borderRadius:9, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:"'Inter', sans-serif", flexShrink:0, transition:'all 0.15s' }}
+              onMouseEnter={e => { e.currentTarget.style.background='#162216'; e.currentTarget.style.borderColor='#C8E20A60'; }}
+              onMouseLeave={e => { e.currentTarget.style.background='#1A1A1A'; e.currentTarget.style.borderColor='#C8E20A40'; }}>
               <RefreshCw size={13} /> Convert to invoice
             </button>
           )}
           <button onClick={handleSave}
             disabled={saving || selectedCount === 0}
             className="flex items-center gap-1.5 text-sm font-semibold text-white px-4 py-2 rounded-lg disabled:opacity-40 transition-all"
-            style={{ background: saveState === 'saved' ? '#3DD68C' : accent }}>
+            style={{ background: saveState === 'saved' ? '#C8E20A' : accent }}>
             <Save size={14} /> {saveBtnLabel}
           </button>
         </div>
@@ -792,7 +792,7 @@ export default function QuoteBuilder() {
                 {account?.logo_url ? (
                   <img src={account.logo_url} alt={account.name} style={{ height:48, maxWidth:120, objectFit:'contain', borderRadius:8, background:'white', padding:4, boxShadow:'0 1px 4px rgba(0,0,0,0.1)' }} />
                 ) : (
-                  <img src="/logo-revanew.png" alt="Revanew"
+                  <img src="/logo-invoiceking.png" alt="Invoice King"
                     style={{ width:48, height:48, borderRadius:10, objectFit:'contain', flexShrink:0, background:'#0d1b6b', padding:4 }} />
                 )}
                 <div>
@@ -803,7 +803,7 @@ export default function QuoteBuilder() {
                 {!canUseFeature(account?.plan, 'white_label') && (
                   <div style={{ marginLeft:'auto', textAlign:'right' }}>
                     <p style={{ fontSize:10, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.05em', fontWeight:600 }}>Powered by</p>
-                    <a href="https://revanew.io" target="_blank" rel="noopener noreferrer" style={{ fontSize:12, fontWeight:700, color: accent, textDecoration:'none' }}>Revanew.io</a>
+                    <a href="https://invoiceking.app" target="_blank" rel="noopener noreferrer" style={{ fontSize:12, fontWeight:700, color: accent, textDecoration:'none' }}>InvoiceKing.app</a>
                   </div>
                 )}
               </div>
@@ -887,7 +887,7 @@ export default function QuoteBuilder() {
               value={selectedTemplate}
               onChange={e => setSelectedTemplate(e.target.value)}
               className="w-full text-sm border rounded-lg px-3 py-2.5 mb-3 bg-white"
-              style={{ borderColor: 'var(--border)', color: 'var(--text-primary)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              style={{ borderColor: 'var(--border)', color: 'var(--text-primary)', fontFamily: "'Inter', sans-serif" }}>
               <option value="">— Select your trade / industry —</option>
               {TEMPLATE_LIST.map(t => (
                 <option key={t.id} value={t.id}>
@@ -906,7 +906,7 @@ export default function QuoteBuilder() {
                       <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                       <p className="text-sm font-bold" style={{ color: QUOTE_TEMPLATES[selectedTemplate].color }}>{QUOTE_TEMPLATES[selectedTemplate].name}</p>
                       {account?.default_template === selectedTemplate && (
-                        <span style={{ fontSize:10, fontWeight:700, padding:'1px 6px', borderRadius:8, background:'#3DD68C20', color:'#3DD68C', border:'1px solid #3DD68C40' }}>⭐ Your default</span>
+                        <span style={{ fontSize:10, fontWeight:700, padding:'1px 6px', borderRadius:8, background:'#C8E20A20', color:'#C8E20A', border:'1px solid #C8E20A40' }}>⭐ Your default</span>
                       )}
                     </div>
                       <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -998,7 +998,7 @@ export default function QuoteBuilder() {
             )}
 
             {templateApplied && (
-              <div className="mt-3 p-3 rounded-lg text-sm font-semibold" style={{ background: 'rgba(34,197,94,0.1)', color: '#3DD68C', border: '1px solid rgba(34,197,94,0.2)' }}>
+              <div className="mt-3 p-3 rounded-lg text-sm font-semibold" style={{ background: 'rgba(34,197,94,0.1)', color: '#C8E20A', border: '1px solid rgba(34,197,94,0.2)' }}>
                 ✅ Template loaded! Services added to your catalog below. Customize prices as needed.
               </div>
             )}
@@ -1021,18 +1021,18 @@ export default function QuoteBuilder() {
                 onChange={e => setScanUrl(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleScan()}
                 className="flex-1 text-sm border rounded-lg px-3 py-2 bg-white"
-                style={{ borderColor: 'var(--border)', color: 'var(--text-primary)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                style={{ borderColor: 'var(--border)', color: 'var(--text-primary)', fontFamily: "'Inter', sans-serif" }}
               />
               <button
                 onClick={handleScan}
                 disabled={scanning || !scanUrl?.trim()}
                 className="px-4 py-2 rounded-lg text-white text-sm font-bold transition-all disabled:opacity-50"
-                style={{ background: '#3DD68C' }}>
+                style={{ background: '#C8E20A' }}>
                 {scanning ? '⏳ Scanning…' : '🔍 Scan'}
               </button>
             </div>
             {scanResult && (
-              <div className="mt-2 p-2 rounded text-xs" style={{ background: 'rgba(34,197,94,0.08)', color: '#3DD68C', border: '1px solid rgba(34,197,94,0.2)' }}>
+              <div className="mt-2 p-2 rounded text-xs" style={{ background: 'rgba(34,197,94,0.08)', color: '#C8E20A', border: '1px solid rgba(34,197,94,0.2)' }}>
                 ✅ {scanResult}
               </div>
             )}
@@ -1312,7 +1312,7 @@ export default function QuoteBuilder() {
               <button onClick={handleSave}
                 disabled={saving || selectedCount === 0}
                 className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-white py-2.5 rounded-lg disabled:opacity-40 transition-all"
-                style={{ background: saveState === 'saved' ? '#3DD68C' : accent }}>
+                style={{ background: saveState === 'saved' ? '#C8E20A' : accent }}>
                 <Save size={15} /> {saveBtnLabel}
               </button>
               <button onClick={() => window.print()} disabled={selectedCount === 0}
@@ -1353,14 +1353,14 @@ export default function QuoteBuilder() {
               </button>
             </div>
 
-            {/* Revanew branding */}
+            {/* Invoice King branding */}
             <div style={{ marginTop: 16, textAlign: 'center', padding: '10px 0', borderTop: '1px solid var(--border)' }}>
               <p style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4l3 3"/></svg>
                 Powered by{' '}
-                <a href="https://revanew.io" target="_blank" rel="noopener noreferrer"
+                <a href="https://invoiceking.app" target="_blank" rel="noopener noreferrer"
                   style={{ color: accent, fontWeight: 700, textDecoration: 'none' }}>
-                  Revanew.io
+                  InvoiceKing.app
                 </a>
               </p>
             </div>

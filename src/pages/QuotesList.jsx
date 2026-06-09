@@ -5,10 +5,10 @@ import { api } from '../utils/api';
 
 const STATUS_CONFIG = {
   draft:    { label: 'Draft',    color: '#64748B', bg: '#F1F5F9' },
-  sent:     { label: 'Sent',     color: '#3DD68C', bg: '#F0FDF4' },
+  sent:     { label: 'Sent',     color: '#C8E20A', bg: '#F0FDF4' },
   viewed:   { label: 'Viewed',   color: '#64748B', bg: '#F1F5F9' },
-  accepted: { label: 'Approved', color: '#3DD68C', bg: '#F0FDF4' },
-  invoiced: { label: 'Invoiced', color: '#3DD68C', bg: '#F0FDF4' },
+  accepted: { label: 'Approved', color: '#C8E20A', bg: '#F0FDF4' },
+  invoiced: { label: 'Invoiced', color: '#C8E20A', bg: '#F0FDF4' },
   cancelled:{ label: 'Cancelled',color: '#9CA3AF', bg: '#F9FAFB' },
 };
 
@@ -101,7 +101,7 @@ export default function QuotesList() {
       {/* Action bar */}
       <div style={{ padding: '10px clamp(14px,4vw,24px)', background: 'var(--bg-page)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
         <button onClick={() => navigate('/quotes/new')}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: '#0D1A0D', color: '#C8FF00', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: '#1A1A1A', color: '#C8E20A', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           New quote
         </button>
@@ -111,10 +111,10 @@ export default function QuotesList() {
       <div style={{ padding: 'clamp(12px,3vw,16px) clamp(14px,4vw,24px)', background: 'var(--bg-page)', borderBottom: '1px solid var(--border)' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
           {[
-            { label: 'Total quotes', value: total, color: '#0D1A0D' },
+            { label: 'Total quotes', value: total, color: '#1A1A1A' },
             { label: 'Pending response', value: pending, color: '#64748B' },
-            { label: 'Approved', value: accepted, color: '#3DD68C' },
-            { label: 'Pipeline value', value: fmt(pipelineValue), color: '#3DD68C' },
+            { label: 'Approved', value: accepted, color: '#C8E20A' },
+            { label: 'Pipeline value', value: fmt(pipelineValue), color: '#C8E20A' },
           ].map(s => (
             <div key={s.label} style={{ padding: '14px 16px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
               <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{s.label}</p>
@@ -130,14 +130,14 @@ export default function QuotesList() {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search quotes, clients…"
-            style={{ width: '100%', padding: '9px 12px 9px 32px', borderRadius: 9, border: '1.5px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)', fontSize: 13, boxSizing: 'border-box', fontFamily: "'Plus Jakarta Sans', sans-serif", outline: 'none' }}
-            onFocus={e => e.target.style.borderColor = '#3DD68C'}
+            style={{ width: '100%', padding: '9px 12px 9px 32px', borderRadius: 9, border: '1.5px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)', fontSize: 13, boxSizing: 'border-box', fontFamily: "'Inter', sans-serif", outline: 'none' }}
+            onFocus={e => e.target.style.borderColor = '#C8E20A'}
             onBlur={e => e.target.style.borderColor = 'var(--border)'} />
         </div>
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {FILTERS.map(f => (
             <button key={f.id} onClick={() => setFilter(f.id)}
-              style={{ padding: '7px 12px', borderRadius: 7, border: '1.5px solid', borderColor: filter === f.id ? 'var(--forest)' : 'var(--border)', background: filter === f.id ? 'var(--forest)' : 'var(--bg-surface)', color: filter === f.id ? '#fff' : 'var(--text-secondary)', cursor: 'pointer', fontSize: 12, fontWeight: filter === f.id ? 700 : 500, fontFamily: "'Plus Jakarta Sans', sans-serif", transition: 'all 0.12s' }}>
+              style={{ padding: '7px 12px', borderRadius: 7, border: '1.5px solid', borderColor: filter === f.id ? 'var(--forest)' : 'var(--border)', background: filter === f.id ? 'var(--forest)' : 'var(--bg-surface)', color: filter === f.id ? '#fff' : 'var(--text-secondary)', cursor: 'pointer', fontSize: 12, fontWeight: filter === f.id ? 700 : 500, fontFamily: "'Inter', sans-serif", transition: 'all 0.12s' }}>
               {f.label} {f.count > 0 && <span style={{ opacity: 0.7, fontSize: 11 }}>({f.count})</span>}
             </button>
           ))}
@@ -162,7 +162,7 @@ export default function QuotesList() {
             </p>
             {!search && (
               <button onClick={() => navigate('/quotes/new')}
-                style={{ padding: '10px 20px', background: 'var(--forest)', color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                style={{ padding: '10px 20px', background: 'var(--forest)', color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>
                 Create first quote
               </button>
             )}
@@ -190,7 +190,7 @@ export default function QuotesList() {
                     {q.client_biz && q.client_name && <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '1px 0 0' }}>{q.client_biz}</p>}
                   </div>
                   {/* Quote # */}
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#3DD68C', fontFamily: 'monospace' }}>{q.number || '—'}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#C8E20A', fontFamily: 'monospace' }}>{q.number || '—'}</span>
                   {/* Status */}
                   <StatusBadge status={q.status} />
                   {/* Date */}
@@ -202,12 +202,12 @@ export default function QuotesList() {
                     {q.status === 'accepted' && (
                       <button onClick={(e) => handleConvert(q.id, e)}
                         disabled={isConverting}
-                        style={{ padding: '5px 10px', borderRadius: 7, border: 'none', background: '#3DD68C', color: '#fff', cursor: isConverting ? 'not-allowed' : 'pointer', fontSize: 11, fontWeight: 700, fontFamily: "'Plus Jakarta Sans', sans-serif", opacity: isConverting ? 0.6 : 1 }}>
+                        style={{ padding: '5px 10px', borderRadius: 7, border: 'none', background: '#C8E20A', color: '#fff', cursor: isConverting ? 'not-allowed' : 'pointer', fontSize: 11, fontWeight: 700, fontFamily: "'Inter', sans-serif", opacity: isConverting ? 0.6 : 1 }}>
                         {isConverting ? '…' : '→ Invoice'}
                       </button>
                     )}
                     <button onClick={(e) => handleDelete(q.id, e)}
-                      style={{ padding: '5px 8px', borderRadius: 7, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      style={{ padding: '5px 8px', borderRadius: 7, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: "'Inter', sans-serif" }}>
                       Del
                     </button>
                   </div>

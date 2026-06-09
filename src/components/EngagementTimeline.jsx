@@ -4,12 +4,12 @@ import { api } from '../utils/api';
 
 const STATUS_CONFIG = {
   draft:     { label: 'Draft',     color: '#9ca3af', icon: null },
-  sent:      { label: 'Sent',      color: '#3DD68C', icon: Send },
-  delivered: { label: 'Delivered', color: '#3DD68C', icon: Mail },
+  sent:      { label: 'Sent',      color: '#C8E20A', icon: Send },
+  delivered: { label: 'Delivered', color: '#C8E20A', icon: Mail },
   opened:    { label: 'Email opened', color: '#64748B', icon: Mail },
   viewed:    { label: 'Portal viewed', color: '#64748B', icon: Eye },
-  clicked:   { label: 'Pay clicked', color: '#3DD68C', icon: MousePointer },
-  paid:      { label: 'Paid',      color: '#3DD68C', icon: CheckCircle },
+  clicked:   { label: 'Pay clicked', color: '#C8E20A', icon: MousePointer },
+  paid:      { label: 'Paid',      color: '#C8E20A', icon: CheckCircle },
 };
 
 function fmtTime(iso) {
@@ -25,7 +25,7 @@ function fmtDuration(seconds) {
   return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
 }
 
-export default function EngagementTimeline({ invoiceId, accent = '#3DD68C', compact = false }) {
+export default function EngagementTimeline({ invoiceId, accent = '#C8E20A', compact = false }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -52,11 +52,11 @@ export default function EngagementTimeline({ invoiceId, accent = '#3DD68C', comp
   const cfg = STATUS_CONFIG[readStatus] || STATUS_CONFIG.sent;
 
   const milestones = [
-    { key: 'sent',        label: 'Sent',          ts: data.sent_at,        Icon: Send,          color: '#3DD68C' },
+    { key: 'sent',        label: 'Sent',          ts: data.sent_at,        Icon: Send,          color: '#C8E20A' },
     { key: 'opened',      label: 'Email opened',  ts: data.opened_at,      Icon: Mail,          color: '#64748B' },
     { key: 'viewed',      label: 'Portal viewed', ts: data.first_viewed_at, Icon: Eye,           color: '#64748B' },
-    { key: 'clicked_pay', label: 'Pay clicked',   ts: data.clicked_pay_at, Icon: MousePointer,  color: '#3DD68C' },
-    { key: 'paid',        label: 'Paid',          ts: data.paid_at,        Icon: CheckCircle,   color: '#3DD68C' },
+    { key: 'clicked_pay', label: 'Pay clicked',   ts: data.clicked_pay_at, Icon: MousePointer,  color: '#C8E20A' },
+    { key: 'paid',        label: 'Paid',          ts: data.paid_at,        Icon: CheckCircle,   color: '#C8E20A' },
   ].filter(m => m.ts);
 
   if (compact) {

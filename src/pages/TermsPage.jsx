@@ -1,17 +1,17 @@
 /**
- * TermsPage.jsx — Revanew Terms of Service
+ * TermsPage.jsx — Invoice King Terms of Service
  * Required for Google Play Store listing.
- * Hosted at revanew.io/terms
+ * Hosted at invoiceking.app/terms
  */
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const font = "'Plus Jakarta Sans', 'Inter', sans-serif";
+const font = "'Inter', sans-serif";
 const C = {
-  dark:   '#0D1A0D',
-  green:  '#3DD68C',
-  lime:   '#C8FF00',
-  cream:  '#EEEEE6',
+  dark:   '#1A1A1A',
+  green:  '#C8E20A',
+  lime:   '#C8E20A',
+  cream:  '#F5F5F5',
   muted:  '#5A7060',
   border: '#E2E8E2',
 };
@@ -31,7 +31,7 @@ function LegalNav() {
               <line x1="6.5" y1="12" x2="16" y2="19.5" stroke={C.green} strokeWidth="3" strokeLinecap="round"/>
             </svg>
           </div>
-          <span style={{ fontSize:16, fontWeight:800, color:C.dark, letterSpacing:'-0.02em' }}>Revanew</span>
+          <span style={{ fontSize:16, fontWeight:800, color:C.dark, letterSpacing:'-0.02em' }}>Invoice King</span>
         </button>
         <div style={{ display:'flex', gap:16 }}>
           <button onClick={() => navigate('/privacy')} style={{ fontSize:13, fontWeight:600, color:C.muted, background:'none', border:'none', cursor:'pointer', fontFamily:font }}>Privacy</button>
@@ -48,19 +48,19 @@ export default function TermsPage() {
   const sections = [
     {
       title: '1. Acceptance of Terms',
-      body: `By accessing or using Revanew ("the Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not use the Service.
+      body: `By accessing or using Invoice King ("the Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not use the Service.
 
 These Terms apply to all users of the Service, including businesses and individuals who create accounts, send quotes, process payments, or otherwise interact with the platform.`
     },
     {
       title: '2. Description of Service',
-      body: `Revanew is a cloud-based business management platform for service businesses. The Service includes tools for creating and sending quotes and invoices, processing payments via Stripe, managing client contacts, tracking time, and related features.
+      body: `Invoice King is a cloud-based business management platform for service businesses. The Service includes tools for creating and sending quotes and invoices, processing payments via Stripe, managing client contacts, tracking time, and related features.
 
 The Service is operated by PLEX Automation. We reserve the right to modify, suspend, or discontinue any aspect of the Service at any time with reasonable notice.`
     },
     {
       title: '3. Account Registration',
-      body: `To use most features of Revanew, you must create an account. You agree to:
+      body: `To use most features of Invoice King, you must create an account. You agree to:
 - Provide accurate, current, and complete information during registration
 - Maintain the security of your account credentials
 - Notify us immediately of any unauthorized access or breach
@@ -70,7 +70,7 @@ You must be at least 18 years old to create an account and use the Service.`
     },
     {
       title: '4. Subscription Plans and Payment',
-      body: `Revanew offers free and paid subscription plans. Paid plans are billed on a monthly or annual basis. By subscribing to a paid plan, you authorize us to charge your payment method on a recurring basis.
+      body: `Invoice King offers free and paid subscription plans. Paid plans are billed on a monthly or annual basis. By subscribing to a paid plan, you authorize us to charge your payment method on a recurring basis.
 
 Free trials: where offered, free trials automatically convert to paid subscriptions at the end of the trial period unless cancelled.
 
@@ -93,21 +93,21 @@ We reserve the right to suspend or terminate accounts that violate these standar
     },
     {
       title: '6. Payment Processing',
-      body: `Payment processing is provided by Stripe, Inc. By using payment features in Revanew, you agree to Stripe's Terms of Service (stripe.com/legal) and Privacy Policy (stripe.com/privacy).
+      body: `Payment processing is provided by Stripe, Inc. By using payment features in Invoice King, you agree to Stripe's Terms of Service (stripe.com/legal) and Privacy Policy (stripe.com/privacy).
 
-Revanew does not store credit card numbers. All payment data is handled directly by Stripe using PCI-DSS compliant infrastructure.
+Invoice King does not store credit card numbers. All payment data is handled directly by Stripe using PCI-DSS compliant infrastructure.
 
-You are responsible for ensuring that your use of Stripe through Revanew complies with applicable laws and Stripe's own acceptable use policy.`
+You are responsible for ensuring that your use of Stripe through Invoice King complies with applicable laws and Stripe's own acceptable use policy.`
     },
     {
       title: '7. Intellectual Property',
-      body: `The Revanew application, including its design, code, branding, and content, is owned by PLEX Automation and protected by copyright, trademark, and other intellectual property laws.
+      body: `The Invoice King application, including its design, code, branding, and content, is owned by PLEX Automation and protected by copyright, trademark, and other intellectual property laws.
 
 You retain ownership of the content you create using the Service (quotes, invoices, client data). By using the Service, you grant us a limited license to store, process, and display your content solely to provide the Service to you.`
     },
     {
       title: '8. Limitation of Liability',
-      body: `TO THE MAXIMUM EXTENT PERMITTED BY LAW, REVANEW AND PLEX AUTOMATION SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOSS OF PROFITS, DATA, OR BUSINESS OPPORTUNITIES, ARISING FROM YOUR USE OF THE SERVICE.
+      body: `TO THE MAXIMUM EXTENT PERMITTED BY LAW, INVOICEKING AND PLEX AUTOMATION SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOSS OF PROFITS, DATA, OR BUSINESS OPPORTUNITIES, ARISING FROM YOUR USE OF THE SERVICE.
 
 OUR TOTAL LIABILITY FOR ANY CLAIM ARISING FROM YOUR USE OF THE SERVICE SHALL NOT EXCEED THE AMOUNT YOU PAID TO US IN THE 12 MONTHS PRECEDING THE CLAIM.`
     },
@@ -135,10 +135,10 @@ We may suspend or terminate your account if you violate these Terms, with or wit
       title: '13. Contact',
       body: `For questions about these Terms, contact us:
 
-Revanew / PLEX Automation
-Email: legal@revanew.io
-Support: support@revanew.io
-Website: https://revanew.io`
+Invoice King / PLEX Automation
+Email: legal@invoiceking.app
+Support: support@invoiceking.app
+Website: https://invoiceking.app`
     },
   ];
 
@@ -155,13 +155,13 @@ Website: https://revanew.io`
 
         <div style={{ background:C.cream, borderRadius:14, padding:'24px 28px', marginBottom:40, border:`1px solid ${C.border}` }}>
           <p style={{ fontSize:15, color:C.dark, lineHeight:1.7, margin:0, fontWeight:500 }}>
-            Please read these Terms of Service carefully before using Revanew. These Terms constitute a legally binding agreement between you and PLEX Automation regarding your use of the Revanew platform.
+            Please read these Terms of Service carefully before using Invoice King. These Terms constitute a legally binding agreement between you and PLEX Automation regarding your use of the Invoice King platform.
           </p>
         </div>
 
         {sections.map(({ title, body }) => (
           <div key={title} style={{ marginBottom:40 }}>
-            <h2 style={{ fontSize:20, fontWeight:800, color:C.dark, letterSpacing:'-0.02em', margin:'0 0 12px', paddingBottom:10, borderBottom:`2px solid ${C.border}` }}>{title}</h2>
+            <h2 style={{ fontSize:20, fontWeight:800, color:C.dark, letterSpacing:'-0.02em', margin:'0 0 12px', paddingBottom:10, borderBottom:`1px solid ${C.border}` }}>{title}</h2>
             {body.split('\n\n').map((para, i) => (
               <p key={i} style={{ fontSize:15, color:C.muted, lineHeight:1.75, margin:'0 0 14px', whiteSpace:'pre-line' }}>{para}</p>
             ))}
@@ -170,7 +170,7 @@ Website: https://revanew.io`
 
         <div style={{ marginTop:56, paddingTop:24, borderTop:`1px solid ${C.border}`, display:'flex', gap:24, flexWrap:'wrap' }}>
           <a href="/privacy" style={{ fontSize:13, fontWeight:600, color:C.green, textDecoration:'none' }}>Privacy Policy</a>
-          <a href="mailto:legal@revanew.io" style={{ fontSize:13, fontWeight:600, color:C.green, textDecoration:'none' }}>legal@revanew.io</a>
+          <a href="mailto:legal@invoiceking.app" style={{ fontSize:13, fontWeight:600, color:C.green, textDecoration:'none' }}>legal@invoiceking.app</a>
         </div>
       </div>
     </div>

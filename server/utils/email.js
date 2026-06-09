@@ -1,13 +1,13 @@
 /**
- * Unified Email System for Revanew
+ * Unified Email System for Invoice King
  * ─────────────────────────────────────────────────────────────────
  * Priority:
  *   1. Resend API (recommended — set RESEND_API_KEY + RESEND_FROM)
  *   2. SMTP fallback (set SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_FROM)
  *
  * IMPORTANT FOR RESEND:
- *   - Verify revanew.io at https://resend.com/domains
- *   - Set RESEND_FROM=invoices@revanew.io in Railway Variables
+ *   - Verify invoiceking.app at https://resend.com/domains
+ *   - Set RESEND_FROM=invoices@invoiceking.app in Railway Variables
  *   - Until verified, only delivers to the account owner's email
  */
 
@@ -20,8 +20,8 @@ export async function sendEmail({ to, subject, html, text, from, replyTo, type }
   const resendKey  = process.env.RESEND_API_KEY;
   // Determine "from" address based on email type
   const baseDomain = process.env.RESEND_FROM?.split('@')[1] || null;
-  const invoiceFrom = baseDomain ? `Revanew Invoices <invoices@${baseDomain}>` : (process.env.RESEND_FROM || 'onboarding@resend.dev');
-  const inviteFrom  = baseDomain ? `Revanew Team <invite@${baseDomain}>` : (process.env.RESEND_FROM || 'onboarding@resend.dev');
+  const invoiceFrom = baseDomain ? `Invoice King Invoices <invoices@${baseDomain}>` : (process.env.RESEND_FROM || 'onboarding@resend.dev');
+  const inviteFrom  = baseDomain ? `Invoice King Team <invite@${baseDomain}>` : (process.env.RESEND_FROM || 'onboarding@resend.dev');
   const defaultFrom = process.env.RESEND_FROM || 'onboarding@resend.dev';
   
   const resendFrom = type === 'invoice' ? invoiceFrom : type === 'invite' ? inviteFrom : defaultFrom;
@@ -52,8 +52,8 @@ export async function sendEmail({ to, subject, html, text, from, replyTo, type }
 
       // Domain not verified warning
       if (msg.includes('testing emails') || msg.includes('verify') || msg.includes('unverified') || msg.includes('only send')) {
-        console.error('[Email] FIX: Go to https://resend.com/domains and verify revanew.io');
-        console.error('[Email] Then set RESEND_FROM=invoices@revanew.io in Railway Variables');
+        console.error('[Email] FIX: Go to https://resend.com/domains and verify invoiceking.app');
+        console.error('[Email] Then set RESEND_FROM=invoices@invoiceking.app in Railway Variables');
       }
 
       // Try SMTP fallback
@@ -139,9 +139,9 @@ ${content}
     <tr>
       <td style="text-align:center">
         <p style="margin:0 0 6px;color:#CBD5E1;font-size:11px;letter-spacing:0.05em;text-transform:uppercase">Powered by</p>
-        <a href="https://revanew.io" style="color:${accentColor};text-decoration:none;font-size:14px;font-weight:700">Revanew.io</a>
+        <a href="https://invoiceking.app" style="color:${accentColor};text-decoration:none;font-size:14px;font-weight:700">InvoiceKing.app</a>
         <p style="margin:8px 0 0;color:#94A3B8;font-size:11px;line-height:1.6">
-          Quotes · Invoices · Get Paid · <a href="https://revanew.io" style="color:#94A3B8">revanew.io</a>
+          Invoicing · Simplified · Own Your Cash Flow · <a href="https://invoiceking.app" style="color:#94A3B8">invoiceking.app</a>
         </p>
       </td>
     </tr>
@@ -156,7 +156,7 @@ export function buildInvoiceHtml({ clientName, agencyName, invoiceNum, amount, d
   <div style="background:linear-gradient(135deg,${accent},#0D9488);padding:36px 40px">
     ${logoUrl ? `<img src="${logoUrl}" alt="${agencyName || 'Logo'}" style="height:44px;margin-bottom:16px;object-fit:contain;border-radius:8px;background:#fff;padding:6px 10px;display:block">` : ''}
     <h1 style="color:#fff;margin:0 0 6px;font-size:26px;font-weight:800;letter-spacing:-0.02em">Invoice Ready</h1>
-    <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px">from ${agencyName || 'Revanew'} · Invoice #${invoiceNum}</p>
+    <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px">from ${agencyName || 'Invoice King'} · Invoice #${invoiceNum}</p>
   </div>
   <div style="padding:36px 40px">
     <p style="color:#334155;font-size:16px;margin:0 0 8px">Hi ${clientName || 'there'},</p>
@@ -227,7 +227,7 @@ export function buildReminderHtml({ clientName, agencyName, invoiceNum, amount, 
   <div style="background:linear-gradient(135deg,${isOverdue ? '#DC2626' : '#D97706'},${isOverdue ? '#9F1239' : '#B45309'});padding:36px 40px">
     ${logoUrl ? `<img src="${logoUrl}" alt="${agencyName || 'Logo'}" style="height:44px;margin-bottom:16px;object-fit:contain;border-radius:8px;background:#fff;padding:6px 10px;display:block">` : ''}
     <h1 style="color:#fff;margin:0 0 6px;font-size:26px;font-weight:800">${isOverdue ? '&#9888;&#65039; Invoice Overdue' : '&#128276; Payment Reminder'}</h1>
-    <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px">from ${agencyName || 'Revanew'} &middot; Invoice #${invoiceNum}</p>
+    <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px">from ${agencyName || 'Invoice King'} &middot; Invoice #${invoiceNum}</p>
   </div>
   <div style="padding:36px 40px">
     <p style="color:#334155;font-size:16px;margin:0 0 8px">Hi ${clientName || 'there'},</p>
@@ -256,12 +256,12 @@ export function buildInviteHtml({ inviteeName, accountName, role, acceptUrl, log
   <div style="background:linear-gradient(135deg,#2563EB,#0D9488);padding:36px 40px">
     ${logoUrl ? `<img src="${logoUrl}" alt="${accountName || 'Logo'}" style="height:44px;margin-bottom:16px;object-fit:contain;border-radius:8px;background:#fff;padding:6px 10px;display:block">` : ''}
     <h1 style="color:#fff;margin:0 0 6px;font-size:26px;font-weight:800">You're Invited! &#127881;</h1>
-    <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px">Join ${accountName} on Revanew</p>
+    <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px">Join ${accountName} on Invoice King</p>
   </div>
   <div style="padding:36px 40px">
     <p style="color:#334155;font-size:16px;margin:0 0 16px">Hi${inviteeName ? ` ${inviteeName}` : ''},</p>
     <p style="color:#64748B;font-size:14px;margin:0 0 28px;line-height:1.6">
-      You've been invited to join <strong style="color:#0F172A">${accountName}</strong> on Revanew as a <strong style="color:#0F172A">${role || 'team member'}</strong>.
+      You've been invited to join <strong style="color:#0F172A">${accountName}</strong> on Invoice King as a <strong style="color:#0F172A">${role || 'team member'}</strong>.
     </p>
     <div style="background:#F0FDF4;border:2px solid #BBF7D0;border-radius:14px;padding:20px 24px;margin:0 0 28px">
       <p style="color:#15803D;font-size:13px;margin:0;font-weight:600">&#9989; What you get access to:</p>

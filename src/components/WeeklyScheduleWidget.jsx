@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, AlertTriangle, Clock, CheckCircle, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export default function WeeklyScheduleWidget({ accountId, accent = '#3DD68C' }) {
+export default function WeeklyScheduleWidget({ accountId, accent = '#C8E20A' }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [overdue, setOverdue] = useState([]);
@@ -124,7 +124,7 @@ export default function WeeklyScheduleWidget({ accountId, accent = '#3DD68C' }) 
           </div>
         ) : events.length === 0 && overdue.length === 0 ? (
           <div style={{ textAlign:'center', padding:'16px 0' }}>
-            <CheckCircle size={24} style={{ color:'#3DD68C', margin:'0 auto 6px' }} />
+            <CheckCircle size={24} style={{ color:'#C8E20A', margin:'0 auto 6px' }} />
             <p style={{ fontSize:12, color:'var(--text-muted)' }}>All clear — no upcoming events</p>
             <button onClick={() => navigate('/calendar')}
               style={{ marginTop:8, fontSize:11, color: accent, fontWeight:600, background:'none', border:'none', cursor:'pointer' }}>

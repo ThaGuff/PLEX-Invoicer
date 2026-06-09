@@ -24,7 +24,7 @@ const FEATURE_PLANS = {
 
 const PLAN_NAMES = { starter: 'Starter', pro: 'Pro', agency: 'Agency' };
 const PLAN_ICONS = { pro: Star, agency: Building2 };
-const PLAN_COLORS = { pro: '#3DD68C', agency: '#64748B' };
+const PLAN_COLORS = { pro: '#C8E20A', agency: '#64748B' };
 
 export default function PlanGate({ feature, children }) {
   const { account } = useAccount();
@@ -42,10 +42,10 @@ export default function PlanGate({ feature, children }) {
   if (hasAccess) return children;
 
   const PlanIcon = PLAN_ICONS[requiredPlan] || Zap;
-  const planColor = PLAN_COLORS[requiredPlan] || '#3DD68C';
+  const planColor = PLAN_COLORS[requiredPlan] || '#C8E20A';
 
   return (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'60vh', padding:24, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'60vh', padding:24, fontFamily:"'Inter',sans-serif" }}>
       <div style={{ textAlign:'center', maxWidth:420 }}>
         <div style={{ width:72, height:72, borderRadius:20, background:`${planColor}15`, border:`2px solid ${planColor}30`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px' }}>
           <Lock size={28} style={{ color:planColor }} />
@@ -59,11 +59,11 @@ export default function PlanGate({ feature, children }) {
         </p>
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
           <button onClick={() => navigate('/billing')}
-            style={{ width:'100%', padding:'14px', background:'#3DD68C', color:'#fff', border:'none', borderRadius:12, fontSize:15, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+            style={{ width:'100%', padding:'14px', background:'#C8E20A', color:'#fff', border:'none', borderRadius:12, fontSize:15, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, fontFamily:"'Inter',sans-serif" }}>
             <PlanIcon size={16} /> Upgrade to {PLAN_NAMES[requiredPlan]}
           </button>
           <button onClick={() => navigate(-1)}
-            style={{ width:'100%', padding:'12px', background:'transparent', border:'1px solid var(--border)', color:'var(--text-secondary)', borderRadius:12, fontSize:14, cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+            style={{ width:'100%', padding:'12px', background:'transparent', border:'1px solid var(--border)', color:'var(--text-secondary)', borderRadius:12, fontSize:14, cursor:'pointer', fontFamily:"'Inter',sans-serif" }}>
             Go back
           </button>
         </div>

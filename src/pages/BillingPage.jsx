@@ -10,7 +10,7 @@ const PLANS = [
     name: 'Starter',
     icon: Zap,
     price: 19,
-    color: '#3DD68C',
+    color: '#C8E20A',
     description: 'Perfect for freelancers and solo operators just getting started.',
     features: [
       'Up to 25 quotes/month',
@@ -70,8 +70,8 @@ const PLANS = [
 ];
 
 const STATUS_LABELS = {
-  trialing:   { label: 'Free Trial',  color: '#3DD68C' },
-  active:     { label: 'Active',      color: '#3DD68C' },
+  trialing:   { label: 'Free Trial',  color: '#C8E20A' },
+  active:     { label: 'Active',      color: '#C8E20A' },
   cancelled:  { label: 'Cancelled',   color: '#dc2626' },
   suspended:  { label: 'Suspended',   color: '#dc2626' },
   past_due:   { label: 'Past Due',    color: '#d97706' },
@@ -84,7 +84,7 @@ export default function BillingPage() {
   const isWelcome      = params.get('welcome') === '1';
   const isTrialEnding  = params.get('trial_ending') === '1';
   const trialDaysParam = parseInt(params.get('days') || '0');
-  const accent = '#3DD68C';
+  const accent = '#C8E20A';
 
   const [loading, setLoading]   = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
@@ -150,11 +150,11 @@ export default function BillingPage() {
 
       {/* ── Welcome modal for new users ─────────────────────────── */}
       {isWelcome && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(11,18,32,0.6)', backdropFilter:'blur(6px)', zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:20, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+        <div style={{ position:'fixed', inset:0, background:'rgba(11,18,32,0.6)', backdropFilter:'blur(6px)', zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:20, fontFamily:"'Inter',sans-serif" }}>
           <div style={{ background:'var(--bg-surface)', borderRadius:20, padding:'32px clamp(14px,4vw,28px)', maxWidth:480, width:'100%', textAlign:'center', boxShadow:'0 32px 80px rgba(11,18,32,0.3)' }}>
             <div style={{ fontSize:48, marginBottom:12 }}>🚀</div>
             <h2 style={{ fontSize:24, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.03em', marginBottom:10 }}>
-              Welcome to Revanew!
+              Welcome to Invoice King!
             </h2>
             <p style={{ fontSize:14, color:'var(--text-secondary)', lineHeight:1.7, marginBottom:24 }}>
               Start with a <strong>7-day free trial</strong> — no credit card required.
@@ -171,17 +171,17 @@ export default function BillingPage() {
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
               {/* Primary CTA: Start trial without card */}
               <button onClick={() => { handleSelectPlan('pro', true); }}
-                style={{ width:'100%', padding:'15px', background:'#3DD68C', color:'#fff', border:'none', borderRadius:13, fontSize:15, fontWeight:800, cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif", display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                style={{ width:'100%', padding:'15px', background:'#C8E20A', color:'#fff', border:'none', borderRadius:13, fontSize:15, fontWeight:800, cursor:'pointer', fontFamily:"'Inter',sans-serif", display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
                 🎉 Start 7-day free trial — no card needed
               </button>
               {/* Secondary CTA: Enter card now */}
               <button onClick={() => { handleSelectPlan('pro', false); }}
-                style={{ width:'100%', padding:'13px', background:'var(--bg-raised)', border:'1px solid var(--border)', borderRadius:13, fontSize:14, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+                style={{ width:'100%', padding:'13px', background:'var(--bg-raised)', border:'1px solid var(--border)', borderRadius:13, fontSize:14, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:"'Inter',sans-serif" }}>
                 Enter payment info now → avoid reminders later
               </button>
               {/* Skip: just see plans */}
               <button onClick={() => { const url = new URL(window.location.href); url.searchParams.delete('welcome'); window.history.replaceState({}, '', url.toString()); window.location.reload(); }}
-                style={{ background:'none', border:'none', color:'var(--text-muted)', fontSize:12, cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif", padding:'6px' }}>
+                style={{ background:'none', border:'none', color:'var(--text-muted)', fontSize:12, cursor:'pointer', fontFamily:"'Inter',sans-serif", padding:'6px' }}>
                 View all plans →
               </button>
             </div>
@@ -206,7 +206,7 @@ export default function BillingPage() {
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 mb-3 px-3 py-1.5 rounded-full text-xs font-semibold"
           style={{ background: accent + '18', color: accent }}>
-          <Crown size={12} /> Revanew Plans
+          <Crown size={12} /> Invoice King Plans
         </div>
         <p className="text-ink-muted max-w-xl mx-auto">
           All plans include a <strong>7-day free trial</strong> — no credit card required to start.
@@ -333,7 +333,7 @@ export default function BillingPage() {
                   disabled={isLoading || (isCurrent && currentStatus === 'active')}
                   className="w-full py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   style={{
-                    background: isCurrent && currentStatus === 'active' ? 'var(--bg-page)' : 'linear-gradient(135deg, #3DD68C, #0D1A0D, #3DD68C)',
+                    background: isCurrent && currentStatus === 'active' ? 'var(--bg-page)' : 'linear-gradient(135deg, #C8E20A, #1A1A1A, #C8E20A)',
                     color: isCurrent && currentStatus === 'active' ? '#7A7E85' : '#FFFFFF',
                   }}>
                   {isLoading ? (
@@ -377,7 +377,7 @@ export default function BillingPage() {
       {/* Privacy & powered by */}
       <div className="mt-8 text-center space-y-2">
         <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-          Revanew is powered by{' '}
+          Invoice King is powered by{' '}
           <a href="https://plexautomation.io" target="_blank" rel="noreferrer"
             style={{ color: 'var(--blue)', fontWeight: 600, textDecoration: 'none' }}>PLEX Automation</a>.
           Billing managed securely by Stripe.
@@ -386,7 +386,7 @@ export default function BillingPage() {
           {[
             { label: 'Privacy policy', href: '/privacy' },
             { label: 'Terms of service', href: '/terms' },
-            { label: 'Support', href: 'mailto:support@revanew.io' },
+            { label: 'Support', href: 'mailto:support@invoiceking.app' },
           ].map(({ label, href }) => (
             <a key={label} href={href} target="_blank" rel="noreferrer"
               className="text-xs" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500 }}>

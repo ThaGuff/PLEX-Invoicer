@@ -55,8 +55,8 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
         // Set the joined account as active so workspace loads correctly
         if (data.account_id) {
           localStorage.setItem('plex_active_account', data.account_id);
-          localStorage.setItem('revanew_onboarded', '1'); // Don't treat as new user
-          localStorage.removeItem('revanew_new_user');
+          localStorage.setItem('invoiceking_onboarded', '1'); // Don't treat as new user
+          localStorage.removeItem('invoiceking_new_user');
         }
         // Trigger account context reload and go to workspace after 2 seconds
         window.dispatchEvent(new CustomEvent('plex:auth-restored'));
@@ -89,12 +89,12 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
     }
   };
 
-  const accent = '#3DD68C';
+  const accent = '#C8E20A';
 
   return (
     <div style={{
       minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#0D1A0D', padding: 24, fontFamily: "'Plus Jakarta Sans',sans-serif",
+      background: '#1A1A1A', padding: 24, fontFamily: "'Inter',sans-serif",
     }}>
       <div style={{
         background: '#fff', borderRadius: 24, padding: '48px 40px', maxWidth: 440, width: '100%',
@@ -102,10 +102,10 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
       }}>
         {/* Logo */}
         <div style={{ marginBottom: 32 }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: '#3DD68C', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: '#C8E20A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
             <Users size={28} color="#fff" />
           </div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>Revanew</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>Invoice King</div>
         </div>
 
         {/* States */}
@@ -133,30 +133,30 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
             </h2>
             <div style={{ background: 'var(--bg-surface)', borderRadius: 14, padding: '20px clamp(12px,4vw,24px)', marginBottom: 24, border: '1px solid #BBF7D0' }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: '#166534', marginBottom: 4 }}>{accountName}</div>
-              <div style={{ fontSize: 13, color: '#3DD68C' }}>as a {role}</div>
+              <div style={{ fontSize: 13, color: '#C8E20A' }}>as a {role}</div>
             </div>
             <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
               {email ? `This invite is for <strong>${email}</strong>. ` : ''}
               Sign in or create an account to accept.
             </p>
             <button onClick={() => {
-              localStorage.setItem('revanew_pending_invite', token);
+              localStorage.setItem('invoiceking_pending_invite', token);
               navigate(`/login?redirect=/invite/accept/${token}`);
             }} style={{
-              width: '100%', padding: '14px', background: '#3DD68C',
+              width: '100%', padding: '14px', background: '#C8E20A',
               color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}>
               Sign in to Accept <ArrowRight size={18} />
             </button>
             <button onClick={() => {
-              localStorage.setItem('revanew_pending_invite', token);
+              localStorage.setItem('invoiceking_pending_invite', token);
               navigate(`/login?mode=signup&redirect=/invite/accept/${token}`);
             }} style={{
               width: '100%', padding: '12px', background: '#fff', color: '#374151', border: '1px solid #E5E7EB',
               borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 10,
             }}>
-              Create a Revanew account
+              Create a Invoice King account
             </button>
           </div>
         )}
@@ -169,7 +169,7 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
               You've joined <strong style={{ color: '#0F172A' }}>{message}</strong>. Redirecting you to the workspace…
             </p>
             <div style={{ height: 4, background: '#E2E8F0', borderRadius: 2, overflow: 'hidden' }}>
-              <div style={{ height: '100%', background: 'linear-gradient(90deg,#3DD68C,#3DD68C)', borderRadius: 2, animation: 'progress 2.5s linear' }} />
+              <div style={{ height: '100%', background: 'linear-gradient(90deg,#C8E20A,#C8E20A)', borderRadius: 2, animation: 'progress 2.5s linear' }} />
             </div>
           </div>
         )}
@@ -191,10 +191,10 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
             <h2 style={{ color: '#0F172A', fontSize: 22, fontWeight: 800, margin: '0 0 12px' }}>Invite not found</h2>
             <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>{message}</p>
             <button onClick={() => navigate('/login')} style={{
-              padding: '12px clamp(12px,4vw,24px)', background: '#3DD68C', color: '#fff',
+              padding: '12px clamp(12px,4vw,24px)', background: '#C8E20A', color: '#fff',
               border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer',
             }}>
-              Go to Revanew
+              Go to Invoice King
             </button>
           </div>
         )}
