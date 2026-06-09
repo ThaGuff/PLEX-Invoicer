@@ -364,7 +364,7 @@ export default function Login() {
             <button
               onClick={() => run('email', mode==='reset'?()=>resetPassword(email):mode==='signup'?()=>signUpWithEmail(email,password,fullName):()=>signInWithEmail(email,password))}
               disabled={!!loading||!email||(mode!=='reset'&&!password)}
-              style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'13px', borderRadius:11, border:'none', background:'#3DD68C', color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', opacity:(loading||!email||(mode!=='reset'&&!password))?0.45:1, transition:'all 0.15s', boxShadow:'0 6px 20px rgba(59,111,232,0.4)', ...F }}>
+              aria-label='Sign in to Revanew' style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'13px', borderRadius:11, border:'none', background:'#3DD68C', color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', opacity:(loading||!email||(mode!=='reset'&&!password))?0.45:1, transition:'all 0.15s', boxShadow:'0 6px 20px rgba(59,111,232,0.4)', ...F }}>
               {loading==='email'?'Please wait…':mode==='reset'?'Send reset link':mode==='signup'?'Create account':'Sign in'}
               {!loading && <ArrowRight size={15}/>}
             </button>
@@ -391,9 +391,9 @@ export default function Login() {
           {mode==='signup' && (
             <p style={{ marginTop:16, textAlign:'center', fontSize:11, color:'rgba(255,255,255,0.3)', lineHeight:1.7 }}>
               By creating an account you agree to our{' '}
-              <a href="https://plexautomation.io/terms" target="_blank" rel="noreferrer" style={{ color:'#3DD68C', fontWeight:600, textDecoration:'none' }}>Terms</a>
+              <a href="/terms" style={{ color:'#3DD68C', fontWeight:600, textDecoration:'none' }}>Terms</a>
               {' '}and{' '}
-              <a href="https://plexautomation.io/privacy" target="_blank" rel="noreferrer" style={{ color:'#3DD68C', fontWeight:600, textDecoration:'none' }}>Privacy policy</a>.
+              <a href="/privacy" style={{ color:'#3DD68C', fontWeight:600, textDecoration:'none' }}>Privacy policy</a>.
               <br/>Revanew is powered by PLEX Automation.
             </p>
           )}

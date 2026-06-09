@@ -384,8 +384,8 @@ export default function BillingPage() {
         </p>
         <div className="flex items-center justify-center gap-4">
           {[
-            { label: 'Privacy policy', href: 'https://plexautomation.io/privacy' },
-            { label: 'Terms of service', href: 'https://plexautomation.io/terms' },
+            { label: 'Privacy policy', href: '/privacy' },
+            { label: 'Terms of service', href: '/terms' },
             { label: 'Support', href: 'mailto:support@revanew.io' },
           ].map(({ label, href }) => (
             <a key={label} href={href} target="_blank" rel="noreferrer"

@@ -667,10 +667,30 @@ function FinalCTA({ onLogin }) {
 // ─── Footer ──────────────────────────────────────────────────────
 function Footer() {
   const cols = [
-    { heading: 'Product', links: ['Features', 'Pricing', 'How it works', 'Changelog'] },
-    { heading: 'Company', links: ['About', 'Blog', 'Careers', 'Press'] },
-    { heading: 'Legal',   links: ['Privacy', 'Terms', 'Security', 'Cookies'] },
-    { heading: 'Support', links: ['Help center', 'Contact', 'Status', 'Community'] },
+    { heading: 'Product', links: [
+      { label: 'Features',      href: '#features' },
+      { label: 'Pricing',       href: '#pricing' },
+      { label: 'How it works',  href: '#how' },
+      { label: 'Changelog',     href: '#' },
+    ]},
+    { heading: 'Company', links: [
+      { label: 'About',   href: '#' },
+      { label: 'Blog',    href: '#' },
+      { label: 'Careers', href: '#' },
+      { label: 'Press',   href: '#' },
+    ]},
+    { heading: 'Legal', links: [
+      { label: 'Privacy policy',  href: '/privacy' },
+      { label: 'Terms of service',href: '/terms' },
+      { label: 'Security',        href: '/privacy#data-storage' },
+      { label: 'Cookies',         href: '/privacy#cookies' },
+    ]},
+    { heading: 'Support', links: [
+      { label: 'Help center', href: '#' },
+      { label: 'Contact',     href: 'mailto:support@revanew.io' },
+      { label: 'Status',      href: '#' },
+      { label: 'Community',   href: '#' },
+    ]},
   ];
 
   return (
@@ -699,14 +719,18 @@ function Footer() {
           {cols.map(({ heading, links }) => (
             <div key={heading}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14 }}>{heading}</div>
-              {links.map(link => (
-                <div key={link} style={{ marginBottom: 9 }}>
-                  <a href="#" style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontWeight: 500, transition: 'color 0.15s' }}
-                    onMouseEnter={e => e.target.style.color = '#fff'}
-                    onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.5)'}
-                  >{link}</a>
-                </div>
-              ))}
+              {links.map(link => {
+                const label = typeof link === 'string' ? link : link.label;
+                const href  = typeof link === 'string' ? '#'  : link.href;
+                return (
+                  <div key={label} style={{ marginBottom: 9 }}>
+                    <a href={href} style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontWeight: 500, transition: 'color 0.15s' }}
+                      onMouseEnter={e => e.target.style.color = '#fff'}
+                      onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.5)'}
+                    >{label}</a>
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>

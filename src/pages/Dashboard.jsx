@@ -73,7 +73,7 @@ function TopBar({ onSearch }) {
       </div>
       {/* New Quote button — desktop only shows text, mobile just shows + */}
       <button
-        onClick={() => navigate('/quotes/new')}
+        onClick={() => navigate('/quotes/new')} aria-label="Create new quote"
         style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: 'var(--forest)', color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", flexShrink: 0, whiteSpace: 'nowrap' }}
         onMouseEnter={e => e.currentTarget.style.background = '#1A2A1A'}
         onMouseLeave={e => e.currentTarget.style.background = 'var(--forest)'}>

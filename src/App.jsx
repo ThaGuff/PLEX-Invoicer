@@ -28,6 +28,8 @@ import Onboarding from './pages/Onboarding';
 import InviteAcceptPage from './pages/InviteAcceptPage';
 import AutomationsPage from './pages/AutomationsPage';
 import AuthCallback from './pages/AuthCallback';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import { IdleWarningBanner, SessionExpiredModal } from './components/SessionModals';
 
@@ -293,7 +295,7 @@ function Nav() {
       </aside>
 
       {/* ── MOBILE BOTTOM NAV ──────────────────────────────────────── */}
-      <nav className="mobile-bottom-nav" style={{
+      <nav className="mobile-bottom-nav" role="navigation" aria-label="Main navigation" style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         height: 'calc(58px + env(safe-area-inset-bottom))',
         paddingBottom: 'env(safe-area-inset-bottom)',
@@ -306,6 +308,7 @@ function Nav() {
           const active = isActive(l.to);
           return (
             <button key={l.to} onClick={() => navigate(l.to)}
+              aria-label={l.label}
               style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: '8px 0', background: 'none', border: 'none', cursor: 'pointer' }}>
               <div style={{ width: 26, height: 26, borderRadius: 7, background: active ? '#C8FF00' : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <NavIcon size={14} route={l.to} color={active ? '#0D1A0D' : 'rgba(255,255,255,0.6)'} />
@@ -315,6 +318,8 @@ function Nav() {
           );
         })}
         <button onClick={() => setShowMobileMore(v => !v)}
+          aria-label="More navigation options"
+          aria-expanded={showMobileMore}
           style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: '8px 0', background: 'none', border: 'none', cursor: 'pointer' }}>
           <div style={{ width: 22, height: 22, borderRadius: 6, background: showMobileMore ? '#C8FF00' : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="2" cy="6" r="1.2" fill={showMobileMore ? '#0D1A0D' : 'rgba(255,255,255,0.7)'}/><circle cx="6" cy="6" r="1.2" fill={showMobileMore ? '#0D1A0D' : 'rgba(255,255,255,0.7)'}/><circle cx="10" cy="6" r="1.2" fill={showMobileMore ? '#0D1A0D' : 'rgba(255,255,255,0.7)'}/></svg>
@@ -488,6 +493,8 @@ export default function App() {
           <Routes>
             <Route path="/"                         element={<LandingRoute />} />
             <Route path="/landing"                  element={<LandingPage />} />
+            <Route path="/privacy"                  element={<PrivacyPage />} />
+            <Route path="/terms"                    element={<TermsPage />} />
             <Route path="/login"                    element={<Login />} />
             <Route path="/auth/callback"              element={<AuthCallback />} />
             <Route path="/portal/quote/:token"      element={<PublicQuote />} />
