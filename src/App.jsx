@@ -221,7 +221,7 @@ function Nav() {
         <div style={{ padding: '20px 16px 16px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 36, height: 36, borderRadius: 9, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0D1A0D' }}>
-              <img src="/logo-revanew.png?v=1780873512" alt="Revanew" style={{ width: 36, height: 36, objectFit: 'cover' }} />
+              <img src="/logo-revanew.png?v=1781009199" alt="Revanew" style={{ width: 36, height: 36, objectFit: 'cover' }} />
             </div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.03em', lineHeight: 1.1 }}>Revanew</div>
@@ -272,7 +272,7 @@ function Nav() {
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
               <div style={{ width: 30, height: 30, borderRadius: 7, overflow: 'hidden', flexShrink: 0, background: '#1A2A1A', border: '1.5px solid rgba(200,255,0,0.2)' }}>
-                <img src="/logo-revanew.png?v=1780873512" alt="R" style={{ width: 30, height: 30, objectFit: 'cover' }} />
+                <img src="/logo-revanew.png?v=1781009199" alt="R" style={{ width: 30, height: 30, objectFit: 'cover' }} />
               </div>
               <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                 <div style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName}</div>

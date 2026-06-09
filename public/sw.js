@@ -3,7 +3,7 @@
  * Caches core app shell + API responses
  * Queues quote creation/edits when offline for sync when back online
  */
-const CACHE_VERSION = 'revanew-v5';
+const CACHE_VERSION = 'revanew-v6';
 const STATIC_CACHE  = `${CACHE_VERSION}-static`;
 const API_CACHE     = `${CACHE_VERSION}-api`;
 
