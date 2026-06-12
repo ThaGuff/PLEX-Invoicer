@@ -12,6 +12,16 @@ function nextNumber(rows, prefix) {
   return `${prefix}-${String(Math.max(...nums) + 1).padStart(4, '0')}`;
 }
 
+async function safeNextNumber(db, table, account_id, prefix) {
+  // Retry up to 3 times to handle concurrent saves
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const rows = await db.execute(`SELECT number FROM ${table} WHERE account_id = ?`, [account_id]);
+    return nextNumber(rows.rows, prefix);
+  }
+  // Fallback: timestamp-based number
+  return `${prefix}-${Date.now().toString(36).toUpperCase()}`;
+}
+
 // Helper: verify quote belongs to account
 async function getQuoteForAccount(quoteId, accountId) {
   const result = await db.execute(
@@ -214,17 +224,46 @@ router.patch('/:id', requireAuth, async (req, res) => {
     }
 
     const allowed = ['status','client_name','client_biz','client_email','client_phone',
-      'billing_mode','yearly_discount','disc_type','disc_value','notes',
-      'setup_total','monthly_total','tax_rate','tax_amount','due_date','sent_at','accepted_at'];
+      'billing_mode','yearly_discount','disc_type','disc_value','disc_setup','disc_monthly',
+      'notes','valid_days','setup_total','monthly_total','tax_rate','tax_amount',
+      'due_date','sent_at','accepted_at'];
     const updates = [`updated_at = NOW()`];
     const vals = [];
     allowed.forEach(f => {
-      if (req.body[f] !== undefined) { updates.push(`${f} = ?`); vals.push(req.body[f]); }
+      if (req.body[f] !== undefined) {
+        updates.push(`${f} = ?`);
+        // Convert boolean disc_setup/disc_monthly to integers for SQLite
+        if (f === 'disc_setup' || f === 'disc_monthly') {
+          vals.push(req.body[f] ? 1 : 0);
+        } else {
+          vals.push(req.body[f]);
+        }
+      }
     });
     vals.push(q.id, q.account_id);
     await db.execute(`UPDATE quotes SET ${updates.join(', ')} WHERE id = ? AND account_id = ?`, vals);
-    const updated = await db.execute(`SELECT * FROM quotes WHERE id = ?`, [req.params.id]);
-    res.json(updated.rows[0]);
+
+    // Re-save items if provided (delete old, insert new)
+    if (Array.isArray(req.body.items) && req.body.items.length >= 0) {
+      await db.execute(`DELETE FROM quote_items WHERE quote_id = ?`, [q.id]);
+      if (req.body.items.length > 0) {
+        await Promise.all(req.body.items.map((item, i) => db.execute(
+          `INSERT INTO quote_items (id, quote_id, section_id, section_label, service_id, name,
+            description, setup_price, monthly_price, is_included, sort_order)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [`qi-${uuid()}`, q.id,
+           item.section_id || '', item.section_label || '',
+           item.service_id || '', item.name || '', item.description || '',
+           item.setup_price || 0, item.monthly_price || 0, item.is_included ? 1 : 0, i]
+        )));
+      }
+    }
+
+    const [updated, updatedItems] = await Promise.all([
+      db.execute(`SELECT * FROM quotes WHERE id = ?`, [req.params.id]),
+      db.execute(`SELECT * FROM quote_items WHERE quote_id = ? ORDER BY sort_order`, [req.params.id]),
+    ]);
+    res.json({ ...updated.rows[0], items: updatedItems.rows });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -299,7 +338,7 @@ router.post('/:id/convert', requireAuth, async (req, res) => {
       // Only update if invoice isn't already paid
       if (existing.status !== 'paid' && existing.status !== 'partial') {
         const due_date_up = q.due_date || existing.due_date;
-        const amount_due_up = q.setup_total || 0;
+        const amount_due_up = (q.setup_total || 0) + (q.tax_amount || 0);
         await db.execute(
           `UPDATE invoices SET
             client_name = ?, client_biz = ?, client_email = ?, client_phone = ?,
@@ -343,7 +382,7 @@ router.post('/:id/convert', requireAuth, async (req, res) => {
     const public_token = uuid().replace(/-/g, '');
     // Use quote's due_date if set, otherwise default to 30 days
     const due_date = q.due_date || new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
-    const amount_due = q.setup_total || 0;
+    const amount_due = (q.setup_total || 0) + (q.tax_amount || 0);
 
     await db.execute(
       `INSERT INTO invoices (id, account_id, quote_id, number, contact_id, client_name, client_biz,
@@ -427,10 +466,10 @@ router.post('/:id/send-email', requireAuth, async (req, res) => {
       clientName: recipient_name || q.client_name || 'there',
       agencyName: a.name,
       quoteNum: q.number,
-      totalAmount: q.setup_total || 0,
+      totalAmount: (q.setup_total || 0) + (q.tax_amount || 0),  // grand total incl. tax
       portalUrl,
       logoUrl,
-      accentColor: a.primary_color || '#2563EB',
+      accentColor: a.primary_color || '#C8E20A',
       agencyPhone: a.phone || '',
       agencyEmail: a.email || '',
       agencyAddress: a.business_address || '',

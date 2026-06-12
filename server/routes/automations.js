@@ -3,6 +3,7 @@
  * Triggers: quote_viewed, quote_ignored, invoice_overdue, deposit_unpaid, repeat_customer
  */
 import { Router } from 'express';
+import { requireAuth } from '../middleware/auth.js';
 import { db } from '../db/schema.js';
 import { v4 as uuid } from 'uuid';
 
@@ -50,10 +51,10 @@ const TEMPLATES = [
 ];
 
 // ── GET /api/automations/templates ─────────────────────────────
-router.get('/templates', (req, res) => res.json({ templates: TEMPLATES }));
+router.get('/templates', requireAuth, (req, res) => res.json({ templates: TEMPLATES }));
 
 // ── GET /api/automations — list sequences for account ──────────
-router.get('/', async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
   const { account_id } = req.query;
   if (!account_id) return res.status(400).json({ error: 'account_id required' });
   try {
@@ -71,7 +72,7 @@ router.get('/', async (req, res) => {
 });
 
 // ── POST /api/automations — create sequence ─────────────────────
-router.post('/', async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   const { account_id, name, trigger, steps = [], template_id } = req.body;
   if (!account_id || !name || !trigger) return res.status(400).json({ error: 'account_id, name, trigger required' });
 
@@ -104,7 +105,7 @@ router.post('/', async (req, res) => {
 });
 
 // ── PATCH /api/automations/:id — toggle active or update name ──
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', requireAuth, async (req, res) => {
   try {
     const { active, name } = req.body;
     const updates = [];
@@ -119,7 +120,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 // ── DELETE /api/automations/:id ─────────────────────────────────
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAuth, async (req, res) => {
   try {
     await db.execute(`DELETE FROM automation_sequences WHERE id = ?`, [req.params.id]);
     res.json({ ok: true });
@@ -127,7 +128,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // ── POST /api/automations/ai-rewrite — rewrite a message with AI
-router.post('/ai-rewrite', async (req, res) => {
+router.post('/ai-rewrite', requireAuth, async (req, res) => {
   const { message, tone = 'professional', context = '' } = req.body;
   if (!message) return res.status(400).json({ error: 'message required' });
 
@@ -179,7 +180,7 @@ router.post('/trigger', async (req, res) => {
 });
 
 // ── GET /api/automations/runs — pending run queue ──────────────
-router.get('/runs', async (req, res) => {
+router.get('/runs', requireAuth, async (req, res) => {
   const { account_id, status = 'pending' } = req.query;
   try {
     const result = await db.execute(

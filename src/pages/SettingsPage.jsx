@@ -256,7 +256,7 @@ export default function SettingsPage() {
     setSaving(false);
   };
 
-  const COLORS = ['#C8E20A','#C8E20A','#C8E20A','#64748B','#DC2626','#C8E20A','#C8E20A','#C8E20A','#64748B','#1A1A1A'];
+  const COLORS = ['#C8E20A','#1A1A1A','#64748B','#DC2626','#7C3AED','#0EA5E9','#F59E0B','#10B981','#EC4899','#6366F1'];
 
   return (
     <div style={{ display: 'flex', height: '100%', fontFamily: "'Inter', sans-serif", minHeight: 'calc(100vh - 64px)' }}>

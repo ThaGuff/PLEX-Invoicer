@@ -708,7 +708,8 @@ export default function QuoteBuilder() {
       // Refresh contacts so auto-created contact appears on next visit
       api.contacts.list(account.id).then(setContacts).catch(() => {});
       // Navigate to quotes list after short confirmation flash
-      setTimeout(() => navigate('/quotes'), 900);
+      // Use { replace:true } so the back button skips saved state + force fresh list load
+      setTimeout(() => navigate('/quotes', { replace: true, state: { refreshed: Date.now() } }), 600);
     } catch (e) {
       setSaveState('error');
       alert('Save failed: ' + e.message);

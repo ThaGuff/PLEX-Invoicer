@@ -19,6 +19,14 @@ router.post('/webhook', async (req, res) => {
   if (!account_id) return;
 
   try {
+    // Validate secret against account's stored webhook secret
+    const acct = await db.execute(`SELECT webhook_secret FROM accounts WHERE id = ?`, [account_id]);
+    if (!acct.rows.length) return;
+    const storedSecret = acct.rows[0].webhook_secret;
+    if (storedSecret && secret !== storedSecret) {
+      console.warn('[Webhook] Invalid secret for account', account_id);
+      return; // silently reject (already acked)
+    }
     const payload = req.body;
     // Load active rules for this account
     const rules = await db.execute(

@@ -63,6 +63,7 @@ export function exportPDF(state) {
     quoteDate = '', billingMode = 'monthly', yearlyDiscount = 15,
     selected = {}, sectionMap = {}, prices = {}, included = {},
     discType = 'pct', discValue = 0, discSetup = true, discMonthly = true,
+    taxRate = 0,
     notes = '',
     agencyName       = '',
     agencyEmail      = '',
@@ -261,9 +262,13 @@ export function exportPDF(state) {
   mthDiscAmt   = Math.min(mthDiscAmt, mthSub);
   const setupFinal = Math.max(0, setupSub - setupDiscAmt);
   const mthFinal   = Math.max(0, mthSub   - mthDiscAmt);
+  const tRate      = parseFloat(taxRate) || 0;
+  const taxAmt     = tRate > 0 ? Math.round(setupFinal * (tRate / 100) * 100) / 100 : 0;
+  const grandTotal = setupFinal + taxAmt;
 
   // Dynamic totals card height
   const extraRows = (setupDiscAmt > 0 ? 1 : 0) + (mthDiscAmt > 0 ? 1 : 0)
+    + (tRate > 0 ? 2 : 0)  // tax rate + grand total lines
     + (billingMode === 'annual' && mthFinal > 0 ? 1 : 0);
   const tH = (4 + extraRows) * 15 + 2 * 18 + 44;
   const tW = 224;
@@ -298,12 +303,18 @@ export function exportPDF(state) {
 
   trow('One-time setup subtotal', fmt(setupSub));
   if (setupDiscAmt > 0) trow('Setup discount', '−' + fmt(setupDiscAmt), false, accent);
-  trow('Monthly subtotal', fmt(mthSub));
+  if (mthSub > 0) trow('Monthly subtotal', fmt(mthSub));
   if (mthDiscAmt > 0) trow('Monthly discount', '−' + fmt(mthDiscAmt), false, accent);
   doc.setDrawColor(...BORDER); doc.setLineWidth(0.5);
   doc.line(tx + 14, ty + 2, tx + tW - 14, ty + 2); ty += 12;
-  trow('TOTAL DUE TODAY', fmt(setupFinal), true, accent);
-  trow('MONTHLY TOTAL', fmt(mthFinal) + '/mo', true, accent);
+  trow('Setup total', fmt(setupFinal), false, INK);
+  if (tRate > 0) {
+    trow('Tax (' + tRate.toFixed(2) + '%)', '+' + fmt(taxAmt), false, INK_MUTED);
+    trow('TOTAL DUE TODAY', fmt(grandTotal), true, accent);
+  } else {
+    trow('TOTAL DUE TODAY', fmt(setupFinal), true, accent);
+  }
+  if (mthFinal > 0) trow('MONTHLY RECURRING', fmt(mthFinal) + '/mo', true, accent);
   if (billingMode === 'annual' && mthFinal > 0) trow('Annual commitment', fmt(mthFinal * 12), false, INK_MUTED);
 
   // Notes
@@ -324,5 +335,5 @@ export function exportPDF(state) {
     drawFooter(doc, W, H, agencyName, agencyWebsite, agencyEmail, agencyPhone, p, totalPages, agencyAddress, agencyCityState, whiteLabelPlan);
   }
 
-  doc.save(`Quote_${(agencyName||'PLEX').replace(/\s+/g,'_')}_${(clientName||'Client').replace(/\s+/g,'_')}.pdf`);
+  doc.save(`Quote_${(clientName||'Client').replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.pdf`);
 }

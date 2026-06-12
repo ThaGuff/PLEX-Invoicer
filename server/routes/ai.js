@@ -3,10 +3,11 @@
  * Parses raw text/transcripts into structured invoice JSON
  */
 import { Router } from 'express';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
-router.post('/parse-invoice', async (req, res) => {
+router.post('/parse-invoice', requireAuth, async (req, res) => {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return res.status(503).json({ error: 'OPENAI_API_KEY not configured' });
 
@@ -85,7 +86,7 @@ Rules:
 
 
 // ── AI Chat Assistant — proxy to Anthropic (keeps API key server-side) ─
-router.post('/chat', async (req, res) => {
+router.post('/chat', requireAuth, async (req, res) => {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return res.status(503).json({ error: 'OPENAI_API_KEY not configured in Railway Variables' });
 

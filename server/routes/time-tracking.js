@@ -105,6 +105,15 @@ router.post('/:id/start', requireAuth, async (req, res) => {
     if (!entry.rows.length) return res.status(404).json({ error: 'Not found' });
     await assertAccess(entry.rows[0].account_id, req.user.id);
     const now = new Date().toISOString();
+    // Stop any other running timer for this account first (only one timer at a time)
+    await db.execute(
+      `UPDATE time_entries SET timer_running = 0, end_time = ?, status = 'logged',
+        duration_minutes = GREATEST(0, EXTRACT(EPOCH FROM (? ::timestamp - start_time::timestamp)) / 60)
+       WHERE account_id = (SELECT account_id FROM time_entries WHERE id = ?)
+         AND timer_running = 1 AND id != ?`,
+      [now, now, req.params.id, req.params.id]
+    ).catch(() => {}); // ignore if no running timer
+
     await db.execute(`UPDATE time_entries SET start_time = ?, timer_running = 1, end_time = NULL WHERE id = ?`, [now, req.params.id]);
     const updated = await db.execute(`SELECT * FROM time_entries WHERE id = ?`, [req.params.id]);
     res.json(updated.rows[0]);

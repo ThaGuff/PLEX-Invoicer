@@ -194,7 +194,7 @@ export default function PublicQuote() {
   const isExp  = quote.valid_days && new Date(quote.created_at) < new Date(Date.now() - quote.valid_days * 86400000);
   const grouped = {};
   (quote.items||[]).forEach(i => { const k = i.section_label||'Services'; if(!grouped[k]) grouped[k]=[]; grouped[k].push(i); });
-  const total  = quote.setup_total || 0;
+  const total  = (quote.setup_total || 0) + (quote.tax_amount || 0);
 
   if (step==='done') return (
     <div style={{ ...F, display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>

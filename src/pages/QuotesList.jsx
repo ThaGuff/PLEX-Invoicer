@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAccount } from '../context/AccountContext';
 import { api } from '../utils/api';
@@ -29,6 +30,7 @@ function StatusBadge({ status }) {
 export default function QuotesList() {
   const { account } = useAccount();
   const navigate = useNavigate();
+  const location = useLocation();
   const [quotes, setQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -45,7 +47,23 @@ export default function QuotesList() {
     setLoading(false);
   }, [account?.id]);
 
+  // Load fresh on mount AND when page regains focus (after navigating back from save)
   useEffect(() => { load(); }, [load]);
+  // Force fresh load when navigated back after a save (QuoteBuilder sets state.refreshed)
+  useEffect(() => {
+    if (location?.state?.refreshed) load();
+  }, [location?.state?.refreshed]);
+  useEffect(() => {
+    const onFocus = () => load();
+    window.addEventListener('focus', onFocus);
+    // Also reload when navigating back via visibility change
+    const onVisible = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [load]);
 
   const handleDelete = async (id, e) => {
     e.stopPropagation();
@@ -84,7 +102,9 @@ export default function QuotesList() {
   const total = quotes.length;
   const accepted = quotes.filter(q => q.status === 'accepted').length;
   const pending = quotes.filter(q => ['sent', 'viewed'].includes(q.status)).length;
-  const pipelineValue = quotes.filter(q => ['draft','sent','viewed','accepted'].includes(q.status)).reduce((s, q) => s + (q.setup_total || 0), 0);
+  // Pipeline value = setup total + 3 months of recurring for active quotes
+  const pipelineValue = quotes.filter(q => ['draft','sent','viewed','accepted'].includes(q.status))
+    .reduce((s, q) => s + (q.setup_total || 0) + (q.monthly_total || 0) * 3, 0);
 
   const FILTERS = [
     { id: 'all', label: 'All', count: total },

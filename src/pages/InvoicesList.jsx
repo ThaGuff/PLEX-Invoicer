@@ -58,6 +58,17 @@ export default function InvoicesList() {
   }, [account?.id]);
 
   useEffect(() => { load(); }, [load]);
+  // Refetch when window regains focus (coming back from invoice edit)
+  useEffect(() => {
+    const onFocus = () => load();
+    const onVisible = () => { if (document.visibilityState === 'visible') load(); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [load]);
 
   const paid = invoices.filter(i => i.status === 'paid');
   const outstanding = invoices.filter(i => !['paid', 'void', 'draft'].includes(i.status));

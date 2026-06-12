@@ -115,7 +115,7 @@ export const isEmailConfigured = () =>
 
 // ── Email Templates ───────────────────────────────────────────────
 
-const emailBase = (content, accentColor = '#2563EB') => `<!DOCTYPE html>
+const emailBase = (content, accentColor = '#C8E20A') => `<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -151,7 +151,7 @@ ${content}
 </body></html>`;
 
 export function buildInvoiceHtml({ clientName, agencyName, invoiceNum, amount, dueDate, portalUrl, logoUrl, accentColor, agencyPhone = '', agencyEmail = '', agencyAddress = '', agencyCityState = '', agencyLicense = '', agencyTagline = '' }) {
-  const accent = accentColor || '#2563EB';
+  const accent = accentColor || '#C8E20A';
   return emailBase(`
   <div style="background:linear-gradient(135deg,${accent},#0D9488);padding:36px 40px">
     ${logoUrl ? `<img src="${logoUrl}" alt="${agencyName || 'Logo'}" style="height:44px;margin-bottom:16px;object-fit:contain;border-radius:8px;background:#fff;padding:6px 10px;display:block">` : ''}
@@ -179,7 +179,7 @@ export function buildInvoiceHtml({ clientName, agencyName, invoiceNum, amount, d
 `, accent);
 }
 
-export function buildQuoteHtml({ clientName, agencyName, quoteNum, totalAmount, expiryDate, portalUrl, logoUrl, accentColor = '#2563EB', agencyPhone = '', agencyEmail = '', agencyAddress = '', lineItems = [], notes = '' }) {
+export function buildQuoteHtml({ clientName, agencyName, quoteNum, totalAmount, expiryDate, portalUrl, logoUrl, accentColor = '#C8E20A', agencyPhone = '', agencyEmail = '', agencyAddress = '', lineItems = [], notes = '' }) {
   const fmtMoney = n => '$' + parseFloat(n||0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmt = s => (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
@@ -253,7 +253,7 @@ export function buildReminderHtml({ clientName, agencyName, invoiceNum, amount, 
 
 export function buildInviteHtml({ inviteeName, accountName, role, acceptUrl, logoUrl }) {
   return emailBase(`
-  <div style="background:linear-gradient(135deg,#2563EB,#0D9488);padding:36px 40px">
+  <div style="background:linear-gradient(135deg,#C8E20A,#0D9488);padding:36px 40px">
     ${logoUrl ? `<img src="${logoUrl}" alt="${accountName || 'Logo'}" style="height:44px;margin-bottom:16px;object-fit:contain;border-radius:8px;background:#fff;padding:6px 10px;display:block">` : ''}
     <h1 style="color:#fff;margin:0 0 6px;font-size:26px;font-weight:800">You're Invited! &#127881;</h1>
     <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px">Join ${accountName} on Invoice King</p>
@@ -271,7 +271,7 @@ export function buildInviteHtml({ inviteeName, accountName, role, acceptUrl, log
         <li>Calendar &amp; job scheduling</li>
       </ul>
     </div>
-    <a href="${acceptUrl}" style="display:block;text-align:center;padding:16px 32px;background:linear-gradient(135deg,#2563EB,#0D9488);color:#fff;text-decoration:none;border-radius:12px;font-size:16px;font-weight:800;box-shadow:0 6px 20px rgba(37,99,235,0.35);margin-bottom:16px">
+    <a href="${acceptUrl}" style="display:block;text-align:center;padding:16px 32px;background:linear-gradient(135deg,#C8E20A,#0D9488);color:#fff;text-decoration:none;border-radius:12px;font-size:16px;font-weight:800;box-shadow:0 6px 20px rgba(37,99,235,0.35);margin-bottom:16px">
       Accept Invitation &rarr;
     </a>
     <p style="color:#94A3B8;font-size:12px;text-align:center;margin:0">This invitation will expire in 7 days</p>
@@ -281,7 +281,7 @@ export function buildInviteHtml({ inviteeName, accountName, role, acceptUrl, log
 
 export function buildMentionHtml({ mentionedName, senderName, accountName, channelName, messageContent, workspaceUrl }) {
   return emailBase(`
-  <div style="background:linear-gradient(135deg,#7C3AED,#2563EB);padding:36px 40px">
+  <div style="background:linear-gradient(135deg,#7C3AED,#C8E20A);padding:36px 40px">
     <h1 style="color:#fff;margin:0 0 6px;font-size:26px;font-weight:800">You were mentioned &#128172;</h1>
     <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px">${accountName} &middot; #${channelName}</p>
   </div>
@@ -291,7 +291,7 @@ export function buildMentionHtml({ mentionedName, senderName, accountName, chann
     <div style="background:#F5F3FF;border-left:4px solid #7C3AED;border-radius:0 12px 12px 0;padding:16px 20px;margin:0 0 28px">
       <p style="color:#4C1D95;font-size:14px;margin:0;line-height:1.6;font-style:italic">"${messageContent}"</p>
     </div>
-    <a href="${workspaceUrl}" style="display:block;text-align:center;padding:16px 32px;background:linear-gradient(135deg,#7C3AED,#2563EB);color:#fff;text-decoration:none;border-radius:12px;font-size:16px;font-weight:800;box-shadow:0 6px 20px rgba(124,58,237,0.35)">
+    <a href="${workspaceUrl}" style="display:block;text-align:center;padding:16px 32px;background:linear-gradient(135deg,#7C3AED,#C8E20A);color:#fff;text-decoration:none;border-radius:12px;font-size:16px;font-weight:800;box-shadow:0 6px 20px rgba(124,58,237,0.35)">
       Reply in Workspace &rarr;
     </a>
   </div>

@@ -12,7 +12,7 @@ export async function initDB() {
       website TEXT,
       logo_initial TEXT DEFAULT 'P',
       logo_url TEXT,
-      primary_color TEXT DEFAULT '#13B5EA',
+      primary_color TEXT DEFAULT '#C8E20A',
       plan TEXT DEFAULT 'starter',
       stripe_customer_id TEXT,
       stripe_subscription_id TEXT,
@@ -241,7 +241,7 @@ export async function initDB() {
     await db.execute(`
       INSERT INTO accounts (id, name, email, phone, website, logo_initial, primary_color, plan, subscription_status)
       VALUES ('plex-master', 'Invoice King', '',
-              '', '', 'P', '#13B5EA', 'agency', 'active')
+              '', '', 'IK', '#C8E20A', 'agency', 'active')
     `);
   }
   // Ensure plex-master always has owner email set (owner_id set dynamically on first login)
@@ -856,7 +856,7 @@ export async function migrateCalendarEvents() {
   const cols = [
     `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS end_time TEXT`,
     `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'Job'`,
-    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS color TEXT DEFAULT '#2563EB'`,
+    `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS color TEXT DEFAULT '#C8E20A'`,
     `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS assigned_to TEXT`,
     `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS tags TEXT`,
     `ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS client_phone TEXT`,

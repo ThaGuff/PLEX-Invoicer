@@ -115,7 +115,8 @@ router.patch('/:id', requireAuth, async (req, res) => {
     if (!owned.rows.length && req.user.id !== 'dev-user') return res.status(404).json({ error: 'Not found' });
 
     const allowed = ['status','amount_paid','paid_at','due_date','sent_at',
-      'stripe_payment_link','notes','client_email'];
+      'stripe_payment_link','notes','client_name','client_biz','client_email',
+      'client_phone','amount_due','setup_total','monthly_total','tax_rate','tax_amount','billing_mode'];
     const updates = [`updated_at = NOW()`];
     const vals = [];
     allowed.forEach(f => {

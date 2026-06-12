@@ -227,7 +227,7 @@ function Nav() {
             </div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.03em', lineHeight: 1.1 }}>Invoice King</div>
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.38)', fontWeight: 500, marginTop: 1 }}>Receivables OS</div>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.38)', fontWeight: 500, marginTop: 1 }}>Invoicing. Simplified.</div>
             </div>
           </div>
           {trialActive && trialEnd && (
@@ -274,7 +274,7 @@ function Nav() {
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
               <div style={{ width: 30, height: 30, borderRadius: 7, overflow: 'hidden', flexShrink: 0, background: '#1A2A1A', border: '1.5px solid rgba(200,226,10,0.2)' }}>
-                <img src="/logo-invoiceking.png?v=1781009199" alt="R" style={{ width: 30, height: 30, objectFit: 'cover' }} />
+                <img src="/logo-invoiceking.png?v=1781009199" alt="Invoice King" style={{ width: 30, height: 30, objectFit: 'cover' }} />
               </div>
               <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                 <div style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName}</div>
