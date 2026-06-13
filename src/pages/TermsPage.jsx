@@ -9,8 +9,8 @@ import { useNavigate } from 'react-router-dom';
 const font = "'Inter', sans-serif";
 const C = {
   dark:   '#1A1A1A',
-  green:  '#C8E20A',
-  lime:   '#C8E20A',
+  green:  '#C6E404',
+  lime:   '#C6E404',
   cream:  '#F5F5F5',
   muted:  '#5A7060',
   border: '#E2E8E2',

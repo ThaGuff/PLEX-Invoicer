@@ -12,7 +12,7 @@ function getGreeting() {
   return { word: 'Working late', emoji: '🌙' };
 }
 
-export default function DashboardHeader({ account, accent = '#C8E20A' }) {
+export default function DashboardHeader({ account, accent = '#C6E404' }) {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function DashboardHeader({ account, accent = '#C8E20A' }) {
     const b = parseInt(hex.slice(5,7),16);
     return `${r},${g},${b}`;
   };
-  const rgb = hexToRgb(accent.startsWith('#') ? accent : '#C8E20A');
+  const rgb = hexToRgb(accent.startsWith('#') ? accent : '#C6E404');
 
   return (
     <div style={{

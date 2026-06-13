@@ -11,12 +11,12 @@ function today() { return new Date().toLocaleDateString('en-US', { weekday: 'lon
 
 const STATUS_CONFIG = {
   draft:    { label: 'Draft',    color: '#64748B', bg: '#F1F5F9' },
-  sent:     { label: 'Sent',     color: '#C8E20A', bg: '#F0FDF4' },
+  sent:     { label: 'Sent',     color: '#C6E404', bg: '#F0FDF4' },
   viewed:   { label: 'Viewed',   color: '#64748B', bg: '#F1F5F9' },
-  paid:     { label: 'Paid',     color: '#C8E20A', bg: '#F0FDF4' },
+  paid:     { label: 'Paid',     color: '#C6E404', bg: '#F0FDF4' },
   overdue:  { label: 'Overdue',  color: '#DC2626', bg: '#FEF2F2' },
-  accepted: { label: 'Approved', color: '#C8E20A', bg: '#F0FDF4' },
-  generated:{ label: 'Sent',     color: '#C8E20A', bg: '#F0FDF4' },
+  accepted: { label: 'Approved', color: '#C6E404', bg: '#F0FDF4' },
+  generated:{ label: 'Sent',     color: '#C6E404', bg: '#F0FDF4' },
 };
 
 function StatusBadge({ status }) {
@@ -155,7 +155,7 @@ export default function Dashboard() {
     })),
     ...quotes.filter(q => q.status === 'accepted').slice(0, 1).map(q => ({
       type: 'convert',
-      dot: '#C8E20A',
+      dot: '#C6E404',
       title: 'Convert approved quote',
       desc: `${q.number || 'PQ'} for ${q.client_name || q.client_biz || 'client'} is approved`,
       action: 'Convert',
@@ -163,7 +163,7 @@ export default function Dashboard() {
     })),
     ...quotes.filter(q => q.status === 'sent').slice(0, 1).map(q => ({
       type: 'followup',
-      dot: '#C8E20A',
+      dot: '#C6E404',
       title: 'Follow up on sent quote',
       desc: `${q.number} sent to ${q.client_name || q.client_biz || 'client'}`,
       action: 'Open',
@@ -238,7 +238,7 @@ export default function Dashboard() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
                 <h2 style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>Invoices needing attention</h2>
                 <button onClick={() => navigate('/invoices')}
-                  style={{ fontSize: 12, fontWeight: 700, color: '#C8E20A', background: 'none', border: 'none', cursor: 'pointer' }}>Open invoices</button>
+                  style={{ fontSize: 12, fontWeight: 700, color: '#C6E404', background: 'none', border: 'none', cursor: 'pointer' }}>Open invoices</button>
               </div>
               {/* Table header */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 90px 120px 110px', gap: 0, padding: '8px 20px', borderBottom: '1px solid var(--border)', background: 'var(--bg-raised)' }}>
@@ -283,12 +283,12 @@ export default function Dashboard() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                 <h2 style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>Quote pipeline</h2>
                 <button onClick={() => navigate('/quotes')}
-                  style={{ fontSize: 12, fontWeight: 700, color: '#C8E20A', background: 'none', border: 'none', cursor: 'pointer' }}>Manage</button>
+                  style={{ fontSize: 12, fontWeight: 700, color: '#C6E404', background: 'none', border: 'none', cursor: 'pointer' }}>Manage</button>
               </div>
               {[
                 { label: 'Draft', value: draftPipeline, count: quotes.filter(q => q.status === 'draft').length, color: '#64748B' },
-                { label: 'Sent', value: sentPipeline, count: quotes.filter(q => q.status === 'sent').length, color: '#C8E20A' },
-                { label: 'Approved', value: approvedPipeline, count: quotes.filter(q => q.status === 'accepted').length, color: '#C8E20A' },
+                { label: 'Sent', value: sentPipeline, count: quotes.filter(q => q.status === 'sent').length, color: '#C6E404' },
+                { label: 'Approved', value: approvedPipeline, count: quotes.filter(q => q.status === 'accepted').length, color: '#C6E404' },
               ].map(row => (
                 <div key={row.label} style={{ marginBottom: 14 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -314,7 +314,7 @@ export default function Dashboard() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: '1px solid var(--border)' }}>
                 <h2 style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>Action queue</h2>
                 <button onClick={() => navigate('/invoices')}
-                  style={{ fontSize: 12, fontWeight: 700, color: '#C8E20A', background: 'none', border: 'none', cursor: 'pointer' }}>View all</button>
+                  style={{ fontSize: 12, fontWeight: 700, color: '#C6E404', background: 'none', border: 'none', cursor: 'pointer' }}>View all</button>
               </div>
               {actionQueue.length === 0 ? (
                 <div style={{ padding: '28px 18px', textAlign: 'center' }}>
@@ -340,14 +340,14 @@ export default function Dashboard() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: '1px solid var(--border)' }}>
                 <h2 style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>Cash-flow forecast</h2>
                 <button onClick={() => navigate('/analytics')}
-                  style={{ fontSize: 12, fontWeight: 700, color: '#C8E20A', background: 'none', border: 'none', cursor: 'pointer' }}>Details</button>
+                  style={{ fontSize: 12, fontWeight: 700, color: '#C6E404', background: 'none', border: 'none', cursor: 'pointer' }}>Details</button>
               </div>
               <div style={{ padding: '16px 18px' }}>
                 <div style={{ marginBottom: 4 }}>
                   <p style={{ fontSize: 26, fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.04em' }}>{fmtFull((dueSoonAmt || 0) + (collected || 0) * 0.15)}</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
                     <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Expected next 60 days</p>
-                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 5, background: '#F0FDF4', color: '#C8E20A' }}>Healthy</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 5, background: '#F0FDF4', color: '#C6E404' }}>Healthy</span>
                   </div>
                 </div>
 
@@ -355,7 +355,7 @@ export default function Dashboard() {
                 <div style={{ marginTop: 16, display: 'flex', alignItems: 'flex-end', gap: 5, height: 80 }}>
                   {[0.3, 0.65, 0.9, 0.5, 0.4, 0.75, 0.55, 0.4].map((h, i) => (
                     <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                      <div style={{ width: '100%', borderRadius: '3px 3px 0 0', background: i % 2 === 0 ? '#DEDDD5' : '#C8E20A', height: `${Math.round(h * 72)}px` }} />
+                      <div style={{ width: '100%', borderRadius: '3px 3px 0 0', background: i % 2 === 0 ? '#DEDDD5' : '#C6E404', height: `${Math.round(h * 72)}px` }} />
                     </div>
                   ))}
                 </div>

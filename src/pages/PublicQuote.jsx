@@ -12,17 +12,17 @@ import {
 } from 'lucide-react';
 import { api } from '../utils/api';
 
-const GRAD = 'linear-gradient(135deg, #C8E20A, #1A1A1A, #C8E20A)';
+const GRAD = 'linear-gradient(135deg, #C6E404, #1A1A1A, #C6E404)';
 const fmt  = n => '$' + Math.round(n || 0).toLocaleString();
 const fmt2 = n => '$' + Number(n || 0).toFixed(2);
 
 // ── Financing ──────────────────────────────────────────────────────
 const PLANS = [
-  { months: 0,  apr: 0,     label: 'Pay in full', provider: null,          color: '#C8E20A', badge: 'Best value'  },
-  { months: 3,  apr: 0,     label: '3 months',    provider: 'Invoice King Pay', color: '#C8E20A', badge: '0% APR'      },
+  { months: 0,  apr: 0,     label: 'Pay in full', provider: null,          color: '#C6E404', badge: 'Best value'  },
+  { months: 3,  apr: 0,     label: '3 months',    provider: 'Invoice King Pay', color: '#C6E404', badge: '0% APR'      },
   { months: 6,  apr: 0,     label: '6 months',    provider: 'Invoice King Pay', color: '#1A1A1A', badge: '0% APR'      },
   { months: 12, apr: 9.99,  label: '12 months',   provider: 'Wisetack',    color: '#1A1A1A', badge: '9.99% APR'   },
-  { months: 24, apr: 14.99, label: '24 months',   provider: 'Affirm',      color: '#C8E20A', badge: '14.99% APR'  },
+  { months: 24, apr: 14.99, label: '24 months',   provider: 'Affirm',      color: '#C6E404', badge: '14.99% APR'  },
 ];
 const calcMonthly = (p, months, apr) => {
   if (!months || p <= 0) return 0;
@@ -91,7 +91,7 @@ function FinancingWidget({ total, onSelect, selected }) {
   const [open, setOpen] = useState(false);
   return (
     <div style={{ marginBottom:12 }}>
-      <button onClick={()=>setOpen(v=>!v)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', background:'linear-gradient(135deg,rgba(200,226,10,0.06),rgba(75,123,255,0.06))', border:'0.5px solid rgba(75,123,255,0.2)', borderRadius:12, cursor:'pointer' }}>
+      <button onClick={()=>setOpen(v=>!v)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', background:'linear-gradient(135deg,rgba(198,228,4,0.06),rgba(75,123,255,0.06))', border:'0.5px solid rgba(75,123,255,0.2)', borderRadius:12, cursor:'pointer' }}>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           <Calculator size={18} style={{ color:'#1A1A1A' }}/>
           <div style={{ textAlign:'left' }}>
@@ -123,9 +123,9 @@ function FinancingWidget({ total, onSelect, selected }) {
 }
 
 const PKG = {
-  good:   { icon: Zap,       color:'#C8E20A', label:'Good',   tagline:'Essentials' },
+  good:   { icon: Zap,       color:'#C6E404', label:'Good',   tagline:'Essentials' },
   better: { icon: Star,      color:'#1A1A1A', label:'Better', tagline:'Most popular', badge:'⭐ Popular' },
-  best:   { icon: Building2, color:'#C8E20A', label:'Best',   tagline:'Full service' },
+  best:   { icon: Building2, color:'#C6E404', label:'Best',   tagline:'Full service' },
 };
 
 const card = { background:'#fff', borderRadius:16, border:'0.5px solid #E2E8F0', marginBottom:12, overflow:'hidden' };
@@ -242,10 +242,10 @@ export default function PublicQuote() {
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
             {['review','sign'].map((s,i) => (
               <React.Fragment key={s}>
-                <div style={{ width:26, height:26, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, background: step===s ? GRAD : (i===0&&step==='sign') ? '#C8E20A' : '#F1F5F9', color:(step===s||(i===0&&step==='sign')) ? '#fff' : '#94A3B8', transition:'all 0.3s' }}>
+                <div style={{ width:26, height:26, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, background: step===s ? GRAD : (i===0&&step==='sign') ? '#C6E404' : '#F1F5F9', color:(step===s||(i===0&&step==='sign')) ? '#fff' : '#94A3B8', transition:'all 0.3s' }}>
                   {i===0&&step==='sign' ? <Check size={12}/> : i+1}
                 </div>
-                {i<1 && <div style={{ width:24, height:2, borderRadius:1, background:step==='sign' ? '#C8E20A' : '#E2E8F0', transition:'all 0.3s' }}/>}
+                {i<1 && <div style={{ width:24, height:2, borderRadius:1, background:step==='sign' ? '#C6E404' : '#E2E8F0', transition:'all 0.3s' }}/>}
               </React.Fragment>
             ))}
           </div>

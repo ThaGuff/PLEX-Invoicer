@@ -162,7 +162,7 @@ const SECTIONS = [
 
 export default function SettingsPage() {
   const { account, updateAccount, activeId } = useAccount();
-  const accent = '#C8E20A';
+  const accent = '#C6E404';
   const token = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
   const h = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -176,7 +176,7 @@ export default function SettingsPage() {
     website: account?.website || '',
     address: account?.business_address || '',
     tagline: account?.company_tagline || '',
-    primary_color: account?.primary_color || '#C8E20A',
+    primary_color: account?.primary_color || '#C6E404',
     invoice_theme: account?.default_template || 'classic',
     notif_invoice_viewed: account?.notif_invoice_viewed !== 0,
     notif_invoice_paid: account?.notif_invoice_paid !== 0,
@@ -256,7 +256,7 @@ export default function SettingsPage() {
     setSaving(false);
   };
 
-  const COLORS = ['#C8E20A','#1A1A1A','#64748B','#DC2626','#7C3AED','#0EA5E9','#F59E0B','#10B981','#EC4899','#6366F1'];
+  const COLORS = ['#C6E404','#1A1A1A','#64748B','#DC2626','#7C3AED','#0EA5E9','#F59E0B','#10B981','#EC4899','#6366F1'];
 
   return (
     <div style={{ display: 'flex', height: '100%', fontFamily: "'Inter', sans-serif", minHeight: 'calc(100vh - 64px)' }}>
@@ -282,7 +282,7 @@ export default function SettingsPage() {
             </h2>
           </div>
           <button onClick={handleSave} disabled={saving}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 10, border: 'none', background: saved ? '#C8E20A' : accent, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', transition: 'background 0.2s' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 10, border: 'none', background: saved ? '#C6E404' : accent, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', transition: 'background 0.2s' }}>
             {saving ? <RefreshCw size={13} style={{ animation: 'spin 0.8s linear infinite' }} /> : saved ? <Check size={13} /> : <Save size={13} />}
             {saving ? 'Saving…' : saved ? 'Saved!' : 'Save Changes'}
           </button>
@@ -492,14 +492,14 @@ export default function SettingsPage() {
                   <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Password</p>
                   <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>Signed in via Google OAuth — password managed by Google</p>
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8, background: '#C8E20A15', color: '#C8E20A' }}>Secure ✓</span>
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8, background: '#C6E40415', color: '#C6E404' }}>Secure ✓</span>
               </div>
               <div style={{ padding: '14px 18px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
                 <div>
                   <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Data Encryption</p>
                   <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>All data encrypted in transit (TLS) and at rest</p>
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8, background: '#C8E20A15', color: '#C8E20A' }}>Active ✓</span>
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8, background: '#C6E40415', color: '#C6E404' }}>Active ✓</span>
               </div>
             </Section>
             <Section title="Data & Privacy">
@@ -586,7 +586,7 @@ function ToggleField({ label, desc, checked, onChange, disabled }) {
         {desc && <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>{desc}</p>}
       </div>
       <button onClick={() => !disabled && onChange(!checked)} disabled={disabled}
-        style={{ width: 44, height: 24, borderRadius: 12, background: checked ? '#C8E20A' : '#CBD5E1', border: 'none', cursor: disabled ? 'default' : 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0, opacity: disabled ? 0.5 : 1 }}>
+        style={{ width: 44, height: 24, borderRadius: 12, background: checked ? '#C6E404' : '#CBD5E1', border: 'none', cursor: disabled ? 'default' : 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0, opacity: disabled ? 0.5 : 1 }}>
         <div style={{ position: 'absolute', top: 3, left: checked ? 23 : 3, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
       </button>
     </div>

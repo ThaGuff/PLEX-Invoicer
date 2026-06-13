@@ -63,7 +63,7 @@ function Field({ icon: Icon, label, k, placeholder, type = 'text', required = fa
 export default function CompanyOnboarding({ onComplete }) {
   const { account, activeId, updateAccount } = useAccount();
   const token = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
-  const accent = '#C8E20A';
+  const accent = '#C6E404';
 
   // Shared style for labels used directly in the component (not via Field component)
   const labelStyle = {
@@ -142,7 +142,7 @@ export default function CompanyOnboarding({ onComplete }) {
         {/* Header */}
         <div style={{ padding: '24px clamp(14px,4vw,28px) 20px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#C8E20A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#C6E404', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1A1A1A', flexShrink: 0 }}>
               <Building2 size={20} />
             </div>
             <div>
@@ -154,7 +154,7 @@ export default function CompanyOnboarding({ onComplete }) {
           </div>
           {/* Progress bar */}
           <div style={{ height: 4, background: 'var(--border)', borderRadius: 4 }}>
-            <div style={{ height: '100%', width: `${progress}%`, background: '#C8E20A', borderRadius: 4, transition: 'width 0.4s ease' }} />
+            <div style={{ height: '100%', width: `${progress}%`, background: '#C6E404', borderRadius: 4, transition: 'width 0.4s ease' }} />
           </div>
         </div>
 
@@ -289,13 +289,13 @@ export default function CompanyOnboarding({ onComplete }) {
               </div>
 
               {form.business_type && (
-                <div style={{ padding: '12px 16px', borderRadius: 10, background: '#C8E20A10', border: '1px solid #C8E20A30', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <CheckCircle size={16} style={{ color: '#C8E20A', flexShrink: 0 }} />
+                <div style={{ padding: '12px 16px', borderRadius: 10, background: '#C6E40410', border: '1px solid #C6E40430', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <CheckCircle size={16} style={{ color: '#C6E404', flexShrink: 0 }} />
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: '#C8E20A', margin: 0 }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#C6E404', margin: 0 }}>
                       {TEMPLATE_OPTIONS.find(t => t.id === form.business_type)?.icon} {TEMPLATE_OPTIONS.find(t => t.id === form.business_type)?.label} selected
                     </p>
-                    <p style={{ fontSize: 11, color: '#C8E20A', margin: '2px 0 0', opacity: 0.8 }}>
+                    <p style={{ fontSize: 11, color: '#C6E404', margin: '2px 0 0', opacity: 0.8 }}>
                       Services will auto-load on every new quote — no manual setup needed
                     </p>
                   </div>
@@ -332,12 +332,12 @@ export default function CompanyOnboarding({ onComplete }) {
 
           {step < totalSteps ? (
             <button onClick={() => setStep(s => s + 1)} disabled={!form.name.trim()}
-              style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: '#C8E20A', color: '#fff', cursor: form.name.trim() ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'Inter', sans-serif", opacity: form.name.trim() ? 1 : 0.5 }}>
+              style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: '#C6E404', color: '#1A1A1A', cursor: form.name.trim() ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'Inter', sans-serif", opacity: form.name.trim() ? 1 : 0.5 }}>
               Next <ChevronRight size={14} />
             </button>
           ) : (
             <button onClick={handleSave} disabled={saving}
-              style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: '#C8E20A', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'Inter', sans-serif" }}>
+              style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: '#C6E404', color: '#1A1A1A', cursor: 'pointer', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'Inter', sans-serif" }}>
               {saving ? '⏳ Saving…' : <><CheckCircle size={14} /> Save & Get Started</>}
             </button>
           )}

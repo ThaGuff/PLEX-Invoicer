@@ -11,7 +11,7 @@ const METHODS = {
 };
 const METHOD_COLORS = {
   stripe:'#635BFF', square:'#3E4348', paypal:'#003087', zelle:'#6D1ED4',
-  venmo:'#008CFF', check:'#6B7280', cash:'#C8E20A', ach:'#C8E20A', other:'#9CA3AF',
+  venmo:'#008CFF', check:'#6B7280', cash:'#C6E404', ach:'#C6E404', other:'#9CA3AF',
 };
 
 function fmt(n)    { return '$' + Math.abs(Math.round((n||0)*100)/100).toLocaleString('en-US', { minimumFractionDigits: 2 }); }
@@ -20,7 +20,7 @@ function fmtDate(s){ if (!s) return '—'; try { return new Date(s).toLocaleDate
 
 export default function TaxesPage() {
   const { account, activeId } = useAccount();
-  const accent = account?.primary_color || '#C8E20A';
+  const accent = account?.primary_color || '#C6E404';
 
   const [loading, setLoading]   = useState(true);
   const [data, setData]         = useState(null);
@@ -150,7 +150,7 @@ export default function TaxesPage() {
     { label: 'Total collected',    value: data.summary.total_collected,    color: accent,     icon: DollarSign },
     { label: 'Tax collected',      value: data.summary.total_tax_collected, color: '#dc2626',  icon: Receipt },
     { label: 'Processing fees',    value: data.summary.total_fees,          color: '#7c3aed',  icon: TrendingUp },
-    { label: 'Net revenue',        value: data.summary.total_net,           color: '#C8E20A',  icon: TrendingUp },
+    { label: 'Net revenue',        value: data.summary.total_net,           color: '#C6E404',  icon: TrendingUp },
   ] : [];
 
   return (
@@ -174,7 +174,7 @@ export default function TaxesPage() {
             <button onClick={() => window.location.href='/billing'}
               className="btn-ghost flex items-center gap-1.5 text-sm opacity-60">
               <Download size={14} /> CSV
-              <span style={{ fontSize:'8px', fontWeight:700, background:'linear-gradient(135deg,#1A1A1A,#C8E20A)', color:'#fff', padding:'1px 5px', borderRadius:'8px' }}>PRO</span>
+              <span style={{ fontSize:'8px', fontWeight:700, background:'linear-gradient(135deg,#1A1A1A,#C6E404)', color:'#fff', padding:'1px 5px', borderRadius:'8px' }}>PRO</span>
             </button>
           )}
           <button onClick={exportPDF} disabled={!data || loading}
@@ -339,7 +339,7 @@ export default function TaxesPage() {
                       <span className="font-semibold tabular-nums">{fmt(inv.amount_paid)}</span>
                       <span className="text-red-600 tabular-nums text-xs">{inv.tax_amount > 0 ? fmt(inv.tax_amount) : '—'}</span>
                       <span className="text-purple-600 tabular-nums text-xs">{inv.processing_fee > 0 ? fmt(inv.processing_fee) : '—'}</span>
-                      <span className="font-bold tabular-nums" style={{ color: '#C8E20A' }}>{fmt(inv.net_amount || inv.amount_paid)}</span>
+                      <span className="font-bold tabular-nums" style={{ color: '#C6E404' }}>{fmt(inv.net_amount || inv.amount_paid)}</span>
                       <button className="text-ink-muted hover:text-ink">
                         {expanded === inv.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                       </button>

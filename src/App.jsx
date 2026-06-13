@@ -53,7 +53,7 @@ class ErrorBoundary extends React.Component {
       return (
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F5F5F5' }}>
           <div style={{ background: '#fff', borderRadius: 16, padding: '40px 48px', maxWidth: 480, textAlign: 'center', border: '1px solid #DEDDD5' }}>
-            <div style={{ width: 48, height: 48, borderRadius: 12, background: '#1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 22, fontWeight: 800, color: '#C8E20A' }}>R</div>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: '#1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 22, fontWeight: 800, color: '#C6E404' }}>R</div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1A1A1A', margin: '0 0 8px' }}>Something went wrong</h2>
             <p style={{ fontSize: 14, color: '#7A8A7A', margin: '0 0 24px', lineHeight: 1.6 }}>{this.state.error?.message || 'An unexpected error occurred.'}</p>
             <button onClick={() => { this.setState({ error: null }); window.location.href = '/dashboard'; }}
@@ -199,9 +199,9 @@ function Nav() {
         onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
         onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}>
         {/* Active indicator bar */}
-        {active && <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 20, borderRadius: '0 2px 2px 0', background: '#C8E20A' }} />}
-        <span style={{ color: active ? '#C8E20A' : 'rgba(255,255,255,0.45)', flexShrink: 0 }}>
-          <NavIcon size={15} route={link.to} color={active ? '#C8E20A' : 'rgba(255,255,255,0.45)'} />
+        {active && <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 20, borderRadius: '0 2px 2px 0', background: '#C6E404' }} />}
+        <span style={{ color: active ? '#C6E404' : 'rgba(255,255,255,0.45)', flexShrink: 0 }}>
+          <NavIcon size={15} route={link.to} color={active ? '#C6E404' : 'rgba(255,255,255,0.45)'} />
         </span>
         <span style={{ fontSize: 14, fontWeight: active ? 700 : 500, color: active ? '#FFFFFF' : 'rgba(255,255,255,0.72)', letterSpacing: '-0.01em', flex: 1 }}>
           {link.label}
@@ -223,7 +223,7 @@ function Nav() {
         <div style={{ padding: '20px 16px 16px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 36, height: 36, borderRadius: 9, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1A1A1A' }}>
-              <img src="/logo-invoiceking.png?v=1781009199" alt="Invoice King" style={{ width: 36, height: 36, objectFit: 'cover' }} />
+              <img src="/logo-invoiceking.png?v=1781312065" alt="Invoice King" style={{ width: 36, height: 36, objectFit: 'cover' }} />
             </div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.03em', lineHeight: 1.1 }}>Invoice King</div>
@@ -231,9 +231,9 @@ function Nav() {
             </div>
           </div>
           {trialActive && trialEnd && (
-            <div style={{ marginTop: 10, padding: '4px 10px', background: 'rgba(200,226,10,0.1)', border: '1px solid rgba(200,226,10,0.2)', borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#C8E20A' }} />
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#C8E20A' }}>
+            <div style={{ marginTop: 10, padding: '4px 10px', background: 'rgba(198,228,4,0.1)', border: '1px solid rgba(198,228,4,0.2)', borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#C6E404' }} />
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#C6E404' }}>
                 {Math.max(0, Math.ceil((trialEnd - new Date()) / 86400000))}d trial left
               </span>
             </div>
@@ -258,9 +258,9 @@ function Nav() {
         {/* Create Quote CTA */}
         <div style={{ padding: '0 12px 10px', flexShrink: 0 }}>
           <button onClick={() => navigate('/quotes/new')}
-            style={{ width: '100%', padding: '12px', background: '#C8E20A', color: '#1A1A1A', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.01em', transition: 'background 0.12s' }}
+            style={{ width: '100%', padding: '12px', background: '#C6E404', color: '#1A1A1A', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.01em', transition: 'background 0.12s' }}
             onMouseEnter={e => e.currentTarget.style.background = '#B8EF00'}
-            onMouseLeave={e => e.currentTarget.style.background = '#C8E20A'}>
+            onMouseLeave={e => e.currentTarget.style.background = '#C6E404'}>
             + New quote
           </button>
         </div>
@@ -273,8 +273,8 @@ function Nav() {
               style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, padding: '8px', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', transition: 'background 0.12s' }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <div style={{ width: 30, height: 30, borderRadius: 7, overflow: 'hidden', flexShrink: 0, background: '#1A2A1A', border: '1.5px solid rgba(200,226,10,0.2)' }}>
-                <img src="/logo-invoiceking.png?v=1781009199" alt="Invoice King" style={{ width: 30, height: 30, objectFit: 'cover' }} />
+              <div style={{ width: 30, height: 30, borderRadius: 7, overflow: 'hidden', flexShrink: 0, background: '#1A2A1A', border: '1.5px solid rgba(198,228,4,0.2)' }}>
+                <img src="/logo-invoiceking.png?v=1781312065" alt="Invoice King" style={{ width: 30, height: 30, objectFit: 'cover' }} />
               </div>
               <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                 <div style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName}</div>
@@ -310,10 +310,10 @@ function Nav() {
             <button key={l.to} onClick={() => navigate(l.to)}
               aria-label={l.label}
               style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: '8px 0', background: 'none', border: 'none', cursor: 'pointer' }}>
-              <div style={{ width: 26, height: 26, borderRadius: 7, background: active ? '#C8E20A' : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 26, height: 26, borderRadius: 7, background: active ? '#C6E404' : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <NavIcon size={14} route={l.to} color={active ? '#1A1A1A' : 'rgba(255,255,255,0.6)'} />
               </div>
-              <span style={{ fontSize: 9.5, fontWeight: active ? 700 : 500, color: active ? '#C8E20A' : 'rgba(255,255,255,0.45)', fontFamily: "'Inter', sans-serif" }}>{l.label}</span>
+              <span style={{ fontSize: 9.5, fontWeight: active ? 700 : 500, color: active ? '#C6E404' : 'rgba(255,255,255,0.45)', fontFamily: "'Inter', sans-serif" }}>{l.label}</span>
             </button>
           );
         })}
@@ -321,10 +321,10 @@ function Nav() {
           aria-label="More navigation options"
           aria-expanded={showMobileMore}
           style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: '8px 0', background: 'none', border: 'none', cursor: 'pointer' }}>
-          <div style={{ width: 22, height: 22, borderRadius: 6, background: showMobileMore ? '#C8E20A' : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 22, height: 22, borderRadius: 6, background: showMobileMore ? '#C6E404' : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="2" cy="6" r="1.2" fill={showMobileMore ? '#1A1A1A' : 'rgba(255,255,255,0.7)'}/><circle cx="6" cy="6" r="1.2" fill={showMobileMore ? '#1A1A1A' : 'rgba(255,255,255,0.7)'}/><circle cx="10" cy="6" r="1.2" fill={showMobileMore ? '#1A1A1A' : 'rgba(255,255,255,0.7)'}/></svg>
           </div>
-          <span style={{ fontSize: 9.5, fontWeight: showMobileMore ? 700 : 500, color: showMobileMore ? '#C8E20A' : 'rgba(255,255,255,0.45)', fontFamily: "'Inter', sans-serif" }}>More</span>
+          <span style={{ fontSize: 9.5, fontWeight: showMobileMore ? 700 : 500, color: showMobileMore ? '#C6E404' : 'rgba(255,255,255,0.45)', fontFamily: "'Inter', sans-serif" }}>More</span>
         </button>
       </nav>
 
@@ -339,11 +339,11 @@ function Nav() {
               return (
                 <button key={l.to}
                   onClick={() => { setShowMobileMore(false); locked ? handleLockedClick(l) : l.to === '/__business' ? window.dispatchEvent(new CustomEvent('invoiceking:settings')) : navigate(l.to); }}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: '12px 4px', borderRadius: 10, border: 'none', background: active ? 'rgba(200,226,10,0.08)' : 'transparent', cursor: 'pointer', fontFamily: "'Inter', sans-serif", opacity: locked ? 0.6 : 1 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: active ? 'rgba(200,226,10,0.15)' : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <NavIcon size={16} route={l.to} color={active ? '#C8E20A' : 'rgba(255,255,255,0.65)'} />
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: '12px 4px', borderRadius: 10, border: 'none', background: active ? 'rgba(198,228,4,0.08)' : 'transparent', cursor: 'pointer', fontFamily: "'Inter', sans-serif", opacity: locked ? 0.6 : 1 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: active ? 'rgba(198,228,4,0.15)' : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <NavIcon size={16} route={l.to} color={active ? '#C6E404' : 'rgba(255,255,255,0.65)'} />
                   </div>
-                  <span style={{ fontSize: 10.5, fontWeight: active ? 700 : 500, color: active ? '#C8E20A' : 'rgba(255,255,255,0.65)' }}>{l.label}</span>
+                  <span style={{ fontSize: 10.5, fontWeight: active ? 700 : 500, color: active ? '#C6E404' : 'rgba(255,255,255,0.65)' }}>{l.label}</span>
                 </button>
               );
             })}
@@ -425,7 +425,7 @@ function AppShell({ children }) {
     <div className="min-h-screen flex items-center justify-center" style={{ background: '#F5F5F5' }}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
         <div style={{ width: 36, height: 36, borderRadius: 9, background: '#1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 18, fontWeight: 900, color: '#C8E20A' }}>R</span>
+          <span style={{ fontSize: 18, fontWeight: 900, color: '#C6E404' }}>R</span>
         </div>
         <div style={{ width: 24, height: 24, borderRadius: '50%', border: '2.5px solid #1A1A1A', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
       </div>

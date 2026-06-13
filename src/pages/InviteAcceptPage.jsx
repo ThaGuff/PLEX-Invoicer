@@ -89,7 +89,7 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
     }
   };
 
-  const accent = '#C8E20A';
+  const accent = '#C6E404';
 
   return (
     <div style={{
@@ -102,7 +102,7 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
       }}>
         {/* Logo */}
         <div style={{ marginBottom: 32 }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: '#C8E20A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: '#C6E404', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
             <Users size={28} color="#fff" />
           </div>
           <div style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>Invoice King</div>
@@ -133,7 +133,7 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
             </h2>
             <div style={{ background: 'var(--bg-surface)', borderRadius: 14, padding: '20px clamp(12px,4vw,24px)', marginBottom: 24, border: '1px solid #BBF7D0' }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: '#166534', marginBottom: 4 }}>{accountName}</div>
-              <div style={{ fontSize: 13, color: '#C8E20A' }}>as a {role}</div>
+              <div style={{ fontSize: 13, color: '#C6E404' }}>as a {role}</div>
             </div>
             <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
               {email ? `This invite is for <strong>${email}</strong>. ` : ''}
@@ -143,8 +143,8 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
               localStorage.setItem('invoiceking_pending_invite', token);
               navigate(`/login?redirect=/invite/accept/${token}`);
             }} style={{
-              width: '100%', padding: '14px', background: '#C8E20A',
-              color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: 'pointer',
+              width: '100%', padding: '14px', background: '#C6E404',
+              color: '#1A1A1A', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}>
               Sign in to Accept <ArrowRight size={18} />
@@ -169,7 +169,7 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
               You've joined <strong style={{ color: '#0F172A' }}>{message}</strong>. Redirecting you to the workspace…
             </p>
             <div style={{ height: 4, background: '#E2E8F0', borderRadius: 2, overflow: 'hidden' }}>
-              <div style={{ height: '100%', background: 'linear-gradient(90deg,#C8E20A,#C8E20A)', borderRadius: 2, animation: 'progress 2.5s linear' }} />
+              <div style={{ height: '100%', background: 'linear-gradient(90deg,#C6E404,#C6E404)', borderRadius: 2, animation: 'progress 2.5s linear' }} />
             </div>
           </div>
         )}
@@ -191,7 +191,7 @@ export default function InviteAcceptPage({ mode = 'accept' }) {
             <h2 style={{ color: '#0F172A', fontSize: 22, fontWeight: 800, margin: '0 0 12px' }}>Invite not found</h2>
             <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>{message}</p>
             <button onClick={() => navigate('/login')} style={{
-              padding: '12px clamp(12px,4vw,24px)', background: '#C8E20A', color: '#fff',
+              padding: '12px clamp(12px,4vw,24px)', background: '#C6E404', color: '#1A1A1A',
               border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer',
             }}>
               Go to Invoice King

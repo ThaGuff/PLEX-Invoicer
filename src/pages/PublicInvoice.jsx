@@ -7,7 +7,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { CheckCircle, AlertCircle, Shield, FileText, PenLine, X, Check } from 'lucide-react';
 import { api } from '../utils/api';
 
-const GRAD = '#C8E20A';
+const GRAD = '#C6E404';
 function fmt(n) { return '$' + Math.round(n||0).toLocaleString(); }
 function fmtDate(s) { if(!s) return ''; try { return new Date(s).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}); } catch { return s; } }
 
@@ -96,7 +96,7 @@ export default function PublicInvoice() {
 
   if (loading) return (
     <div style={{ minHeight:'100dvh', display:'flex', alignItems:'center', justifyContent:'center', background:'#F8FAFC' }}>
-      <div style={{ width:28, height:28, borderRadius:'50%', border:'3px solid #C8E20A', borderTopColor:'transparent', animation:'spin 0.7s linear infinite' }} />
+      <div style={{ width:28, height:28, borderRadius:'50%', border:'3px solid #C6E404', borderTopColor:'transparent', animation:'spin 0.7s linear infinite' }} />
     </div>
   );
 
@@ -151,11 +151,11 @@ export default function PublicInvoice() {
         <React.Fragment key={s}>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             <div style={{ width:28, height:28, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700,
-              background: step===s ? GRAD : (i===0&&step==='sign') ? '#C8E20A' : '#E2E8F0',
+              background: step===s ? GRAD : (i===0&&step==='sign') ? '#C6E404' : '#E2E8F0',
               color: (step===s||(i===0&&step==='sign')) ? '#fff' : '#94A3B8', transition:'all 0.3s' }}>
               {i===0&&step==='sign' ? <Check size={13}/> : i+1}
             </div>
-            <span style={{ fontSize:12, fontWeight: step===s?700:500, color: step===s?'#C8E20A':'#94A3B8' }}>
+            <span style={{ fontSize:12, fontWeight: step===s?700:500, color: step===s?'#C6E404':'#94A3B8' }}>
               {s==='review'?'Review':'Sign'}
             </span>
           </div>
@@ -173,7 +173,7 @@ export default function PublicInvoice() {
         {/* Header */}
         <div style={{ textAlign:'center', marginBottom:24 }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:8, marginBottom:12 }}>
-            <FileText size={20} style={{ color:'#C8E20A' }} />
+            <FileText size={20} style={{ color:'#C6E404' }} />
             <span style={{ fontSize:13, fontWeight:600, color:'#64748B' }}>Invoice from {invoice.agency_name || 'Invoice King'}</span>
           </div>
           <h1 style={{ fontSize:28, fontWeight:800, color:'#0F172A', letterSpacing:'-0.04em', marginBottom:6 }}>
@@ -258,14 +258,14 @@ export default function PublicInvoice() {
           <label style={{ fontSize:11, fontWeight:700, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:8 }}>Full legal name</label>
           <input value={fullName} onChange={e=>setFullName(e.target.value)} placeholder="Your full name as it appears on ID"
             style={{ width:'100%', padding:'13px 16px', borderRadius:11, border:'1.5px solid #CBD5E1', background:'#fff', fontSize:14, color:'#0F172A', fontFamily:"'Inter',sans-serif", outline:'none', boxSizing:'border-box' }}
-            onFocus={e=>e.target.style.borderColor='#C8E20A'} onBlur={e=>e.target.style.borderColor='#CBD5E1'} />
+            onFocus={e=>e.target.style.borderColor='#C6E404'} onBlur={e=>e.target.style.borderColor='#CBD5E1'} />
         </div>
 
         {/* Signature mode toggle */}
         <div style={{ display:'flex', gap:8, marginBottom:14 }}>
           {[['draw','Draw'],['type','Type']].map(([m,l]) => (
             <button key={m} onClick={()=>setSigMode(m)}
-              style={{ flex:1, padding:'10px', borderRadius:10, border:`1.5px solid ${sigMode===m?'#C8E20A':'#CBD5E1'}`, background: sigMode===m?'rgba(37,99,235,0.06)':'#fff', color: sigMode===m?'#C8E20A':'#64748B', fontSize:13, fontWeight:sigMode===m?700:500, cursor:'pointer', transition:'all 0.15s', fontFamily:"'Inter',sans-serif" }}>
+              style={{ flex:1, padding:'10px', borderRadius:10, border:`1.5px solid ${sigMode===m?'#C6E404':'#CBD5E1'}`, background: sigMode===m?'rgba(37,99,235,0.06)':'#fff', color: sigMode===m?'#C6E404':'#64748B', fontSize:13, fontWeight:sigMode===m?700:500, cursor:'pointer', transition:'all 0.15s', fontFamily:"'Inter',sans-serif" }}>
               {l}
             </button>
           ))}
@@ -279,7 +279,7 @@ export default function PublicInvoice() {
               <div>
                 <input value={sigName} onChange={e=>setSigName(e.target.value)} placeholder="Type your full name"
                   style={{ width:'100%', padding:'16px', borderRadius:11, border:'1.5px solid #CBD5E1', background:'#fff', fontSize:24, color:'#0F172A', fontFamily:'Georgia, serif', fontStyle:'italic', outline:'none', boxSizing:'border-box' }}
-                  onFocus={e=>e.target.style.borderColor='#C8E20A'} onBlur={e=>e.target.style.borderColor='#CBD5E1'} />
+                  onFocus={e=>e.target.style.borderColor='#C6E404'} onBlur={e=>e.target.style.borderColor='#CBD5E1'} />
                 <p style={{ fontSize:10, color:'#94A3B8', marginTop:6, textAlign:'center' }}>Typed signatures are legally equivalent to handwritten signatures</p>
               </div>
             )
@@ -304,7 +304,7 @@ export default function PublicInvoice() {
         {/* Legal disclaimer */}
         <div style={{ background:'#F0FDF4', border:'1px solid #BBF7D0', borderRadius:12, padding:'14px 16px', marginBottom:20 }}>
           <div style={{ display:'flex', gap:10 }}>
-            <Shield size={16} style={{ color:'#C8E20A', flexShrink:0, marginTop:1 }} />
+            <Shield size={16} style={{ color:'#C6E404', flexShrink:0, marginTop:1 }} />
             <div>
               <p style={{ fontSize:12, fontWeight:700, color:'#1D4ED8', marginBottom:4 }}>Legal Disclaimer & E-Signature Consent</p>
               <p style={{ fontSize:11, color:'#166534', lineHeight:1.7 }}>

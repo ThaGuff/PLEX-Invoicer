@@ -23,7 +23,7 @@ function downloadTemplate() {
   a.click(); URL.revokeObjectURL(url);
 }
 
-export default function ServiceImporter({ accountId, accent = '#C8E20A', onImported }) {
+export default function ServiceImporter({ accountId, accent = '#C6E404', onImported }) {
   const [open, setOpen]           = useState(false);
   const [rows, setRows]           = useState([]); // parsed rows
   const [errors, setErrors]       = useState([]);
@@ -184,7 +184,7 @@ export default function ServiceImporter({ accountId, accent = '#C8E20A', onImpor
                 <p className="text-xs text-ink-muted">Don't have a file yet?</p>
                 <button onClick={downloadTemplate}
                   className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-white"
-                  style={{ background: '#C8E20A' }}>
+                  style={{ background: '#C6E404' }}>
                   <Download size={12} /> Download template
                 </button>
               </div>

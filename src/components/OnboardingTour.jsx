@@ -141,13 +141,13 @@ export default function OnboardingTour({ onDone }) {
         overflow: 'hidden',
       }}>
         {/* Accent bar */}
-        <div style={{ height: 3, background: '#C8E20A' }} />
+        <div style={{ height: 3, background: '#C6E404' }} />
 
         <div style={{ padding: '16px 18px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Lightbulb size={13} style={{ color: '#C8E20A' }} />
+                <Lightbulb size={13} style={{ color: '#C6E404' }} />
               </div>
               <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2 }}>
                 {tip.title}
@@ -165,7 +165,7 @@ export default function OnboardingTour({ onDone }) {
           <div style={{ display: 'flex', gap: 8 }}>
             {tip.cta && (
               <button onClick={() => { tip.ctaAction?.(); dismiss(); }}
-                style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: 'none', background: '#C8E20A', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: "'Inter', sans-serif" }}>
+                style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: 'none', background: '#C6E404', color: '#1A1A1A', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: "'Inter', sans-serif" }}>
                 {tip.cta} <ChevronRight size={11} />
               </button>
             )}

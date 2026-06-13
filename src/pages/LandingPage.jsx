@@ -1,7 +1,7 @@
 /**
  * LandingPage.jsx — InvoiceKing.app
  * Light, trustworthy, conversion-focused marketing page.
- * Brand palette mirrors the app: #1A1A1A sidebar dark, #C8E20A green, #C8E20A lime CTA, #F5F5F5 cream.
+ * Brand palette mirrors the app: #1A1A1A sidebar dark, #C6E404 green, #C6E404 lime CTA, #F5F5F5 cream.
  */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -14,8 +14,8 @@ import {
 // ─── Design tokens ────────────────────────────────────────────────
 const C = {
   forestDark: '#1A1A1A',
-  green:      '#C8E20A',
-  lime:       '#C8E20A',
+  green:      '#C6E404',
+  lime:       '#C6E404',
   cream:      '#F5F5F5',
   surface:    '#FFFFFF',
   border:     '#E2E8E2',
@@ -55,16 +55,8 @@ function Nav({ onLogin }) {
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 9, background: C.forestDark, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-              <rect x="1" y="10" width="18" height="7" rx="2" fill={C.lime}/>
-              <rect x="3.5" y="4" width="3.5" height="9" rx="1.5" fill={C.lime}/>
-              <rect x="8.25" y="2" width="3.5" height="11" rx="1.5" fill={C.lime}/>
-              <rect x="13" y="4" width="3.5" height="9" rx="1.5" fill={C.lime}/>
-              <circle cx="5.25" cy="3.5" r="2" fill={C.lime}/>
-              <circle cx="10" cy="1.5" r="2" fill={C.lime}/>
-              <circle cx="14.75" cy="3.5" r="2" fill={C.lime}/>
-            </svg>
+          <div style={{ width: 34, height: 34, borderRadius: 9, background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+            <img src="/logo-invoiceking-transparent.png" alt="Invoice King" style={{ width: 26, height: 26, objectFit: 'contain' }}/>
           </div>
           <span style={{ fontSize: 18, fontWeight: 800, color: scrolled ? C.textPrimary : '#fff', letterSpacing: '-0.025em' }}>
             Invoice King
@@ -160,8 +152,8 @@ function Hero({ onLogin }) {
       {/* Subtle texture overlay */}
       <div style={{
         position: 'absolute', inset: 0, pointerEvents: 'none',
-        backgroundImage: `radial-gradient(circle at 20% 50%, rgba(200,226,10,0.07) 0%, transparent 55%),
-                          radial-gradient(circle at 80% 20%, rgba(200,226,10,0.05) 0%, transparent 45%)`,
+        backgroundImage: `radial-gradient(circle at 20% 50%, rgba(198,228,4,0.07) 0%, transparent 55%),
+                          radial-gradient(circle at 80% 20%, rgba(198,228,4,0.05) 0%, transparent 45%)`,
       }}/>
 
       <div style={{ maxWidth: 1100, width: '100%', display: 'flex', alignItems: 'center', gap: 60, position: 'relative', zIndex: 1 }} className="rln-hero-inner">
@@ -170,7 +162,7 @@ function Hero({ onLogin }) {
           {/* Trust badge */}
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 7,
-            background: 'rgba(200,226,10,0.12)', border: '1px solid rgba(200,226,10,0.25)',
+            background: 'rgba(198,228,4,0.12)', border: '1px solid rgba(198,228,4,0.25)',
             borderRadius: 100, padding: '5px 14px', marginBottom: 28,
           }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.lime, flexShrink: 0 }}/>
@@ -203,13 +195,13 @@ function Hero({ onLogin }) {
             <button onClick={onLogin} style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '14px 28px', borderRadius: 11, border: 'none',
-              background: C.lime, color: C.forestDark,
+              background: C.lime, color: '#1A1A1A',
               fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: font,
-              boxShadow: '0 4px 20px rgba(200,226,10,0.3)',
+              boxShadow: '0 4px 20px rgba(198,228,4,0.3)',
               transition: 'transform 0.15s, box-shadow 0.15s',
             }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 28px rgba(200,226,10,0.4)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 20px rgba(200,226,10,0.3)'; }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 28px rgba(198,228,4,0.4)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 20px rgba(198,228,4,0.3)'; }}
             >
               Start free — no card needed <ArrowRight size={16}/>
             </button>
@@ -257,7 +249,7 @@ function AppCard() {
   return (
     <div style={{
       background: '#1A1A1A', borderRadius: 20, overflow: 'hidden',
-      border: '1px solid rgba(200,226,10,0.15)',
+      border: '1px solid rgba(198,228,4,0.15)',
       boxShadow: '0 32px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04)',
     }}>
       {/* Top bar */}
@@ -391,7 +383,7 @@ function HowItWorks() {
                   letterSpacing: '0.12em', textTransform: 'uppercase',
                   marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8
                 }}>
-                  <span style={{ width: 22, height: 22, borderRadius: '50%', background: accent === C.lime ? C.forestDark : 'rgba(200,226,10,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: accent, flexShrink: 0 }}>{num}</span>
+                  <span style={{ width: 22, height: 22, borderRadius: '50%', background: accent === C.lime ? C.forestDark : 'rgba(198,228,4,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: accent, flexShrink: 0 }}>{num}</span>
                   Step {num}
                 </div>
                 <h3 style={{ fontSize: 22, fontWeight: 800, color: C.textPrimary, margin: '0 0 12px', letterSpacing: '-0.02em' }}>{title}</h3>
@@ -440,7 +432,7 @@ function Features() {
               onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(13,26,13,0.08)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}
             >
-              <div style={{ width: 40, height: 40, borderRadius: 11, background: 'rgba(200,226,10,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 11, background: 'rgba(198,228,4,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
                 <Icon size={19} color={C.lime} strokeWidth={2.2}/>
               </div>
               <h3 style={{ fontSize: 16, fontWeight: 800, color: C.textPrimary, margin: '0 0 8px', letterSpacing: '-0.015em' }}>{title}</h3>
@@ -536,7 +528,7 @@ function Pricing({ onLogin }) {
               }}/>
             </button>
             <span style={{ fontSize: 13, fontWeight: 600, color: annual ? C.textPrimary : C.textLight }}>Annual</span>
-            {annual && <span style={{ fontSize: 11, fontWeight: 700, background: C.lime, color: C.forestDark, borderRadius: 100, padding: '2px 8px' }}>Save 25%</span>}
+            {annual && <span style={{ fontSize: 11, fontWeight: 700, background: C.lime, color: '#1A1A1A', borderRadius: 100, padding: '2px 8px' }}>Save 25%</span>}
           </div>
         </div>
 
@@ -555,7 +547,7 @@ function Pricing({ onLogin }) {
                     <span style={{ fontSize: 16, fontWeight: 800, color: highlight ? '#fff' : C.textPrimary }}>{name}</span>
                     <span style={{
                       fontSize: 11, fontWeight: 700, borderRadius: 100, padding: '3px 10px',
-                      background: tagBg || (highlight ? 'rgba(200,226,10,0.15)' : C.cream),
+                      background: tagBg || (highlight ? 'rgba(198,228,4,0.15)' : C.cream),
                       color: tagColor,
                     }}>{tag}</span>
                   </div>
@@ -654,9 +646,9 @@ function FinalCTA({ onLogin }) {
         <button onClick={onLogin} style={{
           display: 'inline-flex', alignItems: 'center', gap: 8,
           padding: '15px 36px', borderRadius: 12, border: 'none',
-          background: C.lime, color: C.forestDark,
+          background: C.lime, color: '#1A1A1A',
           fontSize: 16, fontWeight: 800, cursor: 'pointer', fontFamily: font,
-          boxShadow: '0 4px 24px rgba(200,226,10,0.3)',
+          boxShadow: '0 4px 24px rgba(198,228,4,0.3)',
         }}>
           Get started free <ArrowRight size={17}/>
         </button>
@@ -702,7 +694,7 @@ function Footer() {
           {/* Brand */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 14 }}>
-              <div style={{ width: 30, height: 30, borderRadius: 8, background: C.forestDark, border: '1px solid rgba(200,226,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: C.forestDark, border: '1px solid rgba(198,228,4,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="15" height="17" viewBox="0 0 18 20" fill="none">
                   <rect x="2" y="1" width="3.2" height="18" rx="1.6" fill={C.lime}/>
                   <rect x="5" y="1" width="7.5" height="2.8" rx="1.4" fill={C.lime}/>

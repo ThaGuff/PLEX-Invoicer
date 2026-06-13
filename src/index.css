@@ -6,19 +6,19 @@
 
 /* ═══════════════════════════════════════════════════════════════════
    Invoice King Design System v1.0 — Brand Palette
-   Colors: Charcoal #1A1A1A · Lime #C8E20A · Stone #6B7280
+   Colors: Charcoal #1A1A1A · Lime #C6E404 · Stone #6B7280
    Font: Inter · Domain: invoiceking.app
    ═══════════════════════════════════════════════════════════════════ */
 
 @layer base {
   :root {
     /* ── Brand core ─────────────────────────────────────────────── */
-    --brand-green:        #C8E20A;   /* Invoice King lime (primary)    */
+    --brand-green:        #C6E404;   /* Invoice King lime (primary)    */
     --brand-green-bright: #44EF6B;   /* Bright green (highlights)      */
     --brand-green-dark:   #166534;   /* Dark green (text on green bg)  */
     --brand-green-bg:     #DCFCE7;   /* Green light bg (success/badges)*/
-    --lime:               #C8E20A;   /* Electric lime (CTA only)       */
-    --lime-dark:          #A8D800;   /* Lime pressed state             */
+    --lime:               #C6E404;   /* Electric lime (CTA only)       */
+    --lime-dark:          #AECF00;   /* Lime pressed state             */
     --forest:             #1A1A1A;   /* Charcoal — sidebar/buttons     */
     --forest-mid:         #222222;   /* Sidebar hover                  */
     --forest-active:      #2A2A2A;   /* Active nav item bg             */
@@ -36,22 +36,22 @@
     --text-muted:     #6B7280;
 
     /* ── Semantic — all unified to brand green or neutral gray ──── */
-    --success:  #C8E20A;   /* brand green */
+    --success:  #22C55E;   /* green */
     --warning:  #64748B;   /* neutral gray — no orange */
     --danger:   #DC2626;   /* red stays (universal error meaning) */
-    --info:     #C8E20A;   /* brand green — no blue */
+    --info:     #64748B;   /* slate */
 
     /* ── Sidebar ─────────────────────────────────────────────────── */
     --sidebar-text:       rgba(255,255,255,0.82);
     --sidebar-text-muted: rgba(255,255,255,0.38);
-    --sidebar-active-bar: #C8E20A;
+    --sidebar-active-bar: #C6E404;
 
     /* ── Legacy aliases (kept for backward compat, all rebranded) ── */
-    --blue:         #C8E20A;   /* was blue, now brand green */
-    --teal:         #C8E20A;   /* was teal, now brand green */
+    --blue:         #3B82F6;   /* restore for status badges */
+    --teal:         #14B8A6;   /* restore for status badges */
     --amber:        #64748B;   /* was amber, now neutral */
     --navy:         #1A1A1A;
-    --accent-blue:  #C8E20A;   /* was blue, now brand green */
+    --accent-blue:  #3B82F6;   /* restore for accents */
     --gradient:     linear-gradient(180deg, #1A1A1A, #162216);
     --gradient-h:   #1A1A1A;
     --ink:          #1A1A1A;
@@ -120,7 +120,7 @@ main { overflow-x: hidden !important; max-width: 100vw !important; }
   /* Fields */
   .field { width: 100%; background: var(--bg-surface); color: var(--text-primary); border: 1.5px solid var(--border); border-radius: 9px; padding: 10px 14px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 400; min-height: 44px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
   .field::placeholder { color: var(--text-muted); }
-  .field:focus { border-color: var(--brand-green); box-shadow: 0 0 0 3px rgba(200,226,10,0.15); }
+  .field:focus { border-color: var(--brand-green); box-shadow: 0 0 0 3px rgba(198,228,4,0.15); }
 
   /* Buttons */
   .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--forest); color: #fff; border: none; border-radius: 9px; padding: 11px 20px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; min-height: 44px; cursor: pointer; transition: all 0.15s ease; }
@@ -183,12 +183,12 @@ main { overflow-x: hidden !important; max-width: 100vw !important; }
 
 /* ── Global overrides: replace any remaining blue focus rings ──── */
 *:focus-visible {
-  outline: 2px solid #C8E20A;
+  outline: 2px solid #C6E404;
   outline-offset: 2px;
 }
 input:focus, select:focus, textarea:focus {
-  border-color: #C8E20A !important;
-  box-shadow: 0 0 0 3px rgba(200,226,10,0.15) !important;
+  border-color: #C6E404 !important;
+  box-shadow: 0 0 0 3px rgba(198,228,4,0.15) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════

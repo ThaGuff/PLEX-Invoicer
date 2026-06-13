@@ -14,17 +14,17 @@ const LOGO_SVG = <img src="/logo-invoiceking.png" alt="Invoice King" style={{ wi
 
 const PLANS = [
   {
-    key: 'starter', name: 'Starter', price: 19, icon: Zap, color: '#C8E20A',
+    key: 'starter', name: 'Starter', price: 19, icon: Zap, color: '#C6E404',
     desc: 'For solo freelancers getting started.',
     features: ['10 quotes/month', '10 invoices/month', '1 account', 'Cash, Check, Zelle, Venmo', 'PDF export', '7-day free trial'],
   },
   {
-    key: 'pro', name: 'Pro', price: 49, icon: Star, color: '#C8E20A', badge: 'Most popular',
+    key: 'pro', name: 'Pro', price: 49, icon: Star, color: '#C6E404', badge: 'Most popular',
     desc: 'For growing service businesses.',
     features: ['100 quotes & invoices/month', '5 client accounts', 'All payment methods', 'Stripe card & ACH processing', 'Tax reporting + CSV export', 'AI quote parsing', 'Cash flow dashboard', '7-day free trial'],
   },
   {
-    key: 'agency', name: 'Agency', price: 99, icon: Building2, color: '#C8E20A',
+    key: 'agency', name: 'Agency', price: 99, icon: Building2, color: '#C6E404',
     desc: 'For established agencies at scale.',
     features: ['Unlimited everything', 'Unlimited accounts', 'White-label portal', 'Priority support', 'API access', '7-day free trial'],
   },
@@ -127,10 +127,10 @@ export default function Onboarding() {
             <div style={{
               width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '12px', fontWeight: 700,
-              background: step >= s ? 'linear-gradient(135deg, #C8E20A, #1A1A1A)' : '#1A2640',
+              background: step >= s ? 'linear-gradient(135deg, #C6E404, #1A1A1A)' : '#1A2640',
               color: step >= s ? '#fff' : '#3A5070',
             }}>{s}</div>
-            {s < 2 && <div style={{ width: '32px', height: '1px', background: step > s ? '#C8E20A' : '#1A2640' }} />}
+            {s < 2 && <div style={{ width: '32px', height: '1px', background: step > s ? '#C6E404' : '#1A2640' }} />}
           </React.Fragment>
         ))}
       </div>
@@ -143,7 +143,7 @@ export default function Onboarding() {
               Choose your plan
             </h1>
             <p style={{ fontSize: '14px', color: '#3A5070' }}>
-              All plans include a <strong style={{ color: '#C8E20A' }}>7-day free trial</strong> — no charge until your trial ends.
+              All plans include a <strong style={{ color: '#C6E404' }}>7-day free trial</strong> — no charge until your trial ends.
             </p>
           </div>
 
@@ -161,7 +161,7 @@ export default function Onboarding() {
                     position: 'relative',
                   }}>
                   {plan.badge && (
-                    <div style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(135deg, #1A1A1A, #C8E20A)', borderRadius: '20px', padding: '3px 10px', fontSize: '10px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                    <div style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(135deg, #1A1A1A, #C6E404)', borderRadius: '20px', padding: '3px 10px', fontSize: '10px', fontWeight: 700, whiteSpace: 'nowrap' }}>
                       ⭐ {plan.badge}
                     </div>
                   )}
@@ -199,7 +199,7 @@ export default function Onboarding() {
 
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <button onClick={handleSelectPlan} disabled={saving}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '13px 32px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #C8E20A, #1A1A1A, #C8E20A)', color: '#fff', fontSize: '14px', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, fontFamily: "'Inter', sans-serif" }}>
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '13px 32px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #C6E404, #1A1A1A, #C6E404)', color: '#fff', fontSize: '14px', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, fontFamily: "'Inter', sans-serif" }}>
               {saving ? 'Saving…' : `Start ${PLANS.find(p=>p.key===selectedPlan)?.name} trial`}
               {!saving && <ArrowRight size={16} />}
             </button>
@@ -231,7 +231,7 @@ export default function Onboarding() {
                   background: '#0D1526', cursor: 'pointer', textAlign: 'left', color: '#fff',
                   fontFamily: "'Inter', sans-serif", transition: 'all 0.15s',
                 }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = '#C8E20A'}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#C6E404'}
                 onMouseLeave={e => e.currentTarget.style.borderColor = pm.key === 'skip' ? '#1A2640' : '#1A2640'}>
                 <span style={{ fontSize: '22px', flexShrink: 0 }}>{pm.icon}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>

@@ -9,9 +9,9 @@ import { Upload, FileText, File, Trash2, Download, Search, Plus,
          Link, Tag, FolderOpen, Zap } from 'lucide-react';
 
 const DOC_TYPES = {
-  contract:   { icon: Shield,   color:'#C8E20A', label:'Contract' },
-  invoice:    { icon: FileText, color:'#C8E20A', label:'Invoice' },
-  quote:      { icon: File,     color:'#C8E20A', label:'Quote' },
+  contract:   { icon: Shield,   color:'#C6E404', label:'Contract' },
+  invoice:    { icon: FileText, color:'#C6E404', label:'Invoice' },
+  quote:      { icon: File,     color:'#C6E404', label:'Quote' },
   compliance: { icon: Shield,   color:'#DC2626', label:'Compliance' },
   photo:      { icon: Eye,      color:'#64748B', label:'Photo' },
   other:      { icon: File,     color:'#64748B', label:'File' },
@@ -27,7 +27,7 @@ function fmtSize(b) {
 
 export default function DocumentsPage() {
   const { account } = useAccount();
-  const accent = '#C8E20A';
+  const accent = '#C6E404';
   const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
   const h = { Authorization: `Bearer ${token}` };
 
@@ -128,7 +128,7 @@ export default function DocumentsPage() {
             </div>
           </div>
           <button onClick={() => fileRef.current?.click()} disabled={uploading}
-            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', background:'#1A1A1A', color:'#C8E20A', cursor:'pointer', fontSize:13, fontWeight:800, fontFamily:'inherit' }}>
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', background:'#1A1A1A', color:'#C6E404', cursor:'pointer', fontSize:13, fontWeight:800, fontFamily:'inherit' }}>
             <Upload size={14}/> {uploading ? 'Uploading…' : 'Upload File'}
           </button>
           <input ref={fileRef} type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png,.txt" style={{ display:'none' }} onChange={e => handleUpload(e.target.files)}/>

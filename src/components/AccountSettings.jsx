@@ -12,8 +12,8 @@ import StripeConnectSettings from './StripeConnectSettings';
 import ServiceImporter from './ServiceImporter';
 
 const COLORS = [
-  '#C8E20A','#C8E20A','#C8E20A','#C8E20A','#64748B',
-  '#C8E20A','#14b8a6','#1A1A1A','#dc2626','#d97706','#1a1a1a','#64748b',
+  '#C6E404','#C6E404','#C6E404','#C6E404','#64748B',
+  '#C6E404','#14b8a6','#1A1A1A','#dc2626','#d97706','#1a1a1a','#64748b',
 ];
 
 // ── Logo uploader ─────────────────────────────────────────────────
@@ -169,7 +169,7 @@ function ItemRow({ item, onSave, onDelete }) {
       <div className="flex gap-2">
         <button onClick={save} disabled={!v.name.trim()}
           className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40 flex items-center gap-1"
-          style={{ background: '#C8E20A' }}>
+          style={{ background: '#C6E404' }}>
           <CheckCircle size={11} /> Save
         </button>
         <button onClick={() => setEditing(false)} className="btn-ghost text-xs py-1.5 px-2">Cancel</button>
@@ -263,7 +263,7 @@ function SectionBlock({ accountId, section, items, onRename, onDelete, onItemAdd
               className="field flex-1 py-1 text-sm font-semibold"
               onKeyDown={e => { if (e.key === 'Enter') saveLabel(); if (e.key === 'Escape') setEditLabel(false); }}
               autoFocus />
-            <button onClick={saveLabel} className="text-xs font-semibold px-3 py-1 rounded-lg text-white" style={{ background: '#C8E20A' }}>Save</button>
+            <button onClick={saveLabel} className="text-xs font-semibold px-3 py-1 rounded-lg text-white" style={{ background: '#C6E404' }}>Save</button>
             <button onClick={() => { setLabel(section.label); setEditLabel(false); }} className="btn-ghost py-1 px-2 text-xs">✕</button>
           </div>
         ) : (
@@ -318,7 +318,7 @@ function SectionBlock({ accountId, section, items, onRename, onDelete, onItemAdd
               <div className="flex gap-2">
                 <button onClick={handleAddItem} disabled={!newItem.name.trim() || saving}
                   className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40 flex items-center gap-1"
-                  style={{ background: '#C8E20A' }}>
+                  style={{ background: '#C6E404' }}>
                   {saving ? <RefreshCw size={11} className="animate-spin" /> : <Plus size={11} />}
                   {saving ? 'Adding…' : 'Add service'}
                 </button>
@@ -364,10 +364,10 @@ function EmailStatus() {
       </div>
       {items.map(({ key, label, data }) => (
         <div key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 14px', borderBottom: '0.5px solid var(--border-subtle)' }}>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: data.configured ? '#C8E20A' : '#64748B', flexShrink: 0, marginTop: 4 }} />
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: data.configured ? '#C6E404' : '#64748B', flexShrink: 0, marginTop: 4 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>{label}</p>
-            <p style={{ fontSize: 11, color: data.configured ? '#C8E20A' : 'var(--text-muted)', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 11, color: data.configured ? '#C6E404' : 'var(--text-muted)', lineHeight: 1.5 }}>
               {data.configured ? '✓ Connected' : data.instructions}
             </p>
           </div>
@@ -379,7 +379,7 @@ function EmailStatus() {
 
 export default function AccountSettings({ onClose }) {
   const { account, activeId, updateAccount, refreshAccount } = useAccount();
-  const accent = '#C8E20A';
+  const accent = '#C6E404';
 
   const [form, setForm] = useState({
     name:             account?.name             || '',
@@ -393,7 +393,7 @@ export default function AccountSettings({ onClose }) {
     company_tagline:  account?.company_tagline  || '',
     tax_number:       account?.tax_number       || '',
     logo_initial:     account?.logo_initial     || account?.name?.[0]?.toUpperCase() || 'A',
-    primary_color:    account?.primary_color    || '#C8E20A',
+    primary_color:    account?.primary_color    || '#C6E404',
     business_type:    account?.business_type    || '',
     default_template: account?.default_template || '',
   });
@@ -766,15 +766,15 @@ export default function AccountSettings({ onClose }) {
           {account?.plan && (
             <div style={{ marginBottom:14, display:'flex', alignItems:'center', gap:8, padding:'8px 12px', borderRadius:10, background:'var(--bg-raised)', border:'1px solid var(--border)' }}>
               <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20,
-                background: '#C8E20A15',
-                color: account.plan==='agency' ? '#C8E20A' : account.plan==='pro' ? '#C8E20A' : '#C8E20A',
-                border: `1px solid ${account.plan==='agency' ? '#C8E20A30' : account.plan==='pro' ? '#C8E20A30' : '#C8E20A30'}`
+                background: '#C6E40415',
+                color: account.plan==='agency' ? '#C6E404' : account.plan==='pro' ? '#C6E404' : '#C6E404',
+                border: `1px solid ${account.plan==='agency' ? '#C6E40430' : account.plan==='pro' ? '#C6E40430' : '#C6E40430'}`
               }}>{account.plan.toUpperCase()}</span>
               <span style={{ fontSize:12, color:'var(--text-muted)', flex:1 }}>
                 {account.plan==='agency' && '🏷️ White-label · 🔑 API access · 👥 Unlimited team'}
                 {account.plan==='pro' && '5 team members · All core features'}
                 {account.plan==='starter' && '25 quotes/invoices/mo · '}
-                {account.plan==='starter' && <a href="/billing" style={{ color:'#C8E20A', fontWeight:600 }}>Upgrade →</a>}
+                {account.plan==='starter' && <a href="/billing" style={{ color:'#C6E404', fontWeight:600 }}>Upgrade →</a>}
               </span>
             </div>
           )}
@@ -802,7 +802,7 @@ export default function AccountSettings({ onClose }) {
               <option value="it">💻 Information Technology</option>
             </select>
             {form.business_type && (
-              <p style={{ fontSize:11, color:'#C8E20A', fontWeight:600 }}>
+              <p style={{ fontSize:11, color:'#C6E404', fontWeight:600 }}>
                 ✅ New quotes will automatically load your {form.business_type.toUpperCase()} service template
               </p>
             )}

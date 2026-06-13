@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Shield, Clock, AlertTriangle, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const ACCENT = '#C8E20A';
+const ACCENT = '#C6E404';
 const DARK   = '#1a1a1a';
 
 // ── 1-minute idle warning banner ─────────────────────────────────

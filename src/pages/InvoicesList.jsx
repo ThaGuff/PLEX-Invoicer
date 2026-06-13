@@ -9,12 +9,12 @@ const fmtDShort = s => s ? new Date(s).toLocaleDateString('en-US', { month: 'sho
 const daysDiff = d => d ? Math.floor((Date.now() - new Date(d)) / 86400000) : 0;
 
 const STATUS_CONFIG = {
-  paid:     { label: 'Paid',    color: '#C8E20A', bg: '#F0FDF4' },
-  generated:{ label: 'Sent',    color: '#C8E20A', bg: '#F0FDF4' },
+  paid:     { label: 'Paid',    color: '#C6E404', bg: '#F0FDF4' },
+  generated:{ label: 'Sent',    color: '#C6E404', bg: '#F0FDF4' },
   draft:    { label: 'Draft',   color: '#64748B', bg: '#F1F5F9' },
   overdue:  { label: 'Overdue', color: '#DC2626', bg: '#FEF2F2' },
   viewed:   { label: 'Viewed',  color: '#64748B', bg: '#F1F5F9' },
-  partial:  { label: 'Partial', color: '#C8E20A', bg: '#F0FDF4' },
+  partial:  { label: 'Partial', color: '#C6E404', bg: '#F0FDF4' },
   void:     { label: 'Void',    color: '#9CA3AF', bg: '#F9FAFB' },
 };
 
@@ -98,8 +98,8 @@ export default function InvoicesList() {
     const p = paymentProfiles[name];
     if (!p || p.total === 0) return { label: 'New client', color: '#64748B' };
     const rate = p.paid / p.total;
-    if (rate >= 0.95) return { label: 'Excellent payer', color: '#C8E20A' };
-    if (rate >= 0.8) return { label: 'Reliable payer', color: '#C8E20A' };
+    if (rate >= 0.95) return { label: 'Excellent payer', color: '#C6E404' };
+    if (rate >= 0.8) return { label: 'Reliable payer', color: '#C6E404' };
     if (rate >= 0.6) return { label: 'Slow payer', color: '#64748B' };
     return { label: 'High-risk', color: '#DC2626' };
   };
@@ -125,10 +125,10 @@ export default function InvoicesList() {
       <div style={{ padding: 'clamp(14px,3vw,20px) clamp(14px,4vw,24px)', borderBottom: '1px solid var(--border)', background: 'var(--bg-page)' }}>
         <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
           {[
-            { label: 'Total collected', value: fmtSimple(totalRevenue), sub: `${paid.length} paid invoices`, color: '#C8E20A' },
+            { label: 'Total collected', value: fmtSimple(totalRevenue), sub: `${paid.length} paid invoices`, color: '#C6E404' },
             { label: 'Outstanding', value: fmtSimple(totalOutstanding), sub: `${outstanding.length} awaiting payment`, color: '#64748B' },
-            { label: 'Overdue', value: fmtSimple(totalOverdue), sub: overdue.length > 0 ? `${overdue.length} need immediate action` : 'None — all current', color: totalOverdue > 0 ? '#DC2626' : '#C8E20A' },
-            { label: 'Collection rate', value: `${collectionRate}%`, sub: 'Paid vs total invoiced', color: collectionRate >= 80 ? '#C8E20A' : '#64748B' },
+            { label: 'Overdue', value: fmtSimple(totalOverdue), sub: overdue.length > 0 ? `${overdue.length} need immediate action` : 'None — all current', color: totalOverdue > 0 ? '#DC2626' : '#C6E404' },
+            { label: 'Collection rate', value: `${collectionRate}%`, sub: 'Paid vs total invoiced', color: collectionRate >= 80 ? '#C6E404' : '#64748B' },
           ].map(s => (
             <div key={s.label} style={{ padding: '14px 16px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
               <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{s.label}</p>
@@ -164,7 +164,7 @@ export default function InvoicesList() {
                 <input value={search} onChange={e => setSearch(e.target.value)}
                   placeholder="Search invoices, clients…"
                   style={{ width: '100%', padding: '9px 12px 9px 32px', borderRadius: 9, border: '1.5px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)', fontSize: 13, boxSizing: 'border-box', fontFamily: "'Inter', sans-serif", outline: 'none' }}
-                  onFocus={e => e.target.style.borderColor = '#C8E20A'}
+                  onFocus={e => e.target.style.borderColor = '#C6E404'}
                   onBlur={e => e.target.style.borderColor = 'var(--border)'} />
               </div>
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
@@ -209,7 +209,7 @@ export default function InvoicesList() {
                             style={{ borderBottom: '1px solid var(--border-subtle)', cursor: 'pointer', transition: 'background 0.1s' }}
                             onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-raised)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                            <td style={{ padding: '13px 16px', fontWeight: 700, color: '#C8E20A', fontFamily: 'monospace', fontSize: 12 }}>{inv.number || 'Draft'}</td>
+                            <td style={{ padding: '13px 16px', fontWeight: 700, color: '#C6E404', fontFamily: 'monospace', fontSize: 12 }}>{inv.number || 'Draft'}</td>
                             <td style={{ padding: '13px 16px' }}>
                               <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{inv.client_name || '—'}</p>
                               {inv.client_name && (
@@ -232,7 +232,7 @@ export default function InvoicesList() {
                                 </button>
                                 {['generated', 'viewed', 'overdue'].includes(inv.status) && (
                                   <button
-                                    style={{ padding: '4px 10px', borderRadius: 7, border: 'none', background: inv.status === 'overdue' ? '#FEF2F2' : '#F0FDF4', color: inv.status === 'overdue' ? '#DC2626' : '#C8E20A', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: "'Inter', sans-serif" }}>
+                                    style={{ padding: '4px 10px', borderRadius: 7, border: 'none', background: inv.status === 'overdue' ? '#FEF2F2' : '#F0FDF4', color: inv.status === 'overdue' ? '#DC2626' : '#C6E404', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: "'Inter', sans-serif" }}>
                                     {inv.status === 'overdue' ? 'Remind' : 'Follow up'}
                                   </button>
                                 )}
@@ -256,7 +256,7 @@ export default function InvoicesList() {
               <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)', marginBottom: 16 }}>Priority collections list</p>
               {overdue.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '32px 0' }}>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: '#C8E20A', marginBottom: 4 }}>No overdue invoices — great job!</p>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: '#C6E404', marginBottom: 4 }}>No overdue invoices — great job!</p>
                   <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>All your invoices are current.</p>
                 </div>
               ) : overdue.sort((a, b) => parseFloat(b.amount_due || 0) - parseFloat(a.amount_due || 0)).map(inv => {
@@ -321,9 +321,9 @@ export default function InvoicesList() {
         {activeTab === 'forecast' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {[
-              { label: 'Next 7 days', days: 7, color: '#C8E20A', icon: '📅' },
-              { label: 'Next 30 days', days: 30, color: '#C8E20A', icon: '📊' },
-              { label: 'Next 90 days', days: 90, color: '#C8E20A', icon: '🔮' },
+              { label: 'Next 7 days', days: 7, color: '#C6E404', icon: '📅' },
+              { label: 'Next 30 days', days: 30, color: '#C6E404', icon: '📊' },
+              { label: 'Next 90 days', days: 90, color: '#C6E404', icon: '🔮' },
             ].map(({ label, days, color, icon }) => {
               const due = outstanding.filter(i => {
                 if (!i.due_date) return false;

@@ -47,7 +47,7 @@ export default function MarkPaidModal({ invoice, onClose, onConfirm, accent = '#
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '0.5px solid var(--border)' }}>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #C8E20A, #1A1A1A, #C8E20A)' }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #C6E404, #1A1A1A, #C6E404)' }}>
               <DollarSign size={15} color="#fff" />
             </div>
             <div>
@@ -81,7 +81,7 @@ export default function MarkPaidModal({ invoice, onClose, onConfirm, accent = '#
                 return (
                   <div key={m.key} style={{ position: 'relative' }}>
                     {!allowed && (
-                      <div style={{ position: 'absolute', top: '4px', right: '4px', zIndex: 2, background: 'linear-gradient(135deg, #1A1A1A, #C8E20A)', borderRadius: '8px', padding: '1px 5px', fontSize: '8px', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                      <div style={{ position: 'absolute', top: '4px', right: '4px', zIndex: 2, background: 'linear-gradient(135deg, #1A1A1A, #C6E404)', borderRadius: '8px', padding: '1px 5px', fontSize: '8px', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '2px' }}>
                         <Lock size={7} /> Pro
                       </div>
                     )}
@@ -155,8 +155,8 @@ export default function MarkPaidModal({ invoice, onClose, onConfirm, accent = '#
             {[
               { label: 'Gross collected',  value: fmt(amount),               color: 'var(--text-primary)' },
               ...(taxAmount > 0 ? [{ label: `Tax (${taxRate}%)`, value: `− ${fmt(taxAmount)}`, color: '#ef4444' }] : []),
-              ...(fee > 0 ? [{ label: `${selectedM.label} fee`, value: `− ${fmt(fee)}`, color: '#C8E20A' }] : []),
-              { label: 'Net to you', value: fmt(Math.max(0, net)), color: '#C8E20A', bold: true },
+              ...(fee > 0 ? [{ label: `${selectedM.label} fee`, value: `− ${fmt(fee)}`, color: '#C6E404' }] : []),
+              { label: 'Net to you', value: fmt(Math.max(0, net)), color: '#C6E404', bold: true },
             ].map((row, i) => (
               <div key={i} className="flex justify-between items-center px-3.5 py-2.5 text-sm" style={{ background: row.bold ? 'rgba(0,229,200,0.05)' : 'var(--bg-surface)', borderBottom: i < 3 ? '0.5px solid var(--border-subtle)' : 'none' }}>
                 <span style={{ color: row.bold ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: row.bold ? 700 : 400 }}>{row.label}</span>
@@ -171,7 +171,7 @@ export default function MarkPaidModal({ invoice, onClose, onConfirm, accent = '#
           <button onClick={onClose} className="btn-ghost text-sm">Cancel</button>
           <button onClick={handleConfirm} disabled={saving}
             className="flex items-center gap-2 text-sm font-bold px-5 py-2.5 rounded-xl text-white disabled:opacity-40"
-            style={{ background: 'linear-gradient(135deg, #C8E20A, #1A1A1A)' }}>
+            style={{ background: 'linear-gradient(135deg, #C6E404, #1A1A1A)' }}>
             {saving ? <><RefreshCw size={13} className="animate-spin" />Saving…</> : <><CheckCircle size={13} />Confirm payment</>}
           </button>
         </div>

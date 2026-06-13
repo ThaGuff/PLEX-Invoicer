@@ -11,7 +11,7 @@ import { X, Zap, Clock, AlertTriangle, Gift, ArrowRight, RefreshCw } from 'lucid
 import { useSubscription } from '../hooks/useSubscription';
 import { useAccount } from '../context/AccountContext';
 
-const GRAD = '#C8E20A';
+const GRAD = '#C6E404';
 
 function WinbackOffer({ onDismiss }) {
   const navigate   = useNavigate();
@@ -35,9 +35,9 @@ function WinbackOffer({ onDismiss }) {
   };
 
   return (
-    <div style={{ background: '#1A1A1A', borderBottom: '1px solid rgba(200,226,10,0.2)', padding: '0' }}>
+    <div style={{ background: '#1A1A1A', borderBottom: '1px solid rgba(198,228,4,0.2)', padding: '0' }}>
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#C8E20A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#C6E404', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Gift size={17} color="#fff" />
         </div>
         <div style={{ flex: 1, minWidth: 200 }}>
@@ -45,7 +45,7 @@ function WinbackOffer({ onDismiss }) {
             We'd love to keep you — here's a special offer
           </p>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', lineHeight: 1.4 }}>
-            Your subscription was cancelled. Get <strong style={{ color: '#C8E20A' }}>30 extra days + 50% off your first month</strong> if you come back today.
+            Your subscription was cancelled. Get <strong style={{ color: '#C6E404' }}>30 extra days + 50% off your first month</strong> if you come back today.
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
@@ -72,7 +72,7 @@ function TrialCountdown({ daysLeft, onDismiss }) {
     ? '#1A1A1A'
     : '#1A1A1A';
   const borderColor = isUrgent ? 'rgba(239,68,68,0.4)' : 'rgba(59,111,232,0.3)';
-  const accentColor = isUrgent ? '#ef4444' : '#C8E20A';
+  const accentColor = isUrgent ? '#ef4444' : '#C6E404';
 
   return (
     <div style={{ background: bgColor, borderBottom: `1px solid ${borderColor}` }}>

@@ -8,7 +8,7 @@ import { GripHorizontal, Minimize2, Maximize2 } from 'lucide-react';
 
 const isMobile = () => window.innerWidth < 768;
 
-export default function DraggableWidget({ id, title, icon, defaultPos = { x: 0, y: 0 }, defaultSize = { w: 400, h: 'auto' }, children, accent = '#C8E20A', className = '', style = {} }) {
+export default function DraggableWidget({ id, title, icon, defaultPos = { x: 0, y: 0 }, defaultSize = { w: 400, h: 'auto' }, children, accent = '#C6E404', className = '', style = {} }) {
   const storageKey = `invoiceking_widget_${id}`;
   const [pos, setPos] = useState(() => {
     try { const s = JSON.parse(localStorage.getItem(storageKey) || '{}'); return s.pos || defaultPos; } catch { return defaultPos; }

@@ -139,7 +139,7 @@ export default function AIAssistant() {
             </div>
             <div style={{ flex:1 }}>
               <p style={{ fontSize:14, fontWeight:800, color:'var(--text-primary)', margin:0 }}>Invoice King Assistant</p>
-              <p style={{ fontSize:11, color:'#C8E20A', margin:0, fontWeight:600 }}>● Online — powered by Claude AI</p>
+              <p style={{ fontSize:11, color:'#C6E404', margin:0, fontWeight:600 }}>● Online — powered by Claude AI</p>
             </div>
             <button onClick={() => setOpen(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:4 }}>
               <ChevronDown size={18}/>

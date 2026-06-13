@@ -7,13 +7,13 @@
 import React, { useState, useMemo } from 'react';
 import { Calculator, ChevronDown, ChevronUp, CreditCard, Info } from 'lucide-react';
 
-const GRAD = 'linear-gradient(135deg, #C8E20A, #1A1A1A, #C8E20A)';
+const GRAD = 'linear-gradient(135deg, #C6E404, #1A1A1A, #C6E404)';
 
 const FINANCING_OPTIONS = [
-  { months: 3,  apr: 0,     label: '3 months',  badge: '0% APR',    color: '#C8E20A', provider: 'Invoice King Pay' },
-  { months: 6,  apr: 0,     label: '6 months',  badge: '0% APR',    color: '#C8E20A', provider: 'Invoice King Pay' },
+  { months: 3,  apr: 0,     label: '3 months',  badge: '0% APR',    color: '#C6E404', provider: 'Invoice King Pay' },
+  { months: 6,  apr: 0,     label: '6 months',  badge: '0% APR',    color: '#C6E404', provider: 'Invoice King Pay' },
   { months: 12, apr: 9.99,  label: '12 months', badge: '9.99% APR', color: '#1A1A1A', provider: 'Wisetack' },
-  { months: 24, apr: 14.99, label: '24 months', badge: '14.99% APR',color: '#C8E20A', provider: 'Affirm' },
+  { months: 24, apr: 14.99, label: '24 months', badge: '14.99% APR',color: '#C6E404', provider: 'Affirm' },
 ];
 
 function calcMonthly(principal, months, aprPct) {
@@ -99,7 +99,7 @@ export default function FinancingCalculator({ totalAmount = 0, onSelectFinancing
         </div>
 
         {deposit > 0 && (
-          <div style={{ background: 'rgba(200,226,10,0.06)', border: '0.5px solid rgba(200,226,10,0.2)', borderRadius: '7px', padding: '8px 10px', marginBottom: '12px', fontSize: '11px', color: '#C8E20A', fontWeight: 600 }}>
+          <div style={{ background: 'rgba(198,228,4,0.06)', border: '0.5px solid rgba(198,228,4,0.2)', borderRadius: '7px', padding: '8px 10px', marginBottom: '12px', fontSize: '11px', color: '#C6E404', fontWeight: 600 }}>
             Financed amount: {fmt(financed)} (after {fmt(deposit)} deposit)
           </div>
         )}
@@ -109,10 +109,10 @@ export default function FinancingCalculator({ totalAmount = 0, onSelectFinancing
           {/* Pay in full */}
           <button
             onClick={() => { setSelected(0); onSelectFinancing?.({ months: 0, monthly: totalAmount, totalCost: totalAmount, totalInterest: 0, deposit: 0, financed: totalAmount }); }}
-            style={{ padding: '10px', borderRadius: '8px', border: selected === 0 ? '1.5px solid #C8E20A' : '0.5px solid var(--border)', background: selected === 0 ? 'rgba(200,226,10,0.06)' : 'var(--bg-page)', cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter', sans-serif', transition: 'all 0.15s'" }}>
+            style={{ padding: '10px', borderRadius: '8px', border: selected === 0 ? '1.5px solid #C6E404' : '0.5px solid var(--border)', background: selected === 0 ? 'rgba(198,228,4,0.06)' : 'var(--bg-page)', cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter', sans-serif', transition: 'all 0.15s'" }}>
             <p style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '4px' }}>Pay in full</p>
-            <p style={{ fontSize: '18px', fontWeight: 800, color: selected === 0 ? '#C8E20A' : 'var(--text-primary)' }}>{fmt(totalAmount)}</p>
-            <p style={{ fontSize: '10px', color: '#C8E20A', fontWeight: 700, marginTop: '2px' }}>No interest ✓</p>
+            <p style={{ fontSize: '18px', fontWeight: 800, color: selected === 0 ? '#C6E404' : 'var(--text-primary)' }}>{fmt(totalAmount)}</p>
+            <p style={{ fontSize: '10px', color: '#C6E404', fontWeight: 700, marginTop: '2px' }}>No interest ✓</p>
           </button>
 
           {options.slice(0, 3).map(opt => (

@@ -12,12 +12,12 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 
 const OWNER_EMAIL = 'guffey.ryan@gmail.com';
-const ACCENT = '#C8E20A';
+const ACCENT = '#C6E404';
 const DARK   = '#1a1a1a';
 
 const PLANS = ['starter', 'pro', 'agency'];
-const PLAN_COLOR  = { agency:'#C8E20A', pro: ACCENT, starter:'#C8E20A', none:'#9ca3af', suspended:'#ef4444' };
-const STATUS_COLOR = { active:'#C8E20A', trialing:'#64748B', cancelled:'#ef4444', suspended:'#ef4444', none:'#9ca3af' };
+const PLAN_COLOR  = { agency:'#C6E404', pro: ACCENT, starter:'#C6E404', none:'#9ca3af', suspended:'#ef4444' };
+const STATUS_COLOR = { active:'#C6E404', trialing:'#64748B', cancelled:'#ef4444', suspended:'#ef4444', none:'#9ca3af' };
 
 function fmt(n)   { return '$' + Math.round(n||0).toLocaleString(); }
 function fmtDate(iso) {
@@ -69,7 +69,7 @@ function ActionBtn({ onClick, icon: Icon, label, variant = 'default', loading = 
     primary:   'text-white',
     success:   'text-white',
   };
-  const bg = variant === 'primary' ? ACCENT : variant === 'success' ? '#C8E20A' : 'transparent';
+  const bg = variant === 'primary' ? ACCENT : variant === 'success' ? '#C6E404' : 'transparent';
   return (
     <button onClick={onClick} disabled={disabled || loading}
       className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 ${styles[variant]}`}
@@ -114,13 +114,13 @@ function UserPanel({ user, onClose, onRefresh }) {
   const isSuspended = user.sub_status === 'suspended';
 
   const EVENT_LABELS = {
-    quote_created:   { label: 'Created quote',    color: '#C8E20A' },
-    invoice_created: { label: 'Created invoice',  color: '#C8E20A' },
+    quote_created:   { label: 'Created quote',    color: '#C6E404' },
+    invoice_created: { label: 'Created invoice',  color: '#C6E404' },
     opened:          { label: 'Client opened email', color: '#64748B' },
     viewed:          { label: 'Client viewed portal', color: '#64748B' },
-    clicked_pay:     { label: 'Client clicked pay',   color: '#C8E20A' },
+    clicked_pay:     { label: 'Client clicked pay',   color: '#C6E404' },
     heartbeat:       { label: 'Portal heartbeat', color: '#9ca3af' },
-    reminder_sent:   { label: 'Reminder sent',    color: '#C8E20A' },
+    reminder_sent:   { label: 'Reminder sent',    color: '#C6E404' },
   };
 
   return (
@@ -489,7 +489,7 @@ function OnboardModal({ user, onClose, onSent }) {
           <button onClick={onClose} className="btn-ghost text-sm">Cancel</button>
           <button onClick={send} disabled={sending || done}
             className="flex items-center gap-2 text-sm font-bold px-5 py-2.5 rounded-xl text-white disabled:opacity-50"
-            style={{ background: done ? '#C8E20A' : ACCENT }}>
+            style={{ background: done ? '#C6E404' : ACCENT }}>
             {done ? <><CheckCircle size={14}/>Sent!</> : sending ? <><RefreshCw size={14} className="animate-spin"/>Sending…</> : <><Send size={14}/>Send welcome email</>}
           </button>
         </div>
@@ -525,7 +525,7 @@ function BroadcastModal({ userCount, onClose }) {
         <div className="p-6 space-y-4">
           {result ? (
             <div className="text-center py-6">
-              <CheckCircle size={32} className="mx-auto mb-3" style={{ color:'#C8E20A' }}/>
+              <CheckCircle size={32} className="mx-auto mb-3" style={{ color:'#C6E404' }}/>
               <p className="text-sm font-bold text-ink">Broadcast sent!</p>
               <p className="text-xs text-ink-muted mt-1">{result.sent} sent · {result.failed} failed</p>
               <button onClick={onClose} className="mt-4 btn-ghost text-sm">Close</button>
@@ -555,7 +555,7 @@ function BroadcastModal({ userCount, onClose }) {
 
 // ── Health indicator ──────────────────────────────────────────────
 function HealthDot({ ok }) {
-  return <div className="w-2 h-2 rounded-full" style={{ background: ok ? '#C8E20A' : '#ef4444' }} />;
+  return <div className="w-2 h-2 rounded-full" style={{ background: ok ? '#C6E404' : '#ef4444' }} />;
 }
 
 // ── Main Admin ────────────────────────────────────────────────────
@@ -653,10 +653,10 @@ export default function Admin() {
       {metrics && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
           <StatCard label="Total users"    value={metrics.total_users}    icon={Users}     color={ACCENT}/>
-          <StatCard label="New this week"  value={metrics.new_this_week}  icon={TrendingUp} color="#C8E20A"/>
-          <StatCard label="Accounts"       value={metrics.total_accounts} icon={Shield}    color="#C8E20A"/>
+          <StatCard label="New this week"  value={metrics.new_this_week}  icon={TrendingUp} color="#C6E404"/>
+          <StatCard label="Accounts"       value={metrics.total_accounts} icon={Shield}    color="#C6E404"/>
           <StatCard label="Quotes sent"    value={metrics.total_quotes}   icon={FileText}  color="#64748B"/>
-          <StatCard label="Invoices"       value={metrics.total_invoices} icon={Receipt}   color="#C8E20A"/>
+          <StatCard label="Invoices"       value={metrics.total_invoices} icon={Receipt}   color="#C6E404"/>
           <StatCard label="Revenue tracked" value={fmt(metrics.total_revenue)} icon={BarChart2} color="#14b8a6"/>
         </div>
       )}
@@ -936,7 +936,7 @@ export default function Admin() {
                     <span className="text-sm text-ink flex-1">{label}</span>
                     <div className="flex items-center gap-1.5">
                       <HealthDot ok={health.checks[key]}/>
-                      <span className="text-xs" style={{ color: health.checks[key] ? '#C8E20A' : '#ef4444' }}>
+                      <span className="text-xs" style={{ color: health.checks[key] ? '#C6E404' : '#ef4444' }}>
                         {health.checks[key] ? 'OK' : 'Not configured'}
                       </span>
                     </div>
@@ -1015,7 +1015,7 @@ export default function Admin() {
                 if (r.ok) alert(`✅ Test email sent to ${email} via ${r.provider}!`);
                 else alert('❌ Email failed: ' + r.error + '\n\nFix: ' + (r.fix || 'Check Railway Variables'));
               }}
-              style={{ padding:'8px 16px', borderRadius:8, border:'none', background:'#C8E20A', color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, whiteSpace:'nowrap' }}>
+              style={{ padding:'8px 16px', borderRadius:8, border:'none', background:'#C6E404', color:'#1A1A1A', cursor:'pointer', fontSize:13, fontWeight:700, whiteSpace:'nowrap' }}>
               Send Test
             </button>
           </div>

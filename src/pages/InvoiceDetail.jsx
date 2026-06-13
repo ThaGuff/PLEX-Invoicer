@@ -17,8 +17,8 @@ function getStatus(inv) {
 }
 
 const STATUS_COLORS = {
-  draft: '#7A7E85', sent: '#C8E20A', viewed: '#d97706',
-  paid: '#C8E20A', overdue: '#dc2626', cancelled: '#7A7E85',
+  draft: '#7A7E85', sent: '#C6E404', viewed: '#d97706',
+  paid: '#C6E404', overdue: '#dc2626', cancelled: '#7A7E85',
 };
 
 const PAYMENT_METHOD_LABELS = {
@@ -30,7 +30,7 @@ export default function InvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { account } = useAccount();
-  const accent = '#C8E20A';
+  const accent = '#C6E404';
 
   const [invoice, setInvoice]       = useState(null);
   const [items, setItems]           = useState([]);
@@ -256,7 +256,7 @@ Thank you!`);
       {/* Main content / Toast */}
       {toast && (
         <div className="fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white max-w-sm"
-          style={{ background: toast.type === 'success' ? '#C8E20A' : toast.type === 'warn' ? '#dc2626' : '#C8E20A' }}>
+          style={{ background: toast.type === 'success' ? '#C6E404' : toast.type === 'warn' ? '#dc2626' : '#C6E404' }}>
           {toast.msg}
         </div>
       )}
@@ -276,7 +276,7 @@ Thank you!`);
             <p className="text-sm text-ink-muted">
               {invoice.client_name}{invoice.client_biz ? ` · ${invoice.client_biz}` : ''}
               {invoice.payment_method && status === 'paid' &&
-                <span className="ml-2 text-xs px-1.5 py-0.5 rounded" style={{ background: '#f0fdf4', color: '#C8E20A' }}>
+                <span className="ml-2 text-xs px-1.5 py-0.5 rounded" style={{ background: '#f0fdf4', color: '#C6E404' }}>
                   via {PAYMENT_METHOD_LABELS[invoice.payment_method] || invoice.payment_method}
                 </span>
               }
@@ -418,7 +418,7 @@ Thank you!`);
                 <>
                   <button onClick={() => setShowMarkPaid(true)} disabled={!!working}
                     className="w-full flex items-center gap-2 text-sm font-semibold text-white py-2.5 px-4 rounded-lg disabled:opacity-50"
-                    style={{ background: '#C8E20A' }}>
+                    style={{ background: '#C6E404' }}>
                     <CheckCircle size={15} /> Mark as paid
                   </button>
                   <button onClick={handleSend} disabled={!!working}

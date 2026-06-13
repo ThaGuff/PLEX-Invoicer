@@ -24,7 +24,7 @@ const FEATURE_PLANS = {
 
 const PLAN_NAMES = { starter: 'Starter', pro: 'Pro', agency: 'Agency' };
 const PLAN_ICONS = { pro: Star, agency: Building2 };
-const PLAN_COLORS = { pro: '#C8E20A', agency: '#64748B' };
+const PLAN_COLORS = { pro: '#C6E404', agency: '#64748B' };
 
 export default function PlanGate({ feature, children }) {
   const { account } = useAccount();
@@ -42,7 +42,7 @@ export default function PlanGate({ feature, children }) {
   if (hasAccess) return children;
 
   const PlanIcon = PLAN_ICONS[requiredPlan] || Zap;
-  const planColor = PLAN_COLORS[requiredPlan] || '#C8E20A';
+  const planColor = PLAN_COLORS[requiredPlan] || '#C6E404';
 
   return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'60vh', padding:24, fontFamily:"'Inter',sans-serif" }}>
@@ -59,7 +59,7 @@ export default function PlanGate({ feature, children }) {
         </p>
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
           <button onClick={() => navigate('/billing')}
-            style={{ width:'100%', padding:'14px', background:'#C8E20A', color:'#fff', border:'none', borderRadius:12, fontSize:15, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, fontFamily:"'Inter',sans-serif" }}>
+            style={{ width:'100%', padding:'14px', background:'#C6E404', color:'#1A1A1A', border:'none', borderRadius:12, fontSize:15, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, fontFamily:"'Inter',sans-serif" }}>
             <PlanIcon size={16} /> Upgrade to {PLAN_NAMES[requiredPlan]}
           </button>
           <button onClick={() => navigate(-1)}

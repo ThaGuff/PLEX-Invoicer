@@ -10,7 +10,7 @@ const PLANS = [
     name: 'Starter',
     icon: Zap,
     price: 19,
-    color: '#C8E20A',
+    color: '#C6E404',
     description: 'Perfect for freelancers and solo operators just getting started.',
     features: [
       'Up to 25 quotes/month',
@@ -70,8 +70,8 @@ const PLANS = [
 ];
 
 const STATUS_LABELS = {
-  trialing:   { label: 'Free Trial',  color: '#C8E20A' },
-  active:     { label: 'Active',      color: '#C8E20A' },
+  trialing:   { label: 'Free Trial',  color: '#C6E404' },
+  active:     { label: 'Active',      color: '#C6E404' },
   cancelled:  { label: 'Cancelled',   color: '#dc2626' },
   suspended:  { label: 'Suspended',   color: '#dc2626' },
   past_due:   { label: 'Past Due',    color: '#d97706' },
@@ -84,7 +84,7 @@ export default function BillingPage() {
   const isWelcome      = params.get('welcome') === '1';
   const isTrialEnding  = params.get('trial_ending') === '1';
   const trialDaysParam = parseInt(params.get('days') || '0');
-  const accent = '#C8E20A';
+  const accent = '#C6E404';
 
   const [loading, setLoading]   = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
@@ -171,7 +171,7 @@ export default function BillingPage() {
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
               {/* Primary CTA: Start trial without card */}
               <button onClick={() => { handleSelectPlan('pro', true); }}
-                style={{ width:'100%', padding:'15px', background:'#C8E20A', color:'#fff', border:'none', borderRadius:13, fontSize:15, fontWeight:800, cursor:'pointer', fontFamily:"'Inter',sans-serif", display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                style={{ width:'100%', padding:'15px', background:'#C6E404', color:'#1A1A1A', border:'none', borderRadius:13, fontSize:15, fontWeight:800, cursor:'pointer', fontFamily:"'Inter',sans-serif", display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
                 🎉 Start 7-day free trial — no card needed
               </button>
               {/* Secondary CTA: Enter card now */}
@@ -333,7 +333,7 @@ export default function BillingPage() {
                   disabled={isLoading || (isCurrent && currentStatus === 'active')}
                   className="w-full py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   style={{
-                    background: isCurrent && currentStatus === 'active' ? 'var(--bg-page)' : 'linear-gradient(135deg, #C8E20A, #1A1A1A, #C8E20A)',
+                    background: isCurrent && currentStatus === 'active' ? 'var(--bg-page)' : 'linear-gradient(135deg, #C6E404, #1A1A1A, #C6E404)',
                     color: isCurrent && currentStatus === 'active' ? '#7A7E85' : '#FFFFFF',
                   }}>
                   {isLoading ? (

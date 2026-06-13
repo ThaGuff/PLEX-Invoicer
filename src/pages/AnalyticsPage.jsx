@@ -21,7 +21,7 @@ function StatCard({ label, value, sub, color, icon: Icon, trend }) {
       <div style={{ display:'flex', alignItems:'baseline', gap:8 }}>
         <span style={{ fontSize:26, fontWeight:900, color:'var(--text-primary)', letterSpacing:'-0.04em' }}>{value}</span>
         {trend !== undefined && (
-          <span style={{ fontSize:12, fontWeight:700, color: trend >= 0 ? '#C8E20A' : '#DC2626', display:'flex', alignItems:'center', gap:2 }}>
+          <span style={{ fontSize:12, fontWeight:700, color: trend >= 0 ? '#C6E404' : '#DC2626', display:'flex', alignItems:'center', gap:2 }}>
             {trend >= 0 ? <TrendingUp size={12}/> : <TrendingDown size={12}/>}
             {fmtPct(trend)}
           </span>
@@ -60,7 +60,7 @@ function RevenueBar({ month, revenue, maxRevenue }) {
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, flex:1 }}>
       <span style={{ fontSize:11, color:'var(--text-muted)', fontWeight:600 }}>{fmt$(revenue)}</span>
       <div style={{ width:'100%', background:'var(--bg-raised)', borderRadius:6, height:80, display:'flex', alignItems:'flex-end', overflow:'hidden' }}>
-        <div style={{ width:'100%', background:'#C8E20A', borderRadius:6, height:`${pct}%`, transition:'height 0.8s ease', minHeight:4 }}/>
+        <div style={{ width:'100%', background:'#C6E404', borderRadius:6, height:`${pct}%`, transition:'height 0.8s ease', minHeight:4 }}/>
       </div>
       <span style={{ fontSize:10, color:'var(--text-muted)', fontWeight:600 }}>{monthNames[parseInt(label)] || label}</span>
     </div>
@@ -69,7 +69,7 @@ function RevenueBar({ month, revenue, maxRevenue }) {
 
 export default function AnalyticsPage() {
   const { account } = useAccount();
-  const accent = '#C8E20A';
+  const accent = '#C6E404';
   const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
   const h = { Authorization: `Bearer ${token}` };
   const acctId = account?.id;
@@ -127,7 +127,7 @@ export default function AnalyticsPage() {
               <div style={{ display:'flex', gap:12, marginTop:12, flexWrap:'wrap' }}>
                 {[
                   { label:'Health', value:`${health.score}/100`, color:'var(--text-muted)' },
-                  { label:'This Month', value:fmt$(health.revenue?.current), color:'#C8E20A' },
+                  { label:'This Month', value:fmt$(health.revenue?.current), color:'#C6E404' },
                   { label:'Outstanding', value:fmt$(health.collections?.outstanding), color:'var(--text-muted)' },
                   { label:'Churn Risk', value:health.customers?.churnRisk, color:'#64748B' },
                 ].map(({ label, value, color }) => (
@@ -180,7 +180,7 @@ export default function AnalyticsPage() {
                           </div>
                           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                             <div style={{ flex:1, height:4, borderRadius:2, background:'var(--border)', overflow:'hidden' }}>
-                              <div style={{ width:`${Math.min(score/20*100,100)}%`, height:'100%', background:score>=15?'#C8E20A':score>=10?'#64748B':'#DC2626', transition:'width 0.8s ease' }}/>
+                              <div style={{ width:`${Math.min(score/20*100,100)}%`, height:'100%', background:score>=15?'#C6E404':score>=10?'#64748B':'#DC2626', transition:'width 0.8s ease' }}/>
                             </div>
                             <span style={{ fontSize:11, fontWeight:700, color:'var(--text-primary)' }}>{score}/20</span>
                           </div>
@@ -193,12 +193,12 @@ export default function AnalyticsPage() {
 
               {/* KPI Grid */}
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))', gap:14 }}>
-                <StatCard label="This Month" value={fmt$(health?.revenue?.current)} sub={`Avg: ${fmt$(health?.revenue?.avg)}/mo`} color="#C8E20A" icon={DollarSign} trend={health?.trend}/>
+                <StatCard label="This Month" value={fmt$(health?.revenue?.current)} sub={`Avg: ${fmt$(health?.revenue?.avg)}/mo`} color="#C6E404" icon={DollarSign} trend={health?.trend}/>
                 <StatCard label="YTD Revenue" value={fmt$(health?.revenue?.ytd)} color={accent} icon={TrendingUp}/>
-                <StatCard label="Outstanding" value={fmt$(health?.collections?.outstanding)} sub={health?.collections?.overdue > 0 ? `${fmt$(health.collections.overdue)} overdue` : 'None overdue ✓'} color={health?.collections?.overdue > 0 ? '#DC2626' : '#C8E20A'} icon={AlertTriangle}/>
+                <StatCard label="Outstanding" value={fmt$(health?.collections?.outstanding)} sub={health?.collections?.overdue > 0 ? `${fmt$(health.collections.overdue)} overdue` : 'None overdue ✓'} color={health?.collections?.overdue > 0 ? '#DC2626' : '#C6E404'} icon={AlertTriangle}/>
                 <StatCard label="Quote Accept Rate" value={`${health?.quotes?.acceptRate || 0}%`} color={accent} icon={CheckCircle}/>
                 <StatCard label="Customers" value={health?.customers?.total || 0} sub={`${health?.customers?.churnRisk || 0} at churn risk`} color="#64748B" icon={Users}/>
-                <StatCard label="Labor Margin" value={`${health?.labor?.margin || 0}%`} sub={`${health?.labor?.hours}h tracked`} color="#C8E20A" icon={Activity}/>
+                <StatCard label="Labor Margin" value={`${health?.labor?.margin || 0}%`} sub={`${health?.labor?.hours}h tracked`} color="#C6E404" icon={Activity}/>
               </div>
 
               {/* Revenue Chart */}
@@ -251,7 +251,7 @@ export default function AnalyticsPage() {
                   <p style={{ margin:0, fontSize:14, fontWeight:800, color:'var(--text-primary)' }}>AI Business Advisor</p>
                   <p style={{ margin:0, fontSize:11, color:'var(--text-muted)' }}>Powered by GPT-4 · Updated just now</p>
                 </div>
-                <div style={{ marginLeft:'auto', padding:'4px 10px', borderRadius:8, background: advisor.revTrend >= 0 ? '#C8E20A15' : '#DC262615', fontSize:12, fontWeight:700, color: advisor.revTrend >= 0 ? '#C8E20A' : '#DC2626', display:'flex', alignItems:'center', gap:4 }}>
+                <div style={{ marginLeft:'auto', padding:'4px 10px', borderRadius:8, background: advisor.revTrend >= 0 ? '#C6E40415' : '#DC262615', fontSize:12, fontWeight:700, color: advisor.revTrend >= 0 ? '#C6E404' : '#DC2626', display:'flex', alignItems:'center', gap:4 }}>
                   {advisor.revTrend >= 0 ? <TrendingUp size={12}/> : <TrendingDown size={12}/>}
                   {fmtPct(advisor.revTrend || 0)} vs last month
                 </div>
@@ -274,7 +274,7 @@ export default function AnalyticsPage() {
                         <span style={{ fontSize:10, padding:'2px 7px', borderRadius:5, background: rec.priority==='high' ? '#DC262615' : '#64748B15', color: rec.priority==='high' ? '#DC2626' : '#64748B', fontWeight:700 }}>{rec.priority}</span>
                       </div>
                       <p style={{ margin:0, fontSize:12, color:'var(--text-muted)', lineHeight:1.6 }}>{rec.desc}</p>
-                      {rec.impact > 0 && <p style={{ margin:'4px 0 0', fontSize:12, fontWeight:700, color:'#C8E20A' }}>Est. impact: {fmt$(rec.impact)}</p>}
+                      {rec.impact > 0 && <p style={{ margin:'4px 0 0', fontSize:12, fontWeight:700, color:'#C6E404' }}>Est. impact: {fmt$(rec.impact)}</p>}
                     </div>
                     <ChevronRight size={16} style={{ color:'var(--text-muted)', flexShrink:0 }}/>
                   </div>
@@ -284,8 +284,8 @@ export default function AnalyticsPage() {
 
             {advisor.recommendations?.length === 0 && (
               <div style={{ textAlign:'center', padding:40 }}>
-                <CheckCircle size={40} style={{ color:'#C8E20A', margin:'0 auto 12px', display:'block' }}/>
-                <p style={{ fontSize:16, fontWeight:700, color:'#C8E20A', margin:'0 0 6px' }}>Business is on track!</p>
+                <CheckCircle size={40} style={{ color:'#C6E404', margin:'0 auto 12px', display:'block' }}/>
+                <p style={{ fontSize:16, fontWeight:700, color:'#C6E404', margin:'0 0 6px' }}>Business is on track!</p>
                 <p style={{ fontSize:13, color:'var(--text-muted)', margin:0 }}>No critical issues detected. Keep up the great work.</p>
               </div>
             )}
@@ -296,7 +296,7 @@ export default function AnalyticsPage() {
         {!loading && activeTab === 'revenue' && cashflow && (
           <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))', gap:14 }}>
-              <StatCard label="Collected" value={fmt$(cashflow.collected)} color="#C8E20A" icon={DollarSign}/>
+              <StatCard label="Collected" value={fmt$(cashflow.collected)} color="#C6E404" icon={DollarSign}/>
               <StatCard label="Outstanding" value={fmt$(cashflow.outstanding)} color="#64748B" icon={AlertTriangle}/>
               <StatCard label="This Month" value={fmt$(cashflow.thisMonth)} color={accent} icon={TrendingUp}/>
               <StatCard label="Accept Rate" value={`${cashflow.acceptRate}%`} color="#64748B" icon={Target}/>
@@ -352,7 +352,7 @@ export default function AnalyticsPage() {
               <p style={{ margin:'0 0 14px', fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--text-muted)' }}>🚨 Churn Risk Customers</p>
               {churnRisk.length === 0 ? (
                 <div style={{ textAlign:'center', padding:24 }}>
-                  <CheckCircle size={32} style={{ color:'#C8E20A', margin:'0 auto 10px', display:'block' }}/>
+                  <CheckCircle size={32} style={{ color:'#C6E404', margin:'0 auto 10px', display:'block' }}/>
                   <p style={{ color:'var(--text-muted)', fontSize:13, margin:0 }}>No high-risk customers detected — great retention!</p>
                 </div>
               ) : churnRisk.map(c => (
@@ -382,7 +382,7 @@ export default function AnalyticsPage() {
           <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(180px, 1fr))', gap:14 }}>
               <StatCard label="Total Hours" value={`${workforce.totalHours}h`} color={accent} icon={Clock}/>
-              <StatCard label="Labor Revenue" value={fmt$(workforce.totalCost)} color="#C8E20A" icon={DollarSign}/>
+              <StatCard label="Labor Revenue" value={fmt$(workforce.totalCost)} color="#C6E404" icon={DollarSign}/>
               <StatCard label="Team Members" value={workforce.employees?.length || 0} color="#64748B" icon={Users}/>
               <StatCard label="Projects" value={workforce.projects?.length || 0} color="#64748B" icon={Activity}/>
             </div>
@@ -400,8 +400,8 @@ export default function AnalyticsPage() {
                       <p style={{ margin:0, fontSize:11, color:'var(--text-muted)' }}>{emp.hours}h · {emp.projects} project{emp.projects!==1?'s':''}</p>
                     </div>
                     <div style={{ textAlign:'right' }}>
-                      <p style={{ margin:0, fontSize:14, fontWeight:800, color:'#C8E20A' }}>{fmt$(emp.cost)}</p>
-                      <p style={{ margin:0, fontSize:10, color:emp.classification==='Elite Performer'?'#64748B':emp.classification==='Strong Performer'?'#C8E20A':'var(--text-muted)', fontWeight:600 }}>{emp.classification}</p>
+                      <p style={{ margin:0, fontSize:14, fontWeight:800, color:'#C6E404' }}>{fmt$(emp.cost)}</p>
+                      <p style={{ margin:0, fontSize:10, color:emp.classification==='Elite Performer'?'#64748B':emp.classification==='Strong Performer'?'#C6E404':'var(--text-muted)', fontWeight:600 }}>{emp.classification}</p>
                     </div>
                     <div style={{ width:48, textAlign:'center' }}>
                       <div style={{ fontSize:16, fontWeight:900, color:accent }}>{emp.efficiencyScore}</div>

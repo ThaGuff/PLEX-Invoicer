@@ -6,10 +6,10 @@ import { api } from '../utils/api';
 
 const STATUS_CONFIG = {
   draft:    { label: 'Draft',    color: '#64748B', bg: '#F1F5F9' },
-  sent:     { label: 'Sent',     color: '#C8E20A', bg: '#F0FDF4' },
+  sent:     { label: 'Sent',     color: '#C6E404', bg: '#F0FDF4' },
   viewed:   { label: 'Viewed',   color: '#64748B', bg: '#F1F5F9' },
-  accepted: { label: 'Approved', color: '#C8E20A', bg: '#F0FDF4' },
-  invoiced: { label: 'Invoiced', color: '#C8E20A', bg: '#F0FDF4' },
+  accepted: { label: 'Approved', color: '#C6E404', bg: '#F0FDF4' },
+  invoiced: { label: 'Invoiced', color: '#C6E404', bg: '#F0FDF4' },
   cancelled:{ label: 'Cancelled',color: '#9CA3AF', bg: '#F9FAFB' },
 };
 
@@ -102,9 +102,10 @@ export default function QuotesList() {
   const total = quotes.length;
   const accepted = quotes.filter(q => q.status === 'accepted').length;
   const pending = quotes.filter(q => ['sent', 'viewed'].includes(q.status)).length;
-  // Pipeline value = setup total + 3 months of recurring for active quotes
-  const pipelineValue = quotes.filter(q => ['draft','sent','viewed','accepted'].includes(q.status))
-    .reduce((s, q) => s + (q.setup_total || 0) + (q.monthly_total || 0) * 3, 0);
+  // Pipeline value = total setup value of all active (non-invoiced, non-declined) quotes
+  const pipelineValue = quotes
+    .filter(q => ['draft','sent','viewed','accepted'].includes(q.status))
+    .reduce((s, q) => s + (parseFloat(q.setup_total) || 0) + (parseFloat(q.tax_amount) || 0), 0);
 
   const FILTERS = [
     { id: 'all', label: 'All', count: total },
@@ -121,7 +122,7 @@ export default function QuotesList() {
       {/* Action bar */}
       <div style={{ padding: '10px clamp(14px,4vw,24px)', background: 'var(--bg-page)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
         <button onClick={() => navigate('/quotes/new')}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: '#1A1A1A', color: '#C8E20A', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: '#1A1A1A', color: '#C6E404', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           New quote
         </button>
@@ -133,8 +134,8 @@ export default function QuotesList() {
           {[
             { label: 'Total quotes', value: total, color: '#1A1A1A' },
             { label: 'Pending response', value: pending, color: '#64748B' },
-            { label: 'Approved', value: accepted, color: '#C8E20A' },
-            { label: 'Pipeline value', value: fmt(pipelineValue), color: '#C8E20A' },
+            { label: 'Approved', value: accepted, color: '#C6E404' },
+            { label: 'Pipeline value', value: fmt(pipelineValue), color: '#C6E404' },
           ].map(s => (
             <div key={s.label} style={{ padding: '14px 16px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
               <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{s.label}</p>
@@ -151,7 +152,7 @@ export default function QuotesList() {
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search quotes, clients…"
             style={{ width: '100%', padding: '9px 12px 9px 32px', borderRadius: 9, border: '1.5px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)', fontSize: 13, boxSizing: 'border-box', fontFamily: "'Inter', sans-serif", outline: 'none' }}
-            onFocus={e => e.target.style.borderColor = '#C8E20A'}
+            onFocus={e => e.target.style.borderColor = '#C6E404'}
             onBlur={e => e.target.style.borderColor = 'var(--border)'} />
         </div>
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
@@ -210,7 +211,7 @@ export default function QuotesList() {
                     {q.client_biz && q.client_name && <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '1px 0 0' }}>{q.client_biz}</p>}
                   </div>
                   {/* Quote # */}
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#C8E20A', fontFamily: 'monospace' }}>{q.number || '—'}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#C6E404', fontFamily: 'monospace' }}>{q.number || '—'}</span>
                   {/* Status */}
                   <StatusBadge status={q.status} />
                   {/* Date */}
@@ -222,7 +223,7 @@ export default function QuotesList() {
                     {q.status === 'accepted' && (
                       <button onClick={(e) => handleConvert(q.id, e)}
                         disabled={isConverting}
-                        style={{ padding: '5px 10px', borderRadius: 7, border: 'none', background: '#C8E20A', color: '#fff', cursor: isConverting ? 'not-allowed' : 'pointer', fontSize: 11, fontWeight: 700, fontFamily: "'Inter', sans-serif", opacity: isConverting ? 0.6 : 1 }}>
+                        style={{ padding: '5px 10px', borderRadius: 7, border: 'none', background: '#C6E404', color: '#1A1A1A', cursor: isConverting ? 'not-allowed' : 'pointer', fontSize: 11, fontWeight: 700, fontFamily: "'Inter', sans-serif", opacity: isConverting ? 0.6 : 1 }}>
                         {isConverting ? '…' : '→ Invoice'}
                       </button>
                     )}

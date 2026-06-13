@@ -16,14 +16,14 @@ const MARGIN     = 32;
 function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
 
 function hexToRgb(hex) {
-  const c = (hex || '#C8E20A').replace('#', '');
+  const c = (hex || '#C6E404').replace('#', '');
   return [parseInt(c.slice(0,2),16), parseInt(c.slice(2,4),16), parseInt(c.slice(4,6),16)];
 }
 
 function drawFooter(doc, W, H, agencyName, agencyWebsite, agencyEmail, agencyPhone, pageNum, totalPages, agencyAddress = '', agencyCityState = '', whiteLabelPlan = false) {
   doc.setFillColor(...WHITE);
   doc.rect(0, H - FOOTER_H, W, FOOTER_H, 'F');
-  const accent = hexToRgb(doc.__accentHex || '#C8E20A');
+  const accent = hexToRgb(doc.__accentHex || '#C6E404');
   doc.setFillColor(...accent);
   doc.rect(0, H - FOOTER_H, W, 1.5, 'F');
   doc.setFont('helvetica', 'normal');
@@ -76,7 +76,7 @@ export function exportPDF(state) {
     agencyTechnician = '',
     agencyTaxNum     = '',
     whiteLabelPlan   = false,
-    primaryColor     = '#C8E20A',
+    primaryColor     = '#C6E404',
     agencyLogoUrl    = null,
     customSections   = [],
     customItems      = [],

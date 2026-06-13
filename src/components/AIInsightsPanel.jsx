@@ -11,11 +11,11 @@ import { useAccount } from '../context/AccountContext';
 import { api } from '../utils/api';
 
 const ACCENT = '#1A1A1A';
-const GRAD   = 'linear-gradient(135deg, #C8E20A, #1A1A1A, #C8E20A)';
+const GRAD   = 'linear-gradient(135deg, #C6E404, #1A1A1A, #C6E404)';
 
 function fmt(n)    { return '$' + Math.round(n || 0).toLocaleString(); }
 function pct(n)    { return Math.round(n || 0) + '%'; }
-function risk(n)   { return n > 70 ? '#ef4444' : n > 40 ? '#64748B' : '#C8E20A'; }
+function risk(n)   { return n > 70 ? '#ef4444' : n > 40 ? '#64748B' : '#C6E404'; }
 
 function InsightCard({ icon: Icon, label, value, sub, color = ACCENT, cta, onCta }) {
   return (
@@ -201,7 +201,7 @@ export default function AIInsightsPanel({ accountId }) {
                   label="Acceptance rate"
                   value={`${insights.accRate}%`}
                   sub={`${insights.accepted} of ${insights.total} quotes accepted`}
-                  color={insights.accRate > 50 ? '#C8E20A' : '#64748B'}
+                  color={insights.accRate > 50 ? '#C6E404' : '#64748B'}
                 />
                 <InsightCard
                   icon={TrendingUp}
@@ -223,7 +223,7 @@ export default function AIInsightsPanel({ accountId }) {
                   label="Overdue pipeline"
                   value={fmt(insights.overdueTotal)}
                   sub={`${insights.overdueCount} invoices past due date`}
-                  color={insights.overdueTotal > 0 ? '#64748B' : '#C8E20A'}
+                  color={insights.overdueTotal > 0 ? '#64748B' : '#C6E404'}
                   cta={insights.overdueCount > 0 ? 'Send reminders' : undefined}
                 />
               </div>
@@ -243,8 +243,8 @@ export default function AIInsightsPanel({ accountId }) {
 
               {/* High-probability closes */}
               {insights.highProbability > 0 && (
-                <div style={{ background: 'rgba(200,226,10,0.06)', border: '0.5px solid rgba(200,226,10,0.2)', borderRadius: '8px', padding: '10px 12px', marginBottom: '12px' }}>
-                  <p style={{ fontSize: '12px', fontWeight: 600, color: '#C8E20A', marginBottom: '2px' }}>
+                <div style={{ background: 'rgba(198,228,4,0.06)', border: '0.5px solid rgba(198,228,4,0.2)', borderRadius: '8px', padding: '10px 12px', marginBottom: '12px' }}>
+                  <p style={{ fontSize: '12px', fontWeight: 600, color: '#C6E404', marginBottom: '2px' }}>
                     🔥 {insights.highProbability} quotes ready to close
                   </p>
                   <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
