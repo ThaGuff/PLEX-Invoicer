@@ -79,9 +79,7 @@ Rules:
 
     const parsed = JSON.parse(match[0]);
     res.json({ success: true, invoice: parsed });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 
@@ -116,9 +114,7 @@ router.post('/chat', requireAuth, async (req, res) => {
     const data = await response.json();
     if (!response.ok) return res.status(502).json({ error: data.error?.message || 'AI error' });
     res.json({ content: data.choices?.[0]?.message?.content || '' });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 export default router;

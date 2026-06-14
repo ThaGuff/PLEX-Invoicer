@@ -13,7 +13,7 @@ const router = Router();
 // ── Owner guard ───────────────────────────────────────────────────
 function requireOwner(req, res, next) {
   const ownerEmail = process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com';
-  if (req.user?.email !== ownerEmail && req.user?.id !== 'dev-user') {
+  if (req.user?.email !== ownerEmail) {
     return res.status(403).json({ error: 'Admin access only.' });
   }
   next();
@@ -174,7 +174,7 @@ router.get('/metrics', async (req, res) => {
       total_invoices: invoices.rows[0].cnt,
       total_revenue:  revenue.rows[0].total,
     });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── GET /api/admin/user/:id/account — view a user's account ──────
@@ -194,7 +194,7 @@ router.get('/user/:id/account', async (req, res) => {
       recent_quotes:   quotes.rows,
       recent_invoices: invoices.rows,
     });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST /api/admin/user/:id/extend-trial — add 14 days ──────────
@@ -207,7 +207,7 @@ router.post('/user/:id/extend-trial', async (req, res) => {
       [newEnd, req.params.id]
     );
     res.json({ ok: true, trial_ends_at: newEnd });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST /api/admin/onboard — send onboarding email + welcome PDF ─
@@ -305,9 +305,7 @@ router.post('/onboard', async (req, res) => {
     } catch { /* table may not exist yet — that's fine */ }
 
     res.json({ ok: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST /api/admin/broadcast — email all users ───────────────────
@@ -361,7 +359,7 @@ router.post('/broadcast', async (req, res) => {
     }
 
     res.json({ ok: true, sent, failed, total: users.length });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── Welcome PDF generator ─────────────────────────────────────────
@@ -535,7 +533,7 @@ router.post('/user/:id/suspend', async (req, res) => {
     await sb.auth.admin.updateUserById(req.params.id, { ban_duration: '87600h' }); // 10 years
     await db.execute(`UPDATE accounts SET subscription_status = 'suspended' WHERE owner_id = ?`, [req.params.id]);
     res.json({ ok: true, status: 'suspended' });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 router.post('/user/:id/unsuspend', async (req, res) => {
@@ -545,7 +543,7 @@ router.post('/user/:id/unsuspend', async (req, res) => {
     await sb.auth.admin.updateUserById(req.params.id, { ban_duration: 'none' });
     await db.execute(`UPDATE accounts SET subscription_status = 'trialing' WHERE owner_id = ? AND subscription_status = 'suspended'`, [req.params.id]);
     res.json({ ok: true, status: 'active' });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── Password reset email ──────────────────────────────────────────
@@ -561,7 +559,7 @@ router.post('/user/:id/reset-password', async (req, res) => {
     });
     if (error) return res.status(500).json({ error: error.message });
     res.json({ ok: true, email: user.user.email });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── Resend confirmation email ─────────────────────────────────────
@@ -574,7 +572,7 @@ router.post('/user/:id/resend-confirmation', async (req, res) => {
     // Force-confirm their email instead (better UX — no action needed)
     await sb.auth.admin.updateUserById(req.params.id, { email_confirm: true });
     res.json({ ok: true, confirmed: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── Override plan ─────────────────────────────────────────────────
@@ -587,7 +585,7 @@ router.post('/user/:id/set-plan', async (req, res) => {
       [plan, status || 'active', req.params.id]
     );
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── Delete user account ───────────────────────────────────────────
@@ -719,7 +717,7 @@ router.post('/user/:id/magic-link', async (req, res) => {
     });
     if (error) return res.status(500).json({ error: error.message });
     res.json({ ok: true, link: data.properties?.action_link });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── Activity log for a user ───────────────────────────────────────
@@ -741,7 +739,7 @@ router.get('/user/:id/activity', async (req, res) => {
     ].filter(e => e.ts).sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 40);
 
     res.json({ events });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── System health check ───────────────────────────────────────────
@@ -811,7 +809,7 @@ router.get('/subscriptions', async (req, res) => {
       ORDER BY a.created_at DESC
     `);
     res.json(accs.rows);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 // deploy-1779761762
 
@@ -1015,9 +1013,7 @@ router.post('/repair-members', async (req, res) => {
     }
 
     res.json({ ok: true, fixed, total: members.rows.length, issues });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 export default router;

@@ -68,7 +68,7 @@ router.get('/', requireAuth, async (req, res) => {
       [account_id]
     );
     res.json({ sequences: seqs.rows });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST /api/automations — create sequence ─────────────────────
@@ -101,7 +101,7 @@ router.post('/', requireAuth, async (req, res) => {
     const created = await db.execute(`SELECT * FROM automation_sequences WHERE id = ?`, [seqId]);
     const createdSteps = await db.execute(`SELECT * FROM automation_steps WHERE sequence_id = ? ORDER BY step_order`, [seqId]);
     res.json({ sequence: created.rows[0], steps: createdSteps.rows });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── PATCH /api/automations/:id — toggle active or update name ──
@@ -116,7 +116,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
     vals.push(req.params.id);
     await db.execute(`UPDATE automation_sequences SET ${updates.join(', ')} WHERE id = ?`, vals);
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── DELETE /api/automations/:id ─────────────────────────────────
@@ -124,7 +124,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
   try {
     await db.execute(`DELETE FROM automation_sequences WHERE id = ?`, [req.params.id]);
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST /api/automations/ai-rewrite — rewrite a message with AI
@@ -145,7 +145,7 @@ router.post('/ai-rewrite', requireAuth, async (req, res) => {
     const data = await resp.json();
     const rewritten = data.choices?.[0]?.message?.content?.trim() || message;
     res.json({ rewritten });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST /api/automations/trigger — manually fire a trigger ────
@@ -176,7 +176,7 @@ router.post('/trigger', async (req, res) => {
       runs.push({ run_id: runId, step_order: step.step_order, scheduled_at: scheduledAt });
     }
     res.json({ ok: true, runs_scheduled: runs.length, runs });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── GET /api/automations/runs — pending run queue ──────────────
@@ -195,7 +195,7 @@ router.get('/runs', requireAuth, async (req, res) => {
       [account_id, status]
     );
     res.json({ runs: result.rows });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 export default router;

@@ -138,14 +138,6 @@ function GoogleIcon() {
   );
 }
 
-function AppleIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 814 1000" fill="currentColor">
-      <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.4 0 663 0 541.8c0-207.8 136.5-317.5 271-317.5 67.9 0 124.3 44.4 167.4 44.4 40.8 0 105.3-46.7 179.4-46.7zm-165.3-57.6c-3.8 18.3-14.4 65.7-48.4 98.5-33.3 32.8-74.5 41.3-97.2 44.4-.6-2.6-1.3-6.4-1.3-11.5 0-59 38.4-126.5 78.4-153.7 24.5-16.5 63.9-30.3 90.8-30.3 1.9 0 3.8.6 5.8.6-2.6 26-10.3 53.2-28.1 52z"/>
-    </svg>
-  );
-}
-
 const FEATURES = [
   { icon: Zap,        text: 'Send professional quotes in under 60 seconds' },
   { icon: CheckCircle, text: 'E-sign, deposit collection, and instant acceptance' },
@@ -154,7 +146,7 @@ const FEATURES = [
 ];
 
 export default function Login() {
-  const { signInWithGoogle, signInWithApple, signInWithEmail, signUpWithEmail, resetPassword, isAuthenticated, loading: authLoading } = useAuth();
+  const { signInWithGoogle, signInWithEmail, signUpWithEmail, resetPassword, isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode]       = useState('login');
   const [email, setEmail]     = useState('');
@@ -177,7 +169,7 @@ export default function Login() {
       // OAuth providers (Google, Apple) redirect the page externally —
       // the fn() returns before the redirect completes, so we must NOT navigate.
       // The SIGNED_IN event + RequireAuth handle the redirect after callback.
-      if (label === 'google' || label === 'apple') {
+      if (label === 'google') {
         // Keep loading spinner — page will redirect momentarily
         return;
       }
@@ -259,7 +251,7 @@ export default function Login() {
         <div style={{ marginTop:'auto', paddingTop:20, borderTop:'1px solid rgba(198,228,4,0.1)' }}>
           <p style={{ fontSize:11, color:'rgba(255,255,255,0.3)', marginBottom:10 }}>© {new Date().getFullYear()} Invoice King. Powered by PLEX Automation.</p>
           <div style={{ display:'flex', gap:20 }}>
-            {[['Privacy policy','https://plexautomation.io/privacy'],['Terms','https://plexautomation.io/terms'],['Support','mailto:hello@plexautomation.io']].map(([l,h]) => (
+            {[['Privacy policy','/privacy'],['Terms','/terms'],['Support','mailto:support@invoiceking.app']].map(([l,h]) => (
               <a key={l} href={h} target="_blank" rel="noreferrer"
                 style={{ fontSize:11, color:'rgba(255,255,255,0.3)', textDecoration:'none', fontWeight:500, transition:'color 0.15s' }}
                 onMouseEnter={e => e.target.style.color='#9AACCC'}
@@ -301,7 +293,6 @@ export default function Login() {
             <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:20 }}>
               {[
                 { label:'Continue with Google', icon:<GoogleIcon/>, action:()=>run('google',signInWithGoogle), key:'google', bg:'#222222' },
-                { label:'Continue with Apple',  icon:<AppleIcon/>,  action:()=>run('apple',signInWithApple),   key:'apple',  bg:'#2A2A2A' },
               ].map(btn => (
                 <button key={btn.key} onClick={btn.action} disabled={!!loading}
                   style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'12px', borderRadius:10, border:'1.5px solid rgba(198,228,4,0.12)', background:btn.bg, color:'#FFFFFF', fontSize:13, fontWeight:600, cursor:'pointer', opacity:loading?0.5:1, transition:'all 0.15s', fontFamily:"'Inter',sans-serif" }}
@@ -415,7 +406,7 @@ export default function Login() {
 
           {/* Mobile footer links */}
           <div style={{ marginTop:28, display:'flex', justifyContent:'center', gap:20 }} className="lg:hidden">
-            {[['Privacy','https://plexautomation.io/privacy'],['Terms','https://plexautomation.io/terms'],['Support','mailto:hello@plexautomation.io']].map(([l,h]) => (
+            {[['Privacy','/privacy'],['Terms','/terms'],['Support','mailto:support@invoiceking.app']].map(([l,h]) => (
               <a key={l} href={h} target="_blank" rel="noreferrer"
                 style={{ fontSize:11, color:'rgba(255,255,255,0.3)', textDecoration:'none', fontWeight:500 }}>{l}</a>
             ))}

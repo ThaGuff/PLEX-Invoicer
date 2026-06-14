@@ -238,7 +238,7 @@ router.post('/', async (req, res) => {
     );
     const created = await db.execute(`SELECT * FROM contacts WHERE id = ?`, [id]);
     res.json(created.rows[0]);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── Custom Fields ──────────────────────────────────────────────
@@ -251,7 +251,7 @@ router.get('/custom-fields', requireAuth, async (req, res) => {
       [account_id]
     );
     res.json(fields.rows);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 router.post('/custom-fields', requireAuth, async (req, res) => {
@@ -284,14 +284,14 @@ router.patch('/custom-fields/:id', requireAuth, async (req, res) => {
     await db.execute(`UPDATE contact_custom_fields SET ${updates.join(', ')} WHERE id = ?`, vals);
     const updated = await db.execute(`SELECT * FROM contact_custom_fields WHERE id = ?`, [req.params.id]);
     res.json(updated.rows[0]);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 router.delete('/custom-fields/:id', requireAuth, async (req, res) => {
   try {
     await db.execute(`DELETE FROM contact_custom_fields WHERE id = ?`, [req.params.id]);
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 router.patch('/:id/custom-values', requireAuth, async (req, res) => {
@@ -306,7 +306,7 @@ router.patch('/:id/custom-values', requireAuth, async (req, res) => {
       );
     }
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── Saved Views ────────────────────────────────────────────────
@@ -319,7 +319,7 @@ router.get('/saved-views', requireAuth, async (req, res) => {
       [account_id]
     );
     res.json(views.rows);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 router.post('/saved-views', requireAuth, async (req, res) => {
@@ -333,14 +333,14 @@ router.post('/saved-views', requireAuth, async (req, res) => {
     );
     const created = await db.execute(`SELECT * FROM contact_saved_views WHERE id = ?`, [id]);
     res.json(created.rows[0]);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 router.delete('/saved-views/:id', requireAuth, async (req, res) => {
   try {
     await db.execute(`DELETE FROM contact_saved_views WHERE id = ?`, [req.params.id]);
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── Tasks ──────────────────────────────────────────────────────
@@ -351,7 +351,7 @@ router.get('/:id/tasks', async (req, res) => {
       [req.params.id]
     );
     res.json(tasks.rows);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 router.post('/:id/tasks', requireAuth, async (req, res) => {
@@ -365,7 +365,7 @@ router.post('/:id/tasks', requireAuth, async (req, res) => {
     );
     const created = await db.execute(`SELECT * FROM contact_tasks WHERE id = ?`, [id]);
     res.json(created.rows[0]);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 router.patch('/tasks/:id', requireAuth, async (req, res) => {
@@ -383,14 +383,14 @@ router.patch('/tasks/:id', requireAuth, async (req, res) => {
     await db.execute(`UPDATE contact_tasks SET ${updates.join(', ')} WHERE id = ?`, vals);
     const updated = await db.execute(`SELECT * FROM contact_tasks WHERE id = ?`, [req.params.id]);
     res.json(updated.rows[0]);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 router.delete('/tasks/:id', requireAuth, async (req, res) => {
   try {
     await db.execute(`DELETE FROM contact_tasks WHERE id = ?`, [req.params.id]);
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── Bulk Actions ───────────────────────────────────────────────
@@ -473,7 +473,7 @@ router.get('/:id', requireAuth, async (req, res) => {
       notes: notes.rows,
       custom_values: customValues.rows,
     });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── PATCH /:id — update contact ────────────────────────────────
@@ -492,7 +492,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
     await db.execute(`UPDATE contacts SET ${updates.join(', ')} WHERE id = ? AND account_id = ?`, vals);
     const updated = await db.execute(`SELECT * FROM contacts WHERE id = ?`, [req.params.id]);
     res.json(updated.rows[0]);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── DELETE /:id ────────────────────────────────────────────────
@@ -529,7 +529,7 @@ router.get('/:id/timeline', async (req, res) => {
     ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
     res.json({ contact: c, timeline, stats, scores });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── GET /:id/notes ─────────────────────────────────────────────
@@ -540,7 +540,7 @@ router.get('/:id/notes', async (req, res) => {
       [req.params.id]
     );
     res.json({ notes: notes.rows });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST /:id/notes ────────────────────────────────────────────
@@ -556,7 +556,7 @@ router.post('/:id/notes', async (req, res) => {
     await db.execute(`UPDATE contacts SET last_contact_at = NOW() WHERE id = ?`, [req.params.id]);
     const created = await db.execute(`SELECT * FROM contact_notes WHERE id = ?`, [id]);
     res.json(created.rows[0]);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST /:id/ai-score — compute & cache all AI scores ─────────
@@ -623,7 +623,7 @@ Notes: ${c.notes || 'none'}`;
       ai_summary: aiSummary,
       stats,
     });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 export default router;

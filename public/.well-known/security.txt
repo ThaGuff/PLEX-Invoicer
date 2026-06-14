@@ -1,0 +1,5 @@
+Contact: mailto:security@invoiceking.app
+Expires: 2027-12-31T23:59:00.000Z
+Preferred-Languages: en
+Canonical: https://invoiceking.app/.well-known/security.txt
+Policy: https://invoiceking.app/privacy

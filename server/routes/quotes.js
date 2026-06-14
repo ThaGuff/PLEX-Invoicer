@@ -52,7 +52,7 @@ router.get('/', requireAuth, async (req, res) => {
        WHERE q.account_id = ? ORDER BY q.created_at DESC`, [account_id]
     );
     res.json(quotes.rows);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── GET public quote by token — MUST be before /:id ──────────────
@@ -73,7 +73,7 @@ router.get('/public/:token', async (req, res) => {
       await db.execute(`UPDATE quotes SET viewed_at = NOW() WHERE id = ?`, [quote.rows[0].id]);
     }
     res.json({ ...quote.rows[0], items: items.rows });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST accept quote (public) — MUST be before /:id ─────────────
@@ -94,7 +94,7 @@ router.post('/public/:token/accept', async (req, res) => {
       [signature_data || null, signer_name || null, clientIp, now, selected_package || null, req.params.token]
     );
     res.json({ ok: true, signed_at: now });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── GET single quote with items — verify user owns the account ────
@@ -123,7 +123,7 @@ router.get('/:id', requireAuth, async (req, res) => {
       `SELECT * FROM quote_items WHERE quote_id = ? ORDER BY sort_order`, [req.params.id]
     );
     res.json({ ...q, items: items.rows });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST create quote ─────────────────────────────────────────────
@@ -196,7 +196,7 @@ router.post('/', requireAuth, async (req, res) => {
       db.execute(`SELECT * FROM quote_items WHERE quote_id = ? ORDER BY sort_order`, [id]),
     ]);
     res.json({ ...created.rows[0], items: createdItems.rows });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── PATCH update quote — verify via auth ─────────────────────────
@@ -264,7 +264,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       db.execute(`SELECT * FROM quote_items WHERE quote_id = ? ORDER BY sort_order`, [req.params.id]),
     ]);
     res.json({ ...updated.rows[0], items: updatedItems.rows });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST /api/quotes/:id/send — email quote to client ─────────────
@@ -412,9 +412,7 @@ router.post('/:id/convert', requireAuth, async (req, res) => {
       `SELECT * FROM invoice_items WHERE invoice_id = ? ORDER BY sort_order`, [invId]
     );
     res.json({ ...inv.rows[0], items: invItems.rows });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── DELETE quote — auth-based ownership check ────────────────────
@@ -437,7 +435,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
     await db.execute(`DELETE FROM quote_items WHERE quote_id = ?`, [req.params.id]);
     await db.execute(`DELETE FROM quotes WHERE id = ?`, [req.params.id]);
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST /api/quotes/:id/send-email — send HTML quote via Resend ─

@@ -10,7 +10,24 @@ import { CheckCircle, Zap, Star, Building2, CreditCard, ArrowRight, X, Lock } fr
 import { useAccount } from '../context/AccountContext';
 import { PLAN_PRICES, PLAN_COLORS } from '../utils/planFeatures';
 
-const LOGO_SVG = <img src="/logo-invoiceking.png" alt="Invoice King" style={{ width:32, height:32, objectFit:"contain", borderRadius:8 }} />;
+const LOGO_SVG = (
+  <svg width="32" height="40" viewBox="0 0 80 100" fill="none">
+    <rect x="2" y="36" width="76" height="8" rx="2" fill="#C6E404"/>
+    <polygon points="12,18 22,36 2,36" fill="#C6E404"/>
+    <polygon points="68,18 78,36 58,36" fill="#C6E404"/>
+    <rect x="28" y="22" width="24" height="14" fill="#C6E404"/>
+    <polygon points="22,36 28,30 25,36" fill="#0A0F13"/>
+    <polygon points="52,36 58,30 55,36" fill="#0A0F13"/>
+    <polygon points="40,7 47,15 40,23 33,15" fill="#C6E404"/>
+    <polygon points="40,11 44,15 40,19 36,15" fill="#A8C200"/>
+    <path d="M4,44 L4,92 Q4,96 8,96 L56,96 Q60,96 60,92 L60,58 L46,44 Z" fill="#0A0F13"/>
+    <polygon points="46,44 60,58 46,58" fill="#C6E404"/>
+    <rect x="10" y="62" width="28" height="26" rx="1.5" fill="white"/>
+    <rect x="14" y="68" width="20" height="3.5" rx="1.5" fill="#0A0F13"/>
+    <rect x="14" y="75" width="14" height="3.5" rx="1.5" fill="#0A0F13"/>
+    <rect x="14" y="82" width="18" height="3.5" rx="1.5" fill="#C6E404"/>
+  </svg>
+);
 
 const PLANS = [
   {
@@ -127,10 +144,10 @@ export default function Onboarding() {
             <div style={{
               width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '12px', fontWeight: 700,
-              background: step >= s ? 'linear-gradient(135deg, #C6E404, #1A1A1A)' : '#1A2640',
-              color: step >= s ? '#fff' : '#3A5070',
+              background: step >= s ? '#C6E404' : 'rgba(255,255,255,0.08)',
+              color: step >= s ? '#0A0F13' : 'rgba(255,255,255,0.4)',
             }}>{s}</div>
-            {s < 2 && <div style={{ width: '32px', height: '1px', background: step > s ? '#C6E404' : '#1A2640' }} />}
+            {s < 2 && <div style={{ width: '32px', height: '1px', background: step > s ? '#C6E404' : 'rgba(255,255,255,0.15)' }} />}
           </React.Fragment>
         ))}
       </div>
@@ -211,6 +228,16 @@ export default function Onboarding() {
       )}
 
       {/* STEP 2: Payment method */}
+      {/* Terms notice at bottom of plan step */}
+      {step === 1 && (
+        <p style={{ textAlign:'center', fontSize:11, color:'rgba(255,255,255,0.35)', marginTop:16, lineHeight:1.5 }}>
+          By selecting a plan you agree to Invoice King's{' '}
+          <a href="/terms" target="_blank" rel="noreferrer" style={{ color:'#C6E404', textDecoration:'none' }}>Terms of Service</a>
+          {' '}and{' '}
+          <a href="/privacy" target="_blank" rel="noreferrer" style={{ color:'#C6E404', textDecoration:'none' }}>Privacy Policy</a>.
+        </p>
+      )}
+
       {step === 2 && (
         <div style={{ width: '100%', maxWidth: '480px' }}>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>

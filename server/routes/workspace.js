@@ -249,7 +249,7 @@ router.post('/dm', requireAuth, async (req, res) => {
     );
     const created = await db.execute(`SELECT * FROM workspace_channels WHERE id = ?`, [id]);
     res.json(created.rows[0]);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── GET /api/workspace/members?account_id= ────────────────────────
@@ -268,7 +268,7 @@ router.get('/members', requireAuth, async (req, res) => {
       [account_id]
     );
     res.json(members.rows);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST /api/workspace/invite ────────────────────────────────────
@@ -339,7 +339,7 @@ router.post('/invite', requireAuth, async (req, res) => {
     }
 
     res.status(201).json({ ok: true, id, inviteToken, message: 'Invitation sent' });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── GET /accept/:token — accept invite (NO AUTH - link from email) ──
@@ -361,7 +361,7 @@ router.get('/accept/:token', async (req, res) => {
     const inv = invite.rows[0];
     // Redirect to the app's invite acceptance page with the token
     res.redirect(`${process.env.APP_URL || 'https://invoiceking.app'}/invite/accept/${req.params.token}?account=${encodeURIComponent(inv.account_name)}&email=${encodeURIComponent(inv.invited_email)}&role=${inv.role}`);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST /accept/:token — complete acceptance (after user logs in) ─
@@ -461,7 +461,7 @@ router.post('/accept/:token', requireAuth, async (req, res) => {
     }
     
     res.json({ ok: true, account_id: inv.account_id, account_name: inv.account_name, role: inv.role });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST /decline/:token — decline invitation ─────────────────────
@@ -515,7 +515,7 @@ router.post('/decline/:token', async (req, res) => {
     }
     
     res.json({ ok: true, message: 'Invitation declined' });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── DELETE /api/workspace/channels/:channelId/messages/:msgId ─────
@@ -531,7 +531,7 @@ router.delete('/channels/:channelId/messages/:msgId', requireAuth, async (req, r
     }
     await db.execute(`DELETE FROM workspace_messages WHERE id = ?`, [req.params.msgId]);
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 
@@ -557,7 +557,7 @@ router.delete('/members/:memberId', requireAuth, async (req, res) => {
     }
     await db.execute(`DELETE FROM account_members WHERE id = ?`, [req.params.memberId]);
     res.json({ ok: true, message: m.status === 'invited' ? 'Invitation cancelled' : 'Member removed' });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST /api/workspace/members/:memberId/resend — resend invite email ──
@@ -583,7 +583,7 @@ router.post('/members/:memberId/resend', requireAuth, async (req, res) => {
       </div>`,
     });
     res.json({ ok: true, message: `Invite resent to ${m.invited_email}` });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 
@@ -650,7 +650,7 @@ router.delete('/messages/:id', requireAuth, async (req, res) => {
     }
     await db.execute(`DELETE FROM workspace_messages WHERE id = ?`, [req.params.id]);
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── PATCH /api/workspace/messages/:id — edit a message ────────────
@@ -668,7 +668,7 @@ router.patch('/messages/:id', requireAuth, async (req, res) => {
     );
     const updated = await db.execute(`SELECT * FROM workspace_messages WHERE id = ?`, [req.params.id]);
     res.json(updated.rows[0]);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── GET /api/workspace/activity-feed ─────────────────────────────
@@ -695,7 +695,7 @@ router.get('/activity-feed', requireAuth, async (req, res) => {
     ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, parseInt(limit));
 
     res.json(feed);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── GET /api/workspace/ai-summary ─────────────────────────────────
@@ -715,7 +715,7 @@ router.get('/ai-summary', requireAuth, async (req, res) => {
         msgs.rows[0]?.cnt === 0 ? { text:'No team messages today — check in with your team', type:'engagement' } : null,
       ].filter(Boolean),
     });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 export default router;

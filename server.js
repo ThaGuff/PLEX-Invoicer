@@ -168,6 +168,14 @@ const adminLimiter = rateLimit({
 });
 
 // Email/reminder endpoints (prevent spam)
+const aiLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,  // 1 hour
+  max:      50,               // 50 AI calls per hour per IP (prevent abuse)
+  message:  { error: 'AI rate limit exceeded. Please wait before making more requests.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 const emailLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max:      10,              // 10 emails per hour per IP
@@ -605,7 +613,7 @@ app.post('/api/billing/portal', requireAuth, async (req, res) => {
 app.use('/api/track',        trackingRouter);
 app.use('/api/admin',        requireAuth, adminLimiter, adminRouter);
 app.use('/api/stripe-connect', stripeConnectRouter); // callback is public
-app.use('/api/ai',           requireAuth, aiRouter);
+app.use('/api/ai', aiLimiter,           requireAuth, aiRouter);
 app.use('/api/profiles',     profilesRouter);
 
 // ── Workspace invite accept/decline (public + auth) ───────────────

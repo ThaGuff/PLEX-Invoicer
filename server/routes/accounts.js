@@ -1,6 +1,18 @@
 import { Router } from 'express';
 import { db } from '../db/schema.js';
 import { requireAuth } from '../middleware/auth.js';
+
+// Strip sensitive fields before sending account data to client
+function sanitizeAccount(acc) {
+  if (!acc) return acc;
+  const { stripe_customer_id, stripe_subscription_id, webhook_secret, ...safe } = acc;
+  return safe;
+}
+function sanitizeAccounts(rows) {
+  return rows.map(sanitizeAccount);
+}
+
+
 import { v4 as uuid } from 'uuid';
 
 const router = Router();
@@ -98,7 +110,7 @@ router.get('/', requireAuth, async (req, res) => {
     }
 
     res.json(await enrichAccounts(combined));
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // GET single account with custom catalog — verify ownership
@@ -120,8 +132,8 @@ router.get('/:id', requireAuth, async (req, res) => {
     const items = await db.execute(
       `SELECT * FROM custom_items WHERE account_id = ? ORDER BY sort_order`, [req.params.id]
     );
-    res.json({ ...acc.rows[0], customSections: sections.rows, customItems: items.rows });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+    res.json({ ...sanitizeAccount(acc.rows[0]), customSections: sections.rows, customItems: items.rows });
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // POST create account
@@ -139,8 +151,8 @@ router.post('/', async (req, res) => {
        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()]
     );
     const created = await db.execute(`SELECT * FROM accounts WHERE id = ?`, [id]);
-    res.json({ ...created.rows[0], customSections: [], customItems: [] });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+    res.json({ ...sanitizeAccount(created.rows[0]), customSections: [], customItems: [] });
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // PATCH update account
@@ -168,7 +180,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
     const updated = await db.execute(`SELECT * FROM accounts WHERE id = ?`, [req.params.id]);
     const enriched = await enrichAccounts(updated.rows);
     res.json(enriched[0]);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // DELETE account — cascade delete all related data
@@ -210,7 +222,7 @@ router.post('/:id/sections', async (req, res) => {
       [id, req.params.id, req.body.label || 'New Section', (maxOrder.rows[0].m || 0) + 1]
     );
     res.json({ id, label: req.body.label, account_id: req.params.id, sort_order: (maxOrder.rows[0].m || 0) + 1 });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 router.patch('/:id/sections/:sid', async (req, res) => {
@@ -223,14 +235,14 @@ router.patch('/:id/sections/:sid', async (req, res) => {
       await db.execute(`UPDATE custom_sections SET ${updates.join(', ')} WHERE id = ? AND account_id = ?`, vals);
     }
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 router.delete('/:id/sections/:sid', async (req, res) => {
   try {
     await db.execute(`DELETE FROM custom_sections WHERE id = ? AND account_id = ?`, [req.params.sid, req.params.id]);
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── Custom catalog: items ────────────────────────────────────────
@@ -250,7 +262,7 @@ router.post('/:id/items', async (req, res) => {
     );
     const created = await db.execute(`SELECT * FROM custom_items WHERE id = ?`, [id]);
     res.json(created.rows[0]);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 router.patch('/:id/items/:iid', async (req, res) => {
@@ -263,14 +275,14 @@ router.patch('/:id/items/:iid', async (req, res) => {
       await db.execute(`UPDATE custom_items SET ${updates.join(', ')} WHERE id = ? AND account_id = ?`, vals);
     }
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 router.delete('/:id/items/:iid', async (req, res) => {
   try {
     await db.execute(`DELETE FROM custom_items WHERE id = ? AND account_id = ?`, [req.params.iid, req.params.id]);
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── Logo upload ──────────────────────────────────────────────────
@@ -334,9 +346,7 @@ router.get('/:id/logo-img', async (req, res) => {
     res.set('Content-Type', logo_mime || 'image/jpeg');
     res.set('Cache-Control', 'public, max-age=86400'); // 1 day cache
     res.send(buf);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 export default router;

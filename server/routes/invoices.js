@@ -28,7 +28,7 @@ router.get('/', requireAuth, async (req, res) => {
        WHERE i.account_id = ? ORDER BY i.created_at DESC`, [account_id]
     );
     res.json(result.rows);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── Dashboard stats — MUST be before /:id ────────────────────────
@@ -57,7 +57,7 @@ router.get('/stats/dashboard', async (req, res) => {
       recent_invoices:    recentInv.rows,
       recent_quotes:      recentQ.rows,
     });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── GET public invoice by token — MUST be before /:id ────────────
@@ -78,7 +78,7 @@ router.get('/public/:token', async (req, res) => {
       await db.execute(`UPDATE invoices SET viewed_at = NOW() WHERE id = ?`, [inv.rows[0].id]);
     }
     res.json({ ...inv.rows[0], items: items.rows });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── GET single invoice with items — scoped to account ────────────
@@ -102,7 +102,7 @@ router.get('/:id', requireAuth, async (req, res) => {
       `SELECT * FROM invoice_items WHERE invoice_id = ? ORDER BY sort_order`, [req.params.id]
     );
     res.json({ ...invoice, items: items.rows });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── PATCH update invoice — scoped to account ─────────────────────
@@ -127,7 +127,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
     await db.execute(`UPDATE invoices SET ${updates.join(', ')} WHERE id = ? AND account_id = ?`, vals);
     const updated = await db.execute(`SELECT * FROM invoices WHERE id = ?`, [req.params.id]);
     res.json(updated.rows[0]);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST generate Stripe payment link (Connect-aware) ────────────
@@ -196,7 +196,7 @@ router.post('/:id/payment-link', requireAuth, async (req, res) => {
       connected:       !!connectedId,
       stripe_account:  connectedId || null,
     });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST mark as sent ─────────────────────────────────────────────
@@ -282,7 +282,7 @@ ${invoice.agency_name||'Invoice King'}`,
           : 'Invoice marked as sent (configure RESEND_API_KEY to enable email delivery)',
     });
 
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST mark as paid ─────────────────────────────────────────────
@@ -320,7 +320,7 @@ router.post('/:id/mark-paid', requireAuth, async (req, res) => {
       );
     }
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST send payment reminder ────────────────────────────────────
@@ -364,7 +364,7 @@ router.post('/:id/remind', requireAuth, async (req, res) => {
     } catch {} // reminders table may not exist yet
 
     res.json({ ok: true, email_sent: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── DELETE invoice ────────────────────────────────────────────────
@@ -384,7 +384,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
     await db.execute(`DELETE FROM invoice_items WHERE invoice_id = ?`, [req.params.id]);
     await db.execute(`DELETE FROM invoices WHERE id = ?`, [req.params.id]);
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── POST /api/invoices/public/:token/accept — E-sign invoice ──────
