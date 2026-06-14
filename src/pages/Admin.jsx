@@ -959,7 +959,7 @@ export default function Admin() {
             <p className="text-xs text-ink-muted mb-2">Users can point external systems at this URL to auto-create invoices:</p>
             <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2.5 border" style={{ borderColor:'#E5E8EB' }}>
               <code className="text-xs text-ink flex-1 break-all">
-                {(typeof window !== 'undefined' ? window.location.origin : 'https://invoice-king.up.railway.app')}/api/v1/integrations/webhook?account_id=ACC_ID
+                {(typeof window !== 'undefined' ? window.location.origin : 'https://invoiceking.app')}/api/v1/integrations/webhook?account_id=ACC_ID
               </code>
               <CopyBtn text={`${window.location.origin}/api/v1/integrations/webhook?account_id=ACC_ID`}/>
             </div>

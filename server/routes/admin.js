@@ -217,7 +217,7 @@ router.post('/onboard', async (req, res) => {
 
   const displayName    = name || email.split('@')[0];
   const businessName   = business_name || 'your business';
-  const loginUrl       = process.env.APP_URL || 'https://invoice-king.up.railway.app';
+  const loginUrl       = process.env.APP_URL || 'https://invoiceking.app';
   const supportEmail   = process.env.PLEX_OWNER_EMAIL || process.env.PLEX_OWNER_EMAIL || 'admin@invoiceking.app';
   const supportPhone = process.env.SUPPORT_PHONE || '';
 
@@ -284,7 +284,7 @@ router.post('/onboard', async (req, res) => {
 
   try {
     const attachments = pdfBuffer ? [{
-      filename: 'PLEX-Invoicer-Welcome-Guide.pdf',
+      filename: 'Invoice-King-Welcome-Guide.pdf',
       content:  pdfBuffer,
       contentType: 'application/pdf',
     }] : [];
@@ -324,7 +324,7 @@ router.post('/broadcast', async (req, res) => {
       u.email && u.email !== (process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com')
     );
 
-    const loginUrl    = process.env.APP_URL || 'https://invoice-king.up.railway.app';
+    const loginUrl    = process.env.APP_URL || 'https://invoiceking.app';
     const supportEmail = process.env.PLEX_OWNER_EMAIL || process.env.PLEX_OWNER_EMAIL || 'admin@invoiceking.app';
 
     const html = `
@@ -555,7 +555,7 @@ router.post('/user/:id/reset-password', async (req, res) => {
   try {
     const { data: user } = await sb.auth.admin.getUserById(req.params.id);
     if (!user?.user?.email) return res.status(404).json({ error: 'User not found' });
-    const appUrl = process.env.APP_URL || 'https://invoice-king.up.railway.app';
+    const appUrl = process.env.APP_URL || 'https://invoiceking.app';
     const { error } = await sb.auth.resetPasswordForEmail(user.user.email, {
       redirectTo: `${appUrl}/reset-password`,
     });
@@ -711,7 +711,7 @@ router.post('/user/:id/magic-link', async (req, res) => {
   try {
     const { data: u } = await sb.auth.admin.getUserById(req.params.id);
     if (!u?.user?.email) return res.status(404).json({ error: 'User not found' });
-    const appUrl = process.env.APP_URL || 'https://invoice-king.up.railway.app';
+    const appUrl = process.env.APP_URL || 'https://invoiceking.app';
     const { data, error } = await sb.auth.admin.generateLink({
       type: 'magiclink',
       email: u.user.email,

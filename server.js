@@ -796,6 +796,17 @@ app.use(express.static(distDir, {
     }
   }
 }));
+
+// ── SEO: robots.txt and sitemap served with correct content-type ──────────────
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.sendFile(path.join(__dirname, 'public', 'robots.txt'));
+});
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml');
+  res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
+});
+
 // SPA catch-all — must come AFTER static
 app.get('*', (req, res) => {
   // Never cache index.html — it contains the hashed JS bundle reference
@@ -814,7 +825,7 @@ app.get('*', (req, res) => {
 
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n🚀 PLEX Invoicer running on :${PORT}`);
+  console.log(`\n🚀 Invoice King running on :${PORT}`);
   console.log(`   OpenAI:    ${process.env.OPENAI_API_KEY         ? '✓ set' : '✗ not set — website scraping disabled'}`);
   console.log(`   Supabase:  ${(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL) ? '✓ set' : '✗ not set — running in dev mode (no auth)'}`);
   console.log(`   Stripe:    ${process.env.STRIPE_SECRET_KEY      ? '✓ set' : '✗ not set — payments disabled'}`);

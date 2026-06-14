@@ -95,7 +95,7 @@ router.get('/oauth-link', requireAuth, async (req, res) => {
   const { account_id } = req.query;
   if (!account_id) return res.status(400).json({ error: 'account_id required' });
 
-  const appUrl = process.env.APP_URL || 'https://invoice-king.up.railway.app';
+  const appUrl = process.env.APP_URL || 'https://invoiceking.app';
   const redirectUri = `${appUrl}/api/stripe-connect/callback`;
 
   const params = new URLSearchParams({
@@ -117,7 +117,7 @@ router.get('/oauth-link', requireAuth, async (req, res) => {
 // Stripe redirects here after merchant completes OAuth
 router.get('/callback', async (req, res) => {
   const { code, state: accountId, error, error_description } = req.query;
-  const appUrl = process.env.APP_URL || 'https://invoice-king.up.railway.app';
+  const appUrl = process.env.APP_URL || 'https://invoiceking.app';
 
   if (error) {
     return res.redirect(`${appUrl}/dashboard?stripe_error=${encodeURIComponent(error_description || error)}`);
@@ -232,7 +232,7 @@ router.post('/create-payment-link', requireAuth, async (req, res) => {
 
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-    const appUrl = process.env.APP_URL || 'https://invoice-king.up.railway.app';
+    const appUrl = process.env.APP_URL || 'https://invoiceking.app';
 
     // Build Stripe options
     const stripeOptions = {};

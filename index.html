@@ -2,20 +2,26 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
 
-    <!-- ── Primary meta ───────────────────────────────────────── -->
-    <title>Invoice King — Invoicing. Simplified.</title>
-    <meta name="description" content="Send quotes, collect payments, and grow your service business with AI-powered automation. Powered by PLEX Automation." />
+    <!-- ══ PRIMARY META ══════════════════════════════════════════ -->
+    <title>Invoice King — Invoicing. Simplified. Own Your Cash Flow.</title>
+    <meta name="description" content="Invoice King is professional invoicing software for service businesses. Send quotes in 2 minutes, collect Stripe payments, automate follow-ups, and grow your cash flow. Free trial, no credit card required." />
+    <meta name="keywords" content="invoicing software, invoice app, quoting software, service business invoicing, contractor invoicing, small business billing, online invoice generator, quote builder, payment collection, invoice tracking, time tracking, PWA invoice app" />
     <meta name="application-name" content="Invoice King" />
-    <meta name="author" content="PLEX Automation" />
+    <meta name="author" content="Invoice King" />
+    <meta name="copyright" content="Invoice King" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <link rel="canonical" href="https://invoiceking.app/" />
 
-    <!-- ── PWA ────────────────────────────────────────────────── -->
+    <!-- ══ PWA ═══════════════════════════════════════════════════ -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#C6E404" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="color-scheme" content="light" />
 
-    <!-- ── Apple PWA ──────────────────────────────────────────── -->
+    <!-- ══ APPLE PWA ═════════════════════════════════════════════ -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Invoice King" />
@@ -24,59 +30,230 @@
     <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=1781449047" />
 
-    <!-- ── Microsoft / Windows ────────────────────────────────── -->
+    <!-- ══ MICROSOFT / WINDOWS ═══════════════════════════════════ -->
     <meta name="msapplication-TileColor" content="#C6E404" />
     <meta name="msapplication-TileImage" content="/icons/icon-144.png" />
     <meta name="msapplication-config" content="none" />
 
-    <!-- ── Open Graph ─────────────────────────────────────────── -->
-    <meta property="og:type"        content="website" />
-    <meta property="og:title"       content="Invoice King — Invoicing. Simplified." />
-    <meta property="og:description" content="The complete billing platform for service businesses." />
-    <meta property="og:image"       content="/icons/icon-512.png" />
-    <meta property="og:image:width" content="512" />
-    <meta property="og:image:height" content="512" />
-    <meta property="og:url"         content="https://invoiceking.app" />
+    <!-- ══ OPEN GRAPH ════════════════════════════════════════════ -->
+    <meta property="og:site_name"    content="Invoice King" />
+    <meta property="og:type"         content="website" />
+    <meta property="og:title"        content="Invoice King — Invoicing. Simplified." />
+    <meta property="og:description"  content="Send quotes in 2 minutes, get paid faster. Professional invoicing for service businesses with Stripe payments, automations, and AI assistance." />
+    <meta property="og:image"        content="https://invoiceking.app/og-image.png" />
+    <meta property="og:image:width"  content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt"    content="Invoice King — Professional invoicing software" />
+    <meta property="og:url"          content="https://invoiceking.app" />
+    <meta property="og:locale"       content="en_US" />
 
-    <!-- ── Icons ──────────────────────────────────────────────── -->
+    <!-- ══ TWITTER CARD ══════════════════════════════════════════ -->
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:title"       content="Invoice King — Invoicing. Simplified." />
+    <meta name="twitter:description" content="Send quotes in 2 minutes, get paid faster. Professional invoicing for service businesses." />
+    <meta name="twitter:image"       content="https://invoiceking.app/og-image.png" />
+    <meta name="twitter:image:alt"   content="Invoice King logo and dashboard preview" />
+
+    <!-- ══ FAVICONS ══════════════════════════════════════════════ -->
     <link rel="icon" href="/favicon.ico?v=1781449047" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=1781449047" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=1781449047" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="96x96" href="/icons/icon-96.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
 
-    <!-- ── Fonts ──────────────────────────────────────────────── -->
+    <!-- ══ STRUCTURED DATA (JSON-LD) ════════════════════════════ -->
+    <!-- SoftwareApplication schema: helps Google understand this is an app -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Invoice King",
+      "alternateName": "InvoiceKing",
+      "description": "Professional invoicing and quoting software for service businesses. Send quotes in 2 minutes, collect Stripe payments, track time, and automate billing follow-ups.",
+      "url": "https://invoiceking.app",
+      "logo": "https://invoiceking.app/icons/icon-512.png",
+      "image": "https://invoiceking.app/og-image.png",
+      "applicationCategory": "BusinessApplication",
+      "applicationSubCategory": "Invoicing Software",
+      "operatingSystem": "Web, iOS, Android, Windows, macOS",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Starter",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Free plan — 5 quotes and invoices per month"
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro",
+          "price": "39",
+          "priceCurrency": "USD",
+          "description": "Unlimited quotes and invoices, AI assistance, automations"
+        }
+      ],
+      "featureList": [
+        "Quote builder — build quotes in under 2 minutes",
+        "Invoice management with Stripe payment links",
+        "Time tracking and billable hours",
+        "Client CRM with AI lead scoring",
+        "Automated payment reminders",
+        "Business analytics and cashflow forecasting",
+        "PWA — works offline on iOS and Android",
+        "Google Play app"
+      ],
+      "screenshot": [
+        "https://invoiceking.app/screenshots/dashboard.png",
+        "https://invoiceking.app/screenshots/quote-builder.png",
+        "https://invoiceking.app/screenshots/payment.png"
+      ],
+      "softwareVersion": "1.0",
+      "datePublished": "2026-01-01",
+      "dateModified": "2026-06-14",
+      "inLanguage": "en-US",
+      "isAccessibleForFree": true,
+      "maintainer": {
+        "@type": "Organization",
+        "name": "Invoice King",
+        "url": "https://invoiceking.app",
+        "email": "support@invoiceking.app"
+      }
+    }
+    </script>
+
+    <!-- Organization schema: establishes brand entity for Google Knowledge Graph -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Invoice King",
+      "url": "https://invoiceking.app",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://invoiceking.app/icons/icon-512.png",
+        "width": 512,
+        "height": 512
+      },
+      "image": "https://invoiceking.app/og-image.png",
+      "description": "Invoice King provides professional invoicing and quoting software for service businesses. Invoicing. Simplified. Own Your Cash Flow.",
+      "slogan": "Invoicing. Simplified. Own Your Cash Flow.",
+      "email": "support@invoiceking.app",
+      "sameAs": [
+        "https://play.google.com/store/apps/details?id=app.invoiceking.invoiceking"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "support@invoiceking.app",
+        "availableLanguage": "English"
+      }
+    }
+    </script>
+
+    <!-- WebApplication schema: for app-specific indexing -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Invoice King",
+      "url": "https://invoiceking.app",
+      "description": "Send quotes, collect payments, track time, and run your service business from any device.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript. Works in Chrome, Safari, Firefox, Edge.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "description": "Free to start. No credit card required."
+      }
+    }
+    </script>
+
+    <!-- FAQ schema: targets featured snippets for common invoicing questions -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is Invoice King?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Invoice King is professional invoicing and quoting software built for service businesses. It lets you send quotes in under 2 minutes, collect payments via Stripe, track billable time, and automate payment follow-ups — all from your phone, tablet, or desktop."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Invoice King free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Invoice King has a free Starter plan that includes 5 quotes and invoices per month, Stripe payment links, and a branded client portal. Pro and Business plans unlock unlimited invoicing, AI assistance, automations, and team features."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I use Invoice King on my phone?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Invoice King is a Progressive Web App (PWA) that installs on iOS and Android directly from your browser — no app store download required. It also has a Google Play app. The app works offline and syncs when you reconnect."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does Invoice King handle payments?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Invoice King uses Stripe for payment processing. When you send an invoice, your client receives a link to a branded payment portal where they can pay by card. Funds go directly to your Stripe account. You can also connect Stripe Connect for split payments."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Invoice King work for contractors?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Invoice King is built specifically for service businesses — contractors, cleaners, landscapers, HVAC technicians, pressure washers, and anyone who sends quotes and invoices in the field. The mobile-first design means you can create and send quotes from your truck."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- ══ FONTS ══════════════════════════════════════════════════ -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    <!-- ══ PERFORMANCE HINTS ══════════════════════════════════════ -->
+    <link rel="preload" href="/icons/icon-192.png" as="image" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://js.stripe.com" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 
-    <!-- ── Service Worker registration ───────────────────────── -->
+    <!-- ══ SERVICE WORKER ════════════════════════════════════════ -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js', { scope: '/' })
             .then(reg => {
               console.log('[PWA] Service worker registered:', reg.scope);
-
-              // Check for updates every 60 seconds when app is open
               setInterval(() => reg.update(), 60 * 1000);
             })
             .catch(err => console.warn('[PWA] SW registration failed:', err));
         });
       }
 
-      // ── Install prompt ──────────────────────────────────────
       let deferredPrompt;
       window.addEventListener('beforeinstallprompt', e => {
         e.preventDefault();
         deferredPrompt = e;
         window.__pwaInstallPrompt = deferredPrompt;
-        // Dispatch custom event so React can show install button
         window.dispatchEvent(new CustomEvent('pwa-installable'));
       });
 

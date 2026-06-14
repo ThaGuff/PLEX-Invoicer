@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+Allow: /privacy
+Allow: /terms
+
+# Block auth and app-internal routes from indexing
+Disallow: /dashboard
+Disallow: /quotes
+Disallow: /invoices
+Disallow: /contacts
+Disallow: /calendar
+Disallow: /documents
+Disallow: /time
+Disallow: /workspace
+Disallow: /automations
+Disallow: /analytics
+Disallow: /billing
+Disallow: /settings
+Disallow: /admin
+Disallow: /api/
+Disallow: /portal/
+Disallow: /auth/
+
+Sitemap: https://invoiceking.app/sitemap.xml
