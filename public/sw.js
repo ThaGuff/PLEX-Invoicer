@@ -3,7 +3,7 @@
  * Caches core app shell + API responses
  * Queues quote creation/edits when offline for sync when back online
  */
-const CACHE_VERSION = 'invoiceking-v2';
+const CACHE_VERSION = 'invoiceking-v3';
 const STATIC_CACHE  = `${CACHE_VERSION}-static`;
 const API_CACHE     = `${CACHE_VERSION}-api`;
 

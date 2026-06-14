@@ -49,7 +49,7 @@ function ScoreRing({ score, size=44, color }) {
 export default function TimeTrackingPage() {
   const navigate = useNavigate();
   const { account } = useAccount();
-  const accent = account?.primary_color || '#2563EB';
+  const accent = account?.primary_color || '#C6E404';
   const token = JSON.parse(localStorage.getItem('plex_auth_session')||'{}')?.access_token;
   const h = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -165,8 +165,8 @@ export default function TimeTrackingPage() {
   return (
     <div style={{ padding:'0 0 32px', fontFamily:"'Inter', sans-serif" }}>
       {/* Header */}
-      <div style={{ padding:'20px 28px 22px', background:'linear-gradient(135deg, #0D9488 0%, #2563EB 100%)', position:'relative', overflow:'hidden' }}>
-        <div style={{ position:'absolute', inset:0, opacity:0.06, backgroundImage:'radial-gradient(circle at 25% 50%, #fff 1px, transparent 1px)', backgroundSize:'40px 40px', pointerEvents:'none' }}/>
+      <div style={{ padding:'20px 28px 22px', background:'#0A0F13', position:'relative', overflow:'hidden', borderBottom:'3px solid #C6E404' }}>
+        <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'3px', background:'#C6E404' }}/>
         <div style={{ position:'relative', zIndex:1, display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
           <div>
             {summary && (
@@ -189,12 +189,12 @@ export default function TimeTrackingPage() {
               <div style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 14px', borderRadius:10, background:'rgba(220,38,38,0.2)', border:'1.5px solid rgba(220,38,38,0.4)' }}>
                 <div style={{ width:8, height:8, borderRadius:'50%', background:'#F87171', animation:'pulse 1s infinite' }}/>
                 <span style={{ fontSize:15, fontWeight:800, color:'#FCA5A5', fontVariantNumeric:'tabular-nums' }}>{timerDisplay}</span>
-                <button onClick={() => handleStop(activeTimer)} style={{ padding:'3px 10px', borderRadius:7, background:'#DC2626', border:'none', color:'#fff', cursor:'pointer', fontSize:11, fontWeight:700, fontFamily:'inherit', display:'flex', alignItems:'center', gap:4 }}>
+                <button onClick={() => handleStop(activeTimer)} style={{ padding:'3px 10px', borderRadius:7, background:'#0A0F13', border:'2px solid #C6E404', color:'#C6E404', cursor:'pointer', fontSize:11, fontWeight:700, fontFamily:'inherit', display:'flex', alignItems:'center', gap:4 }}>
                   <Square size={10}/> Stop
                 </button>
               </div>
             )}
-            <button onClick={() => setShowNew(true)} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', background:'rgba(255,255,255,0.95)', color:'#0D9488', cursor:'pointer', fontSize:13, fontWeight:800, fontFamily:'inherit' }}>
+            <button onClick={() => setShowNew(true)} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', background:'#C6E404', color:'#0A0F13', cursor:'pointer', fontSize:13, fontWeight:800, fontFamily:'inherit' }}>
               <Plus size={14}/> Log Time
             </button>
           </div>
@@ -218,7 +218,7 @@ export default function TimeTrackingPage() {
             {/* Summary cards */}
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(180px, 1fr))', gap:12 }}>
               <StatCard label="Total Hours" value={`${summary?.total_hours || 0}h`} icon={Clock} color={accent}/>
-              <StatCard label="Billed" value={fmt$(summary?.total_billed)} icon={CheckCircle} color="#059669"/>
+              <StatCard label="Billed" value={fmt$(summary?.total_billed)} icon={CheckCircle} color="#22C55E"/>
               <StatCard label="Unbilled" value={fmt$(summary?.unbilled_amount)} sub={totalUnbilled > 0 ? 'Ready to invoice' : 'All invoiced'} icon={DollarSign} color={totalUnbilled > 0 ? '#D97706' : '#059669'}/>
               <StatCard label="Entries" value={summary?.total_entries || 0} icon={FileText} color="#7C3AED"/>
             </div>
@@ -252,7 +252,7 @@ export default function TimeTrackingPage() {
                   <p style={{ margin:0, fontSize:14, fontWeight:700, color:'var(--text-primary)' }}>{fmt$(totalUnbilled)} ready to invoice</p>
                   <p style={{ margin:'2px 0 0', fontSize:12, color:'var(--text-muted)' }}>{billable.length} billable {billable.length===1?'entry':'entries'} not yet invoiced</p>
                 </div>
-                <button onClick={() => setShowConvertModal(true)} style={{ padding:'8px 16px', borderRadius:10, border:'none', background:'#059669', color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, fontFamily:'inherit' }}>
+                <button onClick={() => setShowConvertModal(true)} style={{ padding:'8px 16px', borderRadius:10, border:'none', background:'#C6E404', color:'#0A0F13', cursor:'pointer', fontSize:13, fontWeight:800, fontFamily:'inherit' }}>
                   Convert to Invoice →
                 </button>
               </div>

@@ -1,7 +1,7 @@
 {
   "name": "Invoice King \u2014 Invoicing. Simplified.",
   "short_name": "Invoice King",
-  "description": "Professional invoicing and quoting for businesses that value simplicity, speed, and cash flow. Make invoices in seconds, get paid faster, take control of your cash flow.",
+  "description": "Professional invoicing and quoting for businesses that value simplicity, speed, and cash flow.",
   "start_url": "/?source=pwa",
   "display": "standalone",
   "orientation": "portrait-primary",
@@ -20,14 +20,14 @@
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Dashboard \u2014 Revenue at a glance"
+      "label": "Dashboard \u2014 revenue at a glance"
     },
     {
       "src": "/screenshots/quote-builder.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Quote Builder \u2014 Build quotes in 2 minutes"
+      "label": "Quote builder \u2014 build in 2 minutes"
     },
     {
       "src": "/screenshots/payment.png",
@@ -55,6 +55,18 @@
       "short_name": "Invoice",
       "description": "Create a new invoice",
       "url": "/invoices/new?source=shortcut",
+      "icons": [
+        {
+          "src": "/icons/icon-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Time Keeping",
+      "short_name": "Time",
+      "description": "Track your time",
+      "url": "/time?source=shortcut",
       "icons": [
         {
           "src": "/icons/icon-96.png",

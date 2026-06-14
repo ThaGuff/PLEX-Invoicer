@@ -23,12 +23,21 @@ function LegalNav() {
       <div style={{ maxWidth:800, margin:'0 auto', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <button onClick={() => navigate('/')} style={{ display:'flex', alignItems:'center', gap:8, background:'none', border:'none', cursor:'pointer', padding:0 }}>
           <div style={{ width:28, height:28, borderRadius:7, background:C.dark, display:'flex', alignItems:'center', justifyContent:'center' }}>
-            <svg width="14" height="16" viewBox="0 0 18 20" fill="none">
-              <rect x="2" y="1" width="3.2" height="18" rx="1.6" fill={C.green}/>
-              <rect x="5" y="1" width="7.5" height="2.8" rx="1.4" fill={C.green}/>
-              <rect x="5" y="8.6" width="6.5" height="2.8" rx="1.4" fill={C.green}/>
-              <rect x="10.5" y="1" width="2.8" height="10.5" rx="1.4" fill={C.green}/>
-              <line x1="6.5" y1="12" x2="16" y2="19.5" stroke={C.green} strokeWidth="3" strokeLinecap="round"/>
+            <svg width="32" height="40" viewBox="0 0 80 100" fill="none">
+              <rect x="2" y="36" width="76" height="8" rx="2" fill="#C6E404"/>
+              <polygon points="12,18 22,36 2,36" fill="#C6E404"/>
+              <polygon points="68,18 78,36 58,36" fill="#C6E404"/>
+              <rect x="28" y="22" width="24" height="14" fill="#C6E404"/>
+              <polygon points="22,36 28,30 25,36" fill="#F5F6F7"/>
+              <polygon points="52,36 58,30 55,36" fill="#F5F6F7"/>
+              <polygon points="40,7 47,15 40,23 33,15" fill="#C6E404"/>
+              <polygon points="40,11 44,15 40,19 36,15" fill="#A8C200"/>
+              <path d="M4,44 L4,92 Q4,96 8,96 L56,96 Q60,96 60,92 L60,58 L46,44 Z" fill="#0A0F13"/>
+              <polygon points="46,44 60,58 46,58" fill="#C6E404"/>
+              <rect x="10" y="62" width="28" height="26" rx="1.5" fill="white"/>
+              <rect x="14" y="68" width="20" height="3.5" rx="1.5" fill="#0A0F13"/>
+              <rect x="14" y="75" width="14" height="3.5" rx="1.5" fill="#0A0F13"/>
+              <rect x="14" y="82" width="18" height="3.5" rx="1.5" fill="#C6E404"/>
             </svg>
           </div>
           <span style={{ fontSize:16, fontWeight:800, color:C.dark, letterSpacing:'-0.02em' }}>Invoice King</span>

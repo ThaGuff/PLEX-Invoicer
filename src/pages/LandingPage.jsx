@@ -55,9 +55,16 @@ function Nav({ onLogin }) {
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 9, background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-            <img src="/logo-invoiceking-transparent.png" alt="Invoice King" style={{ width: 26, height: 26, objectFit: 'contain' }}/>
-          </div>
+          <div style={{ width: 34, height: 34, borderRadius: 9, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="18" height="22" viewBox="0 0 80 100" fill="none">
+                <rect x="2" y="36" width="76" height="8" rx="2" fill="#C6E404"/>
+                <polygon points="12,18 22,36 2,36" fill="#C6E404"/>
+                <polygon points="68,18 78,36 58,36" fill="#C6E404"/>
+                <rect x="28" y="22" width="24" height="14" fill="#C6E404"/>
+                <polygon points="40,7 47,15 40,23 33,15" fill="#C6E404"/>
+                <path d="M4,44 L4,92 Q4,96 8,96 L56,96 Q60,96 60,92 L60,58 L46,44 Z" fill="white"/>
+                <polygon points="46,44 60,58 46,58" fill="#C6E404"/>
+              </svg></div>
           <span style={{ fontSize: 18, fontWeight: 800, color: scrolled ? C.textPrimary : '#fff', letterSpacing: '-0.025em' }}>
             Invoice King
           </span>

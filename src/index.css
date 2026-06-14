@@ -13,15 +13,15 @@
 @layer base {
   :root {
     /* ── Brand core ─────────────────────────────────────────────── */
-    --brand-green:        #C6E404;   /* Invoice King lime (primary)    */
+    --brand-green:        #C6E404;   /* IK Lime — crown, CTAs, active */   /* Invoice King lime (primary)    */
     --brand-green-bright: #44EF6B;   /* Bright green (highlights)      */
     --brand-green-dark:   #166534;   /* Dark green (text on green bg)  */
     --brand-green-bg:     #DCFCE7;   /* Green light bg (success/badges)*/
-    --lime:               #C6E404;   /* Electric lime (CTA only)       */
-    --lime-dark:          #AECF00;   /* Lime pressed state             */
-    --forest:             #1A1A1A;   /* Charcoal — sidebar/buttons     */
-    --forest-mid:         #222222;   /* Sidebar hover                  */
-    --forest-active:      #2A2A2A;   /* Active nav item bg             */
+    --lime:               #C6E404;   /* IK Lime */   /* Electric lime (CTA only)       */
+    --lime-dark:          #A8C200;   /* Lime pressed/hover */   /* Lime pressed state             */
+    --forest:             #0A0F13;   /* IK Charcoal — sidebar, doc */   /* Charcoal — sidebar/buttons     */
+    --forest-mid:         #1C2026;   /* Charcoal hover */   /* Sidebar hover                  */
+    --forest-active:      #2E333A;   /* Charcoal active */   /* Active nav item bg             */
 
     /* ── Content area ───────────────────────────────────────────── */
     --bg-page:        #F5F5F5;   /* Light gray page bg */
@@ -33,18 +33,18 @@
     /* ── Typography ─────────────────────────────────────────────── */
     --text-primary:   #1A1A1A;
     --text-secondary: #3D3D3D;
-    --text-muted:     #6B7280;
+    --text-muted:     #626467;   /* IK Stone — tagline */
 
     /* ── Semantic — all unified to brand green or neutral gray ──── */
-    --success:  #22C55E;   /* green */
+    --success:  #22C55E;   /* green */   /* green */
     --warning:  #64748B;   /* neutral gray — no orange */
     --danger:   #DC2626;   /* red stays (universal error meaning) */
-    --info:     #64748B;   /* slate */
+    --info:     #3B82F6;   /* blue */   /* slate */
 
     /* ── Sidebar ─────────────────────────────────────────────────── */
     --sidebar-text:       rgba(255,255,255,0.82);
     --sidebar-text-muted: rgba(255,255,255,0.38);
-    --sidebar-active-bar: #C6E404;
+    --sidebar-active-bar: #C6E404;   /* IK Lime */
 
     /* ── Legacy aliases (kept for backward compat, all rebranded) ── */
     --blue:         #3B82F6;   /* restore for status badges */

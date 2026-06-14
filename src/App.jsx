@@ -162,6 +162,7 @@ function Nav() {
     { to: '/contacts',   label: 'Clients' },
     { to: '/calendar',   label: 'Schedule' },
     { to: '/documents',  label: 'Documents' },
+    { to: '/time',        label: 'Time Keeping' },
     { to: '/workspace',  label: 'Team' },
   ];
   // Operations nav group
@@ -175,7 +176,7 @@ function Nav() {
   ];
 
   const allLinks = [...workspaceLinks, ...operationsLinks];
-  const mobilePrimary = [workspaceLinks[0], workspaceLinks[1], workspaceLinks[2], workspaceLinks[3]];
+  const mobilePrimary = [workspaceLinks[0], workspaceLinks[1], workspaceLinks[2], workspaceLinks[4]];
 
   const userName = user?.user_metadata?.full_name || account?.name || 'Account';
   const workspaceName = account?.company_name || 'Invoice King';
@@ -222,8 +223,23 @@ function Nav() {
         {/* Logo */}
         <div style={{ padding: '20px 16px 16px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 9, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1A1A1A' }}>
-              <img src="/logo-invoiceking.png?v=1781312065" alt="Invoice King" style={{ width: 36, height: 36, objectFit: 'cover' }} />
+            <div style={{ width: 36, height: 36, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1A1A1A' }}>
+              <svg width="26" height="33" viewBox="0 0 80 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Invoice King">
+                <rect x="2" y="36" width="76" height="8" rx="2" fill="#C6E404"/>
+                <polygon points="12,18 22,36 2,36" fill="#C6E404"/>
+                <polygon points="68,18 78,36 58,36" fill="#C6E404"/>
+                <rect x="28" y="22" width="24" height="14" fill="#C6E404"/>
+                <polygon points="22,36 28,30 25,36" fill="#1A1A1A"/>
+                <polygon points="52,36 58,30 55,36" fill="#1A1A1A"/>
+                <polygon points="40,7 47,15 40,23 33,15" fill="#C6E404"/>
+                <polygon points="40,11 44,15 40,19 36,15" fill="#A8C200"/>
+                <path d="M4,44 L4,92 Q4,96 8,96 L56,96 Q60,96 60,92 L60,58 L46,44 Z" fill="#FFFFFF"/>
+                <polygon points="46,44 60,58 46,58" fill="#C6E404"/>
+                <rect x="10" y="62" width="28" height="26" rx="1.5" fill="rgba(255,255,255,0.1)"/>
+                <rect x="14" y="68" width="20" height="3.5" rx="1.5" fill="#1A1A1A"/>
+                <rect x="14" y="75" width="14" height="3.5" rx="1.5" fill="#1A1A1A"/>
+                <rect x="14" y="82" width="18" height="3.5" rx="1.5" fill="#C6E404"/>
+              </svg>
             </div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.03em', lineHeight: 1.1 }}>Invoice King</div>
