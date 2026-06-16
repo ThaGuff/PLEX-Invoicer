@@ -1340,7 +1340,12 @@ export default function QuoteBuilder() {
                     exportState.agencyLogoUrl = null;
                   }
                 }
-                exportPDF(exportState);
+                try {
+                  exportPDF(exportState);
+                } catch (e) {
+                  console.error('PDF export failed:', e);
+                  alert('PDF export failed: ' + (e?.message || 'Unknown error') + '. Please try again or contact support if this continues.');
+                }
               }} disabled={selectedCount === 0}
                 className="btn-ghost w-full disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
                 <Download size={15} /> Export PDF
