@@ -52,6 +52,19 @@ COPY --from=builder /app/server ./server
 COPY --from=builder /app/server.js ./server.js
 COPY --from=builder /app/serve.json ./serve.json
 
+# server/utils/pdf.js (Feature Request 2 — AI-drafted email PDF attachment)
+# imports the shared PDF-rendering core from src/utils/exportPDF.js, which
+# also depends on src/data/services.js. The runtime stage otherwise never
+# copies anything from src/ at all (it only exists pre-build in the builder
+# stage, compiled into dist/ for the frontend) — without these two explicit
+# copies, the server crashes on startup with ERR_MODULE_NOT_FOUND the
+# instant any route imports server/utils/pdf.js, since that file does not
+# exist in the runtime container. Copying only these two specific files
+# (not all of src/) keeps the production image as small as the multi-stage
+# build intends.
+COPY --from=builder /app/src/utils/exportPDF.js ./src/utils/exportPDF.js
+COPY --from=builder /app/src/data/services.js   ./src/data/services.js
+
 # Create data directory for SQLite fallback (if Supabase not configured)
 RUN mkdir -p /app/data && chown -R plex:nodejs /app/data
 
