@@ -416,6 +416,86 @@ function calcWinProb(quote, clientHistory) {
   return Math.max(15, Math.min(97, score));
 }
 
+// ── Send-by-email modal ─────────────────────────────────────────────
+// Fixes a pre-existing bug: showEmailModal/handleSendEmail and the
+// "Email quote" button all existed, but no modal was ever rendered —
+// clicking the button silently did nothing. Also adds the AI-drafted,
+// PDF-attached send option for Feature Request 2.
+function SendEmailModal({ onClose, accent, defaultEmail, defaultName, onSend, onSendAI, sending, sent }) {
+  const [to,   setTo]   = useState(defaultEmail || '');
+  const [name, setName] = useState(defaultName  || '');
+  const [msg,  setMsg]  = useState('');
+  const [useAI, setUseAI] = useState(true);
+
+  if (sent) {
+    return (
+      <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-8 text-center">
+          <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style={{ background: accent + '20' }}>
+            <CheckCircle size={22} style={{ color: accent }} />
+          </div>
+          <p className="text-sm font-bold text-ink mb-1">Quote sent!</p>
+          <p className="text-xs text-ink-muted">{to}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
+          <h3 className="text-sm font-bold text-ink">Email quote</h3>
+          <button onClick={onClose}><X size={16} className="text-ink-muted" /></button>
+        </div>
+        <div className="p-6 space-y-3">
+          <div>
+            <label className="text-xs font-medium text-ink-muted block mb-1.5">Client email *</label>
+            <input type="email" value={to} onChange={e => setTo(e.target.value)}
+              className="field" placeholder="client@example.com" autoFocus />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-ink-muted block mb-1.5">Client name</label>
+            <input value={name} onChange={e => setName(e.target.value)}
+              className="field" placeholder="Optional — used in the greeting" />
+          </div>
+
+          {/* AI-draft toggle — Feature Request 2 */}
+          <div className="rounded-xl p-3.5 border" style={{ background: useAI ? accent + '0e' : 'var(--bg-page)', borderColor: useAI ? accent + '40' : 'var(--border)' }}>
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" checked={useAI} onChange={e => setUseAI(e.target.checked)} className="custom-checkbox mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-ink">Let AI write the email</p>
+                <p className="text-xs text-ink-muted mt-0.5 leading-relaxed">
+                  Drafts a warm, professional message using this quote's real details — services, pricing, and total. The full quote is attached as a PDF either way.
+                </p>
+              </div>
+            </label>
+          </div>
+
+          {!useAI && (
+            <div>
+              <label className="text-xs font-medium text-ink-muted block mb-1.5">Custom message <span className="text-ink-subtle">(optional)</span></label>
+              <textarea value={msg} onChange={e => setMsg(e.target.value)} rows={3}
+                className="field resize-none" placeholder="Add a personal note…" />
+            </div>
+          )}
+        </div>
+        <div className="flex items-center justify-between px-6 py-4 border-t" style={{ borderColor: 'var(--border)', background: 'var(--bg-page)' }}>
+          <button onClick={onClose} className="btn-ghost text-sm">Cancel</button>
+          <button
+            onClick={() => useAI ? onSendAI({ to: to.trim(), name: name.trim() }) : onSend({ to: to.trim(), name: name.trim(), msg: msg.trim() })}
+            disabled={!to.trim() || sending}
+            className="text-sm font-semibold px-5 py-2 rounded-xl disabled:opacity-40 flex items-center gap-2"
+            style={{ background: accent, color: '#1A1A1A' }}>
+            {sending ? 'Sending…' : useAI ? 'Draft & send with AI' : 'Send quote'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function QuoteBuilder() {
   const { account, activeId, addCustomSection, updateCustomSection, addCustomItem, refreshAccount } = useAccount();
   const accent = '#C6E404';
@@ -486,14 +566,39 @@ export default function QuoteBuilder() {
   const [emailSending, setEmailSending] = React.useState(false);
   const [emailSent, setEmailSent] = React.useState(false);
 
-  const handleSendEmail = async () => {
-    if (!emailTo.trim()) return;
+  const handleSendEmail = async ({ to, name, msg }) => {
+    if (!to) return;
+    if (isNew) { alert('Save this quote before emailing it.'); return; }
     setEmailSending(true);
     try {
+      // Fixed: previously referenced an undefined `token` variable, which
+      // would have thrown ReferenceError on every call — this function
+      // could never have succeeded even before the modal existed to call it.
+      const authToken = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
       const r = await fetch(`/api/quotes/${editId}/send-email`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ account_id: account?.id, recipient_email: emailTo.trim(), recipient_name: emailName.trim(), custom_message: emailMsg.trim() }),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ account_id: account?.id, recipient_email: to, recipient_name: name, custom_message: msg }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Send failed');
+      setEmailSent(true);
+      setTimeout(() => { setShowEmailModal(false); setEmailSent(false); setEmailTo(''); setEmailName(''); setEmailMsg(''); }, 2500);
+    } catch(e) { alert('Failed to send: ' + e.message); }
+    setEmailSending(false);
+  };
+
+  // Feature Request 2: AI-drafted email with the quote PDF attached.
+  const handleSendAIEmail = async ({ to, name }) => {
+    if (!to) return;
+    if (isNew) { alert('Save this quote before emailing it.'); return; }
+    setEmailSending(true);
+    try {
+      const authToken = JSON.parse(localStorage.getItem('plex_auth_session') || '{}')?.access_token;
+      const r = await fetch(`/api/quotes/${editId}/send-ai-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ account_id: account?.id, recipient_email: to, recipient_name: name }),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Send failed');
@@ -1415,7 +1520,8 @@ export default function QuoteBuilder() {
                 className="btn-ghost w-full disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
                 <Download size={15} /> Export PDF
               </button>
-              <button onClick={() => setShowEmailModal(true)} disabled={selectedCount === 0}
+              <button onClick={() => setShowEmailModal(true)} disabled={selectedCount === 0 || isNew}
+                title={isNew ? 'Save this quote before emailing it' : undefined}
                 className="btn-ghost w-full disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
                 <Mail size={15} /> Email quote
               </button>
@@ -1447,6 +1553,21 @@ export default function QuoteBuilder() {
           accountId={account?.id}
           onCreated={handleSectionCreated}
           onClose={() => setShowAddSection(false)}
+        />
+      )}
+
+      {/* Send-by-email modal — was previously unreachable (no modal was
+          ever rendered despite the trigger button and handler existing) */}
+      {showEmailModal && (
+        <SendEmailModal
+          accent={accent}
+          defaultEmail={clientEmail}
+          defaultName={clientName}
+          sending={emailSending}
+          sent={emailSent}
+          onSend={handleSendEmail}
+          onSendAI={handleSendAIEmail}
+          onClose={() => setShowEmailModal(false)}
         />
       )}
     </div>

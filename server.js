@@ -188,6 +188,7 @@ app.use('/api/', apiLimiter);
 app.use('/api/auth/', strictLimiter);
 app.use('/api/invoices/*/remind', emailLimiter);
 app.use('/api/invoices/*/send',   emailLimiter);
+app.use('/api/quotes/*/send-ai-email', emailLimiter);
 app.use('/api/analytics/run-reminders', emailLimiter);
 // File upload rate limit — defined here, just before first use
 const uploadLimiter = rateLimit({

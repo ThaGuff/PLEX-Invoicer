@@ -3,6 +3,7 @@ import { db } from '../db/schema.js';
 import { sendEmail, isEmailConfigured, buildQuoteHtml } from '../utils/email.js';
 import { requireAuth } from '../middleware/auth.js';
 import { v4 as uuid } from 'uuid';
+import { generateQuotePdfBuffer } from '../utils/pdf.js';
 
 const router = Router();
 
@@ -521,6 +522,141 @@ router.post('/:id/send-email', requireAuth, async (req, res) => {
     res.json({ ok: true, messageId: result?.id });
   } catch (e) {
     console.error('send-email error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /:id/send-ai-email — Feature Request 2 ────────────────────
+// AI-drafted, brand-matched email with the quote PDF attached.
+// The AI only ever sees real, already-computed numbers (the same totals
+// shown on the PDF and the public quote portal) — it drafts warm,
+// professional prose around those facts, it never calculates or
+// invents pricing itself. This route degrades gracefully: if
+// OPENAI_API_KEY isn't configured, it falls back to the same
+// buildQuoteHtml() template the manual /send-email route uses, with
+// only the body copy missing the AI-drafted opening paragraph.
+router.post('/:id/send-ai-email', requireAuth, async (req, res) => {
+  try {
+    const { account_id, recipient_email, recipient_name } = req.body;
+    if (!account_id || !recipient_email) {
+      return res.status(400).json({ error: 'account_id and recipient_email required' });
+    }
+    if (!isEmailConfigured()) {
+      return res.status(503).json({ error: 'Email not configured. Add RESEND_API_KEY or SMTP_HOST in Railway Variables.' });
+    }
+
+    const [quoteResult, accountResult, allItems] = await Promise.all([
+      db.execute(`SELECT * FROM quotes WHERE id = ? AND account_id = ?`, [req.params.id, account_id]),
+      db.execute(`SELECT * FROM accounts WHERE id = ?`, [account_id]),
+      db.execute(`SELECT * FROM quote_items WHERE quote_id = ? ORDER BY sort_order`, [req.params.id]),
+    ]);
+    if (!quoteResult.rows.length) return res.status(404).json({ error: 'Quote not found' });
+    const q = quoteResult.rows[0];
+    const a = accountResult.rows[0];
+    const billableItems = allItems.rows.filter(i => !i.is_included);
+
+    const clientName  = recipient_name || q.client_name || 'there';
+    const agencyName   = a?.name  || 'Invoice King';
+    const grandTotal   = (q.setup_total || 0) + (q.tax_amount || 0);
+    const monthlyTotal = q.monthly_total || 0;
+
+    // ── Generate the PDF attachment (same renderer as the manual export) ──
+    const { buffer: pdfBuffer, filename: pdfFilename } = generateQuotePdfBuffer(q, allItems.rows, a);
+
+    // ── Draft the email body with AI, using only real quote data ─────────
+    let aiBody = null;
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (apiKey) {
+      try {
+        const itemsSummary = billableItems
+          .map(i => `- ${i.name}${i.quantity > 1 ? ` (×${i.quantity})` : ''}${i.setup_price > 0 ? `, $${i.setup_price} one-time` : ''}${i.monthly_price > 0 ? `, $${i.monthly_price}/mo` : ''}`)
+          .join('\n') || '(no billable line items — included/bundled services only)';
+
+        const prompt = `Write a short email body (3-5 short paragraphs, no subject line, no greeting salutation beyond "Hi ${clientName},") from a small home-service business owner to a client whose quote is ready to review.
+
+Business sending the email: ${agencyName}
+Client name: ${clientName}
+Quote number: ${q.number}
+Services quoted:
+${itemsSummary}
+Total due today: $${grandTotal.toLocaleString()}${monthlyTotal > 0 ? `\nMonthly recurring after that: $${monthlyTotal.toLocaleString()}/mo` : ''}
+${q.notes ? `Notes from the business: ${q.notes}` : ''}
+
+Tone: warm, calm, and professional — like a trustworthy local contractor writing to a homeowner, not a corporate sales email. Confident but not pushy. No exclamation-point enthusiasm, no hype words like "amazing" or "incredible," no emojis.
+
+Rules:
+- Do NOT invent any prices, services, dates, or facts beyond what's given above.
+- Do NOT restate every line item in detail — the attached PDF and the quote link already show the full breakdown. Just briefly mention what the quote covers in plain language.
+- Mention that the full quote with all details is attached as a PDF.
+- End with a brief, low-pressure call to action to review and approve when ready.
+- Sign off as "${agencyName}" — do not invent a person's name to sign as.
+- Output ONLY the email body text, no subject line, no markdown formatting, no placeholder brackets.`;
+
+        const aiResp = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            max_tokens: 500,
+            temperature: 0.6,
+            messages: [
+              { role: 'system', content: 'You write warm, calm, professional emails for small home-service businesses. You output only the requested email body text — no subject lines, no markdown, no commentary about what you wrote.' },
+              { role: 'user', content: prompt },
+            ],
+          }),
+        });
+        if (aiResp.ok) {
+          const aiData = await aiResp.json();
+          aiBody = (aiData.choices?.[0]?.message?.content || '').trim() || null;
+        } else {
+          console.warn('[AI email] OpenAI request failed, falling back to standard template:', aiResp.status);
+        }
+      } catch (aiErr) {
+        console.warn('[AI email] AI drafting failed, falling back to standard template:', aiErr.message);
+      }
+    }
+
+    // ── Build the branded HTML email ──────────────────────────────────
+    const portalUrl = `${process.env.APP_URL || 'https://invoiceking.app'}/portal/quote/${q.public_token}`;
+    const logoUrl = a?.logo_url ? `${process.env.APP_URL || 'https://invoiceking.app'}${a.logo_url}` : null;
+
+    const html = buildQuoteHtml({
+      clientName,
+      agencyName,
+      quoteNum: q.number,
+      totalAmount: grandTotal,
+      portalUrl,
+      logoUrl,
+      accentColor: a?.primary_color || '#C6E404',
+      agencyPhone: a?.phone || '',
+      agencyEmail: a?.email || '',
+      agencyAddress: a?.business_address || '',
+      lineItems: billableItems,
+      // AI-drafted body replaces the generic notes line when available;
+      // falls back to the quote's own notes field, matching the manual
+      // send-email route's behavior, if AI drafting wasn't available.
+      notes: aiBody || q.notes || '',
+      whiteLabelPlan: a?.plan === 'agency',
+    });
+
+    const fromName = a?.email_from_name || agencyName;
+    const from = `${fromName} <invoices@invoiceking.app>`;
+
+    const result = await sendEmail({
+      to: recipient_email,
+      from,
+      subject: `Your Quote ${q.number} from ${agencyName} — Ready to Review`,
+      html,
+      attachments: [{ filename: pdfFilename, content: pdfBuffer }],
+    });
+
+    if (q.status === 'draft') {
+      await db.execute(`UPDATE quotes SET status = 'sent', sent_at = NOW() WHERE id = ?`, [q.id]);
+    }
+
+    res.json({ ok: true, messageId: result?.id, aiDrafted: !!aiBody, attachmentFilename: pdfFilename });
+  } catch (e) {
+    console.error('send-ai-email error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
