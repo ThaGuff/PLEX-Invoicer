@@ -52,7 +52,33 @@ function PriceCell({ value, onChange, disabled, accent }) {
   );
 }
 
-function ServiceRow({ svc, sectionId, isSelected, isIncluded, setupPrice, monthlyPrice, billingMode, yearlyDiscount, onToggle, onPriceChange, onIncludeChange, accent }) {
+// Simple −/number/+ quantity stepper — easier to tap on a phone in the
+// truck than typing into a bare number field, and reads clearly as
+// "how many of this" rather than a price-like input.
+function QtyStepper({ value, onChange, disabled, accent }) {
+  const qty = Math.max(1, parseFloat(value) || 1);
+  return (
+    <div className="flex items-center gap-1" style={{ opacity: disabled ? 0.4 : 1 }}>
+      <button type="button" disabled={disabled} onClick={() => onChange(qty - 1)}
+        className="flex items-center justify-center rounded-md border text-sm font-bold"
+        style={{ width: 22, height: 22, borderColor: 'var(--border)', color: 'var(--text-secondary)', cursor: disabled ? 'default' : 'pointer', lineHeight: 1 }}>
+        −
+      </button>
+      <input type="number" value={qty} min={1} step={1} disabled={disabled}
+        onChange={e => onChange(e.target.value)}
+        className="text-center text-sm font-semibold"
+        style={{ width: 32, border: 'none', background: 'transparent', color: 'var(--text-primary)' }}
+      />
+      <button type="button" disabled={disabled} onClick={() => onChange(qty + 1)}
+        className="flex items-center justify-center rounded-md border text-sm font-bold"
+        style={{ width: 22, height: 22, borderColor: 'var(--border)', color: 'var(--text-secondary)', cursor: disabled ? 'default' : 'pointer', lineHeight: 1 }}>
+        +
+      </button>
+    </div>
+  );
+}
+
+function ServiceRow({ svc, sectionId, isSelected, isIncluded, setupPrice, monthlyPrice, quantity, billingMode, yearlyDiscount, onToggle, onPriceChange, onIncludeChange, onQuantityChange, accent }) {
   const effectiveMonthly = billingMode === 'annual' && !isIncluded ? monthlyPrice * (1 - yearlyDiscount / 100) : monthlyPrice;
   const savings = monthlyPrice * (yearlyDiscount / 100);
   return (
@@ -78,6 +104,10 @@ function ServiceRow({ svc, sectionId, isSelected, isIncluded, setupPrice, monthl
         {isSelected && (
           <div className="flex items-center gap-3 shrink-0 flex-wrap justify-end">
             <div className="flex flex-col items-center gap-1">
+              <span className="text-xs text-ink-muted">Qty</span>
+              <QtyStepper value={quantity} onChange={v => onQuantityChange(svc.id, v)} disabled={isIncluded} accent={accent} />
+            </div>
+            <div className="flex flex-col items-center gap-1">
               <span className="text-xs text-ink-muted">Incl.</span>
               <Toggle checked={isIncluded} onChange={v => onIncludeChange(svc.id, v)} />
             </div>
@@ -85,6 +115,11 @@ function ServiceRow({ svc, sectionId, isSelected, isIncluded, setupPrice, monthl
               <span className="text-xs text-ink-muted">Price</span>
               {isIncluded ? <span className="text-xs font-semibold text-green-600 w-[86px] text-right">Included</span>
                 : <PriceCell value={setupPrice} onChange={v => onPriceChange(svc.id, 'setup', v)} accent={accent} />}
+              {!isIncluded && quantity > 1 && (
+                <span className="text-xs font-semibold mt-0.5" style={{ color: accent }}>
+                  {quantity} × {fmt(setupPrice)} = {fmt(setupPrice * quantity)}
+                </span>
+              )}
             </div>
             <div className="flex flex-col items-end gap-1">
               <span className="text-xs text-ink-muted">Recurring</span>
@@ -104,7 +139,7 @@ function ServiceRow({ svc, sectionId, isSelected, isIncluded, setupPrice, monthl
 }
 
 // ── Custom section with inline add-item capability ────────────────
-function CustomSection({ section, services, selected, included, prices, billingMode, yearlyDiscount, onToggle, onPriceChange, onIncludeChange, accent, accountId, onItemAdded, onSectionRenamed }) {
+function CustomSection({ section, services, selected, included, prices, quantities, billingMode, yearlyDiscount, onToggle, onPriceChange, onIncludeChange, onQuantityChange, accent, accountId, onItemAdded, onSectionRenamed }) {
   const [open, setOpen] = useState(true);
   const [addingItem, setAddingItem] = useState(false);
   const [savingItem, setSavingItem] = useState(false);
@@ -181,8 +216,10 @@ function CustomSection({ section, services, selected, included, prices, billingM
               isSelected={!!selected[svc.id]} isIncluded={!!included[svc.id]}
               setupPrice={prices[svc.id]?.setup ?? svc.setup_price ?? 0}
               monthlyPrice={prices[svc.id]?.monthly ?? svc.monthly_price ?? 0}
+              quantity={quantities?.[svc.id] ?? 1}
               billingMode={billingMode} yearlyDiscount={yearlyDiscount}
               onToggle={onToggle} onPriceChange={onPriceChange} onIncludeChange={onIncludeChange}
+              onQuantityChange={onQuantityChange}
               accent={accent} />
           ))}
 
@@ -234,7 +271,7 @@ function CustomSection({ section, services, selected, included, prices, billingM
   );
 }
 
-function Section({ section, services, selected, included, prices, billingMode, yearlyDiscount, onToggle, onPriceChange, onIncludeChange, accent }) {
+function Section({ section, services, selected, included, prices, quantities, billingMode, yearlyDiscount, onToggle, onPriceChange, onIncludeChange, onQuantityChange, accent }) {
   const [open, setOpen] = useState(section.id === 'web' || section.id === 'core');
   const Icon = SECTION_ICONS[section.id] || PlusCircle;
   const count = services.filter(s => selected[s.id]).length;
@@ -264,8 +301,10 @@ function Section({ section, services, selected, included, prices, billingMode, y
               isSelected={!!selected[svc.id]} isIncluded={!!included[svc.id]}
               setupPrice={prices[svc.id]?.setup ?? svc.setup ?? 0}
               monthlyPrice={prices[svc.id]?.monthly ?? svc.monthly ?? 0}
+              quantity={quantities?.[svc.id] ?? 1}
               billingMode={billingMode} yearlyDiscount={yearlyDiscount}
               onToggle={onToggle} onPriceChange={onPriceChange} onIncludeChange={onIncludeChange}
+              onQuantityChange={onQuantityChange}
               accent={accent} />
           ))}
         </div>
@@ -274,14 +313,20 @@ function Section({ section, services, selected, included, prices, billingMode, y
   );
 }
 
-function computeTotals({ selected, included, prices, billingMode, yearlyDiscount, discType, discValue, discSetup, discMonthly, customItems = [], taxRate = 0 }) {
+function computeTotals({ selected, included, prices, quantities = {}, billingMode, yearlyDiscount, discType, discValue, discSetup, discMonthly, customItems = [], taxRate = 0 }) {
   const selectedIds = Object.keys(selected).filter(id => selected[id]);
   let setupSub = 0, mthSub = 0;
   selectedIds.forEach(id => {
     if (included[id]) return;
     const svc = getService(id) || customItems.find(i => i.id === id);
     if (!svc) return;
-    setupSub += prices[id]?.setup ?? (svc.setup ?? svc.setup_price ?? 0);
+    const qty = Math.max(1, parseFloat(quantities[id]) || 1);
+    const setupUnit = prices[id]?.setup ?? (svc.setup ?? svc.setup_price ?? 0);
+    setupSub += setupUnit * qty;
+    // Quantity intentionally does NOT multiply the monthly/recurring price —
+    // a recurring service plan isn't "3x'd" the way a one-time job cost is;
+    // quantity here means "3 gutter cleanings" (one-time), not "3 monthly
+    // subscriptions to the same plan."
     const mthRaw = prices[id]?.monthly ?? (svc.monthly ?? svc.monthly_price ?? 0);
     mthSub += billingMode === 'annual' ? mthRaw * (1 - yearlyDiscount / 100) : mthRaw;
   });
@@ -472,6 +517,7 @@ export default function QuoteBuilder() {
   const [sectionMap, setSectionMap] = useState({});
   const [included,   setIncluded]   = useState({});
   const [prices,     setPrices]     = useState({});
+  const [quantities, setQuantities] = useState({});
   const [discType,    setDiscType]    = useState('pct');
   const [discValue,   setDiscValue]   = useState(0);
   const [discSetup,   setDiscSetup]   = useState(true);
@@ -558,22 +604,23 @@ export default function QuoteBuilder() {
       setTaxRate(q.tax_rate || 0);
       setNotes(q.notes || '');
       // Reconstruct selections from saved items
-      const sel = {}, secMap = {}, incl = {}, prx = {};
+      const sel = {}, secMap = {}, incl = {}, prx = {}, qty = {};
       (q.items || []).forEach(item => {
         const id = item.service_id || item.id;
         sel[id] = true;
         secMap[id] = item.section_id || 'custom';
         incl[id] = !!item.is_included;
         prx[id] = { setup: item.setup_price, monthly: item.monthly_price };
+        qty[id] = item.quantity != null ? parseFloat(item.quantity) || 1 : 1;
       });
-      setSelected(sel); setSectionMap(secMap); setIncluded(incl); setPrices(prx);
+      setSelected(sel); setSectionMap(secMap); setIncluded(incl); setPrices(prx); setQuantities(qty);
     }).catch(e => { alert('Failed to load quote: ' + e.message); navigate('/quotes'); });
   }, [editId]);
 
   // Reset form when account switches
   useEffect(() => {
     if (!isNew) return;
-    setSelected({}); setSectionMap({}); setIncluded({}); setPrices({}); setDiscValue(0);
+    setSelected({}); setSectionMap({}); setIncluded({}); setPrices({}); setQuantities({}); setDiscValue(0);
     setClientName(''); setClientBiz(''); setClientEmail(''); setClientPhone('');
   }, [activeId]);
 
@@ -583,9 +630,13 @@ export default function QuoteBuilder() {
   }, []);
   const handlePriceChange   = useCallback((id, field, value) => setPrices(p => ({ ...p, [id]: { ...p[id], [field]: value } })), []);
   const handleIncludeChange = useCallback((id, value) => setIncluded(i => ({ ...i, [id]: value })), []);
+  const handleQuantityChange = useCallback((id, value) => {
+    const n = Math.max(1, parseFloat(value) || 1);
+    setQuantities(q => ({ ...q, [id]: n }));
+  }, []);
 
   const handleClear = () => {
-    setSelected({}); setSectionMap({}); setIncluded({}); setPrices({}); setDiscValue(0);
+    setSelected({}); setSectionMap({}); setIncluded({}); setPrices({}); setQuantities({}); setDiscValue(0);
     setClientName(''); setClientBiz(''); setClientEmail(''); setClientPhone('');
   };
 
@@ -613,7 +664,7 @@ export default function QuoteBuilder() {
     primaryColor:  accent,
     clientName, clientBiz, clientEmail, clientPhone,
     quoteDate, billingMode, yearlyDiscount,
-    selected, sectionMap, included, prices,
+    selected, sectionMap, included, prices, quantities,
     discType, discValue, discSetup, discMonthly,
     notes, customSections, customItems, taxRate,
   };
@@ -642,6 +693,7 @@ export default function QuoteBuilder() {
           description:   svc.desc || svc.description || '',
           setup_price:   prices[svc.id]?.setup   ?? (svc.setup   ?? svc.setup_price   ?? 0),
           monthly_price: prices[svc.id]?.monthly ?? (svc.monthly ?? svc.monthly_price ?? 0),
+          quantity:      quantities[svc.id] ?? 1,
           is_included:   !!included[svc.id],
         });
       });
@@ -1049,20 +1101,20 @@ export default function QuoteBuilder() {
           {/* PLEX master — built-in catalog */}
           {account?.id === 'plex-master' && SECTIONS.map(sec => (
             <Section key={sec.id} section={sec} services={SERVICES[sec.id]}
-              selected={selected} included={included} prices={prices}
+              selected={selected} included={included} prices={prices} quantities={quantities}
               billingMode={billingMode} yearlyDiscount={yearlyDiscount}
               onToggle={handleToggle} onPriceChange={handlePriceChange}
-              onIncludeChange={handleIncludeChange} accent={accent} />
+              onIncludeChange={handleIncludeChange} onQuantityChange={handleQuantityChange} accent={accent} />
           ))}
 
           {/* Non-PLEX accounts — custom catalog with inline add */}
           {account?.id !== 'plex-master' && customSections.map(sec => (
             <CustomSection key={sec.id} section={sec}
               services={customItems.filter(i => i.section_id === sec.id)}
-              selected={selected} included={included} prices={prices}
+              selected={selected} included={included} prices={prices} quantities={quantities}
               billingMode={billingMode} yearlyDiscount={yearlyDiscount}
               onToggle={handleToggle} onPriceChange={handlePriceChange}
-              onIncludeChange={handleIncludeChange} accent={accent}
+              onIncludeChange={handleIncludeChange} onQuantityChange={handleQuantityChange} accent={accent}
               accountId={account.id}
               onItemAdded={handleItemAdded}
               onSectionRenamed={handleSectionRenamed}

@@ -373,18 +373,22 @@ export default function TaxesPage() {
                             <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-2">Services / line items</p>
                             {inv.items?.length > 0 ? (
                               <div className="space-y-1">
-                                {inv.items.map((item, i) => (
-                                  <div key={i} className="flex justify-between text-xs py-1 border-b last:border-0" style={{ borderColor: '#E5E8EB' }}>
-                                    <div className="flex-1 min-w-0 pr-2">
-                                      <p className="font-medium text-ink truncate">{item.name}</p>
-                                      {item.description && <p className="text-ink-muted">{item.description.slice(0, 60)}</p>}
+                                {inv.items.map((item, i) => {
+                                  const qty = Math.max(1, parseFloat(item.quantity) || 1);
+                                  const setupTotal = parseFloat(item.setup_price || 0) * qty;
+                                  return (
+                                    <div key={i} className="flex justify-between text-xs py-1 border-b last:border-0" style={{ borderColor: '#E5E8EB' }}>
+                                      <div className="flex-1 min-w-0 pr-2">
+                                        <p className="font-medium text-ink truncate">{item.name}{qty > 1 ? ` ×${qty}` : ''}</p>
+                                        {item.description && <p className="text-ink-muted">{item.description.slice(0, 60)}</p>}
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                        {setupTotal > 0 && <p className="text-ink">{fmt(setupTotal)}</p>}
+                                        {item.monthly_price > 0 && <p className="text-ink-muted">{fmt(item.monthly_price)}/mo</p>}
+                                      </div>
                                     </div>
-                                    <div className="text-right shrink-0">
-                                      {item.setup_price > 0 && <p className="text-ink">{fmt(item.setup_price)}</p>}
-                                      {item.monthly_price > 0 && <p className="text-ink-muted">{fmt(item.monthly_price)}/mo</p>}
-                                    </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             ) : (
                               <p className="text-xs text-ink-muted italic">No line items recorded</p>

@@ -26,15 +26,19 @@ function lineTotal(item) {
   }
   // Included items show $0 — they are bundled at no extra charge
   if (item.is_included) return 0;
-  // Otherwise sum setup + monthly
-  const setup   = parseFloat(item.setup_price   || 0);
+  // Otherwise sum setup + monthly. Quantity multiplies the one-time setup
+  // price only (matching QuoteBuilder/exportPDF) — a recurring monthly
+  // price is not multiplied by quantity.
+  const qty     = Math.max(1, parseFloat(item.quantity) || 1);
+  const setup   = parseFloat(item.setup_price   || 0) * qty;
   const monthly = parseFloat(item.monthly_price || 0);
   return setup + monthly;
 }
 
 function lineLabel(item) {
   if (item.is_included) return 'Included';
-  const setup   = parseFloat(item.setup_price   || 0);
+  const qty     = Math.max(1, parseFloat(item.quantity) || 1);
+  const setup   = parseFloat(item.setup_price   || 0) * qty;
   const monthly = parseFloat(item.monthly_price || 0);
   if (setup > 0 && monthly > 0) return `${fmt(setup)} + ${fmt(monthly)}/mo`;
   if (setup > 0)   return fmt(setup);
@@ -362,6 +366,9 @@ export default function PublicInvoice() {
                   <div style={{ flex:1 }}>
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                       <p style={{ fontSize:13, fontWeight:600, color:CHARCOAL, margin:0 }}>{item.name}</p>
+                      {!isIncl && parseFloat(item.quantity || 1) > 1 && (
+                        <span style={{ fontSize:11, fontWeight:700, color:STONE }}>×{item.quantity}</span>
+                      )}
                       {isIncl && (
                         <span style={{ fontSize:9, fontWeight:700, background:`${LIME}20`, color:'#5A6800', borderRadius:100, padding:'2px 7px', letterSpacing:'0.05em', textTransform:'uppercase', border:`1px solid ${LIME}40` }}>
                           Included

@@ -158,11 +158,11 @@ router.post('/', requireAuth, async (req, res) => {
 
     await Promise.all(items.map((item, i) => db.execute(
       `INSERT INTO quote_items (id, quote_id, section_id, section_label, service_id, name,
-        description, setup_price, monthly_price, is_included, sort_order)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        description, setup_price, monthly_price, quantity, is_included, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [`qi-${uuid()}`, id, item.section_id || '', item.section_label || '',
        item.service_id || '', item.name || '', item.description || '',
-       item.setup_price || 0, item.monthly_price || 0, item.is_included ? 1 : 0, i]
+       item.setup_price || 0, item.monthly_price || 0, item.quantity || 1, item.is_included ? 1 : 0, i]
     )));
 
     // Auto-create or link contact if email provided
@@ -249,12 +249,12 @@ router.patch('/:id', requireAuth, async (req, res) => {
       if (req.body.items.length > 0) {
         await Promise.all(req.body.items.map((item, i) => db.execute(
           `INSERT INTO quote_items (id, quote_id, section_id, section_label, service_id, name,
-            description, setup_price, monthly_price, is_included, sort_order)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            description, setup_price, monthly_price, quantity, is_included, sort_order)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [`qi-${uuid()}`, q.id,
            item.section_id || '', item.section_label || '',
            item.service_id || '', item.name || '', item.description || '',
-           item.setup_price || 0, item.monthly_price || 0, item.is_included ? 1 : 0, i]
+           item.setup_price || 0, item.monthly_price || 0, item.quantity || 1, item.is_included ? 1 : 0, i]
         )));
       }
     }
@@ -384,10 +384,10 @@ router.post('/:id/convert', requireAuth, async (req, res) => {
         await db.execute(`DELETE FROM invoice_items WHERE invoice_id = ?`, [existing.id]);
         await Promise.all(updatedItems.rows.map((item, i) => db.execute(
           `INSERT INTO invoice_items (id, invoice_id, section_label, name, description,
-            setup_price, monthly_price, is_included, sort_order)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            setup_price, monthly_price, quantity, is_included, sort_order)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [`ii-${uuid()}`, existing.id, item.section_label, item.name, item.description,
-           item.setup_price, item.monthly_price, item.is_included, i]
+           item.setup_price, item.monthly_price, item.quantity || 1, item.is_included, i]
         )));
       }
       const refreshed = await db.execute(`SELECT * FROM invoices WHERE id = ?`, [existing.id]);
@@ -423,10 +423,10 @@ router.post('/:id/convert', requireAuth, async (req, res) => {
 
     await Promise.all(items.rows.map((item, i) => db.execute(
       `INSERT INTO invoice_items (id, invoice_id, section_label, name, description,
-        setup_price, monthly_price, is_included, sort_order)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        setup_price, monthly_price, quantity, is_included, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [`ii-${uuid()}`, invId, item.section_label, item.name, item.description,
-       item.setup_price, item.monthly_price, item.is_included, i]
+       item.setup_price, item.monthly_price, item.quantity || 1, item.is_included, i]
     )));
 
     await db.execute(

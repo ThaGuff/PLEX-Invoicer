@@ -129,6 +129,7 @@ export async function initDB() {
       description TEXT,
       setup_price REAL DEFAULT 0,
       monthly_price REAL DEFAULT 0,
+      quantity REAL DEFAULT 1,
       is_included INTEGER DEFAULT 0,
       sort_order INTEGER DEFAULT 0,
       FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE
@@ -378,6 +379,9 @@ export async function initSchemaV2() {
     // A scheduled background sweep (see cleanupScheduledDeletions) purges
     // accounts whose scheduled_deletion_at has passed.
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS scheduled_deletion_at TIMESTAMP`,
+    // Feature Request 1: quantity field on quote line items, matching the
+    // quantity column invoice_items already has.
+    `ALTER TABLE quote_items ADD COLUMN IF NOT EXISTS quantity REAL DEFAULT 1`,
     `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS delivered_at TEXT`,
     `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS opened_at TEXT`,
     `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS first_viewed_at TEXT`,

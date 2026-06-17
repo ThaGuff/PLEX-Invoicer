@@ -49,12 +49,19 @@ function drawFooter(doc, W, H, agencyName, agencyWebsite, agencyEmail, agencyPho
   }
 }
 
-function pushRow(rows, item, isIncluded, priceOverride, billingMode, yearlyDiscount, accent) {
-  const setupP = isIncluded ? 0 : (priceOverride?.setup ?? item.setup ?? 0);
-  const mthRaw = priceOverride?.monthly ?? item.monthly ?? 0;
-  const mthP   = isIncluded ? 0 : (billingMode === 'annual' ? mthRaw * (1 - yearlyDiscount / 100) : mthRaw);
+function pushRow(rows, item, isIncluded, priceOverride, billingMode, yearlyDiscount, accent, quantity = 1) {
+  const qty = Math.max(1, parseFloat(quantity) || 1);
+  const setupUnit = isIncluded ? 0 : (priceOverride?.setup ?? item.setup ?? 0);
+  // Quantity multiplies the one-time setup price only — a recurring
+  // monthly/annual price is not multiplied by quantity, matching the same
+  // rule applied in QuoteBuilder's computeTotals (a "3" quantity means
+  // "3 one-time jobs," not "3 monthly subscriptions to the same plan").
+  const setupP  = setupUnit * qty;
+  const mthRaw  = priceOverride?.monthly ?? item.monthly ?? 0;
+  const mthP    = isIncluded ? 0 : (billingMode === 'annual' ? mthRaw * (1 - yearlyDiscount / 100) : mthRaw);
+  const nameLabel = (item.name || '') + (qty > 1 ? `  ×${qty}` : '');
   rows.push([
-    { content: item.name || '', styles: { fontStyle: 'bold', fontSize: 8.5, textColor: INK } },
+    { content: nameLabel, styles: { fontStyle: 'bold', fontSize: 8.5, textColor: INK } },
     { content: item.desc || item.description || '', styles: { fontSize: 7.5, textColor: INK_MUTED } },
     { content: isIncluded ? 'Included' : setupP === 0 ? '—' : fmt(setupP),
       styles: { halign: 'right', fontSize: 8.5, textColor: isIncluded ? GREEN : INK } },
@@ -69,7 +76,7 @@ export function exportPDF(state) {
   const {
     clientName = '', clientBiz = '', clientEmail = '', clientPhone = '',
     quoteDate = '', billingMode = 'monthly', yearlyDiscount = 15,
-    selected = {}, sectionMap = {}, prices = {}, included = {},
+    selected = {}, sectionMap = {}, prices = {}, included = {}, quantities = {},
     discType = 'pct', discValue = 0, discSetup = true, discMonthly = true,
     taxRate = 0,
     notes = '',
@@ -201,7 +208,7 @@ export function exportPDF(state) {
     }}]);
     secIds.forEach(id => {
       const svc = getService(id);
-      if (svc) pushRow(tableRows, svc, included[id], prices[id], billingMode, yearlyDiscount, accent);
+      if (svc) pushRow(tableRows, svc, included[id], prices[id], billingMode, yearlyDiscount, accent, quantities[id]);
     });
   });
 
@@ -212,7 +219,7 @@ export function exportPDF(state) {
       fillColor: SURFACE, fontStyle: 'bold', textColor: accent, fontSize: 7.5,
       cellPadding: { top: 6, bottom: 6, left: 10, right: 10 }
     }}]);
-    items.forEach(item => pushRow(tableRows, item, included[item.id], prices[item.id], billingMode, yearlyDiscount, accent));
+    items.forEach(item => pushRow(tableRows, item, included[item.id], prices[item.id], billingMode, yearlyDiscount, accent, quantities[item.id]));
   });
 
   // ── Render table ──────────────────────────────────────────────────
@@ -251,7 +258,8 @@ export function exportPDF(state) {
     const cust = (customItems || []).find(i => i.id === id);
     const item = svc || cust;
     if (!item) return;
-    setupSub += prices[id]?.setup ?? item.setup ?? 0;
+    const qty = Math.max(1, parseFloat(quantities[id]) || 1);
+    setupSub += (prices[id]?.setup ?? item.setup ?? 0) * qty;
     const mthRaw = prices[id]?.monthly ?? item.monthly ?? 0;
     mthSub += billingMode === 'annual' ? mthRaw * (1 - yearlyDiscount / 100) : mthRaw;
   });

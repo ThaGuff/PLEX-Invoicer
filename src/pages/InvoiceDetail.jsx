@@ -313,25 +313,35 @@ Thank you!`);
 
               {/* Line items */}
               <div className="space-y-1 mb-4">
-                {items.map(item => (
-                  <div key={item.id} className="flex items-start justify-between py-2 border-b last:border-b-0" style={{ borderColor: '#F0F3F5' }}>
-                    <div className="flex-1 min-w-0">
-                      {item.section_label && <p className="text-xs text-ink-muted mb-0.5">{item.section_label}</p>}
-                      <p className="text-sm font-medium text-ink">{item.name}</p>
-                      {item.description && <p className="text-xs text-ink-muted">{item.description}</p>}
+                {items.map(item => {
+                  const qty = Math.max(1, parseFloat(item.quantity) || 1);
+                  // Quantity multiplies the one-time setup price only,
+                  // matching the rule used everywhere else this is computed
+                  // (QuoteBuilder, exportPDF, PublicQuote, PublicInvoice).
+                  const setupTotal = parseFloat(item.setup_price || 0) * qty;
+                  return (
+                    <div key={item.id} className="flex items-start justify-between py-2 border-b last:border-b-0" style={{ borderColor: '#F0F3F5' }}>
+                      <div className="flex-1 min-w-0">
+                        {item.section_label && <p className="text-xs text-ink-muted mb-0.5">{item.section_label}</p>}
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-ink">{item.name}</p>
+                          {!item.is_included && qty > 1 && <span className="text-xs font-semibold text-ink-muted">×{qty}</span>}
+                        </div>
+                        {item.description && <p className="text-xs text-ink-muted">{item.description}</p>}
+                      </div>
+                      <div className="text-right shrink-0 ml-4">
+                        {item.is_included ? (
+                          <span className="text-xs text-green-600 font-medium">Included</span>
+                        ) : (
+                          <>
+                            {setupTotal > 0 && <p className="text-xs text-ink-muted">{fmt(setupTotal)} setup</p>}
+                            {item.monthly_price > 0 && <p className="text-sm font-medium text-ink">{fmt(item.monthly_price)}/mo</p>}
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-right shrink-0 ml-4">
-                      {item.is_included ? (
-                        <span className="text-xs text-green-600 font-medium">Included</span>
-                      ) : (
-                        <>
-                          {item.setup_price > 0 && <p className="text-xs text-ink-muted">{fmt(item.setup_price)} setup</p>}
-                          {item.monthly_price > 0 && <p className="text-sm font-medium text-ink">{fmt(item.monthly_price)}/mo</p>}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Totals */}

@@ -63,12 +63,20 @@ function SignatureCanvas({ onCapture }) {
 // ── Item row ───────────────────────────────────────────────────────
 function ItemRow({ item }) {
   const [open, setOpen] = useState(false);
+  const qty = Math.max(1, parseFloat(item.quantity) || 1);
+  // Quantity multiplies the one-time setup price only — matching the same
+  // rule used in QuoteBuilder, exportPDF, and PublicInvoice. A recurring
+  // monthly price is never multiplied by quantity.
+  const setupTotal = parseFloat(item.setup_price || 0) * qty;
   return (
     <div style={{ borderBottom:'0.5px solid #F1F5F9' }}>
       <div style={{ display:'flex', alignItems:'flex-start', padding:'14px 20px', gap:12 }}>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             <p style={{ fontSize:14, fontWeight:600, color:'#080D1A' }}>{item.name}</p>
+            {!item.is_included && qty > 1 && (
+              <span style={{ fontSize:12, fontWeight:700, color:'#64748B' }}>×{qty}</span>
+            )}
             {item.description && <button onClick={()=>setOpen(v=>!v)} style={{ color:'#94A3B8', background:'none', border:'none', cursor:'pointer', padding:0 }}>{open ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}</button>}
           </div>
           {open && <p style={{ fontSize:12, color:'#64748B', marginTop:6, lineHeight:1.6 }}>{item.description}</p>}
@@ -77,7 +85,7 @@ function ItemRow({ item }) {
           {item.is_included
             ? <span style={{ fontSize:11, fontWeight:700, color:'#0A7A6A', background:'#E0FBF7', padding:'3px 8px', borderRadius:20 }}>Included</span>
             : <div>
-                {item.setup_price>0 && <p style={{ fontSize:11, color:'#94A3B8' }}>{fmt(item.setup_price)} setup</p>}
+                {setupTotal>0 && <p style={{ fontSize:11, color:'#94A3B8' }}>{fmt(setupTotal)} setup</p>}
                 {item.monthly_price>0 && <p style={{ fontSize:14, fontWeight:700, color:'#080D1A' }}>{fmt(item.monthly_price)}<span style={{ fontSize:10, fontWeight:400, color:'#94A3B8' }}>/mo</span></p>}
               </div>}
         </div>
