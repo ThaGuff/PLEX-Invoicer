@@ -11,7 +11,7 @@
  *   - Until verified, only delivers to the account owner's email
  */
 
-export async function sendEmail({ to, subject, html, text, from, replyTo, type } = {}) {
+export async function sendEmail({ to, subject, html, text, from, replyTo, type, attachments } = {}) {
   if (!to || !subject) throw new Error('to and subject are required');
 
   const toList = Array.isArray(to) ? to.filter(Boolean) : [to].filter(Boolean);
@@ -42,6 +42,7 @@ export async function sendEmail({ to, subject, html, text, from, replyTo, type }
       html: html || `<p>${(text || '').replace(/\n/g, '<br>')}</p>`,
       text: text || '',
       ...(replyTo ? { reply_to: replyTo } : {}),
+      ...(attachments?.length ? { attachments } : {}),
     };
 
     const result = await resend.emails.send(payload);
@@ -59,7 +60,7 @@ export async function sendEmail({ to, subject, html, text, from, replyTo, type }
       // Try SMTP fallback
       if (process.env.SMTP_HOST && process.env.SMTP_USER) {
         console.log('[Email] Falling back to SMTP...');
-        return sendViaSMTP({ to: toList, from: smtpFrom || fromAddr, subject, html, text, replyTo });
+        return sendViaSMTP({ to: toList, from: smtpFrom || fromAddr, subject, html, text, replyTo, attachments });
       }
 
       throw new Error(`Email failed: ${msg}`);
@@ -71,13 +72,13 @@ export async function sendEmail({ to, subject, html, text, from, replyTo, type }
 
   // ── SMTP (fallback) ───────────────────────────────────────────
   if (process.env.SMTP_HOST && process.env.SMTP_USER) {
-    return sendViaSMTP({ to: toList, from: smtpFrom || fromAddr, subject, html, text, replyTo });
+    return sendViaSMTP({ to: toList, from: smtpFrom || fromAddr, subject, html, text, replyTo, attachments });
   }
 
   throw new Error('Email not configured. Add RESEND_API_KEY or SMTP_HOST+SMTP_USER to Railway Variables.');
 }
 
-async function sendViaSMTP({ to, from, subject, html, text, replyTo }) {
+async function sendViaSMTP({ to, from, subject, html, text, replyTo, attachments }) {
   const nodemailer = (await import('nodemailer')).default;
   const port = parseInt(process.env.SMTP_PORT) || 587;
   
@@ -104,6 +105,7 @@ async function sendViaSMTP({ to, from, subject, html, text, replyTo }) {
     text: text || '',
     html: html || `<p>${(text || '').replace(/\n/g, '<br>')}</p>`,
     ...(replyTo ? { replyTo } : {}),
+    ...(attachments?.length ? { attachments } : {}),
   });
 
   console.log('[Email] ✓ Sent via SMTP:', info.messageId);
