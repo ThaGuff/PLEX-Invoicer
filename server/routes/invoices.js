@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { sendEmail, isEmailConfigured, buildInvoiceHtml } from '../utils/email.js';
+import { sendEmail, isEmailConfigured, buildInvoiceHtml, buildReminderHtml } from '../utils/email.js';
 import { db } from '../db/schema.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requirePlanFeature } from '../middleware/planGuard.js';
@@ -66,7 +66,7 @@ router.get('/public/:token', async (req, res) => {
     const inv = await db.execute(
       `SELECT i.*, a.name as agency_name, a.email as agency_email,
               a.phone as agency_phone, a.website as agency_website,
-              a.primary_color, a.logo_initial, a.logo_url
+              a.primary_color, a.logo_initial, a.logo_url, a.plan as agency_plan
        FROM invoices i JOIN accounts a ON i.account_id = a.id
        WHERE i.public_token = ?`, [req.params.token]
     );
@@ -205,7 +205,8 @@ router.post('/:id/send', requireAuth, async (req, res) => {
     const inv = await db.execute(
       `SELECT i.*, a.name as agency_name, a.email as agency_email,
               a.website as agency_website, a.phone as agency_phone,
-              a.logo_url as agency_logo_url, a.primary_color as agency_color
+              a.logo_url as agency_logo_url, a.primary_color as agency_color,
+              a.plan as agency_plan
        FROM invoices i JOIN accounts a ON i.account_id = a.id WHERE i.id = ?`,
       [req.params.id]
     );
@@ -240,6 +241,7 @@ router.post('/:id/send', requireAuth, async (req, res) => {
             portalUrl,
             logoUrl: invoice.agency_logo_url || null,
             accentColor: invoice.agency_color || null,
+            whiteLabelPlan: invoice.agency_plan === 'agency',
           }),
           text: `Hi ${invoice.client_name||'there'},
 
@@ -336,21 +338,31 @@ router.post('/:id/remind', requireAuth, async (req, res) => {
 
     if (!invoice.client_email) return res.status(400).json({ error: 'Invoice has no client email' });
 
-    const accResult = await db.execute('SELECT name FROM accounts WHERE id = ?', [invoice.account_id]);
-    const agencyName = accResult.rows[0]?.name || 'Invoice King';
+    const accResult = await db.execute('SELECT name, plan, primary_color, logo_url FROM accounts WHERE id = ?', [invoice.account_id]);
+    const agency = accResult.rows[0] || {};
+    const agencyName = agency.name || 'Invoice King';
     const origin = process.env.APP_URL || 'https://invoiceking.app';
     const portalUrl = `${origin}/portal/invoice/${invoice.public_token}`;
+    const daysOverdue = invoice.due_date
+      ? Math.max(0, Math.floor((Date.now() - new Date(invoice.due_date).getTime()) / 86400000))
+      : 0;
 
     await sendEmail({
       to: invoice.client_email,
-      subject: `Reminder: Invoice ${invoice.number} from ${agencyName}`,
-      html: buildInvoiceHtml({
+      subject: daysOverdue > 0
+        ? `Overdue: Invoice ${invoice.number} from ${agencyName}`
+        : `Reminder: Invoice ${invoice.number} from ${agencyName}`,
+      html: buildReminderHtml({
         clientName: invoice.client_name,
         agencyName,
         invoiceNum: invoice.number,
         amount: `$${Math.round(invoice.amount_due||0).toLocaleString()}`,
         dueDate: invoice.due_date,
         portalUrl,
+        logoUrl: agency.logo_url || null,
+        accentColor: agency.primary_color || null,
+        daysOverdue,
+        whiteLabelPlan: agency.plan === 'agency',
       }),
       text: `Hi ${invoice.client_name},\n\nThis is a reminder about invoice ${invoice.number} for $${Math.round(invoice.amount_due||0).toLocaleString()}.\n\nView and pay: ${portalUrl}\n\n${agencyName}`,
     });

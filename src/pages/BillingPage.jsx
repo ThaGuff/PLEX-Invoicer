@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, Zap, Building2, Star, RefreshCw, ExternalLink, Crown } from 'lucide-react';
+import { CheckCircle, Zap, Building2, Star, RefreshCw, ExternalLink, Crown, AlertTriangle } from 'lucide-react';
 import { useAccount } from '../context/AccountContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../utils/api';
@@ -262,6 +262,40 @@ export default function BillingPage() {
               Manage billing
             </button>
           )}
+        </div>
+      )}
+
+      {/* Cancelled — show the 30-day data deletion countdown so this is
+          never invisible to the user (Issue 5: previously there was no
+          UI surface for this at all). scheduled_deletion_at is set by the
+          customer.subscription.deleted webhook and cleared automatically
+          if the user resubscribes from any plan card below. */}
+      {currentStatus === 'cancelled' && (
+        <div className="card p-4 mb-6 flex items-center justify-between"
+          style={{ borderColor: 'rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.04)' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#dc262618' }}>
+              <AlertTriangle size={16} style={{ color: '#dc2626' }} />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-ink">
+                Subscription cancelled
+              </p>
+              {account?.scheduled_deletion_at ? (() => {
+                const deletionDate = new Date(account.scheduled_deletion_at);
+                const daysLeft = Math.max(0, Math.ceil((deletionDate - new Date()) / 86400000));
+                return (
+                  <p className="text-xs" style={{ color: '#dc2626' }}>
+                    {daysLeft > 0
+                      ? `Your data will be permanently deleted in ${daysLeft} day${daysLeft === 1 ? '' : 's'} (${deletionDate.toLocaleDateString()}) unless you resubscribe.`
+                      : 'Your data is scheduled for deletion. Resubscribe now to keep it.'}
+                  </p>
+                );
+              })() : (
+                <p className="text-xs text-ink-muted">Choose a plan below to reactivate your account.</p>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

@@ -115,7 +115,7 @@ export const isEmailConfigured = () =>
 
 // ── Email Templates ───────────────────────────────────────────────
 
-const emailBase = (content, accentColor = '#C8E20A') => `<!DOCTYPE html>
+const emailBase = (content, accentColor = '#C6E404', whiteLabelPlan = false) => `<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -133,7 +133,7 @@ const emailBase = (content, accentColor = '#C8E20A') => `<!DOCTYPE html>
 <body style="margin:0;padding:0;background:#F1F5F9;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased">
 <div class="email-container" style="max-width:600px;margin:24px auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 48px rgba(0,0,0,0.1)">
 ${content}
-<!-- Footer -->
+${whiteLabelPlan ? '' : `<!-- Footer -->
 <div style="padding:20px 40px;background:#F8FAFC;border-top:1px solid #E2E8F0">
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
     <tr>
@@ -146,17 +146,17 @@ ${content}
       </td>
     </tr>
   </table>
-</div>
+</div>`}
 </div>
 </body></html>`;
 
-export function buildInvoiceHtml({ clientName, agencyName, invoiceNum, amount, dueDate, portalUrl, logoUrl, accentColor, agencyPhone = '', agencyEmail = '', agencyAddress = '', agencyCityState = '', agencyLicense = '', agencyTagline = '' }) {
-  const accent = accentColor || '#C8E20A';
+export function buildInvoiceHtml({ clientName, agencyName, invoiceNum, amount, dueDate, portalUrl, logoUrl, accentColor, agencyPhone = '', agencyEmail = '', agencyAddress = '', agencyCityState = '', agencyLicense = '', agencyTagline = '', whiteLabelPlan = false }) {
+  const accent = accentColor || '#C6E404';
   return emailBase(`
-  <div style="background:linear-gradient(135deg,${accent},#0D9488);padding:36px 40px">
+  <div style="background:#0A0F13;padding:36px 40px">
     ${logoUrl ? `<img src="${logoUrl}" alt="${agencyName || 'Logo'}" style="height:44px;margin-bottom:16px;object-fit:contain;border-radius:8px;background:#fff;padding:6px 10px;display:block">` : ''}
     <h1 style="color:#fff;margin:0 0 6px;font-size:26px;font-weight:800;letter-spacing:-0.02em">Invoice Ready</h1>
-    <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px">from ${agencyName || 'Invoice King'} · Invoice #${invoiceNum}</p>
+    <p style="color:rgba(255,255,255,0.6);margin:0;font-size:14px">from ${agencyName || 'Invoice King'} · Invoice #${invoiceNum}</p>
   </div>
   <div style="padding:36px 40px">
     <p style="color:#334155;font-size:16px;margin:0 0 8px">Hi ${clientName || 'there'},</p>
@@ -171,15 +171,15 @@ export function buildInvoiceHtml({ clientName, agencyName, invoiceNum, amount, d
         <span style="color:#DC2626;font-size:14px;font-weight:700">${dueDate}</span>
       </div>` : ''}
     </div>
-    <a href="${portalUrl}" style="display:block;text-align:center;padding:16px 32px;background:linear-gradient(135deg,${accent},#0D9488);color:#fff;text-decoration:none;border-radius:12px;font-size:16px;font-weight:800;letter-spacing:-0.01em;box-shadow:0 6px 20px rgba(37,99,235,0.35);margin-bottom:16px">
+    <a href="${portalUrl}" style="display:block;text-align:center;padding:16px 32px;background:${accent};color:#0A0F13;text-decoration:none;border-radius:12px;font-size:16px;font-weight:800;letter-spacing:-0.01em;box-shadow:0 6px 20px rgba(198,228,4,0.3);margin-bottom:16px">
       View &amp; Pay Invoice →
     </a>
     <p style="color:#94A3B8;font-size:12px;text-align:center;margin:0">Secure payment · No account required · Takes 60 seconds</p>
   </div>
-`, accent);
+`, accent, whiteLabelPlan);
 }
 
-export function buildQuoteHtml({ clientName, agencyName, quoteNum, totalAmount, expiryDate, portalUrl, logoUrl, accentColor = '#C8E20A', agencyPhone = '', agencyEmail = '', agencyAddress = '', lineItems = [], notes = '' }) {
+export function buildQuoteHtml({ clientName, agencyName, quoteNum, totalAmount, expiryDate, portalUrl, logoUrl, accentColor = '#C6E404', agencyPhone = '', agencyEmail = '', agencyAddress = '', lineItems = [], notes = '', whiteLabelPlan = false }) {
   const fmtMoney = n => '$' + parseFloat(n||0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmt = s => (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
@@ -206,7 +206,7 @@ export function buildQuoteHtml({ clientName, agencyName, quoteNum, totalAmount, 
     </table>` : `<div style="background:${accentColor}08;border-radius:12px;padding:24px;margin-bottom:24px;border:1px solid ${accentColor}20;text-align:center"><div style="font-size:13px;color:#64748b;margin-bottom:6px">Quote Total</div><div style="font-size:36px;font-weight:900;color:${accentColor}">${fmtMoney(totalAmount)}</div>${expiryDate ? `<div style="font-size:12px;color:#94a3b8;margin-top:6px">Valid until ${fmt(expiryDate)}</div>` : ''}</div>`}
     ${notes ? `<div style="background:#fffbeb;border-radius:10px;padding:14px 18px;margin-bottom:24px;border-left:4px solid #f59e0b"><p style="margin:0;font-size:13px;color:#92400e;line-height:1.6">${fmt(notes)}</p></div>` : ''}
     <div style="text-align:center;padding:24px 0">
-      <a href="${portalUrl}" style="display:inline-block;padding:15px 40px;background:linear-gradient(135deg,${accentColor},${accentColor}cc);color:#fff;font-size:15px;font-weight:700;text-decoration:none;border-radius:12px;box-shadow:0 6px 24px ${accentColor}40;letter-spacing:0.01em">
+      <a href="${portalUrl}" style="display:inline-block;padding:15px 40px;background:${accentColor};color:#0A0F13;font-size:15px;font-weight:800;text-decoration:none;border-radius:12px;box-shadow:0 6px 24px ${accentColor}40;letter-spacing:0.01em">
         View & Approve Quote →
       </a>
     </div>
@@ -217,10 +217,10 @@ export function buildQuoteHtml({ clientName, agencyName, quoteNum, totalAmount, 
     <span style="font-size:12px;color:#64748b">${[agencyPhone, agencyEmail, agencyAddress].filter(Boolean).join(' · ')}</span>
   </div>`;
 
-  return emailBase(body, accentColor);
+  return emailBase(body, accentColor, whiteLabelPlan);
 }
 
-export function buildReminderHtml({ clientName, agencyName, invoiceNum, amount, dueDate, portalUrl, logoUrl, accentColor, daysOverdue }) {
+export function buildReminderHtml({ clientName, agencyName, invoiceNum, amount, dueDate, portalUrl, logoUrl, accentColor, daysOverdue, whiteLabelPlan = false }) {
   const accent = accentColor || '#DC2626';
   const isOverdue = daysOverdue > 0;
   return emailBase(`
@@ -248,15 +248,15 @@ export function buildReminderHtml({ clientName, agencyName, invoiceNum, amount, 
     </a>
     <p style="color:#94A3B8;font-size:12px;text-align:center;margin:0">Secure payment &middot; Takes 60 seconds</p>
   </div>
-`, accent);
+`, accent, whiteLabelPlan);
 }
 
-export function buildInviteHtml({ inviteeName, accountName, role, acceptUrl, logoUrl }) {
+export function buildInviteHtml({ inviteeName, accountName, role, acceptUrl, logoUrl, whiteLabelPlan = false }) {
   return emailBase(`
-  <div style="background:linear-gradient(135deg,#C8E20A,#0D9488);padding:36px 40px">
+  <div style="background:#0A0F13;padding:36px 40px">
     ${logoUrl ? `<img src="${logoUrl}" alt="${accountName || 'Logo'}" style="height:44px;margin-bottom:16px;object-fit:contain;border-radius:8px;background:#fff;padding:6px 10px;display:block">` : ''}
     <h1 style="color:#fff;margin:0 0 6px;font-size:26px;font-weight:800">You're Invited! &#127881;</h1>
-    <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px">Join ${accountName} on Invoice King</p>
+    <p style="color:rgba(255,255,255,0.6);margin:0;font-size:14px">Join ${accountName} on Invoice King</p>
   </div>
   <div style="padding:36px 40px">
     <p style="color:#334155;font-size:16px;margin:0 0 16px">Hi${inviteeName ? ` ${inviteeName}` : ''},</p>
@@ -271,19 +271,19 @@ export function buildInviteHtml({ inviteeName, accountName, role, acceptUrl, log
         <li>Calendar &amp; job scheduling</li>
       </ul>
     </div>
-    <a href="${acceptUrl}" style="display:block;text-align:center;padding:16px 32px;background:linear-gradient(135deg,#C8E20A,#0D9488);color:#fff;text-decoration:none;border-radius:12px;font-size:16px;font-weight:800;box-shadow:0 6px 20px rgba(37,99,235,0.35);margin-bottom:16px">
+    <a href="${acceptUrl}" style="display:block;text-align:center;padding:16px 32px;background:#C6E404;color:#0A0F13;text-decoration:none;border-radius:12px;font-size:16px;font-weight:800;box-shadow:0 6px 20px rgba(198,228,4,0.3);margin-bottom:16px">
       Accept Invitation &rarr;
     </a>
     <p style="color:#94A3B8;font-size:12px;text-align:center;margin:0">This invitation will expire in 7 days</p>
   </div>
-`);
+`, '#C6E404', whiteLabelPlan);
 }
 
-export function buildMentionHtml({ mentionedName, senderName, accountName, channelName, messageContent, workspaceUrl }) {
+export function buildMentionHtml({ mentionedName, senderName, accountName, channelName, messageContent, workspaceUrl, whiteLabelPlan = false }) {
   return emailBase(`
-  <div style="background:linear-gradient(135deg,#7C3AED,#C8E20A);padding:36px 40px">
+  <div style="background:#0A0F13;padding:36px 40px">
     <h1 style="color:#fff;margin:0 0 6px;font-size:26px;font-weight:800">You were mentioned &#128172;</h1>
-    <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px">${accountName} &middot; #${channelName}</p>
+    <p style="color:rgba(255,255,255,0.6);margin:0;font-size:14px">${accountName} &middot; #${channelName}</p>
   </div>
   <div style="padding:36px 40px">
     <p style="color:#334155;font-size:16px;margin:0 0 20px">Hi ${mentionedName || 'there'},</p>
@@ -291,9 +291,9 @@ export function buildMentionHtml({ mentionedName, senderName, accountName, chann
     <div style="background:#F5F3FF;border-left:4px solid #7C3AED;border-radius:0 12px 12px 0;padding:16px 20px;margin:0 0 28px">
       <p style="color:#4C1D95;font-size:14px;margin:0;line-height:1.6;font-style:italic">"${messageContent}"</p>
     </div>
-    <a href="${workspaceUrl}" style="display:block;text-align:center;padding:16px 32px;background:linear-gradient(135deg,#7C3AED,#C8E20A);color:#fff;text-decoration:none;border-radius:12px;font-size:16px;font-weight:800;box-shadow:0 6px 20px rgba(124,58,237,0.35)">
+    <a href="${workspaceUrl}" style="display:block;text-align:center;padding:16px 32px;background:#C6E404;color:#0A0F13;text-decoration:none;border-radius:12px;font-size:16px;font-weight:800;box-shadow:0 6px 20px rgba(198,228,4,0.3)">
       Reply in Workspace &rarr;
     </a>
   </div>
-`);
+`, '#C6E404', whiteLabelPlan);
 }

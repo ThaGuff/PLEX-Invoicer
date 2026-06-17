@@ -5,6 +5,7 @@ import { AccountProvider } from './context/AccountContext';
 import { useAccount } from './context/AccountContext';
 
 import AccountSettings from './components/AccountSettings';
+import AccountSwitcher from './components/AccountSwitcher';
 import NewAccountModal from './components/NewAccountModal';
 import UserProfileModal from './components/UserProfileModal';
 import CompanyOnboarding from './components/CompanyOnboarding';
@@ -281,6 +282,11 @@ function Nav() {
           </button>
         </div>
 
+        {/* Account switcher — multi-account access (Agency plan) */}
+        <div style={{ padding: '0 12px 8px', flexShrink: 0 }}>
+          <AccountSwitcher variant="sidebar" />
+        </div>
+
         {/* User row + Sign out */}
         <div style={{ padding: '0 12px calc(10px + env(safe-area-inset-bottom))', flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 8 }}>
@@ -414,7 +420,17 @@ function AppShell({ children }) {
     window.addEventListener('invoiceking:navigate', handler);
     const settingsHandler = () => setShowSettings(true);
     window.addEventListener('invoiceking:settings', settingsHandler);
-    return () => { window.removeEventListener('invoiceking:navigate', handler); window.removeEventListener('invoiceking:settings', settingsHandler); };
+    // Opens NewAccountModal — dispatched by AccountSwitcher's "Add account"
+    // button. Previously there was no listener for this at all anywhere in
+    // the app, so even though NewAccountModal and showNewAccount both
+    // existed, nothing could ever set showNewAccount to true.
+    const newAccountHandler = () => setShowNewAccount(true);
+    window.addEventListener('invoiceking:newaccount', newAccountHandler);
+    return () => {
+      window.removeEventListener('invoiceking:navigate', handler);
+      window.removeEventListener('invoiceking:settings', settingsHandler);
+      window.removeEventListener('invoiceking:newaccount', newAccountHandler);
+    };
   }, [navigate]);
 
   React.useEffect(() => {

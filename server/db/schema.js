@@ -371,6 +371,13 @@ export async function initSchemaV2() {
   const invoiceCols = [
     `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS reminded_at TEXT`,
     `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS trial_reminder_sent_at TIMESTAMP`,
+    // Issue 5: 30-day soft-delete grace period after subscription cancellation.
+    // Set by the customer.subscription.deleted webhook; cleared by any
+    // successful reactivation (checkout.session.completed or
+    // customer.subscription.updated/created with an active/trialing status).
+    // A scheduled background sweep (see cleanupScheduledDeletions) purges
+    // accounts whose scheduled_deletion_at has passed.
+    `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS scheduled_deletion_at TIMESTAMP`,
     `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS delivered_at TEXT`,
     `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS opened_at TEXT`,
     `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS first_viewed_at TEXT`,

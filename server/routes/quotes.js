@@ -61,7 +61,7 @@ router.get('/public/:token', async (req, res) => {
     const quote = await db.execute(
       `SELECT q.*, a.name as agency_name, a.email as agency_email,
               a.phone as agency_phone, a.website as agency_website,
-              a.primary_color, a.logo_initial, a.logo_url
+              a.primary_color, a.logo_initial, a.logo_url, a.plan as agency_plan
        FROM quotes q JOIN accounts a ON q.account_id = a.id
        WHERE q.public_token = ?`, [req.params.token]
     );
@@ -270,8 +270,11 @@ router.patch('/:id', requireAuth, async (req, res) => {
 // ── POST /api/quotes/:id/send — email quote to client ─────────────
 router.post('/:id/send', requireAuth, async (req, res) => {
   try {
+    const { account_id } = req.body;
     const q = await db.execute(
-      `SELECT q.*, a.name as agency_name, a.email as agency_email, a.logo_url as agency_logo_url
+      `SELECT q.*, a.name as agency_name, a.email as agency_email, a.phone as agency_phone,
+              a.business_address as agency_address, a.logo_url as agency_logo_url,
+              a.primary_color as agency_color, a.plan as agency_plan
        FROM quotes q JOIN accounts a ON q.account_id = a.id
        WHERE q.id = ?`,
       [req.params.id]
@@ -283,6 +286,12 @@ router.post('/:id/send', requireAuth, async (req, res) => {
 
     const origin = process.env.APP_URL || 'https://invoiceking.app';
     const portalUrl = `${origin}/portal/quote/${quote.public_token}`;
+    // Grand total must include tax, matching the totals shown on the PDF and portal —
+    // previously this used quote.amount_due || quote.setup_total with no tax added,
+    // and was also passed under the wrong key ("amount" instead of "totalAmount"),
+    // so buildQuoteHtml never received a usable value and every email showed $0.00.
+    const grandTotal = (quote.setup_total || 0) + (quote.tax_amount || 0);
+    const whiteLabelPlan = quote.agency_plan === 'agency';
 
     await sendEmail({
       to: quote.client_email,
@@ -292,18 +301,36 @@ router.post('/:id/send', requireAuth, async (req, res) => {
         clientName: quote.client_name,
         agencyName: quote.agency_name || 'Invoice King',
         quoteNum: quote.number,
-        amount: `$${Math.round(quote.amount_due || quote.setup_total || 0).toLocaleString()}`,
+        totalAmount: grandTotal,
         expiryDate: quote.expiry_date,
         portalUrl,
         logoUrl: quote.agency_logo_url || null,
+        accentColor: quote.agency_color || '#C6E404',
+        agencyPhone: quote.agency_phone || '',
+        agencyEmail: quote.agency_email || '',
+        agencyAddress: quote.agency_address || '',
+        notes: quote.notes || '',
+        whiteLabelPlan,
       }),
-      text: `Hi ${quote.client_name || 'there'},\n\nYour quote ${quote.number} is ready to review.\n\nView and sign: ${portalUrl}\n\n${quote.agency_name || 'Invoice King'}`,
+      text: `Hi ${quote.client_name || 'there'},\n\nYour quote ${quote.number} is ready to review. Total: $${grandTotal.toLocaleString()}\n\nView and sign: ${portalUrl}\n\n${quote.agency_name || 'Invoice King'}`,
     });
 
-    await db.execute(
-      `UPDATE quotes SET status = 'sent', sent_at = NOW(), updated_at = NOW() WHERE id = ? AND account_id = ?`,
-      [req.params.id, account_id]
-    );
+    // Previously account_id was never destructured from req.body, so this
+    // UPDATE statement referenced an undefined variable and threw a
+    // ReferenceError on every single call — meaning the email above always
+    // sent successfully, but the quote's status was silently never updated
+    // to 'sent' because the whole route fell into the catch block right after.
+    if (account_id) {
+      await db.execute(
+        `UPDATE quotes SET status = 'sent', sent_at = NOW(), updated_at = NOW() WHERE id = ? AND account_id = ?`,
+        [req.params.id, account_id]
+      );
+    } else {
+      await db.execute(
+        `UPDATE quotes SET status = 'sent', sent_at = NOW(), updated_at = NOW() WHERE id = ?`,
+        [req.params.id]
+      );
+    }
     res.json({ ok: true, email_sent: true, to: quote.client_email });
   } catch (e) {
     console.error('[Quote send]', e.message);
@@ -447,7 +474,7 @@ router.post('/:id/send-email', requireAuth, async (req, res) => {
     const [quote, account, items] = await Promise.all([
       db.execute(`SELECT * FROM quotes WHERE id = ? AND account_id = ?`, [req.params.id, account_id]),
       db.execute(`SELECT * FROM accounts WHERE id = ?`, [account_id]),
-      db.execute(`SELECT * FROM quote_items WHERE quote_id = ? AND is_included = 1 ORDER BY sort_order LIMIT 10`, [req.params.id]),
+      db.execute(`SELECT * FROM quote_items WHERE quote_id = ? AND is_included = 0 ORDER BY sort_order LIMIT 10`, [req.params.id]),
     ]);
     if (!quote.rows.length) return res.status(404).json({ error: 'Quote not found' });
     const q = quote.rows[0];
@@ -467,12 +494,13 @@ router.post('/:id/send-email', requireAuth, async (req, res) => {
       totalAmount: (q.setup_total || 0) + (q.tax_amount || 0),  // grand total incl. tax
       portalUrl,
       logoUrl,
-      accentColor: a.primary_color || '#C8E20A',
+      accentColor: a.primary_color || '#C6E404',
       agencyPhone: a.phone || '',
       agencyEmail: a.email || '',
       agencyAddress: a.business_address || '',
       lineItems,
       notes: custom_message || q.notes || '',
+      whiteLabelPlan: a.plan === 'agency',
     });
 
     const fromName = a.email_from_name || a.name || 'Invoice King';

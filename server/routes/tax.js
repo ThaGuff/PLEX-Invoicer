@@ -24,27 +24,79 @@ router.get('/lookup', async (req, res) => {
     WY: 5.44, DC: 6.00,
   };
 
+  // First three digits of a ZIP map to a fixed range of states (USPS-assigned
+  // ZIP prefix blocks). Used as a resilient fallback when the external
+  // geocoding API is unreachable, so the feature degrades gracefully instead
+  // of silently returning whatever rate happened to be set before.
+  const ZIP3_STATE_RANGES = [
+    [['005','005'],'NY'],[['006','009'],'PR'],[['010','027'],'MA'],[['028','029'],'RI'],
+    [['030','038'],'NH'],[['039','049'],'ME'],[['050','059'],'VT'],[['060','069'],'CT'],
+    [['070','089'],'NJ'],[['100','149'],'NY'],[['150','196'],'PA'],[['197','199'],'DE'],
+    [['200','205'],'DC'],[['206','219'],'MD'],[['220','246'],'VA'],[['247','268'],'WV'],
+    [['270','289'],'NC'],[['290','299'],'SC'],[['300','319'],'GA'],[['320','349'],'FL'],
+    [['350','369'],'AL'],[['370','385'],'TN'],[['386','397'],'MS'],[['398','399'],'GA'],
+    [['400','427'],'KY'],[['430','458'],'OH'],[['460','479'],'IN'],[['480','499'],'MI'],
+    [['500','528'],'IA'],[['530','549'],'WI'],[['550','567'],'MN'],[['570','577'],'SD'],
+    [['580','588'],'ND'],[['590','599'],'MT'],[['600','629'],'IL'],[['630','658'],'MO'],
+    [['660','679'],'KS'],[['680','693'],'NE'],[['700','714'],'LA'],[['716','729'],'AR'],
+    [['730','749'],'OK'],[['750','799'],'TX'],[['800','816'],'CO'],[['820','831'],'WY'],
+    [['832','838'],'ID'],[['840','847'],'UT'],[['850','865'],'AZ'],[['870','884'],'NM'],
+    [['889','898'],'NV'],[['900','966'],'CA'],[['967','968'],'HI'],[['970','979'],'OR'],
+    [['980','994'],'WA'],[['995','999'],'AK'],
+  ];
+  const zip3StateFallback = (z) => {
+    const n = parseInt(z.slice(0, 3), 10);
+    const hit = ZIP3_STATE_RANGES.find(([[lo, hi]]) => n >= parseInt(lo, 10) && n <= parseInt(hi, 10));
+    return hit ? hit[1] : null;
+  };
+
   try {
-    // Use free zippopotam.us to get state from zip
-    const resp = await fetch(`https://api.zippopotam.us/us/${zip}`);
-    if (!resp.ok) {
-      return res.status(404).json({ error: 'Zip code not found', zip });
+    let state = null, city = null, stateName = null, source = '';
+
+    // Primary: zippopotam.us (gives exact city + state from the live API)
+    try {
+      const resp = await fetch(`https://api.zippopotam.us/us/${zip}`, {
+        signal: AbortSignal.timeout(4000),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        const place = data.places?.[0];
+        state     = place?.['state abbreviation'] || null;
+        city      = place?.['place name'] || null;
+        stateName = place?.state || null;
+        source    = 'zippopotam.us live lookup';
+      } else {
+        console.warn(`[Tax Lookup] zippopotam.us returned ${resp.status} for zip ${zip}`);
+      }
+    } catch (fetchErr) {
+      console.warn(`[Tax Lookup] zippopotam.us unreachable for zip ${zip}:`, fetchErr.message);
     }
-    const data = await resp.json();
-    const place = data.places?.[0];
-    const state = place?.['state abbreviation'];
-    const city  = place?.['place name'];
-    const rate  = STATE_TAX_RATES[state] ?? 0;
+
+    // Fallback: USPS ZIP-prefix-to-state table — used whenever the live
+    // lookup above failed or returned no usable state, so a single
+    // external provider outage never breaks the whole feature.
+    if (!state) {
+      state = zip3StateFallback(zip);
+      source = state ? 'ZIP-prefix fallback table (external lookup unavailable)' : '';
+      if (!state) {
+        console.error(`[Tax Lookup] No state resolved for zip ${zip} via live API or fallback table`);
+        return res.status(404).json({ error: 'Could not determine state for this zip code', zip });
+      }
+    }
+
+    const rate = STATE_TAX_RATES[state] ?? 0;
+    console.log(`[Tax Lookup] zip=${zip} → state=${state} rate=${rate}% (${source})`);
 
     res.json({
       zip,
       city,
       state,
-      state_name: place?.state,
+      state_name: stateName,
       tax_rate: rate,
-      source: 'US average combined state + local rate (2024)',
+      source: source + ' — US average combined state + local rate (2024)',
     });
   } catch (e) {
+    console.error(`[Tax Lookup] Unexpected error for zip ${zip}:`, e.message);
     res.status(500).json({ error: 'Tax lookup failed: ' + e.message });
   }
 });

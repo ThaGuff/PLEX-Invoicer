@@ -220,7 +220,9 @@ export default function PublicQuote() {
             </div>
           ))}
         </div>
-        <p style={{ fontSize:11, color:'#94A3B8' }}>Powered by Invoice King · PLEX Automation</p>
+        {quote.agency_plan !== 'agency' && (
+          <p style={{ fontSize:11, color:'#94A3B8' }}>Powered by Invoice King</p>
+        )}
       </div>
     </div>
   );

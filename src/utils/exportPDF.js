@@ -274,11 +274,21 @@ export function exportPDF(state) {
   const taxAmt     = tRate > 0 ? Math.round(setupFinal * (tRate / 100) * 100) / 100 : 0;
   const grandTotal = setupFinal + taxAmt;
 
-  // Dynamic totals card height
-  const extraRows = (setupDiscAmt > 0 ? 1 : 0) + (mthDiscAmt > 0 ? 1 : 0)
-    + (tRate > 0 ? 2 : 0)  // tax rate + grand total lines
-    + (billingMode === 'annual' && mthFinal > 0 ? 1 : 0);
-  const tH = (4 + extraRows) * 15 + 2 * 18 + 44;
+  // Dynamic totals card height — precisely counts every row in the new
+  // two-block layout (normal rows = 15pt, bold rows = 18pt, dividers = 12pt)
+  let normalRows = 1;          // One-time setup subtotal
+  let boldRows   = 1;          // TOTAL DUE TODAY
+  let dividers   = 1;          // divider before TOTAL DUE TODAY
+  if (setupDiscAmt > 0) normalRows += 1;
+  if (tRate > 0)        normalRows += 1;
+  if (mthSub > 0) {
+    dividers   += 1;            // divider before monthly block
+    normalRows += 1;            // Monthly subtotal
+    boldRows   += 1;            // MONTHLY RECURRING
+    if (mthDiscAmt > 0)               normalRows += 1; // Monthly discount
+    if (billingMode === 'annual')     normalRows += 1; // Annual commitment
+  }
+  const tH = normalRows * 15 + boldRows * 18 + dividers * 12 + 30;
   const tW = 224;
   const tx = W - MARGIN - tW;
   const noteLines = notes ? doc.splitTextToSize(notes, W - MARGIN * 2 - 24) : [];
@@ -309,21 +319,25 @@ export function exportPDF(state) {
     ty += bold ? 18 : 15;
   };
 
+  // ── SETUP block (fully self-contained: subtotal → discount → tax → grand total) ──
   trow('One-time setup subtotal', fmt(setupSub));
   if (setupDiscAmt > 0) trow('Setup discount', '−' + fmt(setupDiscAmt), false, accent);
-  if (mthSub > 0) trow('Monthly subtotal', fmt(mthSub));
-  if (mthDiscAmt > 0) trow('Monthly discount', '−' + fmt(mthDiscAmt), false, accent);
-  doc.setDrawColor(...BORDER); doc.setLineWidth(0.5);
-  doc.line(tx + 14, ty + 2, tx + tW - 14, ty + 2); ty += 12;
-  trow('Setup total', fmt(setupFinal), false, INK);
   if (tRate > 0) {
     trow('Tax (' + tRate.toFixed(2) + '%)', '+' + fmt(taxAmt), false, INK_MUTED);
-    trow('TOTAL DUE TODAY', fmt(grandTotal), true, accent);
-  } else {
-    trow('TOTAL DUE TODAY', fmt(setupFinal), true, accent);
   }
-  if (mthFinal > 0) trow('MONTHLY RECURRING', fmt(mthFinal) + '/mo', true, accent);
-  if (billingMode === 'annual' && mthFinal > 0) trow('Annual commitment', fmt(mthFinal * 12), false, INK_MUTED);
+  doc.setDrawColor(...BORDER); doc.setLineWidth(0.5);
+  doc.line(tx + 14, ty + 2, tx + tW - 14, ty + 2); ty += 12;
+  trow('TOTAL DUE TODAY', fmt(grandTotal), true, accent);
+
+  // ── MONTHLY block (fully self-contained, separated by its own divider) ──
+  if (mthSub > 0) {
+    doc.setDrawColor(...BORDER); doc.setLineWidth(0.5);
+    doc.line(tx + 14, ty + 2, tx + tW - 14, ty + 2); ty += 12;
+    trow('Monthly subtotal', fmt(mthSub));
+    if (mthDiscAmt > 0) trow('Monthly discount', '−' + fmt(mthDiscAmt), false, accent);
+    trow('MONTHLY RECURRING', fmt(mthFinal) + '/mo', true, accent);
+    if (billingMode === 'annual') trow('Annual commitment', fmt(mthFinal * 12), false, INK_MUTED);
+  }
 
   // Notes
   if (notes && noteLines.length) {

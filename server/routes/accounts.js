@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db/schema.js';
 import { requireAuth } from '../middleware/auth.js';
+import { deleteAccountData } from './admin.js';
 
 // Strip sensitive fields before sending account data to client
 function sanitizeAccount(acc) {
@@ -22,6 +23,18 @@ const router = Router();
 function isOwner(req) {
   const ownerEmail = process.env.PLEX_OWNER_EMAIL || 'guffey.ryan@gmail.com';
   return req.user?.email === ownerEmail || req.user?.id === 'dev-user';
+}
+
+// Verify the authenticated user owns or is a member of accountId.
+// Used by catalog section/item routes so requireAuth alone can't be
+// bypassed by passing another account's ID in the URL.
+async function assertAccountAccess(req, accountId) {
+  if (isOwner(req)) return true;
+  const access = await db.execute(
+    `SELECT id FROM accounts WHERE id = ? AND (owner_id = ? OR id IN (SELECT account_id FROM account_members WHERE user_id = ?))`,
+    [accountId, req.user.id, req.user.id]
+  );
+  return access.rows.length > 0;
 }
 
 // Enrich account rows with customSections and customItems
@@ -137,7 +150,7 @@ router.get('/:id', requireAuth, async (req, res) => {
 });
 
 // POST create account
-router.post('/', async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   try {
     const { name, email, phone, website, logo_initial, logo_url, primary_color, plan } = req.body;
     const id = `acc-${uuid()}`;
@@ -187,32 +200,29 @@ router.patch('/:id', requireAuth, async (req, res) => {
 router.delete('/:id', requireAuth, async (req, res) => {
   const id = req.params.id;
   if (id === 'plex-master') return res.status(403).json({ error: 'Cannot delete master account' });
+  // Verify the requester actually owns or is a member of this account —
+  // this route is user-facing (e.g. the AccountSwitcher trash icon), so
+  // it must not allow deleting an account just by knowing its ID.
+  if (!await assertAccountAccess(req, id)) return res.status(403).json({ error: 'Access denied' });
   try {
-    // Delete all child data first to avoid FK constraint errors
-    await db.execute(`DELETE FROM quote_items WHERE quote_id IN (SELECT id FROM quotes WHERE account_id = ?)`, [id]);
-    await db.execute(`DELETE FROM quotes WHERE account_id = ?`, [id]);
-    await db.execute(`DELETE FROM invoice_items WHERE invoice_id IN (SELECT id FROM invoices WHERE account_id = ?)`, [id]);
-    await db.execute(`DELETE FROM invoices WHERE account_id = ?`, [id]);
-    await db.execute(`DELETE FROM contacts WHERE account_id = ?`, [id]);
-    await db.execute(`DELETE FROM account_members WHERE account_id = ?`, [id]);
-    await db.execute(`DELETE FROM custom_items WHERE account_id = ?`, [id]).catch(() => {});
-    await db.execute(`DELETE FROM custom_sections WHERE account_id = ?`, [id]).catch(() => {});
-    await db.execute(`DELETE FROM calendar_events WHERE account_id = ?`, [id]).catch(() => {});
-    await db.execute(`DELETE FROM documents WHERE account_id = ?`, [id]).catch(() => {});
-    await db.execute(`DELETE FROM photos WHERE account_id = ?`, [id]).catch(() => {});
-    await db.execute(`DELETE FROM workspace_channels WHERE account_id = ?`, [id]).catch(() => {});
-    await db.execute(`DELETE FROM workspace_messages WHERE account_id = ?`, [id]).catch(() => {});
-    await db.execute(`DELETE FROM accounts WHERE id = ?`, [id]);
+    const result = await deleteAccountData(id);
+    if (!result.deleted) {
+      return res.status(500).json({
+        ok: false,
+        error: `Account data was cleared but the account record itself could not be deleted: ${result.blockedBy}`,
+      });
+    }
     res.json({ ok: true });
   } catch (e) {
     console.error('Delete account error:', e.message);
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: 'An internal error occurred while deleting the account.' });
   }
 });
 
 // ── Custom catalog: sections ─────────────────────────────────────
-router.post('/:id/sections', async (req, res) => {
+router.post('/:id/sections', requireAuth, async (req, res) => {
   try {
+    if (!await assertAccountAccess(req, req.params.id)) return res.status(403).json({ error: 'Access denied' });
     const id = `sec-${uuid()}`;
     const maxOrder = await db.execute(
       `SELECT COALESCE(MAX(sort_order),0) as m FROM custom_sections WHERE account_id = ?`, [req.params.id]
@@ -225,8 +235,9 @@ router.post('/:id/sections', async (req, res) => {
   } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
-router.patch('/:id/sections/:sid', async (req, res) => {
+router.patch('/:id/sections/:sid', requireAuth, async (req, res) => {
   try {
+    if (!await assertAccountAccess(req, req.params.id)) return res.status(403).json({ error: 'Access denied' });
     const updates = []; const vals = [];
     if (req.body.label !== undefined) { updates.push('label = ?'); vals.push(req.body.label); }
     if (req.body.sort_order !== undefined) { updates.push('sort_order = ?'); vals.push(req.body.sort_order); }
@@ -238,16 +249,18 @@ router.patch('/:id/sections/:sid', async (req, res) => {
   } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
-router.delete('/:id/sections/:sid', async (req, res) => {
+router.delete('/:id/sections/:sid', requireAuth, async (req, res) => {
   try {
+    if (!await assertAccountAccess(req, req.params.id)) return res.status(403).json({ error: 'Access denied' });
     await db.execute(`DELETE FROM custom_sections WHERE id = ? AND account_id = ?`, [req.params.sid, req.params.id]);
     res.json({ ok: true });
   } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
 // ── Custom catalog: items ────────────────────────────────────────
-router.post('/:id/items', async (req, res) => {
+router.post('/:id/items', requireAuth, async (req, res) => {
   try {
+    if (!await assertAccountAccess(req, req.params.id)) return res.status(403).json({ error: 'Access denied' });
     const id = `item-${uuid()}`;
     const { section_id, name, description, setup_price, monthly_price } = req.body;
     const maxOrder = await db.execute(
@@ -265,8 +278,9 @@ router.post('/:id/items', async (req, res) => {
   } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
-router.patch('/:id/items/:iid', async (req, res) => {
+router.patch('/:id/items/:iid', requireAuth, async (req, res) => {
   try {
+    if (!await assertAccountAccess(req, req.params.id)) return res.status(403).json({ error: 'Access denied' });
     const fields = ['name', 'description', 'setup_price', 'monthly_price', 'sort_order'];
     const updates = []; const vals = [];
     fields.forEach(f => { if (req.body[f] !== undefined) { updates.push(`${f} = ?`); vals.push(req.body[f]); } });
@@ -278,8 +292,9 @@ router.patch('/:id/items/:iid', async (req, res) => {
   } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }
 });
 
-router.delete('/:id/items/:iid', async (req, res) => {
+router.delete('/:id/items/:iid', requireAuth, async (req, res) => {
   try {
+    if (!await assertAccountAccess(req, req.params.id)) return res.status(403).json({ error: 'Access denied' });
     await db.execute(`DELETE FROM custom_items WHERE id = ? AND account_id = ?`, [req.params.iid, req.params.id]);
     res.json({ ok: true });
   } catch (e) { console.error('[API Error]', e.message); res.status(500).json({ error: 'An internal error occurred. Please try again.' }); }

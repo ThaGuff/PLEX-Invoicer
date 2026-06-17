@@ -589,6 +589,80 @@ router.post('/user/:id/set-plan', async (req, res) => {
 });
 
 // ── Delete user account ───────────────────────────────────────────
+// Helper: delete all data for a single account_id, silently ignoring missing
+// tables EXCEPT the final accounts delete, which is verified explicitly.
+// Returns { deleted: boolean, blockedBy: string|null } so callers can tell
+// whether the account row actually disappeared, instead of assuming success.
+export const deleteAccountData = async (aId) => {
+  const safe = (q, p) => db.execute(q, p).catch(err => {
+    console.warn(`[admin delete] skipped: ${err.message.split('\n')[0]}`);
+  });
+  // Child records first (FK order)
+  await safe(`DELETE FROM quote_items WHERE quote_id IN (SELECT id FROM quotes WHERE account_id = ?)`, [aId]);
+  await safe(`DELETE FROM invoice_items WHERE invoice_id IN (SELECT id FROM invoices WHERE account_id = ?)`, [aId]);
+  await safe(`DELETE FROM custom_items WHERE section_id IN (SELECT id FROM custom_sections WHERE quote_id IN (SELECT id FROM quotes WHERE account_id = ?))`, [aId]);
+  await safe(`DELETE FROM custom_sections WHERE quote_id IN (SELECT id FROM quotes WHERE account_id = ?)`, [aId]);
+  await safe(`DELETE FROM quotes WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM invoices WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM contact_notes WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM contact_tasks WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM contact_custom_values WHERE contact_id IN (SELECT id FROM contacts WHERE account_id = ?)`, [aId]);
+  await safe(`DELETE FROM contacts WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM calendar_events WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM documents WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM photos WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM time_entries WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM time_projects WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM reminders WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM smart_reminders WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM webhook_rules WHERE account_id = ?`, [aId]);
+  // automation_runs and automation_steps reference automation_sequences(id)
+  // with NO cascade — they MUST be deleted before automation_sequences, or
+  // the sequences delete throws a foreign key violation that the original
+  // code silently swallowed. automation_runs also has no account_id column
+  // at all (only sequence_id), so it must be deleted via a subquery join,
+  // not a direct account_id filter — the original direct filter threw
+  // "column account_id does not exist" on every single call.
+  await safe(`DELETE FROM automation_runs WHERE sequence_id IN (SELECT id FROM automation_sequences WHERE account_id = ?)`, [aId]);
+  await safe(`DELETE FROM automation_steps WHERE sequence_id IN (SELECT id FROM automation_sequences WHERE account_id = ?)`, [aId]);
+  await safe(`DELETE FROM automation_sequences WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM invoice_engagement WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM payment_behavior WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM fee_rules WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM cashflow_cache WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM analytics_events WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM google_calendar_tokens WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM workspace_messages WHERE channel_id IN (SELECT id FROM workspace_channels WHERE account_id = ?)`, [aId]);
+  await safe(`DELETE FROM workspace_attachments WHERE channel_id IN (SELECT id FROM workspace_channels WHERE account_id = ?)`, [aId]);
+  await safe(`DELETE FROM workspace_channels WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM notification_log WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM account_members WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM referrals WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM contact_saved_views WHERE account_id = ?`, [aId]);
+  await safe(`DELETE FROM contact_custom_fields WHERE account_id = ?`, [aId]);
+
+  // Final delete is NOT wrapped in safe() — if this throws (e.g. an
+  // unforeseen FK still blocking it), the error must surface, not vanish.
+  let deleteError = null;
+  try {
+    await db.execute(`DELETE FROM accounts WHERE id = ?`, [aId]);
+  } catch (e) {
+    deleteError = e.message;
+    console.error(`[admin delete] FAILED to delete account ${aId}:`, e.message);
+  }
+
+  // Explicitly verify the row is actually gone rather than trusting the
+  // DELETE call's lack of an exception — this is the check that was
+  // missing entirely before, which let the route report "deleted: true"
+  // even when the account row was still sitting in the database.
+  const check = await db.execute(`SELECT id FROM accounts WHERE id = ?`, [aId]);
+  const stillExists = check.rows.length > 0;
+  return {
+    deleted: !stillExists,
+    blockedBy: stillExists ? (deleteError || 'unknown — account row still exists after delete attempt') : null,
+  };
+};
+
 router.delete('/user/:userId', async (req, res) => {
   const { userId } = req.params;
   const { accountId } = req.body; // optional: delete specific account only
@@ -598,54 +672,17 @@ router.delete('/user/:userId', async (req, res) => {
     return res.status(403).json({ error: 'Cannot delete this account' });
   }
 
-  // Helper: delete all data for a single account_id, silently ignoring missing tables
-  const deleteAccountData = async (aId) => {
-    const safe = (q, p) => db.execute(q, p).catch(err => {
-      console.warn(`[admin delete] skipped: ${err.message.split('\n')[0]}`);
-    });
-    // Child records first (FK order)
-    await safe(`DELETE FROM quote_items WHERE quote_id IN (SELECT id FROM quotes WHERE account_id = ?)`, [aId]);
-    await safe(`DELETE FROM invoice_items WHERE invoice_id IN (SELECT id FROM invoices WHERE account_id = ?)`, [aId]);
-    await safe(`DELETE FROM custom_items WHERE section_id IN (SELECT id FROM custom_sections WHERE quote_id IN (SELECT id FROM quotes WHERE account_id = ?))`, [aId]);
-    await safe(`DELETE FROM custom_sections WHERE quote_id IN (SELECT id FROM quotes WHERE account_id = ?)`, [aId]);
-    await safe(`DELETE FROM quotes WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM invoices WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM contact_notes WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM contact_tasks WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM contact_custom_values WHERE contact_id IN (SELECT id FROM contacts WHERE account_id = ?)`, [aId]);
-    await safe(`DELETE FROM contacts WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM calendar_events WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM documents WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM photos WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM time_entries WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM time_projects WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM reminders WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM smart_reminders WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM webhook_rules WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM automation_sequences WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM automation_steps WHERE sequence_id IN (SELECT id FROM automation_sequences WHERE account_id = ?)`, [aId]);
-    await safe(`DELETE FROM automation_runs WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM invoice_engagement WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM payment_behavior WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM fee_rules WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM cashflow_cache WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM analytics_events WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM google_calendar_tokens WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM workspace_messages WHERE channel_id IN (SELECT id FROM workspace_channels WHERE account_id = ?)`, [aId]);
-    await safe(`DELETE FROM workspace_attachments WHERE channel_id IN (SELECT id FROM workspace_channels WHERE account_id = ?)`, [aId]);
-    await safe(`DELETE FROM workspace_channels WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM notification_log WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM account_members WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM referrals WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM contact_saved_views WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM contact_custom_fields WHERE account_id = ?`, [aId]);
-    await safe(`DELETE FROM accounts WHERE id = ?`, [aId]);
-  };
-
   try {
     if (accountId) {
       if (accountId === 'plex-master') return res.status(403).json({ error: 'Cannot delete master account' });
-      await deleteAccountData(accountId);
+      const result = await deleteAccountData(accountId);
+      if (!result.deleted) {
+        return res.status(500).json({
+          ok: false,
+          error: `Account data was cleared but the account record itself could not be deleted: ${result.blockedBy}`,
+          accountId,
+        });
+      }
       return res.json({ ok: true, deleted: 'account', accountId });
     }
 
@@ -654,8 +691,19 @@ router.delete('/user/:userId', async (req, res) => {
     const userAccounts = await db.execute(
       `SELECT id FROM accounts WHERE owner_id = ? AND id != 'plex-master'`, [userId]
     );
+    const failedAccounts = [];
     for (const a of userAccounts.rows) {
-      await deleteAccountData(a.id);
+      const result = await deleteAccountData(a.id);
+      if (!result.deleted) failedAccounts.push({ accountId: a.id, reason: result.blockedBy });
+    }
+    if (failedAccounts.length > 0) {
+      console.error('[admin delete] Some accounts failed to delete:', failedAccounts);
+      return res.status(500).json({
+        ok: false,
+        error: 'Some account data was cleared but not all account records could be deleted.',
+        failedAccounts,
+        accountsDeleted: userAccounts.rows.length - failedAccounts.length,
+      });
     }
     // Remove from team memberships in other accounts
     await db.execute(`DELETE FROM account_members WHERE user_id = ?`, [userId]).catch(() => {});
@@ -679,22 +727,26 @@ router.delete('/user/:userId', async (req, res) => {
 
 
 // ── Delete specific account (not the Supabase user) ──────────────
+// Delegates to the same deleteAccountData() helper used by the primary
+// /user/:userId route above, so there is only one source of truth for
+// what "delete an account" actually means. The previous version of this
+// route had its own incomplete copy of the deletion logic (missing
+// automations, time tracking, reminders, and more) and would throw an
+// unhandled foreign key violation on any account with automation data.
 router.delete('/account/:accountId', async (req, res) => {
   const { accountId } = req.params;
   if (!accountId || accountId === 'plex-master') {
     return res.status(403).json({ error: 'Cannot delete this account' });
   }
   try {
-    await db.execute(`DELETE FROM quote_items WHERE quote_id IN (SELECT id FROM quotes WHERE account_id = ?)`, [accountId]);
-    await db.execute(`DELETE FROM quotes WHERE account_id = ?`, [accountId]);
-    await db.execute(`DELETE FROM invoice_items WHERE invoice_id IN (SELECT id FROM invoices WHERE account_id = ?)`, [accountId]);
-    await db.execute(`DELETE FROM invoices WHERE account_id = ?`, [accountId]);
-    await db.execute(`DELETE FROM contacts WHERE account_id = ?`, [accountId]);
-    await db.execute(`DELETE FROM account_members WHERE account_id = ?`, [accountId]);
-    await db.execute(`DELETE FROM calendar_events WHERE account_id = ?`, [accountId]);
-    await db.execute(`DELETE FROM documents WHERE account_id = ?`, [accountId]);
-    await db.execute(`DELETE FROM photos WHERE account_id = ?`, [accountId]);
-    await db.execute(`DELETE FROM accounts WHERE id = ?`, [accountId]);
+    const result = await deleteAccountData(accountId);
+    if (!result.deleted) {
+      return res.status(500).json({
+        ok: false,
+        error: `Account data was cleared but the account record itself could not be deleted: ${result.blockedBy}`,
+        accountId,
+      });
+    }
     res.json({ ok: true, deleted: 'account', accountId });
   } catch (e) {
     console.error('Delete account error:', e.message);

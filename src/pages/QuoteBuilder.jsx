@@ -481,6 +481,7 @@ export default function QuoteBuilder() {
   const [taxZip, setTaxZip]               = useState('');
   const [taxLooking, setTaxLooking]       = useState(false);
   const [taxLookupResult, setTaxLookupResult] = useState(null);
+  const [taxLookupError, setTaxLookupError] = useState('');
 
   // Quote template state
   const [selectedTemplate, setSelectedTemplate] = useState('');
@@ -652,16 +653,20 @@ export default function QuoteBuilder() {
     if (taxZip.length !== 5) return;
     setTaxLooking(true);
     setTaxLookupResult(null);
-    // Timeout after 5 seconds — never block the user from saving
-    const timeoutId = setTimeout(() => setTaxLooking(false), 5000);
+    setTaxLookupError('');
+    // Timeout after 6 seconds — never block the user from saving
+    const timeoutId = setTimeout(() => setTaxLooking(false), 6000);
     try {
       const result = await api.tax.lookup(taxZip);
       if (result?.tax_rate != null) {
         setTaxLookupResult(result);
         setTaxRate(result.tax_rate);
+      } else {
+        setTaxLookupError('Lookup returned no rate for that zip code.');
       }
     } catch (e) {
-      // Fail silently — user can enter rate manually
+      // Surface the failure instead of silently leaving the old rate in place
+      setTaxLookupError(e?.message || 'Tax lookup failed. You can enter the rate manually below.');
     } finally {
       clearTimeout(timeoutId);
       setTaxLooking(false);
@@ -1277,6 +1282,14 @@ export default function QuoteBuilder() {
               {taxLookupResult && (
                 <p className="text-xs text-green-700 mb-2 px-2 py-1 rounded" style={{ background: '#f0fdf4' }}>
                   📍 {taxLookupResult.city}, {taxLookupResult.state} — {taxLookupResult.tax_rate}% avg rate
+                  {taxLookupResult.source?.includes('fallback') && (
+                    <span className="block text-[10px] text-amber-700 mt-0.5">Using offline ZIP table — live lookup was unavailable.</span>
+                  )}
+                </p>
+              )}
+              {taxLookupError && (
+                <p className="text-xs text-red-700 mb-2 px-2 py-1 rounded" style={{ background: '#fef2f2' }}>
+                  ⚠ {taxLookupError}
                 </p>
               )}
               <div className="flex items-center gap-2 mb-2">

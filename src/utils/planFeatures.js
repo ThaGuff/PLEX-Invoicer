@@ -122,7 +122,7 @@ export function getUpgradeMessage(feature) {
     custom_branding:    'Custom branding is available on Pro and Agency plans.',
     quotes_per_month:   'You\'ve reached your monthly quote limit. Upgrade to Pro for 100/month.',
     invoices_per_month: 'You\'ve reached your monthly invoice limit. Upgrade to Pro for 100/month.',
-    accounts:           'You\'ve reached your account limit. Upgrade to Pro for 5 client accounts.',
+    accounts:           'Managing multiple client accounts requires the Agency plan.',
     payment_processing: 'Credit card and bank account processing requires Pro or Agency.',
   };
   return messages[feature] || 'This feature requires a higher plan.';

@@ -122,7 +122,8 @@ function StepBar({ step }) {
 }
 
 // ── Powered-by footer ──────────────────────────────────────────────────────
-function PoweredBy() {
+function PoweredBy({ whiteLabel }) {
+  if (whiteLabel) return null;
   return (
     <div style={{ textAlign:'center', marginTop:32, paddingTop:20, borderTop:`1px solid ${BORDER}` }}>
       <div style={{ display:'inline-flex', alignItems:'center', gap:7, opacity:0.65 }}>
@@ -315,7 +316,7 @@ export default function PublicInvoice() {
           </div>
         </div>
 
-        <PoweredBy/>
+        <PoweredBy whiteLabel={invoice?.agency_plan === 'agency'}/>
       </div>
     </div>
   );
@@ -457,7 +458,7 @@ export default function PublicInvoice() {
           Your signature will be legally binding under the E-SIGN Act (15 U.S.C. § 7001).
         </p>
 
-        <PoweredBy/>
+        <PoweredBy whiteLabel={invoice?.agency_plan === 'agency'}/>
       </div>
     </div>
   );
@@ -546,7 +547,7 @@ export default function PublicInvoice() {
           ← Back to review
         </button>
 
-        <PoweredBy/>
+        <PoweredBy whiteLabel={invoice?.agency_plan === 'agency'}/>
       </div>
     </div>
   );

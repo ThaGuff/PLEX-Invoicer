@@ -6,7 +6,7 @@
  * Disappears completely once subscription is active.
  */
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { X, Zap, Clock, AlertTriangle, Gift, ArrowRight, RefreshCw } from 'lucide-react';
 import { useSubscription } from '../hooks/useSubscription';
 import { useAccount } from '../context/AccountContext';
@@ -50,7 +50,7 @@ function WinbackOffer({ onDismiss }) {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <button onClick={claimOffer} disabled={loading}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', background: GRAD, color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 16px rgba(59,111,232,0.4)', opacity: loading ? 0.7 : 1, fontFamily: "'Inter', sans-serif" }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', background: GRAD, color: '#0A0F13', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 16px rgba(198,228,4,0.35)', opacity: loading ? 0.7 : 1, fontFamily: "'Inter', sans-serif" }}>
             {loading ? <RefreshCw size={13} style={{ animation: 'spin 0.7s linear infinite' }} /> : <Gift size={13} />}
             {loading ? 'Loading…' : 'Claim offer'}
           </button>
@@ -71,13 +71,13 @@ function TrialCountdown({ daysLeft, onDismiss }) {
   const bgColor = isUrgent
     ? '#1A1A1A'
     : '#1A1A1A';
-  const borderColor = isUrgent ? 'rgba(239,68,68,0.4)' : 'rgba(59,111,232,0.3)';
+  const borderColor = isUrgent ? 'rgba(239,68,68,0.4)' : 'rgba(198,228,4,0.25)';
   const accentColor = isUrgent ? '#ef4444' : '#C6E404';
 
   return (
     <div style={{ background: bgColor, borderBottom: `1px solid ${borderColor}` }}>
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-        <div style={{ width: 34, height: 34, borderRadius: 9, background: isUrgent ? 'rgba(239,68,68,0.2)' : 'rgba(59,111,232,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: `1px solid ${accentColor}44` }}>
+        <div style={{ width: 34, height: 34, borderRadius: 9, background: isUrgent ? 'rgba(239,68,68,0.2)' : 'rgba(198,228,4,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: `1px solid ${accentColor}44` }}>
           {isUrgent ? <AlertTriangle size={16} color={accentColor} /> : <Clock size={16} color={accentColor} />}
         </div>
         <div style={{ flex: 1, minWidth: 180 }}>
@@ -94,7 +94,7 @@ function TrialCountdown({ daysLeft, onDismiss }) {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <button onClick={() => navigate('/billing')}
-            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: GRAD, color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: `0 4px 14px ${accentColor}44`, fontFamily: "'Inter', sans-serif" }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: GRAD, color: '#0A0F13', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: `0 4px 14px ${accentColor}44`, fontFamily: "'Inter', sans-serif" }}>
             <Zap size={13} /> Subscribe now <ArrowRight size={12} />
           </button>
           <button onClick={onDismiss}
@@ -107,8 +107,17 @@ function TrialCountdown({ daysLeft, onDismiss }) {
   );
 }
 
-function ExpiredWall() {
+function ExpiredWall({ onBillingPage }) {
   const navigate = useNavigate();
+
+  // Critical fix: never render the blocking full-screen overlay while the
+  // user is already on /billing — otherwise there is no way to click
+  // "choose a plan" because this overlay sits on top of the billing page
+  // itself at zIndex 200 and intercepts every click. Previously the only
+  // workaround was logging out and removing/reinstalling the PWA, which
+  // reset enough state to temporarily avoid the isExpired condition.
+  if (onBillingPage) return null;
+
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(11,18,32,0.92)', backdropFilter: 'blur(8px)', fontFamily: "'Inter', sans-serif", padding: 20 }}>
       <div style={{ maxWidth: 440, width: '100%', textAlign: 'center' }}>
@@ -123,7 +132,7 @@ function ExpiredWall() {
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <button onClick={() => navigate('/billing')}
-            style={{ width: '100%', padding: '14px 20px', background: GRAD, color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 28px rgba(59,111,232,0.4)', fontFamily: "'Inter', sans-serif" }}>
+            style={{ width: '100%', padding: '14px 20px', background: GRAD, color: '#0A0F13', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 28px rgba(198,228,4,0.35)', fontFamily: "'Inter', sans-serif" }}>
             Choose a plan — from $19/month
           </button>
           <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
@@ -138,18 +147,25 @@ function ExpiredWall() {
 export default function TrialBanner() {
   const { isActive, isExpired, showUpsellBanner, showCancelOffer, daysLeft } = useSubscription();
   const [dismissed, setDismissed] = useState(false);
+  const location = useLocation();
+  const onBillingPage = location.pathname.startsWith('/billing');
 
   // Never show anything for active subscribers
   if (isActive) return null;
 
-  // Expired trial — show blocking wall
-  if (isExpired) return <ExpiredWall />;
+  // Expired trial — show blocking wall, EXCEPT when already on the billing
+  // page (otherwise the user has no way to click "choose a plan" — this
+  // was the root cause of the reported bug: the overlay sat on top of the
+  // billing page itself and intercepted every click).
+  if (isExpired) return <ExpiredWall onBillingPage={onBillingPage} />;
 
-  // Cancelled — show win-back offer (can't dismiss, comes back on reload)
-  if (showCancelOffer) return <WinbackOffer onDismiss={() => setDismissed(true)} />;
+  // Cancelled — show win-back offer (can't dismiss, comes back on reload).
+  // Suppressed on the billing page itself so it doesn't compete with the
+  // page's own plan-selection UI directly below it.
+  if (showCancelOffer && !onBillingPage) return <WinbackOffer onDismiss={() => setDismissed(true)} />;
 
   // Trial with ≤ 3 days left — show countdown banner
-  if (showUpsellBanner && !dismissed) {
+  if (showUpsellBanner && !dismissed && !onBillingPage) {
     return <TrialCountdown daysLeft={daysLeft} onDismiss={() => setDismissed(true)} />;
   }
 

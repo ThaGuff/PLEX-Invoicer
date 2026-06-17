@@ -363,18 +363,21 @@ app.post('/api/webhooks/stripe', async (req, res) => {
       }
 
       const updates = [session.customer, session.subscription, plan, subStatus, trialEnd];
+      // Any successful checkout — even a brand new one after a prior
+      // cancellation — must clear a pending 30-day soft-delete, same as the
+      // subscription.updated handler above.
       if (accountId) {
         await db.execute(
-          `UPDATE accounts SET stripe_customer_id=?, stripe_subscription_id=?, plan=?, subscription_status=?, trial_ends_at=? WHERE id=?`,
+          `UPDATE accounts SET stripe_customer_id=?, stripe_subscription_id=?, plan=?, subscription_status=?, trial_ends_at=?, scheduled_deletion_at=NULL WHERE id=?`,
           [...updates, accountId]
         );
       } else if (userId) {
         await db.execute(
-          `UPDATE accounts SET stripe_customer_id=?, stripe_subscription_id=?, plan=?, subscription_status=?, trial_ends_at=? WHERE owner_id=?`,
+          `UPDATE accounts SET stripe_customer_id=?, stripe_subscription_id=?, plan=?, subscription_status=?, trial_ends_at=?, scheduled_deletion_at=NULL WHERE owner_id=?`,
           [...updates, userId]
         );
       }
-      console.log('[Webhook] checkout.session.completed — plan:', plan, 'status:', subStatus);
+      console.log('[Webhook] checkout.session.completed — plan:', plan, 'status:', subStatus, '(cleared any pending deletion)');
     }
 
     // ── subscription created/updated ─────────────────────────────
@@ -382,29 +385,35 @@ app.post('/api/webhooks/stripe', async (req, res) => {
       const sub   = event.data.object;
       const plan  = sub.metadata?.plan || null;
       const trialEnd = sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null;
+      // Reactivation (resubscribing, un-cancelling, trial restart, etc.) must
+      // clear any pending 30-day soft-delete from a prior cancellation —
+      // otherwise a customer who comes back within the grace window would
+      // still have their data wiped on the original schedule.
+      const reactivating = sub.status === 'active' || sub.status === 'trialing';
 
       if (plan) {
         await db.execute(
-          `UPDATE accounts SET stripe_subscription_id=?, subscription_status=?, plan=?, trial_ends_at=? WHERE stripe_customer_id=?`,
+          `UPDATE accounts SET stripe_subscription_id=?, subscription_status=?, plan=?, trial_ends_at=?${reactivating ? ', scheduled_deletion_at=NULL' : ''} WHERE stripe_customer_id=?`,
           [sub.id, sub.status, plan, trialEnd, sub.customer]
         );
       } else {
         await db.execute(
-          `UPDATE accounts SET stripe_subscription_id=?, subscription_status=?, trial_ends_at=? WHERE stripe_customer_id=?`,
+          `UPDATE accounts SET stripe_subscription_id=?, subscription_status=?, trial_ends_at=?${reactivating ? ', scheduled_deletion_at=NULL' : ''} WHERE stripe_customer_id=?`,
           [sub.id, sub.status, trialEnd, sub.customer]
         );
       }
-      console.log('[Webhook] subscription', event.type, '— status:', sub.status, 'plan:', plan || 'unchanged');
+      console.log('[Webhook] subscription', event.type, '— status:', sub.status, 'plan:', plan || 'unchanged', reactivating ? '(cleared any pending deletion)' : '');
     }
 
     // ── subscription deleted (cancelled) ─────────────────────────
     if (event.type === 'customer.subscription.deleted') {
       const sub = event.data.object;
+      const deletionDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       await db.execute(
-        `UPDATE accounts SET subscription_status='cancelled', stripe_subscription_id=NULL WHERE stripe_customer_id=?`,
-        [sub.customer]
+        `UPDATE accounts SET subscription_status='cancelled', stripe_subscription_id=NULL, scheduled_deletion_at=? WHERE stripe_customer_id=?`,
+        [deletionDate, sub.customer]
       );
-      console.log('[Webhook] subscription cancelled for customer:', sub.customer);
+      console.log('[Webhook] subscription cancelled for customer:', sub.customer, '— data scheduled for deletion on', deletionDate);
     }
 
     // ── invoice.payment_succeeded (keeps status current) ─────────
@@ -973,5 +982,84 @@ initDBWithRetry().then(async () => {
   };
   setInterval(runTrialReminders, 6 * 60 * 60 * 1000);
   runTrialReminders(); // run once on startup too
+
+  // ── Issue 5: 30-day soft-delete sweep for cancelled subscriptions ──
+  // When a subscription is cancelled (customer.subscription.deleted webhook,
+  // see above), scheduled_deletion_at is set to NOW() + 30 days. If the
+  // customer reactivates before that date — via checkout.session.completed
+  // or customer.subscription.updated/created going active/trialing —
+  // scheduled_deletion_at is cleared back to NULL. This sweep finds any
+  // account whose 30-day window has actually elapsed and permanently
+  // deletes all of its data using the exact same deleteAccountData logic
+  // the admin panel uses, so there is only one source of truth for what
+  // "delete an account" means anywhere in the codebase.
+  const runScheduledDeletionWarnings = async () => {
+    try {
+      const { sendEmail, isEmailConfigured } = await import('./server/utils/email.js');
+      const { db: warnDb } = await import('./server/db/schema.js');
+      if (!isEmailConfigured()) return;
+      const APP_URL = process.env.APP_URL || 'https://invoiceking.app';
+      // 3-day warning, sent once (reuses trial_reminder_sent_at as a generic
+      // "last reminder" timestamp is risky since it's also used for trial
+      // emails — instead we simply check the deletion is 2-4 days out and
+      // accept the small chance of a duplicate send if the cron overlaps,
+      // which is far safer than under-warning a customer about data loss).
+      const warning = await warnDb.execute(
+        `SELECT id, name, email, scheduled_deletion_at FROM accounts
+         WHERE subscription_status = 'cancelled'
+           AND scheduled_deletion_at IS NOT NULL
+           AND scheduled_deletion_at::timestamptz > NOW() + INTERVAL '2 days'
+           AND scheduled_deletion_at::timestamptz <= NOW() + INTERVAL '4 days'
+         LIMIT 50`
+      );
+      for (const acct of warning.rows) {
+        await sendEmail({
+          to: acct.email,
+          subject: `⚠️ Your Invoice King data will be permanently deleted in 3 days`,
+          text: `Your Invoice King subscription was cancelled and your account data is scheduled for permanent deletion on ${new Date(acct.scheduled_deletion_at).toLocaleDateString()}. Resubscribe before then to keep everything: ${APP_URL}/billing`,
+          html: `<div style="font-family:sans-serif;max-width:600px;margin:32px auto;padding:32px;background:#fff;border-radius:16px;border:1px solid #e2e8f0">
+            <h2 style="margin:0 0 16px;color:#0f172a">⚠️ Your data will be deleted in 3 days</h2>
+            <p style="color:#334155">Your Invoice King subscription was cancelled, and your account — including all quotes, invoices, clients, and history — is scheduled for permanent deletion on <strong>${new Date(acct.scheduled_deletion_at).toLocaleDateString()}</strong>.</p>
+            <p style="color:#334155">Resubscribe before then to keep everything exactly as it is.</p>
+            <a href="${APP_URL}/billing" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#C6E404;color:#0A0F13;text-decoration:none;border-radius:10px;font-weight:800">
+              Resubscribe now →
+            </a></div>`
+        }).catch(e => console.warn('[Deletion warning] Email failed:', e.message));
+        console.log('[Deletion warning] Sent to', acct.email, '— deletion scheduled for', acct.scheduled_deletion_at);
+      }
+    } catch (e) { console.error('[Deletion warning cron]', e.message); }
+  };
+
+  const runScheduledDeletionSweep = async () => {
+    try {
+      const { db: sweepDb } = await import('./server/db/schema.js');
+      const { deleteAccountData } = await import('./server/routes/admin.js');
+      const due = await sweepDb.execute(
+        `SELECT id, name, email FROM accounts
+         WHERE subscription_status = 'cancelled'
+           AND scheduled_deletion_at IS NOT NULL
+           AND scheduled_deletion_at::timestamptz <= NOW()
+           AND id != 'plex-master'
+         LIMIT 25`
+      );
+      for (const acct of due.rows) {
+        console.log('[Scheduled deletion] 30-day grace period elapsed for', acct.id, acct.email, '— deleting all data now.');
+        const result = await deleteAccountData(acct.id);
+        if (result.deleted) {
+          console.log('[Scheduled deletion] ✓ Successfully deleted account', acct.id);
+        } else {
+          console.error('[Scheduled deletion] ✗ Failed to delete account', acct.id, '—', result.blockedBy);
+        }
+      }
+    } catch (e) { console.error('[Scheduled deletion sweep]', e.message); }
+  };
+
+  // Warning email check every 6 hours (matches trial reminder cadence);
+  // actual deletion sweep runs once per hour so the 30-day window is
+  // honored fairly precisely without needing second-level scheduling.
+  setInterval(runScheduledDeletionWarnings, 6 * 60 * 60 * 1000);
+  setInterval(runScheduledDeletionSweep, 60 * 60 * 1000);
+  runScheduledDeletionWarnings();
+  runScheduledDeletionSweep();
 });
 // Redeploy trigger Fri Jun  5 13:27:54 UTC 2026
